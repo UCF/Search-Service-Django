@@ -26,6 +26,14 @@ class CollegeAdmin(admin.ModelAdmin):
 class DepartmentAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(ProgramProfileType)
+class ProgramProfileTypeAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(ProgramProfile)
+class ProgramProfileAdmin(admin.ModelAdmin):
+    pass
+
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
     pass

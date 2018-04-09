@@ -10,17 +10,35 @@ class Level(models.Model):
     """
     name = models.CharField(max_length=255, null=False, blank=False)
 
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
 class Career(models.Model):
     """
     The career level of a degree, e.g. Undergraduate, Graduate
     """
     name = models.CharField(max_length=255, null=False, blank=False)
 
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
 class Degree(models.Model):
     """
     The degree name conferred by a program, e.g. Bachelor of Science
     """
     name = models.CharField(max_length=255, null=False, blank=False)
+
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
 
 class College(models.Model):
     """
@@ -31,6 +49,12 @@ class College(models.Model):
     college_url = models.URLField(null=True, blank=True)
     profile_url = models.URLField(null=True, blank=True)
 
+    def __str__(self):
+        return self.full_name
+
+    def __unicode__(self):
+        return self.full_name
+
 class Department(models.Model):
     """
     A department, including name and url
@@ -39,6 +63,12 @@ class Department(models.Model):
     department_url = models.CharField(max_length=255, null=True, blank=True)
     school = models.BooleanField(default=False, null=False, blank=False)
 
+    def __str__(self):
+        return self.full_name
+
+    def __unicode__(self):
+        return self.full_name
+
 class ProgramProfileType(models.Model):
     """
     Types of program profiles, e.g. Main Site, UCF Online
@@ -46,13 +76,11 @@ class ProgramProfileType(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     root_url = models.URLField(null=False, blank=False)
 
-class ProgramProfile(models.Model):
-    """
-    URLs to specific profile pages for programs
-    """
-    profile_type = models.ForeignKey(ProgramProfileType)
-    url = models.URLField(null=False, blank=False)
-    primary = models.BooleanField(default=False, null=False, blank=False)
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
 
 class Program(models.Model):
     """
@@ -67,7 +95,12 @@ class Program(models.Model):
     level = models.ForeignKey(Level)
     career = models.ForeignKey(Career)
     degree = models.ForeignKey(Degree)
-    program_profiles = models.ManyToManyField(ProgramProfile)
+
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
 
     @property
     def program_code(self):
@@ -79,3 +112,18 @@ class Program(models.Model):
     @property
     def primary_profile_url(self):
         return self.program_profiles.get(primary=True)
+
+class ProgramProfile(models.Model):
+    """
+    URLs to specific profile pages for programs
+    """
+    profile_type = models.ForeignKey(ProgramProfileType)
+    url = models.URLField(null=False, blank=False)
+    primary = models.BooleanField(default=False, null=False, blank=False)
+    program = models.ForeignKey(Program, null=False, blank=False)
+
+    def __str__(self):
+        return '{0} {1}'.format(self.program.name, self.profile_type.name)
+
+    def __unicode__(self):
+        return '{0} {1}'.format(self.program.name, self.profile_type.name)
