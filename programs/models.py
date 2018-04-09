@@ -21,6 +21,7 @@ class Career(models.Model):
     The career level of a degree, e.g. Undergraduate, Graduate
     """
     name = models.CharField(max_length=255, null=False, blank=False)
+    abbr = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.name
