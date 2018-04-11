@@ -37,7 +37,9 @@ class Command(BaseCommand):
 
         # Handle Career
         career = self.career_mappings[data['Career']]
-        career, created = Career.objects.get_or_create(name=career, abbr=data['Career'])
+        career, created = Career.objects.get_or_create(
+            name=career, abbr=data['Career']
+        )
 
         program.career = career
 
@@ -49,7 +51,9 @@ class Command(BaseCommand):
         program.level = level
 
         # Handle degree
-        degree, created = Degree.objects.get_or_create(name=data['Meta Data'][0]['Degree'])
+        degree, created = Degree.objects.get_or_create(
+            name=data['Meta Data'][0]['Degree']
+        )
 
         program.degree = degree
 
