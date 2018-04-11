@@ -17,14 +17,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Career',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True,
+                                        serialize=False,
+                                        verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
             ],
         ),
         migrations.CreateModel(
             name='College',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True,
+                                        serialize=False,
+                                        verbose_name='ID')),
                 ('full_name', models.CharField(max_length=255)),
                 ('short_name', models.CharField(max_length=255, null=True)),
                 ('college_url', models.URLField(blank=True, null=True)),
@@ -34,39 +40,61 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Degree',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True,
+                                        serialize=False,
+                                        verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
             ],
         ),
         migrations.CreateModel(
             name='Department',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True,
+                                        serialize=False,
+                                        verbose_name='ID')),
                 ('full_name', models.CharField(max_length=255)),
-                ('department_url', models.CharField(blank=True, max_length=255, null=True)),
+                ('department_url', models.CharField(
+                    blank=True, max_length=255, null=True)),
                 ('school', models.BooleanField(default=False)),
             ],
         ),
         migrations.CreateModel(
             name='Level',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True,
+                                        serialize=False,
+                                        verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
             ],
         ),
         migrations.CreateModel(
             name='Program',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True,
+                                        serialize=False,
+                                        verbose_name='ID')),
                 ('name', models.CharField(max_length=500)),
                 ('plan_code', models.CharField(max_length=10)),
-                ('subplan_code', models.CharField(blank=True, max_length=10, null=True)),
+                ('subplan_code', models.CharField(
+                    blank=True, max_length=10, null=True)),
                 ('catalog_url', models.URLField(blank=True, null=True)),
-                ('career', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='programs.Career')),
-                ('colleges', models.ManyToManyField(blank=True, null=True, to='programs.College')),
-                ('degree', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='programs.Degree')),
-                ('departments', models.ManyToManyField(blank=True, null=True, to='programs.Department')),
-                ('level', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='programs.Level')),
+                ('career', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to='programs.Career')),
+                ('colleges', models.ManyToManyField(
+                    blank=True, null=True, to='programs.College')),
+                ('degree', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to='programs.Degree')),
+                ('departments', models.ManyToManyField(
+                    blank=True, null=True, to='programs.Department')),
+                ('level', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to='programs.Level')),
             ],
         ),
     ]

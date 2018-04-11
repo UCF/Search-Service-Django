@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 from django.db import models
 
 # Create your models here.
+
+
 class Level(models.Model):
     """
     The level of a degree, e.g. Bachelor, Master, Doctorate
@@ -15,6 +17,7 @@ class Level(models.Model):
 
     def __unicode__(self):
         return self.name
+
 
 class Career(models.Model):
     """
@@ -29,6 +32,7 @@ class Career(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class Degree(models.Model):
     """
     The degree name conferred by a program, e.g. Bachelor of Science
@@ -40,6 +44,7 @@ class Degree(models.Model):
 
     def __unicode__(self):
         return self.name
+
 
 class College(models.Model):
     """
@@ -56,6 +61,7 @@ class College(models.Model):
     def __unicode__(self):
         return self.full_name
 
+
 class Department(models.Model):
     """
     A department, including name and url
@@ -70,6 +76,7 @@ class Department(models.Model):
     def __unicode__(self):
         return self.full_name
 
+
 class ProgramProfileType(models.Model):
     """
     Types of program profiles, e.g. Main Site, UCF Online
@@ -82,6 +89,7 @@ class ProgramProfileType(models.Model):
 
     def __unicode__(self):
         return self.name
+
 
 class Program(models.Model):
     """
@@ -113,6 +121,7 @@ class Program(models.Model):
     @property
     def primary_profile_url(self):
         return self.program_profiles.get(primary=True)
+
 
 class ProgramProfile(models.Model):
     """

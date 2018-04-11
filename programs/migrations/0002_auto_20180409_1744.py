@@ -16,7 +16,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProgramProfile',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True,
+                                        serialize=False,
+                                        verbose_name='ID')),
                 ('url', models.URLField()),
                 ('primary', models.BooleanField(default=False)),
             ],
@@ -24,7 +27,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProgramProfileType',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True,
+                                        primary_key=True,
+                                        serialize=False,
+                                        verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
                 ('root_url', models.URLField()),
             ],
@@ -42,7 +48,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='programprofile',
             name='profile_type',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='programs.ProgramProfileType'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to='programs.ProgramProfileType'),
         ),
         migrations.AddField(
             model_name='program',
