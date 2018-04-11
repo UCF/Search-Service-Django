@@ -23,7 +23,11 @@ class Command(BaseCommand):
         data = json.loads(response.read())
 
         for d in data:
-            self.add_program(d)
+            program = self.add_program(d)
+
+            if len(d['SubPlans']) > 0:
+                for sp in d['SubPlans']:
+                    self.add_subplan(sp, program)
 
         return 0
 
@@ -71,5 +75,45 @@ class Command(BaseCommand):
         )
 
         program.departments.add(department)
+
+        program.save()
+
+        return program
+
+    def add_subplan(self, data, parent):
+        program = None
+
+        try:
+            program = Program.objects.get(
+                plan_code=parent.plan_code,
+                subplan_code=data['Subplan'])
+        except Program.DoesNotExist:
+            program = Program(
+                name=data['Subplan_Name'],
+                plan_code=parent.plan_code,
+                subplan_code=data['Subplan'],
+                parent_program=parent
+            )
+
+        # Handle Career and Level
+
+        program.career = parent.career
+        program.level = parent.level
+
+        # Handle degree
+        degree, created = Degree.objects.get_or_create(
+            name=data['Meta Data'][0]['Degree']
+        )
+
+        program.degree = degree
+
+        program.save()
+
+        # Handle Colleges and Departments
+        for college in parent.colleges.all():
+            program.colleges.add(college)
+
+        for department in parent.departments.all():
+            program.departments.add(department)
 
         program.save()

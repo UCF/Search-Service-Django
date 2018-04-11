@@ -104,6 +104,10 @@ class Program(models.Model):
     level = models.ForeignKey(Level)
     career = models.ForeignKey(Career)
     degree = models.ForeignKey(Degree)
+    parent_program = models.ForeignKey('self',
+                                       null=True,
+                                       blank=True,
+                                       related_name='subplans')
 
     def __str__(self):
         return self.name
@@ -121,6 +125,20 @@ class Program(models.Model):
     @property
     def primary_profile_url(self):
         return self.program_profiles.get(primary=True)
+
+    @property
+    def has_subplans(self):
+        if len(self.subplans.all()) > 0:
+            return True
+
+        return False
+
+    @property
+    def is_subplan(self):
+        if self.parent:
+            return True
+
+        return False
 
 
 class ProgramProfile(models.Model):
