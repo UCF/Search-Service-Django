@@ -1,7 +1,9 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
-import urllib2, json
+import urllib2
+import json
+
 
 class Command(BaseCommand):
     help = 'Imports programs from the Academic Programs Inventory Master.'
