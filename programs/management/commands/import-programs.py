@@ -51,4 +51,19 @@ class Command(BaseCommand):
 
         program.degree = degree
 
+        # Handle Colleges
+        college, create = College.objects.get_or_create(
+            full_name=data['College_Full'],
+            short_name=data['CollegeShort']
+        )
+
+        program.colleges.add(college)
+
+        # Handle Departments
+        department, create = Department.objects.get_or_create(
+            full_name=data['Dept_Full']
+        )
+
+        program.departments.add(department)
+
         program.save()
