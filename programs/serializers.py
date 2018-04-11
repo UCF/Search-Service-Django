@@ -43,6 +43,7 @@ class ProgramProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = ProgramProfile
 
+
 class ParentProgramSerializer(serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
     career = serializers.StringRelatedField(many=False)
@@ -63,6 +64,7 @@ class ParentProgramSerializer(serializers.ModelSerializer):
             'degree'
         )
         model = Program
+
 
 class ProgramSerializer(serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
