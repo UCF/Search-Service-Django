@@ -48,8 +48,20 @@ class ParentProgramSerializer(serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
     career = serializers.StringRelatedField(many=False)
     degree = serializers.StringRelatedField(many=False)
-    colleges = CollegeSerializer(many=True, read_only=True)
-    departments = DepartmentSerializer(many=True, read_only=True)
+
+    colleges = serializers.HyperlinkedRelatedField(
+        many=True,
+        read_only=True,
+        view_name='api.colleges.detail',
+        lookup_field='id'
+    )
+
+    departments = serializers.HyperlinkedRelatedField(
+        many=True,
+        read_only=True,
+        view_name='api.departments.detail',
+        lookup_field='id'
+    )
 
     class Meta:
         fields = (
@@ -70,8 +82,21 @@ class ProgramSerializer(serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
     career = serializers.StringRelatedField(many=False)
     degree = serializers.StringRelatedField(many=False)
-    colleges = CollegeSerializer(many=True, read_only=True)
-    departments = DepartmentSerializer(many=True, read_only=True)
+
+    colleges = serializers.HyperlinkedRelatedField(
+        many=True,
+        read_only=True,
+        view_name='api.colleges.detail',
+        lookup_field='id'
+    )
+
+    departments = serializers.HyperlinkedRelatedField(
+        many=True,
+        read_only=True,
+        view_name='api.departments.detail',
+        lookup_field='id'
+    )
+
     parent_program = ParentProgramSerializer(many=False, read_only=True)
 
     class Meta:
