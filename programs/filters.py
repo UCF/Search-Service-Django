@@ -7,7 +7,6 @@ from programs.models import *
 class ProgramFilter(django_filters.FilterSet):
     search = filters.CharFilter(name='name', lookup_expr='icontains')
 
-
     class Meta:
         model = Program
         fields = (
@@ -23,9 +22,9 @@ class ProgramFilter(django_filters.FilterSet):
             'parent_program'
         )
 
+
 class CollegeFilter(django_filters.FilterSet):
     search = filters.CharFilter(name='full_name', lookup_expr='icontains')
-
 
     class Meta:
         model = College
@@ -37,7 +36,6 @@ class CollegeFilter(django_filters.FilterSet):
 
 class DepartmentFilter(django_filters.FilterSet):
     search = filters.CharFilter(name='full_name', lookup_expr='icontains')
-
 
     class Meta:
         model = Department
