@@ -104,6 +104,7 @@ class Program(models.Model):
     level = models.ForeignKey(Level)
     career = models.ForeignKey(Career)
     degree = models.ForeignKey(Degree)
+    online = models.BooleanField(null=False, blank=False, default=False)
     parent_program = models.ForeignKey('self',
                                        null=True,
                                        blank=True,
@@ -135,7 +136,7 @@ class Program(models.Model):
 
     @property
     def is_subplan(self):
-        if self.parent:
+        if self.parent_program:
             return True
 
         return False
