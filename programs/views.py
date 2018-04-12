@@ -34,3 +34,9 @@ class DepartmentDetailView(generics.RetrieveAPIView):
 class ProgramListView(generics.ListAPIView):
     queryset = Program.objects.all()
     serializer_class = ProgramSerializer
+
+
+class ProgramDetailView(generics.RetrieveAPIView):
+    queryset = Program.objects.all()
+    lookup_field = 'id'
+    serializer_class = ProgramSerializer

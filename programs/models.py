@@ -148,6 +148,13 @@ class Program(models.Model):
 
         return False
 
+    @property
+    def has_online(self):
+        if self.subplans.filter(online=True).count() > 0:
+            return True
+
+        return False
+
 
 class ProgramProfile(models.Model):
     """
