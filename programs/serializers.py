@@ -38,6 +38,7 @@ class CollegeSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = College
 
+
 class DepartmentLinkSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='api.departments.detail',
@@ -74,12 +75,14 @@ class ProgramDescriptionTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = ProgramDescriptionType
 
+
 class ProgramDescriptionSerializer(serializers.ModelSerializer):
     profile_type = serializers.StringRelatedField(many=False, read_only=True)
 
     class Meta:
         fields = 'profile_type, description, primary'
         model = ProgramDescription
+
 
 class RelatedProgramSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
