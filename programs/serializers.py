@@ -66,7 +66,7 @@ class ProgramProfileSerializer(serializers.ModelSerializer):
     profile_type = serializers.StringRelatedField(many=False, read_only=True)
 
     class Meta:
-        fields = 'profile_type, url, primary'
+        fields = ('profile_type', 'url', 'primary')
         model = ProgramProfile
 
 
@@ -80,7 +80,7 @@ class ProgramDescriptionSerializer(serializers.ModelSerializer):
     profile_type = serializers.StringRelatedField(many=False, read_only=True)
 
     class Meta:
-        fields = 'profile_type, description, primary'
+        fields = ('profile_type', 'description', 'primary')
         model = ProgramDescription
 
 
