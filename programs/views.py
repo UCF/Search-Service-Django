@@ -26,6 +26,7 @@ class CollegeDetailView(generics.RetrieveAPIView):
 class CollegeSearchView(CollegeListView):
     filter_class = CollegeFilter
 
+
 class DepartmentListView(generics.ListAPIView):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
@@ -39,6 +40,7 @@ class DepartmentDetailView(generics.RetrieveAPIView):
 
 class DepartmentSearchView(DepartmentListView):
     filter_class = DepartmentFilter
+
 
 class ProgramListView(generics.ListAPIView):
     queryset = Program.objects.all()

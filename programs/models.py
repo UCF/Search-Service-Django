@@ -76,6 +76,7 @@ class Department(models.Model):
     def __unicode__(self):
         return self.full_name
 
+
 class ProgramProfileType(models.Model):
     """
     Types of program profiles, e.g. Main Site, UCF Online
@@ -163,13 +164,19 @@ class ProgramProfile(models.Model):
     profile_type = models.ForeignKey(ProgramProfileType)
     url = models.URLField(null=False, blank=False)
     primary = models.BooleanField(default=False, null=False, blank=False)
-    program = models.ForeignKey(Program, null=False, blank=False, related_name='profiles')
+    program = models.ForeignKey(
+        Program,
+        null=False,
+        blank=False,
+        related_name='profiles'
+    )
 
     def __str__(self):
         return '{0} {1}'.format(self.program.name, self.profile_type.name)
 
     def __unicode__(self):
         return '{0} {1}'.format(self.program.name, self.profile_type.name)
+
 
 class ProgramDescription(models.Model):
     """
@@ -178,4 +185,9 @@ class ProgramDescription(models.Model):
     profile_type = models.ForeignKey(ProgramDescriptionType)
     description = models.TextField(null=False, blank=False)
     primary = models.BooleanField(default=False, null=False, blank=False)
-    program = models.ForeignKey(Program, null=False, blank=False, related_name='descriptions')
+    program = models.ForeignKey(
+        Program,
+        null=False,
+        blank=False,
+        related_name='descriptions'
+    )
