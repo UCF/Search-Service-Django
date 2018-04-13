@@ -23,6 +23,9 @@ class Command(BaseCommand):
         data = json.loads(response.read())
 
         for d in data:
+            if d['Meta Data'][0]['Degree'] == 'PND':
+                continue
+
             program = self.add_program(d)
 
             if len(d['SubPlans']) > 0:
@@ -61,6 +64,11 @@ class Command(BaseCommand):
 
         program.degree = degree
 
+        if data['Meta Data'][0]['UCFOnline'] == "1":
+            program.online = True
+
+        program.save()
+
         # Handle Colleges
         college, create = College.objects.get_or_create(
             full_name=data['College_Full'],
@@ -73,6 +81,10 @@ class Command(BaseCommand):
         department, create = Department.objects.get_or_create(
             full_name=data['Dept_Full']
         )
+
+        if "school" in department.full_name.lower():
+            department.school = True
+            department.save()
 
         program.departments.add(department)
 
@@ -106,6 +118,9 @@ class Command(BaseCommand):
         )
 
         program.degree = degree
+
+        if data['Meta Data'][0]['UCFOnline'] == "1":
+            program.online = True
 
         program.save()
 
