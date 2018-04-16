@@ -40,9 +40,9 @@ class CatalogEntry(object):
         stop_words = [
             'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by',
             'for', 'from', 'has', 'he', 'in', 'is', 'it',
-            'its', 'of', 'on', 'that', 'the', 'to', 'was',
+            'its', 'of', 'on', 'or', 'that', 'the', 'to', 'was',
             'were', 'will', 'with', 'degree', 'program', 'minor',
-            'track'
+            'track',
         ]
 
         return ' '.join(filter(lambda x: x.lower() not in stop_words, title.split()))
