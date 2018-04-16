@@ -50,19 +50,26 @@ class Command(BaseCommand):
 
         program.career = career
 
-        # Handle level
-        if data['Level'] == '':
-            data['Level'] = 'None'
-        level, created = Level.objects.get_or_create(name=data['Level'])
-
-        program.level = level
-
         # Handle degree
         degree, created = Degree.objects.get_or_create(
             name=data['Meta Data'][0]['Degree']
         )
 
         program.degree = degree
+
+        # Handle level
+        temp_level = 'None'
+        if data['Level'] == '':
+            if degree.name in ['CER', 'CRT']:
+                temp_level = 'Certificate'
+            if degree.name == 'MIN':
+                temp_level = 'Minor'
+        else:
+            temp_level = data['Level']
+
+        level, created = Level.objects.get_or_create(name=temp_level)
+
+        program.level = level
 
         if data['Meta Data'][0]['UCFOnline'] == "1":
             program.online = True

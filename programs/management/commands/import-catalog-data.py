@@ -3,7 +3,29 @@ from programs.models import *
 
 import urllib2
 import re
+import itertools
 import xml.etree.ElementTree as ET
+
+
+class CatalogEntry(object):
+
+
+    def __init__(self, id, name, program_type):
+        self.id = id
+        self.name = name
+        self.type = program_type
+
+    @property
+    def level(self):
+        if self.type in ['Major', 'Accelerated Undergraduate-Graduate Program']:
+            return Level.objects.get(name='Bachelors')
+        elif self.type == 'Certificate':
+            return Level.objects.get(name='Certificate')
+        elif self.type == 'Minor':
+            return Level.objects.get(name='None')
+        else:
+            return Level.objects.get(name='Bachelors')
+
 
 
 class Command(BaseCommand):
@@ -61,72 +83,94 @@ class Command(BaseCommand):
         program_root = ET.fromstring(raw_data)
 
         for result in program_root.iter('result'):
-            self.catalog_programs.append(
-                (
-                    result.find('id').text, result.find('name').text
+            if result.find('type') is not None:
+                self.catalog_programs.append(
+                    CatalogEntry(
+                        result.find('id').text,
+                        result.find('name').text,
+                        result.find('type').text
+                    )
                 )
-            )
-
-        print len(self.catalog_programs)
 
     def match_programs(self):
         programs = Program.objects.all()
         count = 0
 
-        for id, name in self.catalog_programs:
+        for entry in self.catalog_programs:
+
             # Attempt exact match first
-            clean_name = self.strip_punctuation(name)
+            clean_name = self.strip_punctuation(entry.name)
 
             try:
-                program = programs.get(name=clean_name)
+                program = programs.get(name__iexact=clean_name, level=entry.level)
                 program.catalog_url = self.catalog_url.format(self.catalog_id, id)
                 program.save()
                 count += 1
-                print 'Attempt 1 successful: {0}'.format(clean_name)
                 # Match was found, so continue with loop
                 continue
             except Program.MultipleObjectsReturned:
-                print 'Attempt 1 failed: {0} - Reason: MultipleObjectsReturned'.format(clean_name)
+                program=None
             except Program.DoesNotExist:
-                print 'Attempt 1 failed: {0} - Reason: DoesNotExist'.format(clean_name)
                 program=None
 
 
 
             # Attempt match with degree removed
-            clean_name = self.strip_degree(name)
+            clean_name = self.strip_degree(entry.name)
 
             try:
-                program = programs.get(name=clean_name)
+                program = programs.get(name__iexact=clean_name, level=entry.level)
                 program.catalog_url = self.catalog_url.format(self.catalog_id, id)
                 program.save()
                 count += 1
-                print 'Attempt 2 successful: {0}'.format(clean_name)
+                # print 'Attempt 2 successful: {0}'.format(clean_name)
                 continue
             except Program.MultipleObjectsReturned:
-                print 'Attempt 2 failed: {0} - Reason: MultipleObjectsReturned'.format(clean_name)
+                program=None
             except Program.DoesNotExist:
-                print 'Attempt 2 failed: {0} - Reason: DoesNotExist'.format(clean_name)
                 program=None
 
             # Attempt match for minors
-            clean_name = self.strip_minor(name)
+            clean_name = self.strip_minor(entry.name)
 
             try:
                 minor = Degree.objects.get(name='MIN')
-                program = programs.get(name=clean_name, degree=minor)
+                program = programs.get(name__iexact=clean_name, degree=minor)
                 program.catalog_url = self.catalog_url.format(self.catalog_id, id)
                 program.save()
                 count += 1
-                print 'Attempt 3 successful: {0}'.format(clean_name)
                 continue
             except Program.MultipleObjectsReturned:
-                print 'Attempt 3 failed: {0} - Reason: MultipleObjectsReturned'.format(clean_name)
+                program=None
             except Program.DoesNotExist:
-                print 'Attempt 3 failed: {0} - Reason: DoesNotExist'.format(clean_name)
                 program=None
 
-        print count
+
+            # Attempt a match using classic_clean
+            clean_name = self.classic_clean(entry.name)
+
+            names = set(p for p in programs)
+
+            try:
+                program = next(x for x in names if self.classic_clean(x.name) == clean_name)
+                program.catalog_url = self.catalog_url.format(self.catalog_id, id)
+                program.save()
+                count += 1
+                continue
+            except StopIteration:
+                program=None
+
+
+        print 'Matched {0}/{1} of Programs: {2:.0f}%'.format(count, len(self.catalog_programs), float(count) / float(len(self.catalog_programs)) * 100)
+
+    def classic_clean(self, value):
+        retval = self.strip_degree(value)
+        retval = retval.lower()
+        retval = re.sub('degree', '', retval)
+        retval = re.sub('program', '', retval)
+        retval = re.sub('[^a-z0-9]', '', retval)
+
+        return retval
 
     def strip_minor(self, value):
         retval = re.sub('\ Minor', '', value)
