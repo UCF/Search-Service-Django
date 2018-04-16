@@ -173,7 +173,7 @@ class Command(BaseCommand):
 
             try:
                 program = programs.get(name__iexact=clean_name, level=entry.level)
-                program.catalog_url = self.catalog_url.format(self.catalog_id, id)
+                program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
                 program.save()
                 entry.has_match = True
                 # Match was found, so continue with loop
@@ -190,7 +190,7 @@ class Command(BaseCommand):
 
             try:
                 program = programs.get(name__iexact=clean_name, level=entry.level)
-                program.catalog_url = self.catalog_url.format(self.catalog_id, id)
+                program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
                 program.save()
                 entry.has_match = True
                 # print 'Attempt 2 successful: {0}'.format(clean_name)
@@ -206,7 +206,7 @@ class Command(BaseCommand):
             try:
                 minor = Degree.objects.get(name='MIN')
                 program = programs.get(name__iexact=clean_name, degree=minor)
-                program.catalog_url = self.catalog_url.format(self.catalog_id, id)
+                program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
                 program.save()
                 entry.has_match = True
                 continue
@@ -243,11 +243,14 @@ class Command(BaseCommand):
 
                     if best_match:
                         print 'Program: {0} == Entry: {1}'.format(p.name.encode('ascii', 'ignore'), best_match.entry.name)
+                        best_match_id = best_match.entry.id
+
                         p.catalog_url = self.catalog_url.format(
                             self.catalog_id,
-                            best_match.entry.id
+                            int(best_match_id)
                         )
                         best_match.entry.has_match = True
+                        p.save()
 
 
 
