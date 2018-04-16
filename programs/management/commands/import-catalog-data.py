@@ -26,6 +26,41 @@ class CatalogEntry(object):
         else:
             return Level.objects.get(name='Bachelors')
 
+    def remove_stop_words(self, title):
+        stop_words = [
+            'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by',
+            'for', 'from', 'has', 'he', 'in', 'is', 'it',
+            'its', 'of', 'on', 'that', 'the', 'to', 'was',
+            'were', 'will', 'with', 'degree', 'program', 'minor'
+        ]
+
+        return ' '.join(filter(lambda x: x.lower() not in stop_words, title.split()))
+
+    def is_match(self, title, level, threshold):
+        """
+        Finds matches for each unique word in the name
+        and returns count
+        """
+        test_value = self.remove_stop_words(re.sub('[^a-z0-9 ]', '', title.lower()))
+        test_case = self.remove_stop_words(re.sub('[^a-z0-9 ]', '', self.name.lower()))
+
+        split_value = test_value.split(' ')
+        word_count = len(test_case.split(' '))
+
+        match_count = 0
+
+        for v in split_value:
+            test = r"\b{0}\b".format(v)
+            matches = re.search(test, test_case)
+            if matches:
+                match_count += 1
+
+        if float(match_count) / float(word_count) * 100 >= threshold:
+            if level == self.level:
+                print "Value: {0} - Case: {1} - Score: {2:.0f}".format(test_value, test_case, float(match_count) / float(word_count) * 100)
+                return True
+
+        return False
 
 
 class Command(BaseCommand):
@@ -159,6 +194,17 @@ class Command(BaseCommand):
                 continue
             except StopIteration:
                 program=None
+
+
+            # Attempt to get best match with regex
+            for p in programs:
+                match = entry.is_match(p.name, p.level, 75)
+                if match:
+                    print "Program: {0} == Entry: {1}".format(p.name, entry.name)
+                    p.catalog_url = self.catalog_url.format(self.catalog_id, id)
+                    p.save()
+                    count += 1
+                    continue
 
 
         print 'Matched {0}/{1} of Programs: {2:.0f}%'.format(count, len(self.catalog_programs), float(count) / float(len(self.catalog_programs)) * 100)
