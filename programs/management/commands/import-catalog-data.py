@@ -219,10 +219,8 @@ class Command(BaseCommand):
             # Attempt a match using classic_clean
             clean_name = self.classic_clean(entry.name)
 
-            names = set(p for p in programs)
-
             try:
-                program = next(x for x in names if self.classic_clean(x.name) == clean_name)
+                program = next(x for x in programs if self.classic_clean(x.name) == clean_name)
                 program.catalog_url = self.catalog_url.format(self.catalog_id, id)
                 program.save()
                 continue
@@ -242,7 +240,7 @@ class Command(BaseCommand):
                     best_match = max(matches, key=attrgetter('match_value'))
 
                     if best_match:
-                        print 'Program: {0} == Entry: {1}'.format(p.name.encode('ascii', 'ignore'), best_match.entry.name)
+                        # print 'Program: {0} == Entry: {1}'.format(p.name.encode('ascii', 'ignore'), best_match.entry.name)
                         best_match_id = best_match.entry.id
 
                         p.catalog_url = self.catalog_url.format(
@@ -259,11 +257,10 @@ class Command(BaseCommand):
         print 'Matched {0}/{1} of Programs: {2:.0f}%'.format(match_count, len(self.catalog_programs), float(match_count) / float(len(self.catalog_programs)) * 100)
 
     def classic_clean(self, value):
-        retval = self.strip_degree(value)
-        retval = retval.lower()
-        retval = re.sub('degree', '', retval)
-        retval = re.sub('program', '', retval)
-        retval = re.sub('[^a-z0-9]', '', retval)
+        retval = value.lower()
+        retval = re.sub(r'degree', '', retval)
+        retval = re.sub(r'program', '', retval)
+        retval = re.sub(r'[^a-z0-9]', '', retval)
 
         return retval
 
