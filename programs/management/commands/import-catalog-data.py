@@ -6,6 +6,7 @@ import re
 import itertools
 from operator import attrgetter
 import xml.etree.ElementTree as ET
+from fuzzywuzzy import fuzz
 
 
 class CatalogEntry(object):
@@ -15,7 +16,7 @@ class CatalogEntry(object):
         self.id = id
         self.name = name
         self.type = program_type
-        self.has_match = False
+        self.matches = []
 
     @property
     def level(self):
@@ -36,53 +37,35 @@ class CatalogEntry(object):
         else:
             return Level.objects.get(name='Bachelors')
 
-    def remove_stop_words(self, title):
+    @property
+    def name_clean(self):
         stop_words = [
             'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by',
             'for', 'from', 'has', 'he', 'in', 'is', 'it',
-            'its', 'of', 'on', 'that', 'the', 'to', 'was',
+            'its', 'of', 'on', 'or', 'that', 'the', 'to', 'was',
             'were', 'will', 'with', 'degree', 'program', 'minor',
-            'track'
+            'track', 'graduate', 'certificate'
         ]
 
-        return ' '.join(filter(lambda x: x.lower() not in stop_words, title.split()))
+        name = ' '.join(filter(lambda x: x.lower() not in stop_words, self.name.split()))
+        name = name.replace('.', '')
+        return name
 
-    def is_match(self, title, level, threshold):
-        """
-        Finds matches for each unique word in the name
-        and returns count
-        """
-        test_value = self.remove_stop_words(re.sub('[^a-z0-9 ]', '', title.lower()))
-        test_case = self.remove_stop_words(re.sub('[^a-z0-9 ]', '', self.name.lower()))
+    @property
+    def has_matches(self):
+        return len(self.matches) > 0
 
-        split_value = test_value.split(' ')
-        word_count = len(test_case.split(' '))
-
-        match_count = 0
-
-        for v in split_value:
-            test = r"\b{0}\b".format(v)
-            matches = re.search(test, test_case)
-            if matches:
-                match_count += 1
-
-        match_value = float(match_count) / float(word_count) * 100;
-
-        if match_value >= threshold:
-            if level == self.level:
-                self.has_match = True
-                return MatchEntry(
-                    match_value=match_value,
-                    entry=self
-                )
-
-        return None
+    def get_best_match(self):
+        if self.has_matches:
+            return max(self.matches, key=attrgetter('match_score'))
+        else:
+            return None
 
 
-class MatchEntry(object):
-    def __init__(self, match_value, entry):
-        self.match_value = match_value
-        self.entry = entry
+class CatalogMatchEntry(object):
+    def __init__(self, match_score, program):
+        self.match_score = match_score
+        self.program = program
 
 
 class Command(BaseCommand):
@@ -167,130 +150,45 @@ class Command(BaseCommand):
                     )
                 )
 
-    def match_programs(self, graduate=False):
+    def match_programs(self):
+        description_type, created = ProgramDescription.objects.get_or_create(
+            name='Catalog Description'
+        )
+
         programs = Program.objects.all()
 
         if self.graduate:
             programs = programs.filter(career__name='Graduate')
 
-        count = 0
-
         for entry in self.catalog_programs:
+            for p in programs.filter(level=entry.level):
+                match_score = fuzz.token_sort_ratio(p.name, entry.name_clean)
+                if match_score > 75: # TODO allow threshold to be configurable somehow
+                    entry.matches.append(CatalogMatchEntry(match_score, p))
 
-            # Attempt exact match first
-            clean_name = self.strip_punctuation(entry.name)
+            if entry.has_matches:
+                match = entry.get_best_match()
+                matched_program = match.program
+                matched_program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
+                matched_program.save()
 
-            try:
-                program = programs.get(name__iexact=clean_name, level=entry.level)
-                program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
-                self.get_description(entry.id)
-                program.save()
-                entry.has_match = True
-                # Match was found, so continue with loop
-                continue
-            except Program.MultipleObjectsReturned:
-                program=None
-            except Program.DoesNotExist:
-                program=None
+                description = matched_program.descriptions.get(profile_type=description_type)
 
-
-
-            # Attempt match with degree removed
-            clean_name = self.strip_degree(entry.name)
-
-            try:
-                program = programs.get(name__iexact=clean_name, level=entry.level)
-                program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
-                self.get_description(entry.id)
-                program.save()
-                entry.has_match = True
-                # print 'Attempt 2 successful: {0}'.format(clean_name)
-                continue
-            except Program.MultipleObjectsReturned:
-                program=None
-            except Program.DoesNotExist:
-                program=None
-
-            # Attempt match for minors
-            clean_name = self.strip_minor(entry.name)
-
-            try:
-                minor = Degree.objects.get(name='MIN')
-                program = programs.get(name__iexact=clean_name, degree=minor)
-                program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
-                self.get_description(entry.id)
-                program.save()
-                entry.has_match = True
-                continue
-            except Program.MultipleObjectsReturned:
-                program=None
-            except Program.DoesNotExist:
-                program=None
-
-
-            # Attempt a match using classic_clean
-            clean_name = self.classic_clean(entry.name)
-
-            try:
-                program = next(x for x in programs if self.classic_clean(x.name) == clean_name)
-                program.catalog_url = self.catalog_url.format(self.catalog_id, id)
-                self.get_description(entry.id)
-                program.save()
-                continue
-            except StopIteration:
-                program=None
-
-
-            # Attempt to get best match with regex
-            for p in programs:
-                matches = []
-                test_name = self.strip_degree(p.name)
-                match = entry.is_match(test_name, p.level, 75)
-                if match:
-                    matches.append(match)
-
-                if matches:
-                    best_match = max(matches, key=attrgetter('match_value'))
-
-                    if best_match:
-                        # print 'Program: {0} == Entry: {1}'.format(p.name.encode('ascii', 'ignore'), best_match.entry.name)
-                        best_match_id = best_match.entry.id
-
-                        p.catalog_url = self.catalog_url.format(
-                            self.catalog_id,
-                            int(best_match_id)
+                if description:
+                    description.description = self.get_description(entry.id)
+                else:
+                    matched_program.descriptions.add(
+                        ProgramDescription(
+                            profile_type=description_type,
+                            description=self.get_description(entry.id)
                         )
-                        best_match.entry.has_match = True
-                        self.get_description(int(best_match.entry.id))
-                        p.save()
+                    )
+                #print 'MATCH \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Matched program name: %s \n Match score: %d \n' % (entry.name, entry.name_clean, matched_program.name, match.match_score)
+            #else:
+                #print 'FAILURE \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n' % (entry.name, entry.name_clean)
 
 
-
-        match_count = len([x for x in self.catalog_programs if x.has_match == True])
-
-        print 'Matched {0}/{1} of Programs: {2:.0f}%'.format(match_count, len(self.catalog_programs), float(match_count) / float(len(self.catalog_programs)) * 100)
-
-    def classic_clean(self, value):
-        retval = value.lower()
-        retval = re.sub(r'degree', '', retval)
-        retval = re.sub(r'program', '', retval)
-        retval = re.sub(r'[^a-z0-9]', '', retval)
-
-        return retval
-
-    def strip_minor(self, value):
-        retval = re.sub('\ Minor', '', value)
-
-        return retval
-
-    def strip_degree(self, value):
-        # Remove degree name entirely from string
-        retval = re.sub('\(.*\)', '', value).strip()
-
-        return retval
-
-    def strip_punctuation(self, value):
-        retval = value.replace('.', '')
+        match_count = len([x for x in self.catalog_programs if x.has_matches == True])
 
         return retval
 
@@ -319,4 +217,3 @@ class Command(BaseCommand):
         retval = retval.replace('xmlns:h="http://www.w3.org/1999/xhtml"', '')
 
         return retval
-
