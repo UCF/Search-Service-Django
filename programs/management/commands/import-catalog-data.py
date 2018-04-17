@@ -90,6 +90,11 @@ class Command(BaseCommand):
 
     catalog_programs = []
 
+    ns = {
+        'a': 'http://www.w3.org/2005/Atom',
+        'h': 'http://www.w3.org/1999/xhtml'
+    }
+
     def add_arguments(self, parser):
         parser.add_argument(
             'path',
@@ -127,13 +132,17 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        path = options['path']
-        key = options['api-key']
+        ET.register_namespace('a', 'http://www.w3.org/2005/Atom')
+        ET.register_namespace('h', 'http://www.w3.org/1999/xhtml')
+
+
+        self.path = options['path']
+        self.key = options['api-key']
         self.catalog_id = options['catalog-id']
         self.catalog_url = options['catalog-url'] + 'preview/preview_program.php?catoid={0}&poid={1}'
         self.graduate = options['graduate']
 
-        program_url = '{0}search/programs?key={1}&format=xml&method=listing&catalog={2}&options%5Blimit%5D=500'.format(path, key, self.catalog_id)
+        program_url = '{0}search/programs?key={1}&format=xml&method=listing&catalog={2}&options%5Blimit%5D=500'.format(self.path, self.key, self.catalog_id)
 
         # Fetch the catalog programs and set the variable
         self.get_catalog_programs(program_url)
@@ -174,6 +183,7 @@ class Command(BaseCommand):
             try:
                 program = programs.get(name__iexact=clean_name, level=entry.level)
                 program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
+                self.get_description(entry.id)
                 program.save()
                 entry.has_match = True
                 # Match was found, so continue with loop
@@ -191,6 +201,7 @@ class Command(BaseCommand):
             try:
                 program = programs.get(name__iexact=clean_name, level=entry.level)
                 program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
+                self.get_description(entry.id)
                 program.save()
                 entry.has_match = True
                 # print 'Attempt 2 successful: {0}'.format(clean_name)
@@ -207,6 +218,7 @@ class Command(BaseCommand):
                 minor = Degree.objects.get(name='MIN')
                 program = programs.get(name__iexact=clean_name, degree=minor)
                 program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
+                self.get_description(entry.id)
                 program.save()
                 entry.has_match = True
                 continue
@@ -222,6 +234,7 @@ class Command(BaseCommand):
             try:
                 program = next(x for x in programs if self.classic_clean(x.name) == clean_name)
                 program.catalog_url = self.catalog_url.format(self.catalog_id, id)
+                self.get_description(entry.id)
                 program.save()
                 continue
             except StopIteration:
@@ -248,6 +261,7 @@ class Command(BaseCommand):
                             int(best_match_id)
                         )
                         best_match.entry.has_match = True
+                        self.get_description(int(best_match.entry.id))
                         p.save()
 
 
@@ -279,3 +293,30 @@ class Command(BaseCommand):
         retval = value.replace('.', '')
 
         return retval
+
+
+    def get_description(self, program_id):
+        url = '{0}content?key={1}&format=xml&method=getItems&type=programs&ids[]={2}&catalog={3}'.format(
+            self.path,
+            self.key,
+            program_id,
+            self.catalog_id
+        )
+
+        response = urllib2.urlopen(url)
+        raw_data = response.read()
+        root = ET.fromstring(raw_data)
+
+        content = root.find('.//a:content', self.ns )
+
+        retval = ''
+
+        for el in content:
+            retval += ET.tostring(el, method='html')
+
+        retval = retval.replace('<h:', '<').replace('</h:', '</')
+
+        retval = retval.replace('xmlns:h="http://www.w3.org/1999/xhtml"', '')
+
+        return retval
+
