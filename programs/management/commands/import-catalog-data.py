@@ -9,6 +9,27 @@ import xml.etree.ElementTree as ET
 from fuzzywuzzy import fuzz
 
 
+def clean_name(program_name):
+    # Strip out punctuation
+    name = program_name.replace('.', '')
+
+    # Remove degree name entirely from string (e.g. "(BA), (BS)")
+    name = re.sub('\(.*\)', '', name).strip()
+
+    # Filter out stop words
+    stop_words = [
+        'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by',
+        'for', 'from', 'has', 'he', 'in', 'is', 'it',
+        'its', 'of', 'on', 'or', 'that', 'the', 'to', 'was',
+        'were', 'will', 'with', 'degree', 'program', 'minor',
+        'track', 'graduate', 'certificate', 'bachelor'
+    ]
+
+    name = ' '.join(filter(lambda x: x.lower() not in stop_words, name.split()))
+
+    return name
+
+
 class CatalogEntry(object):
 
 
@@ -39,17 +60,7 @@ class CatalogEntry(object):
 
     @property
     def name_clean(self):
-        stop_words = [
-            'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by',
-            'for', 'from', 'has', 'he', 'in', 'is', 'it',
-            'its', 'of', 'on', 'or', 'that', 'the', 'to', 'was',
-            'were', 'will', 'with', 'degree', 'program', 'minor',
-            'track', 'graduate', 'certificate'
-        ]
-
-        name = ' '.join(filter(lambda x: x.lower() not in stop_words, self.name.split()))
-        name = name.replace('.', '')
-        return name
+        return clean_name(self.name)
 
     @property
     def has_matches(self):
@@ -149,7 +160,7 @@ class Command(BaseCommand):
 
         for entry in self.catalog_programs:
             for p in programs.filter(level=entry.level):
-                match_score = fuzz.token_sort_ratio(p.name, entry.name_clean)
+                match_score = fuzz.token_sort_ratio(clean_name(p.name), entry.name_clean)
                 if match_score > 75: # TODO allow threshold to be configurable somehow
                     entry.matches.append(CatalogMatchEntry(match_score, p))
 
@@ -158,9 +169,9 @@ class Command(BaseCommand):
                 matched_program = match.program
                 matched_program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
                 matched_program.save()
-                #print 'MATCH \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Matched program name: %s \n Match score: %d \n' % (entry.name, entry.name_clean, matched_program.name, match.match_score)
-            #else:
-                #print 'FAILURE \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n' % (entry.name, entry.name_clean)
+                # print 'MATCH \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Matched program name: %s \n Cleaned program name: %s \n Match score: %d \n' % (entry.name, entry.name_clean, matched_program.name, clean_name(matched_program.name), match.match_score)
+            # else:
+                # print 'FAILURE \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n' % (entry.name, entry.name_clean)
 
 
         match_count = len([x for x in self.catalog_programs if x.has_matches == True])
