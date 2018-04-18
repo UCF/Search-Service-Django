@@ -270,4 +270,8 @@ class Command(BaseCommand):
 
         retval = retval.replace('xmlns:h="http://www.w3.org/1999/xhtml"', '')
 
+        regex = re.compile(r'[\r\n\t]')
+
+        retval = regex.sub(' ', retval)
+
         return retval
