@@ -170,10 +170,10 @@ class Command(BaseCommand):
 
         if self.graduate:
             career_name = 'Graduate'
-            programs = programs.filter(career__name=career_name)
         else:
             career_name = 'Undergraduate'
-            programs = programs.filter(career__name=career_name)
+
+        programs = programs.filter(career__name=career_name)
 
         for p in programs:
             p = MatchableProgram(p)
