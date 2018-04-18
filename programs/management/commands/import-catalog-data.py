@@ -5,6 +5,7 @@ import urllib2
 import re
 import itertools
 import logging
+import sys
 from operator import attrgetter
 import xml.etree.ElementTree as ET
 from fuzzywuzzy import fuzz
@@ -20,7 +21,8 @@ def clean_name(program_name):
         'for', 'from', 'has', 'he', 'in', 'is', 'it',
         'its', 'of', 'on', 'or', 'that', 'the', 'to', 'was',
         'were', 'will', 'with', 'degree', 'program', 'minor',
-        'track', 'graduate', 'certificate', 'bachelor', 'master'
+        'track', 'graduate', 'certificate', 'bachelor', 'master',
+        'doctor', 'online'
     ]
 
     name = ' '.join(filter(lambda x: x.lower() not in stop_words, name.split()))
@@ -137,6 +139,14 @@ class Command(BaseCommand):
             required=False
         )
         parser.add_argument(
+            '--threshold',
+            type=int,
+            help='Match score threshold between existing program names and catalog entry names. 100 represents a perfect match.',
+            dest='threshold',
+            default=75,
+            required=False
+        )
+        parser.add_argument(
             '--verbose',
             help='Be verbose',
             action='store_const',
@@ -156,10 +166,11 @@ class Command(BaseCommand):
         self.catalog_id = options['catalog-id']
         self.catalog_url = options['catalog-url'] + 'preview/preview_program.php?catoid={0}&poid={1}'
         self.graduate = options['graduate']
+        self.threshold = options['threshold']
         self.loglevel = options['loglevel']
 
         # Set logging level
-        logging.basicConfig(level=self.loglevel)
+        logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
         program_url = '{0}search/programs?key={1}&format=xml&method=listing&catalog={2}&options%5Blimit%5D=500'.format(self.path, self.key, self.catalog_id)
 
@@ -212,7 +223,7 @@ class Command(BaseCommand):
 
             for entry in filtered_entries:
                 match_score = fuzz.token_sort_ratio(p.name_clean, entry.name_clean)
-                if match_score > 75: # TODO allow threshold to be configurable somehow
+                if match_score >= self.threshold:
                     p.matches.append(CatalogMatchEntry(match_score, entry))
 
             if p.has_matches:
