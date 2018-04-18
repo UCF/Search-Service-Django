@@ -151,7 +151,7 @@ class Command(BaseCommand):
                 )
 
     def match_programs(self):
-        description_type, created = ProgramDescription.objects.get_or_create(
+        description_type, created = ProgramDescriptionType.objects.get_or_create(
             name='Catalog Description'
         )
 
@@ -172,25 +172,23 @@ class Command(BaseCommand):
                 matched_program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
                 matched_program.save()
 
-                description = matched_program.descriptions.get(profile_type=description_type)
-
-                if description:
+                try:
+                    description = matched_program.descriptions.get(profile_type=description_type)
                     description.description = self.get_description(entry.id)
-                else:
-                    matched_program.descriptions.add(
-                        ProgramDescription(
-                            profile_type=description_type,
-                            description=self.get_description(entry.id)
-                        )
+                    description.save()
+                except ProgramDescription.DoesNotExist:
+                    description = ProgramDescription(
+                        profile_type=description_type,
+                        description=self.get_description(entry.id),
+                        program=matched_program
                     )
+                    description.save()
                 #print 'MATCH \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Matched program name: %s \n Match score: %d \n' % (entry.name, entry.name_clean, matched_program.name, match.match_score)
             #else:
                 #print 'FAILURE \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n' % (entry.name, entry.name_clean)
 
 
         match_count = len([x for x in self.catalog_programs if x.has_matches == True])
-
-        return retval
 
 
     def get_description(self, program_id):
