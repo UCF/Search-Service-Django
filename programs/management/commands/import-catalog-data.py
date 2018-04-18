@@ -223,7 +223,7 @@ class Command(BaseCommand):
 
             for entry in filtered_entries:
                 match_score = fuzz.token_sort_ratio(p.name_clean, entry.name_clean)
-                if match_score > self.threshold:
+                if match_score >= self.threshold:
                     p.matches.append(CatalogMatchEntry(match_score, entry))
 
             if p.has_matches:
