@@ -4,8 +4,7 @@ from programs.models import *
 import urllib2
 import json
 
-from HTMLParser import HTMLParser
-
+from unidecode import unidecode
 
 class Command(BaseCommand):
     help = 'Imports programs from the Academic Programs Inventory Master.'
@@ -37,15 +36,14 @@ class Command(BaseCommand):
         return 0
 
     def add_program(self, data):
-        parser = HTMLParser()
         program = None
 
         try:
             program = Program.objects.get(plan_code=data['Plan'], subplans__lte=0)
-            program.name = parser.unescape(data['PlanName'])
+            program.name = unidecode(data['PlanName'])
         except Program.DoesNotExist:
             program = Program(
-                name=parser.unescape(data['PlanName']),
+                name=unidecode(data['PlanName']),
                 plan_code=data['Plan']
             )
 
@@ -107,7 +105,6 @@ class Command(BaseCommand):
         return program
 
     def add_subplan(self, data, parent):
-        parser = HTMLParser()
         program = None
 
         try:
@@ -115,10 +112,10 @@ class Command(BaseCommand):
                 plan_code=parent.plan_code,
                 subplan_code=data['Subplan'])
 
-            program.name = parser.unescape(data['Subplan_Name'])
+            program.name = unidecode(data['Subplan_Name'])
         except Program.DoesNotExist:
             program = Program(
-                name=parser.unescape(data['Subplan_Name']),
+                name=unidecode(data['Subplan_Name']),
                 plan_code=parent.plan_code,
                 subplan_code=data['Subplan'],
                 parent_program=parent
