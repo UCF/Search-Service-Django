@@ -22,7 +22,7 @@ def clean_name(program_name):
         'its', 'of', 'on', 'or', 'that', 'the', 'to', 'was',
         'were', 'will', 'with', 'degree', 'program', 'minor',
         'track', 'graduate', 'certificate', 'bachelor', 'master',
-        'online'
+        'doctor', 'online'
     ]
 
     name = ' '.join(filter(lambda x: x.lower() not in stop_words, name.split()))
