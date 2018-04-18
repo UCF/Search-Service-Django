@@ -4,6 +4,7 @@ from programs.models import *
 import urllib2
 import re
 import itertools
+import logging
 from operator import attrgetter
 import xml.etree.ElementTree as ET
 from fuzzywuzzy import fuzz
@@ -135,6 +136,15 @@ class Command(BaseCommand):
             default=False,
             required=False
         )
+        parser.add_argument(
+            '--verbose',
+            help='Be verbose',
+            action='store_const',
+            dest='loglevel',
+            const=logging.INFO,
+            default=logging.WARNING,
+            required=False
+        )
 
     def handle(self, *args, **options):
         ET.register_namespace('a', 'http://www.w3.org/2005/Atom')
@@ -146,6 +156,10 @@ class Command(BaseCommand):
         self.catalog_id = options['catalog-id']
         self.catalog_url = options['catalog-url'] + 'preview/preview_program.php?catoid={0}&poid={1}'
         self.graduate = options['graduate']
+        self.loglevel = options['loglevel']
+
+        # Set logging level
+        logging.basicConfig(level=self.loglevel)
 
         program_url = '{0}search/programs?key={1}&format=xml&method=listing&catalog={2}&options%5Blimit%5D=500'.format(self.path, self.key, self.catalog_id)
 
@@ -225,10 +239,9 @@ class Command(BaseCommand):
                 match_count += 1
                 matched_entry.match_count += 1
 
-                # TODO unicode sadness on existing program names
-                # print unicode('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace')
-            # else:
-                # print unicode('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace')
+                logging.info(unicode('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace'))
+            else:
+                logging.info(unicode('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace'))
 
         print 'Matched {0}/{1} of Existing {2} Programs to a Catalog Entry: {3:.0f}%'.format(match_count, len(programs), career_name, float(match_count) / float(len(programs)) * 100)
         print 'Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len(filter(lambda x: x.has_matches == True, self.catalog_programs)), len(self.catalog_programs), len(filter(lambda x: x.has_matches == True, self.catalog_programs)) / float(len(self.catalog_programs)) * 100)
