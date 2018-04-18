@@ -19,7 +19,7 @@ def clean_name(program_name):
         'for', 'from', 'has', 'he', 'in', 'is', 'it',
         'its', 'of', 'on', 'or', 'that', 'the', 'to', 'was',
         'were', 'will', 'with', 'degree', 'program', 'minor',
-        'track', 'graduate', 'certificate', 'bachelor'
+        'track', 'graduate', 'certificate', 'bachelor', 'master'
     ]
 
     name = ' '.join(filter(lambda x: x.lower() not in stop_words, name.split()))
@@ -189,6 +189,10 @@ class Command(BaseCommand):
         programs = programs.filter(career__name=career_name)
 
         for p in programs:
+            # Wipe out existing catalog URL
+            p.catalog_url = None
+            p.save()
+
             p = MatchableProgram(p)
             filtered_entries = filter(lambda x: x.level == p.program.level, self.catalog_programs)
 
@@ -222,9 +226,9 @@ class Command(BaseCommand):
                 matched_entry.match_count += 1
 
                 # TODO unicode sadness on existing program names
-                # print unicode('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace')
-            # else:
-                # print unicode('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace')
+                print unicode('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace')
+            else:
+                print unicode('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace')
 
         print 'Matched {0}/{1} of Existing {2} Programs to a Catalog Entry: {3:.0f}%'.format(match_count, len(programs), career_name, float(match_count) / float(len(programs)) * 100)
         print 'Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len(filter(lambda x: x.has_matches == True, self.catalog_programs)), len(self.catalog_programs), len(filter(lambda x: x.has_matches == True, self.catalog_programs)) / float(len(self.catalog_programs)) * 100)
