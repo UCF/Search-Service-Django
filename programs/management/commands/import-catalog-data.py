@@ -13,9 +13,6 @@ def clean_name(program_name):
     # Strip out punctuation
     name = program_name.replace('.', '')
 
-    # Remove degree name entirely from string (e.g. "(BA), (BS)")
-    name = re.sub('\(.*\)', '', name).strip()
-
     # Filter out stop words
     stop_words = [
         'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by',
@@ -32,12 +29,11 @@ def clean_name(program_name):
 
 class CatalogEntry(object):
 
-
     def __init__(self, id, name, program_type):
         self.id = id
         self.name = name
         self.type = program_type
-        self.matches = []
+        self.match_count = 0
 
     @property
     def level(self):
@@ -64,6 +60,21 @@ class CatalogEntry(object):
 
     @property
     def has_matches(self):
+        return self.match_count > 0
+
+
+class MatchableProgram(object):
+
+    def __init__(self, program):
+        self.program = program
+        self.matches = []
+
+    @property
+    def name_clean(self):
+        return clean_name(self.program.name)
+
+    @property
+    def has_matches(self):
         return len(self.matches) > 0
 
     def get_best_match(self):
@@ -74,9 +85,9 @@ class CatalogEntry(object):
 
 
 class CatalogMatchEntry(object):
-    def __init__(self, match_score, program):
+    def __init__(self, match_score, catalog_entry):
         self.match_score = match_score
-        self.program = program
+        self.catalog_entry = catalog_entry
 
 
 class Command(BaseCommand):
@@ -154,26 +165,39 @@ class Command(BaseCommand):
 
     def match_programs(self):
         programs = Program.objects.all()
+        match_count = 0
+        career_name = ''
 
         if self.graduate:
-            programs = programs.filter(career__name='Graduate')
+            career_name = 'Graduate'
+            programs = programs.filter(career__name=career_name)
+        else:
+            career_name = 'Undergraduate'
+            programs = programs.filter(career__name=career_name)
 
-        for entry in self.catalog_programs:
-            for p in programs.filter(level=entry.level):
-                match_score = fuzz.token_sort_ratio(clean_name(p.name), entry.name_clean)
+        for p in programs:
+            p = MatchableProgram(p)
+            filtered_entries = filter(lambda x: x.level == p.program.level, self.catalog_programs)
+
+            for entry in filtered_entries:
+                match_score = fuzz.token_sort_ratio(p.name_clean, entry.name_clean)
                 if match_score > 75: # TODO allow threshold to be configurable somehow
-                    entry.matches.append(CatalogMatchEntry(match_score, p))
+                    p.matches.append(CatalogMatchEntry(match_score, entry))
 
-            if entry.has_matches:
-                match = entry.get_best_match()
-                matched_program = match.program
-                matched_program.catalog_url = self.catalog_url.format(self.catalog_id, entry.id)
-                matched_program.save()
-                # print 'MATCH \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Matched program name: %s \n Cleaned program name: %s \n Match score: %d \n' % (entry.name, entry.name_clean, matched_program.name, clean_name(matched_program.name), match.match_score)
+            if p.has_matches:
+                match = p.get_best_match()
+                matched_entry = match.catalog_entry
+                p.program.catalog_url = self.catalog_url.format(self.catalog_id, matched_entry.id)
+                p.program.save()
+
+                match_count += 1
+                matched_entry.match_count += 1
+
+                # TODO unicode sadness on existing program names
+                # print unicode('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace')
             # else:
-                # print 'FAILURE \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n' % (entry.name, entry.name_clean)
+                # print unicode('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace')
 
 
-        match_count = len([x for x in self.catalog_programs if x.has_matches == True])
-
-        print 'Matched {0}/{1} of Catalog Programs: {2:.0f}%'.format(match_count, len(self.catalog_programs), float(match_count) / float(len(self.catalog_programs)) * 100)
+        print 'Matched {0}/{1} of Existing {2} Programs to a Catalog Entry: {3:.0f}%'.format(match_count, len(programs), career_name, float(match_count) / float(len(programs)) * 100)
+        print 'Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len(filter(lambda x: x.has_matches == True, self.catalog_programs)), len(self.catalog_programs), len(filter(lambda x: x.has_matches == True, self.catalog_programs)) / float(len(self.catalog_programs)) * 100)
