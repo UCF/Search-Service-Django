@@ -109,7 +109,7 @@ class ProgramDescriptionSerializer(serializers.ModelSerializer):
                 'description_type': description_type
             })
         except ProgramDescriptionType.DoesNotExist:
-            raise serializers.ValidationError("Description Type much exist.")
+            raise serializers.ValidationError('Description Type much exist.')
 
         retval = None
 
@@ -117,7 +117,7 @@ class ProgramDescriptionSerializer(serializers.ModelSerializer):
             retval = ProgramDescription.objects.create(**validated_data)
             retval.save()
         except IntegrityError as e:
-            raise serializers.ValidationError('A description of type `{0}` already exists.'.format(description_type.name), )
+            raise serializers.ValidationError('A description of type `{0}` already exists.'.format(description_type.name))
 
 
         return retval
