@@ -29,6 +29,8 @@ def clean_name(program_name):
     ]
     name = ' '.join(filter(lambda x: x not in stop_words_cs, name.split()))
 
+    arr = ['as', 'in', 'this']
+
     # Filter out case-insensitive stop words
     stop_words_ci = [
         'a', 'an', 'and', 'are', 'at', 'be', 'by',
@@ -59,7 +61,7 @@ class CatalogEntry(object):
         except Level.DoesNotExist:
             temp_level = None
 
-        if self.type in ['Major', 'Accelerated Undergraduate-Graduate Program']:
+        if self.type in ['Major', 'Accelerated Undergraduate-Graduate Program', 'Articulated A.S. Programs']:
             return Level.objects.get(name='Bachelors')
         elif self.type == 'Certificate':
             return Level.objects.get(name='Certificate')
@@ -67,8 +69,8 @@ class CatalogEntry(object):
             return Level.objects.get(name='None')
         elif self.type in ['Master', 'Master of Fine Arts']:
             return Level.objects.get(name='Masters')
-        else:
-            return Level.objects.get(name='Bachelors')
+
+        return Level.objects.get(name='Bachelors')
 
     @property
     def name_clean(self):
@@ -169,6 +171,7 @@ class Command(BaseCommand):
         self.path = options['path']
         self.key = options['api-key']
         self.catalog_id = options['catalog-id']
+        # TODO: Update to production url or parameterize!!!
         self.catalog_url = options['catalog-url'] + 'preview/preview_program.php?catoid={0}&poid={1}'
         self.graduate = options['graduate']
         self.loglevel = options['loglevel']
@@ -274,7 +277,7 @@ class Command(BaseCommand):
         raw_data = response.read()
         root = ET.fromstring(raw_data)
 
-        content = root.find('.//a:content', self.ns )
+        content = root.find('.//a:content' )
 
         retval = ''
 
@@ -283,7 +286,7 @@ class Command(BaseCommand):
 
         retval = retval.replace('<h:', '<').replace('</h:', '</')
 
-        retval = retval.replace('xmlns:h="http://www.w3.org/1999/xhtml"', '')
+        retval = retval.replace(' xmlns:h="http://www.w3.org/1999/xhtml"', '')
 
         regex = re.compile(r'[\r\n\t]')
 
