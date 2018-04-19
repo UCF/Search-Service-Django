@@ -29,8 +29,6 @@ def clean_name(program_name):
     ]
     name = ' '.join(filter(lambda x: x not in stop_words_cs, name.split()))
 
-    arr = ['as', 'in', 'this']
-
     # Filter out case-insensitive stop words
     stop_words_ci = [
         'a', 'an', 'and', 'are', 'at', 'be', 'by',
