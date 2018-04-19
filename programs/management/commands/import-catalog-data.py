@@ -17,8 +17,11 @@ def clean_name(program_name):
     # Strip out punctuation
     name = name.replace('.', '')
 
-    # Fix nonthesis/non-thesis inconsistencies
+    # Fix miscellaneous inconsistencies
     name = name.replace('Nonthesis', 'Non-Thesis')
+    name = name.replace('Bachelor of Design', '')
+    name = name.replace('In State', 'In-State')
+    name = name.replace('Out of State', 'Out-of-State')
 
     # Filter out case-sensitive stop words
     stop_words_cs = [
@@ -289,8 +292,11 @@ class Command(BaseCommand):
         return retval
 
     def get_match_threshold(self, matchable_program, entry):
-        # Base threshold score value
-        threshold = 75
+        # Base threshold score value. Increase base threshold
+        # for graduate programs.
+        threshold = 80
+        if matchable_program.program.career.name == 'Graduate':
+            threshold = 85
 
         # Determine the mean (average) number of words between the
         # existing program name and catalog entry name
@@ -302,10 +308,10 @@ class Command(BaseCommand):
         # Enforce a stricter threshold between program names with a lower
         # mean word count
         if word_count_mean <= 3:
-            threshold = 82
+            threshold += 2
 
         if word_count_mean <= 2:
-            threshold = 85
+            threshold += 3
 
         # Enforce stricter threshold for subplans, since they have a decent
         # chance of unintentionally matching against their parent program when
