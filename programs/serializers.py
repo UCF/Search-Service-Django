@@ -102,17 +102,19 @@ class ProgramProfileSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    program = serializers.PrimaryKeyRelatedField(
-        many=False,
-        read_only=True
-    )
-
     class Meta:
-        fields = ('profile_type', 'url', 'primary')
+        fields = ('profile_type', 'url', 'primary', 'program')
         model = ProgramProfile
 
 
+class ProgramProfileWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = ProgramProfile
+
 class ProgramDescriptionTypeSerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = '__all__'
         model = ProgramDescriptionType
@@ -149,6 +151,12 @@ class ProgramDescriptionSerializer(serializers.ModelSerializer):
         fields = ('id', 'description_type', 'description', 'primary', 'program')
         model = ProgramDescription
 
+
+class ProgramDescriptionWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = ProgramDescription
 
 class RelatedProgramSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(

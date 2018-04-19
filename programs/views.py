@@ -77,11 +77,20 @@ class ProgramDetailView(generics.RetrieveAPIView):
 
 class ProgramProfileDetailView(generics.RetrieveUpdateAPIView):
     queryset = ProgramProfile.objects.all()
-    lookup_field = 'id',
+    lookup_field = 'id'
     serializer_class = ProgramProfileSerializer
+
+
+class ProgramProfileCreateView(generics.CreateAPIView):
+    serializer_class = ProgramProfileWriteSerializer
+
 
 class ProgramDescriptionDetailView(generics.RetrieveUpdateAPIView):
     queryset = ProgramDescription.objects.all()
     lookup_field = 'id'
     serializer_class = ProgramDescriptionSerializer
+
+
+class ProgramDescriptionCreateView(generics.CreateAPIView):
+    serializer_class = ProgramDescriptionWriteSerializer
 
