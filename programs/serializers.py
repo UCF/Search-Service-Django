@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from programs.models import *
 
+from django.db import IntegrityError
+
 
 # Custom Serializers
 class LevelSerializer(serializers.ModelSerializer):
@@ -77,11 +79,60 @@ class ProgramDescriptionTypeSerializer(serializers.ModelSerializer):
 
 
 class ProgramDescriptionSerializer(serializers.ModelSerializer):
-    profile_type = serializers.StringRelatedField(many=False, read_only=True)
+    description_type = serializers.PrimaryKeyRelatedField(
+        queryset=ProgramDescriptionType.objects.all()
+    )
+    program = serializers.PrimaryKeyRelatedField(
+        many=False,
+        read_only=True,
+    )
 
     class Meta:
-        fields = ('profile_type', 'description', 'primary')
+        fields = ('description_type', 'description', 'primary', 'program')
         model = ProgramDescription
+
+    def create(self, validated_data):
+        try:
+            program_id = self.context['view'].kwargs['program__id']
+            program = Program.objects.get(id=program_id)
+            validated_data.update({
+                'program': program
+            })
+        except Program.DoesNotExist:
+            raise serializers.ValidationError('Program ID provided does not exist')
+        except:
+            raise serializers.ValidationError('Program ID must be provided')
+
+        try:
+            description_type = validated_data.get('description_type', None)
+            validated_data.update({
+                'description_type': description_type
+            })
+        except ProgramDescriptionType.DoesNotExist:
+            raise serializers.ValidationError("Description Type much exist.")
+
+        retval = None
+
+        try:
+            retval = ProgramDescription.objects.create(**validated_data)
+            retval.save()
+        except IntegrityError as e:
+            raise serializers.ValidationError('A description of type `{0}` already exists.'.format(description_type.name), )
+
+
+        return retval
+
+    def update(self, instance, validated_data):
+        try:
+            description_type = validated_data.get('description_type', None)
+        except ProgramDescriptionType.DoesNotExist:
+            raise serializers.ValidationError("Description Type much exist.")
+
+        instance.description_type = description_type
+        instance.description = validated_data.get('description', instance.description)
+        instance.primary = validated_data.get('primary', instance.primary)
+
+        return instance
 
 
 class RelatedProgramSerializer(serializers.ModelSerializer):
@@ -104,8 +155,8 @@ class ProgramSerializer(serializers.ModelSerializer):
     career = serializers.StringRelatedField(many=False)
     degree = serializers.StringRelatedField(many=False)
 
-    descriptions = ProgramDescriptionSerializer(many=True, read_only=True)
-    profiles = ProgramProfileSerializer(many=True, read_only=True)
+    descriptions = ProgramDescriptionSerializer(many=True, read_only=False)
+    profiles = ProgramProfileSerializer(many=True, read_only=False)
 
     colleges = CollegeLinkSerializer(
         many=True,

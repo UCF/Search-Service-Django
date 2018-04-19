@@ -102,6 +102,12 @@ class ProgramDescriptionType(models.Model):
     """
     name = models.CharField(max_length=255, null=False, blank=False)
 
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
 
 class Program(models.Model):
     """
@@ -176,6 +182,9 @@ class ProgramProfile(models.Model):
         related_name='profiles'
     )
 
+    class Meta:
+        unique_together = ('profile_type', 'program')
+
     def __str__(self):
         return '{0} {1}'.format(self.program.name, self.profile_type.name)
 
@@ -187,7 +196,7 @@ class ProgramDescription(models.Model):
     """
     Program descriptions to be used on various sites
     """
-    profile_type = models.ForeignKey(ProgramDescriptionType)
+    description_type = models.ForeignKey(ProgramDescriptionType)
     description = models.TextField(null=False, blank=False)
     primary = models.BooleanField(default=False, null=False, blank=False)
     program = models.ForeignKey(
@@ -197,6 +206,14 @@ class ProgramDescription(models.Model):
         related_name='descriptions'
     )
 
+    class Meta:
+        unique_together = ('description_type', 'program')
+
+    def __str__(self):
+        return '{0} {1}'.format(self.program.name, self.description_type.name)
+
+    def __unicode(self):
+        return '{0} {1}'.format(self.program.name, self.description_type.name)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
