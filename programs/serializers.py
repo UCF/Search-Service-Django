@@ -25,13 +25,19 @@ class DegreeSerializer(serializers.ModelSerializer):
 
 
 class CollegeLinkSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
+    update_url = serializers.HyperlinkedIdentityField(
         view_name='api.colleges.detail',
         lookup_field='id'
     )
 
     class Meta:
-        fields = ('full_name', 'url')
+        fields = (
+            'full_name',
+            'short_name',
+            'college_url',
+            'profile_url',
+            'update_url'
+        )
         model = College
 
 
@@ -42,13 +48,18 @@ class CollegeSerializer(serializers.ModelSerializer):
 
 
 class DepartmentLinkSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
+    update_url = serializers.HyperlinkedIdentityField(
         view_name='api.departments.detail',
         lookup_field='id'
     )
 
     class Meta:
-        fields = ('full_name', 'url')
+        fields = (
+            'full_name',
+            'department_url',
+            'school',
+            'update_url'
+        )
         model = Department
 
 
@@ -64,6 +75,27 @@ class ProgramProfileTypeSerializer(serializers.ModelSerializer):
         model = ProgramProfileType
 
 
+class ProgramProfileLinkedSerializer(serializers.ModelSerializer):
+    profile_type = ProgramProfileTypeSerializer(
+        many=False,
+        read_only=True
+    )
+
+    update_url = serializers.HyperlinkedIdentityField(
+        view_name='api.profiles.detail',
+        lookup_field='id'
+    )
+
+    class Meta:
+        fields = (
+            'profile_type',
+            'url',
+            'primary',
+            'program',
+            'update_url'
+        )
+        model = ProgramProfile
+
 class ProgramProfileSerializer(serializers.ModelSerializer):
     profile_type = serializers.StringRelatedField(many=False, read_only=True)
 
@@ -78,61 +110,27 @@ class ProgramDescriptionTypeSerializer(serializers.ModelSerializer):
         model = ProgramDescriptionType
 
 
-class ProgramDescriptionSerializer(serializers.ModelSerializer):
-    description_type = serializers.PrimaryKeyRelatedField(
-        queryset=ProgramDescriptionType.objects.all()
-    )
-    program = serializers.PrimaryKeyRelatedField(
+class ProgramDescriptionLinkedSerializer(serializers.ModelSerializer):
+    description_type = ProgramDescriptionTypeSerializer(
         many=False,
-        read_only=True,
+        read_only=True
+    )
+
+    update_url = serializers.HyperlinkedIdentityField(
+        view_name='api.descriptions.detail',
+        lookup_field='id'
     )
 
     class Meta:
-        fields = ('description_type', 'description', 'primary', 'program')
+        fields = ('id', 'description_type', 'description', 'primary', 'program', 'update_url')
         model = ProgramDescription
 
-    def create(self, validated_data):
-        try:
-            program_id = self.context['view'].kwargs['program__id']
-            program = Program.objects.get(id=program_id)
-            validated_data.update({
-                'program': program
-            })
-        except Program.DoesNotExist:
-            raise serializers.ValidationError('Program ID provided does not exist')
-        except:
-            raise serializers.ValidationError('Program ID must be provided')
 
-        try:
-            description_type = validated_data.get('description_type', None)
-            validated_data.update({
-                'description_type': description_type
-            })
-        except ProgramDescriptionType.DoesNotExist:
-            raise serializers.ValidationError('Description Type much exist.')
+class ProgramDescriptionSerializer(serializers.ModelSerializer):
 
-        retval = None
-
-        try:
-            retval = ProgramDescription.objects.create(**validated_data)
-            retval.save()
-        except IntegrityError as e:
-            raise serializers.ValidationError('A description of type `{0}` already exists.'.format(description_type.name))
-
-
-        return retval
-
-    def update(self, instance, validated_data):
-        try:
-            description_type = validated_data.get('description_type', None)
-        except ProgramDescriptionType.DoesNotExist:
-            raise serializers.ValidationError("Description Type much exist.")
-
-        instance.description_type = description_type
-        instance.description = validated_data.get('description', instance.description)
-        instance.primary = validated_data.get('primary', instance.primary)
-
-        return instance
+    class Meta:
+        fields = ('id', 'description_type', 'description', 'primary', 'program')
+        model = ProgramDescription
 
 
 class RelatedProgramSerializer(serializers.ModelSerializer):
@@ -155,7 +153,7 @@ class ProgramSerializer(serializers.ModelSerializer):
     career = serializers.StringRelatedField(many=False)
     degree = serializers.StringRelatedField(many=False)
 
-    descriptions = ProgramDescriptionSerializer(many=True, read_only=False)
+    descriptions = ProgramDescriptionLinkedSerializer(many=True, read_only=False)
     profiles = ProgramProfileSerializer(many=True, read_only=False)
 
     colleges = CollegeLinkSerializer(

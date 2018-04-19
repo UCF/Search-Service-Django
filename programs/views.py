@@ -75,20 +75,13 @@ class ProgramDetailView(generics.RetrieveAPIView):
     serializer_class = ProgramSerializer
 
 
-class ProgramDescriptionListView(generics.ListCreateAPIView):
+class ProgramProfileDetailView(generics.RetrieveUpdateAPIView):
+    queryset = ProgramProfile.objects.all()
+    lookup_field = 'id',
+    serializer_class = ProgramProfileSerializer
+
+class ProgramDescriptionDetailView(generics.RetrieveUpdateAPIView):
     queryset = ProgramDescription.objects.all()
+    lookup_field = 'id'
     serializer_class = ProgramDescriptionSerializer
 
-    def get_queryset(self):
-        queryset = ProgramDescription.objects.all()
-
-        if self.kwargs['program__id']:
-            program_id = self.kwargs['program__id']
-            queryset = queryset.filter(program__id=program_id)
-
-        return queryset
-
-class ProgramDescriptionDetailView(MultipleFieldLookupMixin, generics.RetrieveUpdateAPIView):
-    queryset = ProgramDescription.objects.all()
-    lookup_fields = ('program__id', 'description_type__id')
-    serializer_class = ProgramDescriptionSerializer

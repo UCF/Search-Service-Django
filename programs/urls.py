@@ -11,14 +11,6 @@ urlpatterns = [
         ProgramDetailView.as_view(),
         name='api.programs.detail'
         ),
-    url(r'^programs/(?P<program__id>\d+)/descriptions/$',
-        ProgramDescriptionListView.as_view(),
-        name='api.programs.descriptions.list'
-    ),
-    url(r'^programs/(?P<program__id>\d+)/descriptions/(?P<description_type__id>\d+)/$',
-        ProgramDescriptionDetailView.as_view(),
-        name='api.programs.descriptions.detail'
-        ),
     url(r'^programs/search/$',
         ProgramSearchView.as_view(),
         name='api.programs.search'
@@ -47,4 +39,12 @@ urlpatterns = [
         DepartmentSearchView.as_view(),
         name='api.departments.search'
         ),
+    url(r'^descriptions/(?P<id>\d+)/$',
+        ProgramDescriptionDetailView.as_view(),
+        name='api.descriptions.detail'
+    ),
+    url(r'^profiles/(?P<id>\d+)/$',
+        ProgramProfileDetailView.as_view(),
+        name='api.profiles.detail'
+    )
 ]
