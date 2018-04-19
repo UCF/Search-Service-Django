@@ -22,6 +22,7 @@ def clean_name(program_name):
     name = name.replace('Bachelor of Design', '')
     name = name.replace('In State', 'In-State')
     name = name.replace('Out of State', 'Out-of-State')
+    name = name.replace('Accel', 'Accelerated')
 
     # Filter out case-sensitive stop words
     stop_words_cs = [
@@ -36,7 +37,7 @@ def clean_name(program_name):
         'its', 'of', 'on', 'or', 'that', 'the', 'to', 'was',
         'were', 'will', 'with', 'degree', 'program', 'minor',
         'track', 'graduate', 'certificate', 'bachelor', 'master',
-        'doctor', 'online'
+        'doctor', 'online', 'ucf'
     ]
     name = ' '.join(filter(lambda x: x.lower() not in stop_words_ci, name.split()))
 
@@ -323,7 +324,7 @@ class Command(BaseCommand):
         # Reduce the threshold for accelerated undergraduate programs, since
         # their names tend to vary more greatly between the catalog and
         # our data
-        if 'Accelerated' in matchable_program.program.name and 'Undergraduate' in matchable_program.program.career.name and 'Accelerated' in entry.type:
+        if 'Accelerated' in matchable_program.name_clean and 'Undergraduate' in matchable_program.program.career.name and 'Accelerated' in entry.type:
             threshold = 70
 
         return threshold
