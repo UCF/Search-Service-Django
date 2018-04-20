@@ -129,6 +129,9 @@ class Program(models.Model):
                                        blank=True,
                                        related_name='subplans')
 
+    class Meta:
+        unique_together = ('plan_code', 'subplan_code')
+
     def __str__(self):
         return self.name
 
