@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from programs.models import *
 
+from django.db import IntegrityError
+
 
 # Custom Serializers
 class LevelSerializer(serializers.ModelSerializer):
@@ -23,13 +25,19 @@ class DegreeSerializer(serializers.ModelSerializer):
 
 
 class CollegeLinkSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
+    update_url = serializers.HyperlinkedIdentityField(
         view_name='api.colleges.detail',
         lookup_field='id'
     )
 
     class Meta:
-        fields = ('full_name', 'url')
+        fields = (
+            'full_name',
+            'short_name',
+            'college_url',
+            'profile_url',
+            'update_url'
+        )
         model = College
 
 
@@ -40,13 +48,18 @@ class CollegeSerializer(serializers.ModelSerializer):
 
 
 class DepartmentLinkSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
+    update_url = serializers.HyperlinkedIdentityField(
         view_name='api.departments.detail',
         lookup_field='id'
     )
 
     class Meta:
-        fields = ('full_name', 'url')
+        fields = (
+            'full_name',
+            'department_url',
+            'school',
+            'update_url'
+        )
         model = Department
 
 
@@ -62,27 +75,88 @@ class ProgramProfileTypeSerializer(serializers.ModelSerializer):
         model = ProgramProfileType
 
 
-class ProgramProfileSerializer(serializers.ModelSerializer):
-    profile_type = serializers.StringRelatedField(many=False, read_only=True)
+class ProgramProfileLinkedSerializer(serializers.ModelSerializer):
+    profile_type = ProgramProfileTypeSerializer(
+        many=False,
+        read_only=True
+    )
+
+    update_url = serializers.HyperlinkedIdentityField(
+        view_name='api.profiles.detail',
+        lookup_field='id'
+    )
 
     class Meta:
-        fields = ('profile_type', 'url', 'primary')
+        fields = (
+            'profile_type',
+            'url',
+            'primary',
+            'program',
+            'update_url'
+        )
+        model = ProgramProfile
+
+class ProgramProfileSerializer(serializers.ModelSerializer):
+    profile_type = ProgramProfileTypeSerializer(
+        many=False,
+        read_only=True
+    )
+
+    class Meta:
+        fields = ('profile_type', 'url', 'primary', 'program')
         model = ProgramProfile
 
 
+class ProgramProfileWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = ProgramProfile
+
 class ProgramDescriptionTypeSerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = '__all__'
         model = ProgramDescriptionType
 
 
-class ProgramDescriptionSerializer(serializers.ModelSerializer):
-    profile_type = serializers.StringRelatedField(many=False, read_only=True)
+class ProgramDescriptionLinkedSerializer(serializers.ModelSerializer):
+    description_type = ProgramDescriptionTypeSerializer(
+        many=False,
+        read_only=True
+    )
+
+    update_url = serializers.HyperlinkedIdentityField(
+        view_name='api.descriptions.detail',
+        lookup_field='id'
+    )
 
     class Meta:
-        fields = ('profile_type', 'description', 'primary')
+        fields = ('id', 'description_type', 'description', 'primary', 'program', 'update_url')
         model = ProgramDescription
 
+
+class ProgramDescriptionSerializer(serializers.ModelSerializer):
+    description_type = ProgramDescriptionTypeSerializer(
+        many=False,
+        read_only=True
+    )
+
+    program = serializers.PrimaryKeyRelatedField(
+        many=False,
+        read_only=True
+    )
+
+    class Meta:
+        fields = ('id', 'description_type', 'description', 'primary', 'program')
+        model = ProgramDescription
+
+
+class ProgramDescriptionWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = ProgramDescription
 
 class RelatedProgramSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
@@ -104,8 +178,8 @@ class ProgramSerializer(serializers.ModelSerializer):
     career = serializers.StringRelatedField(many=False)
     degree = serializers.StringRelatedField(many=False)
 
-    descriptions = ProgramDescriptionSerializer(many=True, read_only=True)
-    profiles = ProgramProfileSerializer(many=True, read_only=True)
+    descriptions = ProgramDescriptionLinkedSerializer(many=True, read_only=False)
+    profiles = ProgramProfileSerializer(many=True, read_only=False)
 
     colleges = CollegeLinkSerializer(
         many=True,

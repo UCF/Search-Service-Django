@@ -3,6 +3,11 @@ from __future__ import unicode_literals
 
 from django.db import models
 
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+
 # Create your models here.
 
 
@@ -97,6 +102,12 @@ class ProgramDescriptionType(models.Model):
     """
     name = models.CharField(max_length=255, null=False, blank=False)
 
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
 
 class Program(models.Model):
     """
@@ -117,6 +128,9 @@ class Program(models.Model):
                                        null=True,
                                        blank=True,
                                        related_name='subplans')
+
+    class Meta:
+        unique_together = ('plan_code', 'subplan_code')
 
     def __str__(self):
         return self.name
@@ -171,6 +185,9 @@ class ProgramProfile(models.Model):
         related_name='profiles'
     )
 
+    class Meta:
+        unique_together = ('profile_type', 'program')
+
     def __str__(self):
         return '{0} {1}'.format(self.program.name, self.profile_type.name)
 
@@ -182,7 +199,7 @@ class ProgramDescription(models.Model):
     """
     Program descriptions to be used on various sites
     """
-    profile_type = models.ForeignKey(ProgramDescriptionType)
+    description_type = models.ForeignKey(ProgramDescriptionType)
     description = models.TextField(null=False, blank=False)
     primary = models.BooleanField(default=False, null=False, blank=False)
     program = models.ForeignKey(
@@ -191,3 +208,17 @@ class ProgramDescription(models.Model):
         blank=False,
         related_name='descriptions'
     )
+
+    class Meta:
+        unique_together = ('description_type', 'program')
+
+    def __str__(self):
+        return '{0} {1}'.format(self.program.name, self.description_type.name)
+
+    def __unicode__(self):
+        return '{0} {1}'.format(self.program.name, self.description_type.name)
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)

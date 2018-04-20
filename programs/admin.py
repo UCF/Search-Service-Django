@@ -38,8 +38,18 @@ class ProgramProfileTypeAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(ProgramDescriptionType)
+class ProgramDescriptionTypeAdmin(admin.ModelAdmin):
+    pass
+
+
 @admin.register(ProgramProfile)
 class ProgramProfileAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ProgramDescription)
+class ProgramDescriptionAdmin(admin.ModelAdmin):
     pass
 
 
