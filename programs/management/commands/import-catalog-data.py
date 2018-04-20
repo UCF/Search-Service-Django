@@ -276,7 +276,7 @@ class Command(BaseCommand):
         raw_data = response.read()
         root = ET.fromstring(raw_data)
 
-        content = root.find('.//a:content' )
+        content = root.find('.//a:content', self.ns)
 
         retval = ''
 
