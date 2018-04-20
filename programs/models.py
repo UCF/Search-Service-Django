@@ -215,7 +215,7 @@ class ProgramDescription(models.Model):
     def __str__(self):
         return '{0} {1}'.format(self.program.name, self.description_type.name)
 
-    def __unicode(self):
+    def __unicode__(self):
         return '{0} {1}'.format(self.program.name, self.description_type.name)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
