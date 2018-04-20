@@ -4,6 +4,7 @@ from programs.models import *
 import urllib2
 import json
 
+from unidecode import unidecode
 
 class Command(BaseCommand):
     help = 'Imports programs from the Academic Programs Inventory Master.'
@@ -38,9 +39,13 @@ class Command(BaseCommand):
         program = None
 
         try:
-            program = Program.objects.get(plan_code=data['Plan'])
+            program = Program.objects.get(plan_code=data['Plan'], subplans__lte=0)
+            program.name = unidecode(data['PlanName'])
         except Program.DoesNotExist:
-            program = Program(name=data['PlanName'], plan_code=data['Plan'])
+            program = Program(
+                name=unidecode(data['PlanName']),
+                plan_code=data['Plan']
+            )
 
         # Handle Career
         career = self.career_mappings[data['Career']]
@@ -50,19 +55,26 @@ class Command(BaseCommand):
 
         program.career = career
 
-        # Handle level
-        if data['Level'] == '':
-            data['Level'] = 'None'
-        level, created = Level.objects.get_or_create(name=data['Level'])
-
-        program.level = level
-
         # Handle degree
         degree, created = Degree.objects.get_or_create(
             name=data['Meta Data'][0]['Degree']
         )
 
         program.degree = degree
+
+        # Handle level
+        temp_level = 'None'
+        if data['Level'] == '':
+            if degree.name in ['CER', 'CRT']:
+                temp_level = 'Certificate'
+            if degree.name == 'MIN':
+                temp_level = 'Minor'
+        else:
+            temp_level = data['Level']
+
+        level, created = Level.objects.get_or_create(name=temp_level)
+
+        program.level = level
 
         if data['Meta Data'][0]['UCFOnline'] == "1":
             program.online = True
@@ -99,9 +111,11 @@ class Command(BaseCommand):
             program = Program.objects.get(
                 plan_code=parent.plan_code,
                 subplan_code=data['Subplan'])
+
+            program.name = unidecode(data['Subplan_Name'])
         except Program.DoesNotExist:
             program = Program(
-                name=data['Subplan_Name'],
+                name=unidecode(data['Subplan_Name']),
                 plan_code=parent.plan_code,
                 subplan_code=data['Subplan'],
                 parent_program=parent
