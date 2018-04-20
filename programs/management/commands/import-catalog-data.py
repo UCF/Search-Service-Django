@@ -12,20 +12,34 @@ from fuzzywuzzy import fuzz
 
 
 def clean_name(program_name):
-    # Strip out punctuation
-    name = program_name.replace('.', '')
+    name = program_name
 
-    # Filter out stop words
-    stop_words = [
-        'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by',
+    # Strip out punctuation
+    name = name.replace('.', '')
+
+    # Fix miscellaneous inconsistencies
+    name = name.replace('Nonthesis', 'Non-Thesis')
+    name = name.replace('Bachelor of Design', '')
+    name = name.replace('In State', 'In-State')
+    name = name.replace('Out of State', 'Out-of-State')
+    name = name.replace('Accel', 'Accelerated')
+
+    # Filter out case-sensitive stop words
+    stop_words_cs = [
+        'as'
+    ]
+    name = ' '.join(filter(lambda x: x not in stop_words_cs, name.split()))
+
+    # Filter out case-insensitive stop words
+    stop_words_ci = [
+        'a', 'an', 'and', 'are', 'at', 'be', 'by',
         'for', 'from', 'has', 'he', 'in', 'is', 'it',
         'its', 'of', 'on', 'or', 'that', 'the', 'to', 'was',
         'were', 'will', 'with', 'degree', 'program', 'minor',
         'track', 'graduate', 'certificate', 'bachelor', 'master',
-        'doctor', 'online'
+        'doctor', 'online', 'ucf'
     ]
-
-    name = ' '.join(filter(lambda x: x.lower() not in stop_words, name.split()))
+    name = ' '.join(filter(lambda x: x.lower() not in stop_words_ci, name.split()))
 
     return name
 
@@ -46,7 +60,7 @@ class CatalogEntry(object):
         except Level.DoesNotExist:
             temp_level = None
 
-        if self.type in ['Major', 'Accelerated Undergraduate-Graduate Program']:
+        if self.type in ['Major', 'Accelerated Undergraduate-Graduate Program', 'Articulated A.S. Programs']:
             return Level.objects.get(name='Bachelors')
         elif self.type == 'Certificate':
             return Level.objects.get(name='Certificate')
@@ -54,8 +68,8 @@ class CatalogEntry(object):
             return Level.objects.get(name='None')
         elif self.type in ['Master', 'Master of Fine Arts']:
             return Level.objects.get(name='Masters')
-        else:
-            return Level.objects.get(name='Bachelors')
+
+        return Level.objects.get(name='Bachelors')
 
     @property
     def name_clean(self):
@@ -139,14 +153,6 @@ class Command(BaseCommand):
             required=False
         )
         parser.add_argument(
-            '--threshold',
-            type=int,
-            help='Match score threshold between existing program names and catalog entry names. 100 represents a perfect match.',
-            dest='threshold',
-            default=75,
-            required=False
-        )
-        parser.add_argument(
             '--verbose',
             help='Be verbose',
             action='store_const',
@@ -164,9 +170,9 @@ class Command(BaseCommand):
         self.path = options['path']
         self.key = options['api-key']
         self.catalog_id = options['catalog-id']
+        # TODO: Update to production url or parameterize!!!
         self.catalog_url = options['catalog-url'] + 'preview/preview_program.php?catoid={0}&poid={1}'
         self.graduate = options['graduate']
-        self.threshold = options['threshold']
         self.loglevel = options['loglevel']
 
         # Set logging level
@@ -223,7 +229,7 @@ class Command(BaseCommand):
 
             for entry in filtered_entries:
                 match_score = fuzz.token_sort_ratio(p.name_clean, entry.name_clean)
-                if match_score >= self.threshold:
+                if match_score >= self.get_match_threshold(p, entry):
                     p.matches.append(CatalogMatchEntry(match_score, entry))
 
             if p.has_matches:
@@ -270,7 +276,7 @@ class Command(BaseCommand):
         raw_data = response.read()
         root = ET.fromstring(raw_data)
 
-        content = root.find('.//a:content', self.ns )
+        content = root.find('.//a:content', self.ns)
 
         retval = ''
 
@@ -279,10 +285,46 @@ class Command(BaseCommand):
 
         retval = retval.replace('<h:', '<').replace('</h:', '</')
 
-        retval = retval.replace('xmlns:h="http://www.w3.org/1999/xhtml"', '')
+        retval = retval.replace(' xmlns:h="http://www.w3.org/1999/xhtml"', '')
 
         regex = re.compile(r'[\r\n\t]')
 
         retval = regex.sub(' ', retval)
 
         return retval
+
+    def get_match_threshold(self, matchable_program, entry):
+        # Base threshold score value. Increase base threshold
+        # for graduate programs.
+        threshold = 80
+        if matchable_program.program.career.name == 'Graduate':
+            threshold = 85
+
+        # Determine the mean (average) number of words between the
+        # existing program name and catalog entry name
+        word_count_mp = len(matchable_program.name_clean.split())
+        word_count_e = len(entry.name_clean.split())
+        word_counts = [word_count_mp, word_count_e]
+        word_count_mean = float(sum(word_counts)) / max(len(word_counts), 1)
+
+        # Enforce a stricter threshold between program names with a lower
+        # mean word count
+        if word_count_mean <= 3:
+            threshold += 2
+
+        if word_count_mean <= 2:
+            threshold += 3
+
+        # Enforce stricter threshold for subplans, since they have a decent
+        # chance of unintentionally matching against their parent program when
+        # they shouldn't
+        if matchable_program.program.is_subplan:
+            threshold = 90
+
+        # Reduce the threshold for accelerated undergraduate programs, since
+        # their names tend to vary more greatly between the catalog and
+        # our data
+        if 'Accelerated' in matchable_program.name_clean and 'Undergraduate' in matchable_program.program.career.name and 'Accelerated' in entry.type:
+            threshold = 70
+
+        return threshold
