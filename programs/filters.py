@@ -6,6 +6,7 @@ from programs.models import *
 
 class ProgramFilter(django_filters.FilterSet):
     search = filters.CharFilter(name='name', lookup_expr='icontains')
+    subplan_code__isnull = filters.BooleanFilter(name='subplan_code', lookup_expr='isnull')
 
     class Meta:
         model = Program
@@ -13,6 +14,7 @@ class ProgramFilter(django_filters.FilterSet):
             'search',
             'plan_code',
             'subplan_code',
+            'subplan_code__isnull',
             'online',
             'colleges',
             'departments',
