@@ -179,7 +179,7 @@ class ProgramSerializer(serializers.ModelSerializer):
     degree = serializers.StringRelatedField(many=False)
 
     descriptions = ProgramDescriptionLinkedSerializer(many=True, read_only=False)
-    profiles = ProgramProfileSerializer(many=True, read_only=False)
+    profiles = ProgramProfileLinkedSerializer(many=True, read_only=False)
 
     colleges = CollegeLinkSerializer(
         many=True,
@@ -196,6 +196,7 @@ class ProgramSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = (
+            'id',
             'name',
             'descriptions',
             'online',
