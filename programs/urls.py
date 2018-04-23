@@ -44,6 +44,11 @@ urlpatterns = [
         ProgramDescriptionCreateView.as_view(),
         name='api.descriptions.create'
     ),
+    url(
+        r'^descriptions/types/$',
+        ProgramDescriptionTypeListView.as_view(),
+        name='api.descriptions.types.list'
+    ),
     url(r'^descriptions/(?P<id>\d+)/$',
         ProgramDescriptionDetailView.as_view(),
         name='api.descriptions.detail'
@@ -52,6 +57,11 @@ urlpatterns = [
         r'^profiles/create/$',
         ProgramProfileCreateView.as_view(),
         name='api.profiles.create'
+    ),
+    url(
+        r'^profiles/types/$',
+        ProgramProfileTypeListView.as_view(),
+        name='api.profiles.types.list'
     ),
     url(r'^profiles/(?P<id>\d+)/$',
         ProgramProfileDetailView.as_view(),

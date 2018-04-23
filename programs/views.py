@@ -85,6 +85,11 @@ class ProgramProfileCreateView(generics.CreateAPIView):
     serializer_class = ProgramProfileWriteSerializer
 
 
+class ProgramProfileTypeListView(generics.ListAPIView):
+    queryset = ProgramProfileType.objects.all()
+    serializer_class = ProgramProfileTypeSerializer
+
+
 class ProgramDescriptionDetailView(generics.RetrieveUpdateAPIView):
     queryset = ProgramDescription.objects.all()
     lookup_field = 'id'
@@ -93,4 +98,9 @@ class ProgramDescriptionDetailView(generics.RetrieveUpdateAPIView):
 
 class ProgramDescriptionCreateView(generics.CreateAPIView):
     serializer_class = ProgramDescriptionWriteSerializer
+
+
+class ProgramDescriptionTypeListView(generics.ListAPIView):
+    queryset = ProgramDescriptionType.objects.all()
+    serializer_class = ProgramDescriptionTypeSerializer
 
