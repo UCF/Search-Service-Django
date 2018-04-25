@@ -241,12 +241,12 @@ class Command(BaseCommand):
 
                 # Update the program description with the description provided in the matched catalog entry
                 try:
-                    description = p.program.descriptions.get(profile_type=description_type)
+                    description = p.program.descriptions.get(description_type=description_type)
                     description.description = self.get_description(matched_entry.id)
                     description.save()
                 except ProgramDescription.DoesNotExist:
                     description = ProgramDescription(
-                        profile_type=description_type,
+                        description_type=description_type,
                         description=self.get_description(matched_entry.id),
                         program=p.program
                     )
