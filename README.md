@@ -18,3 +18,16 @@ A Django based application that provides a REST API, as well as manual and autom
     b. `python manage.py collectstatic -l`
 11. Run the local server to debug and test: `python manage.py runserver`
 
+
+## Installation Notes
+The pip dependency `lxml` requires some additional libraries to be installed on the server the application is running on. You can run the following commands to install:
+
+*Ubuntu*
+```
+sudo apt-get install -y libxml2-dev libxslt1-dev
+```
+
+*RHEL*
+```
+sudo yum install libxml2 libxml2-devel libxml2-python libxslt libxslt-devel
+```
