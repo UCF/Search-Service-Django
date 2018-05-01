@@ -4,6 +4,7 @@ Django==1.11.12
 django-filter==1.1.0
 djangorestframework==3.8.2
 fuzzywuzzy==0.16.0
+gunicorn==19.7.1
 lxml==4.2.1
 MySQL-python==1.2.5
 pycodestyle==2.4.0
