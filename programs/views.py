@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render, get_object_or_404
 from rest_framework import generics
+from rest_framework.reverse import reverse
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 # from django_filters.rest_framework.filters import SearchFilter
 
@@ -28,6 +31,22 @@ class MultipleFieldLookupMixin(object):
         self.check_object_permissions(self.request, obj)
         return obj
 
+
+class CoreAPI(APIView):
+    
+    def get(self, request, format=None):
+        return Response({
+            'programs': reverse('api.programs.list', request=request),
+            'programs-search': reverse('api.programs.search', request=request),
+            'colleges': reverse('api.colleges.list', request=request),
+            'colleges-search': reverse('api.colleges.search', request=request),
+            'departments': reverse('api.departments.list', request=request),
+            'departments-search': reverse('api.departments.search', request=request),
+            'descriptions-create': reverse('api.descriptions.create', request=request),
+            'descriptionTypes': reverse('api.descriptions.types.list', request=request),
+            'profiles-create': reverse('api.profiles.create', request=request),
+            'profileTypes': reverse('api.profiles.types.list', request=request)
+        })
 
 # Create your views here.
 class CollegeListView(generics.ListAPIView):
