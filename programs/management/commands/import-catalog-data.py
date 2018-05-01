@@ -282,7 +282,6 @@ class Command(BaseCommand):
         description_xml = root.find('content').encode_contents()
         description_html = BeautifulSoup(description_xml, 'html.parser')
 
-        # Filter out invalid tags (replace them with span's)
         tag_whitelist = [
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
             'p', 'br', 'pre',
@@ -290,6 +289,8 @@ class Command(BaseCommand):
             'ul', 'li', 'ol',
             'b', 'em', 'i', 'strong', 'u'
         ]
+
+        # Filter out tags not in our whitelist (replace them with span's)
         for match in description_html.descendants:
             if match.name not in tag_whitelist and isinstance(match, NavigableString) == False:
                 match.name = 'span'
