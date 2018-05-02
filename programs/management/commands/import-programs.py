@@ -1,10 +1,12 @@
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 from programs.models import *
 
 import urllib2
 import json
 
 from unidecode import unidecode
+
 
 class Command(BaseCommand):
     help = 'Imports programs from the Academic Programs Inventory Master.'
@@ -18,13 +20,16 @@ class Command(BaseCommand):
         parser.add_argument('path', type=str, help='The url of the APIM API.')
 
     def handle(self, *args, **options):
+        new_modified_date = timezone.now()
         path = options['path']
         response = urllib2.urlopen(path)
 
         data = json.loads(response.read())
 
+        # Create/update programs from feed data
         for d in data:
-            if d['Meta Data'][0]['Degree'] == 'PND':
+            # Ignore pending and undergraduate non-degree programs
+            if d['Meta Data'][0]['Degree'] == 'PND' or d['College_Full'] == 'Undergraduate Non-Degree':
                 continue
 
             program = self.add_program(d)
@@ -32,6 +37,9 @@ class Command(BaseCommand):
             if len(d['SubPlans']) > 0:
                 for sp in d['SubPlans']:
                     self.add_subplan(sp, program)
+
+        # Remove stale programs
+        Program.objects.filter(modified__lt=new_modified_date).delete()
 
         return 0
 

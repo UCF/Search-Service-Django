@@ -55,4 +55,4 @@ class ProgramDescriptionAdmin(admin.ModelAdmin):
 
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields = ('created', 'modified')
