@@ -9,6 +9,7 @@ import sys
 from operator import attrgetter
 import xml.etree.ElementTree as ET
 from fuzzywuzzy import fuzz
+from bs4 import BeautifulSoup, NavigableString
 
 
 def clean_name(program_name):
@@ -274,24 +275,37 @@ class Command(BaseCommand):
 
         response = urllib2.urlopen(url)
         raw_data = response.read()
-        root = ET.fromstring(raw_data)
 
-        content = root.find('.//a:content', self.ns)
+        # Strip xmlns attributes to parse string to xml without namespaces
+        data = re.sub(' xmlns(?:\:[a-z]*)?="[^"]+"', '', raw_data)
+        root = BeautifulSoup(data, 'xml')
+        description_xml = root.find('content').encode_contents()
+        description_html = BeautifulSoup(description_xml, 'html.parser')
 
-        retval = ''
+        tag_whitelist = [
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'p', 'br', 'pre',
+            'table', 'tbody', 'thead', 'tr', 'td', 'a',
+            'ul', 'li', 'ol',
+            'b', 'em', 'i', 'strong', 'u'
+        ]
 
-        for el in content:
-            retval += ET.tostring(el, method='html')
+        # Filter out tags not in our whitelist (replace them with span's)
+        for match in description_html.descendants:
+            if match.name not in tag_whitelist and isinstance(match, NavigableString) == False:
+                match.name = 'span'
+                match.attrs = []
 
-        retval = retval.replace('<h:', '<').replace('</h:', '</')
+        # BS seems to have a hard time with doing this in-place, so perform
+        # a second loop to remove the garbage tags
+        for span_match in description_html.find_all('span'):
+            span_match.unwrap()
 
-        retval = retval.replace(' xmlns:h="http://www.w3.org/1999/xhtml"', '')
+        # Strip newlines
+        nl_regex = re.compile(r'[\r\n\t]')
+        description_html = nl_regex.sub(' ', str(description_html))
 
-        regex = re.compile(r'[\r\n\t]')
-
-        retval = regex.sub(' ', retval)
-
-        return retval
+        return description_html
 
     def get_match_threshold(self, matchable_program, entry):
         # Base threshold score value. Increase base threshold
