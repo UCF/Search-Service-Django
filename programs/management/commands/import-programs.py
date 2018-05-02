@@ -28,8 +28,8 @@ class Command(BaseCommand):
 
         # Create/update programs from feed data
         for d in data:
-            # Ignore pending and undergraduate non-degree programs
-            if d['Meta Data'][0]['Degree'] == 'PND' or d['College_Full'] == 'Undergraduate Non-Degree':
+            # Ignore pending and non-degree programs
+            if d['Meta Data'][0]['Degree'] in ['PND', 'PRP']:
                 continue
 
             program = self.add_program(d)
