@@ -4,6 +4,7 @@ from programs.models import *
 
 import urllib2
 import json
+import time
 
 from unidecode import unidecode
 
@@ -47,7 +48,7 @@ class Command(BaseCommand):
         program = None
 
         try:
-            program = Program.objects.get(plan_code=data['Plan'], subplans__lte=0)
+            program = Program.objects.get(plan_code=data['Plan'], subplan_code__isnull=True)
             program.name = unidecode(data['PlanName'])
         except Program.DoesNotExist:
             program = Program(
