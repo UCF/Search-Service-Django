@@ -128,8 +128,8 @@ class Program(models.Model):
                                        null=True,
                                        blank=True,
                                        related_name='subplans')
-    created = models.DateTimeField(auto_now_add=True, blank=False, null=False)
-    modified = models.DateTimeField(auto_now=True, blank=False, null=False)
+    created = models.DateTimeField(auto_now_add=True, null=False)
+    modified = models.DateTimeField(auto_now=True, null=False)
 
     class Meta:
         unique_together = ('plan_code', 'subplan_code')
