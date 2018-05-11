@@ -172,7 +172,7 @@ class Command(BaseCommand):
         self.key = options['api-key']
         self.catalog_id = options['catalog-id']
         # TODO: Update to production url or parameterize!!!
-        self.catalog_url = options['catalog-url'] + 'preview/preview_program.php?catoid={0}&poid={1}'
+        self.catalog_url = options['catalog-url'] + '/index.php?catoid={0}&poid={1}'
         self.graduate = options['graduate']
         self.loglevel = options['loglevel']
 
