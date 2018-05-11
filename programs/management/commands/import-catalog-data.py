@@ -279,8 +279,13 @@ class Command(BaseCommand):
         # Strip xmlns attributes to parse string to xml without namespaces
         data = re.sub(' xmlns(?:\:[a-z]*)?="[^"]+"', '', raw_data)
         root = BeautifulSoup(data, 'xml')
-        description_xml = root.find('content').encode_contents()
-        description_html = BeautifulSoup(description_xml, 'html.parser')
+        if self.graduate:
+            cores = root.find('cores')
+            description_xml = cores.find('core').encode_contents()
+            description_html = BeautifulSoup(description_xml, 'html.parser')
+        else:
+            description_xml = root.find('content').encode_contents()
+            description_html = BeautifulSoup(description_xml, 'html.parser')
 
         tag_whitelist = [
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -304,6 +309,10 @@ class Command(BaseCommand):
         # Strip newlines
         nl_regex = re.compile(r'[\r\n\t]')
         description_html = nl_regex.sub(' ', str(description_html))
+
+        # Final filter out of Program Description
+        description_html = re.sub('Program Description<a name=\"ProgramDescription\"></a><a id=\"core-\d+\" name=\"programdescription\"></a>', '', description_html)
+        description_html = re.sub('1Active-Visible.*', '', description_html)
 
         return description_html
 
