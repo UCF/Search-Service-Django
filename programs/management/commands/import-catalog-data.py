@@ -305,6 +305,8 @@ class Command(BaseCommand):
         nl_regex = re.compile(r'[\r\n\t]')
         description_html = nl_regex.sub(' ', str(description_html))
 
+        description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
+
         return description_html
 
     def get_match_threshold(self, matchable_program, entry):
