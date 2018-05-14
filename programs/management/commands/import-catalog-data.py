@@ -310,6 +310,7 @@ class Command(BaseCommand):
         nl_regex = re.compile(r'[\r\n\t]')
         description_html = nl_regex.sub(' ', str(description_html))
 
+        description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
         # Final filter out of Program Description
         description_html = re.sub('Program Description<a name=\"ProgramDescription\"></a><a id=\"core-\d+\" name=\"programdescription\"></a>', '', description_html)
         description_html = re.sub('1Active-Visible.*', '', description_html)
