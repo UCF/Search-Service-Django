@@ -101,6 +101,13 @@ class Command(BaseCommand):
 
         program.save()
 
+        mapping = [x for x in self.mappings['programs'] if x['plan_code'] == data['Plan'] and x['subplan_code'] == None]
+
+        if mapping:
+            mapping = mapping[0]
+            data['College_Full'] = mapping['college']['name']
+            data['CollegeShort'] = mapping['college']['short_name']
+
         # Handle Colleges
         college, create = College.objects.get_or_create(
             full_name=data['College_Full'],
