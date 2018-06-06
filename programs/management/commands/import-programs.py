@@ -15,14 +15,26 @@ class Command(BaseCommand):
         "GRAD": "Graduate",
         "PROF": "Professional"
     }
+    mappings = {}
 
     def add_arguments(self, parser):
         parser.add_argument('path', type=str, help='The url of the APIM API.')
+        parser.add_argument(
+            '--mapping-path',
+            type=file,
+            dest='mapping_path',
+            help='The filepath of the mapping file.',
+            required=False
+        )
 
     def handle(self, *args, **options):
         new_modified_date = timezone.now()
         path = options['path']
+        mapping_path = options['mapping_path']
         response = urllib2.urlopen(path)
+
+        if mapping_path:
+            self.mappings = json.loads(mapping_path.read())
 
         data = json.loads(response.read())
 
