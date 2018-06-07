@@ -35,6 +35,8 @@ class Command(BaseCommand):
 
         if mapping_path:
             self.mappings = json.loads(mapping_path.read())
+        else:
+            self.mappings = None
 
         data = json.loads(response.read())
 
@@ -101,7 +103,10 @@ class Command(BaseCommand):
 
         program.save()
 
-        mapping = [x for x in self.mappings['programs'] if x['plan_code'] == data['Plan'] and x['subplan_code'] == None]
+        mapping = None
+
+        if self.mappings:
+            mapping = [x for x in self.mappings['programs'] if x['plan_code'] == data['Plan'] and x['subplan_code'] == None]
 
         if mapping:
             mapping = mapping[0]
