@@ -4,6 +4,7 @@ from programs.models import *
 
 import urllib2
 import json
+import re
 
 from unidecode import unidecode
 
@@ -19,11 +20,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('path', type=str, help='The url of the APIM API.')
+
         parser.add_argument(
             '--mapping-path',
-            type=file,
+            type=str,
             dest='mapping_path',
-            help='The filepath of the mapping file.',
+            help='The url of the mapping file.',
             required=False
         )
 
@@ -34,7 +36,8 @@ class Command(BaseCommand):
         response = urllib2.urlopen(path)
 
         if mapping_path:
-            self.mappings = json.loads(mapping_path.read())
+            mapping_resp = urllib2.urlopen(mapping_path)
+            self.mappings = json.loads(mapping_resp.read())
         else:
             self.mappings = None
 
