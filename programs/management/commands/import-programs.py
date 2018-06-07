@@ -4,7 +4,6 @@ from programs.models import *
 
 import urllib2
 import json
-import re
 
 from unidecode import unidecode
 
