@@ -62,6 +62,9 @@ class Command(BaseCommand):
     def add_program(self, data):
         program = None
 
+        # Correct college name issue
+        data['College_Full'] = self.common_replace(data['College_Full'])
+
         try:
             program = Program.objects.get(plan_code=data['Plan'], subplan_code__isnull=True)
             program.name = unidecode(data['PlanName'])
@@ -117,7 +120,7 @@ class Command(BaseCommand):
 
         # Handle Colleges
         college, create = College.objects.get_or_create(
-            full_name=self.common_replace(data['College_Full']),
+            full_name=data['College_Full'],
             short_name=data['CollegeShort']
         )
 
