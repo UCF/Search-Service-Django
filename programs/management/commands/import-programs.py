@@ -91,7 +91,7 @@ class Command(BaseCommand):
 
         # Handle Colleges
         college, create = College.objects.get_or_create(
-            full_name=data['College_Full'],
+            full_name=self.common_replace(data['College_Full']),
             short_name=data['CollegeShort']
         )
 
@@ -154,3 +154,6 @@ class Command(BaseCommand):
             program.departments.add(department)
 
         program.save()
+
+    def common_replace(self, input):
+        return input.replace('&', 'and')
