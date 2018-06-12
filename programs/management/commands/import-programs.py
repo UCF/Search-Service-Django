@@ -62,6 +62,9 @@ class Command(BaseCommand):
     def add_program(self, data):
         program = None
 
+        # Correct college name issue
+        data['College_Full'] = self.common_replace(data['College_Full'])
+
         try:
             program = Program.objects.get(plan_code=data['Plan'], subplan_code__isnull=True)
             program.name = unidecode(data['PlanName'])
@@ -180,3 +183,6 @@ class Command(BaseCommand):
             program.departments.add(department)
 
         program.save()
+
+    def common_replace(self, input):
+        return input.replace('&', 'and')
