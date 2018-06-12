@@ -15,14 +15,30 @@ class Command(BaseCommand):
         "GRAD": "Graduate",
         "PROF": "Professional"
     }
+    mappings = {}
 
     def add_arguments(self, parser):
         parser.add_argument('path', type=str, help='The url of the APIM API.')
 
+        parser.add_argument(
+            '--mapping-path',
+            type=str,
+            dest='mapping_path',
+            help='The url of the mapping file.',
+            required=False
+        )
+
     def handle(self, *args, **options):
         new_modified_date = timezone.now()
         path = options['path']
+        mapping_path = options['mapping_path']
         response = urllib2.urlopen(path)
+
+        if mapping_path:
+            mapping_resp = urllib2.urlopen(mapping_path)
+            self.mappings = json.loads(mapping_resp.read())
+        else:
+            self.mappings = None
 
         data = json.loads(response.read())
 
@@ -88,6 +104,16 @@ class Command(BaseCommand):
             program.online = True
 
         program.save()
+
+        mapping = None
+
+        if self.mappings:
+            mapping = [x for x in self.mappings['programs'] if x['plan_code'] == data['Plan'] and x['subplan_code'] == None]
+
+        if mapping:
+            mapping = mapping[0]
+            data['College_Full'] = mapping['college']['name']
+            data['CollegeShort'] = mapping['college']['short_name']
 
         # Handle Colleges
         college, create = College.objects.get_or_create(

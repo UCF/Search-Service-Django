@@ -1,0 +1,20 @@
+{
+    "programs": [
+        {
+            "plan_code": "APLRNIS-MA",
+            "subplan_code": null,
+            "college": {
+                "name": "College of Community Innovation and Education",
+                "short_name": "CCIE"
+            }
+        },
+        {
+            "plan_code": "APLRNIS-MA",
+            "subplan_code": "ZAPLRNISMA",
+            "college": {
+                "name": "College of Community Innovation and Education",
+                "short_name": "CCIE"
+            }
+        }
+    ]
+}
