@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
@@ -124,6 +124,7 @@ class Program(models.Model):
     career = models.ForeignKey(Career)
     degree = models.ForeignKey(Degree)
     online = models.BooleanField(null=False, blank=False, default=False)
+    has_online = models.BooleanField(null=False, blank=False, default=False)
     parent_program = models.ForeignKey('self',
                                        null=True,
                                        blank=True,
@@ -165,12 +166,7 @@ class Program(models.Model):
 
         return False
 
-    @property
-    def has_online(self):
-        if self.subplans.filter(online=True).count() > 0:
-            return True
 
-        return False
 
 
 class ProgramProfile(models.Model):
@@ -224,3 +220,8 @@ class ProgramDescription(models.Model):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+@receiver(pre_save, sender=Program)
+def set_has_online(sender, instance=None, created=False, **kwargs):
+    if instance and instance.subplans.filter(online=True).count() > 0:
+        instance.has_online = True
