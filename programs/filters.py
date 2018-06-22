@@ -16,6 +16,7 @@ class ProgramFilter(django_filters.FilterSet):
             'subplan_code',
             'subplan_code__isnull',
             'online',
+            'has_online',
             'colleges',
             'departments',
             'level',
