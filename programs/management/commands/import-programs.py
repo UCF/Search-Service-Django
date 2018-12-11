@@ -173,6 +173,10 @@ class Command(BaseCommand):
         if data['Meta Data'][0]['UCFOnline'] == "1":
             program.online = True
 
+        # Additional online check
+        if data['Subplan'].startswith('Z'):
+            program.online = True
+
         program.save()
 
         # Handle Colleges and Departments
