@@ -170,7 +170,7 @@ class Command(BaseCommand):
 
         program.degree = degree
 
-        if data['Meta Data'][0]['UCFOnline'] == "1":
+        if data['Meta Data'][0]['UCFOnline'] == "1" or data['Subplan'].startswith('Z'):
             program.online = True
 
         program.save()
