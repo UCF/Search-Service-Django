@@ -192,5 +192,434 @@
             "skip": false,
             "required_fees": [1]
         }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 1,
+        "fields": {
+            "plan_code": "AD/PR-BA",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 2,
+        "fields": {
+            "plan_code": "COMCNF-BA",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 3,
+        "fields": {
+            "plan_code": "COMCNF-BA",
+            "subplan_code": "ZCOMCNFLBA",
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 4,
+        "fields": {
+            "plan_code": "COMM-MA",
+            "subplan_code": "BUSCOMM",
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 5,
+        "fields": {
+            "plan_code": "CORPCOMM",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 6,
+        "fields": {
+            "plan_code": "DIGIMED-BA",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 7,
+        "fields": {
+            "plan_code": "DIGIMED-BA",
+            "subplan_code": "GAME DES",
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 8,
+        "fields": {
+            "plan_code": "DIGIMED-BA",
+            "subplan_code": "WEB DES",
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 9,
+        "fields": {
+            "plan_code": "DIGIMED-MA",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 10,
+        "fields": {
+            "plan_code": "DIGIMED-MS",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 11,
+        "fields": {
+            "plan_code": "FLM-BFA",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 12,
+        "fields": {
+            "plan_code": "HISPMD-CRT",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 13,
+        "fields": {
+            "plan_code": "HLTHCM-CRT",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 14,
+        "fields": {
+            "plan_code": "HUMCOM-BA",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 15,
+        "fields": {
+            "plan_code": "HUMCOM-BA",
+            "subplan_code": "BUSPRFCOMM",
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 16,
+        "fields": {
+            "plan_code": "HUMCOM-BA",
+            "subplan_code": "GENHUMCOMM",
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 17,
+        "fields": {
+            "plan_code": "HUMCOM-BA",
+            "subplan_code": "INTPSNCOMM",
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 18,
+        "fields": {
+            "plan_code": "HUMCOM-BA",
+            "subplan_code": "SCLINACTV",
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 19,
+        "fields": {
+            "plan_code": "JOURNL-BA",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 20,
+        "fields": {
+            "plan_code": "JOURNL-BA",
+            "subplan_code": "ELECJOURNL",
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 21,
+        "fields": {
+            "plan_code": "JOURNL-BA",
+            "subplan_code": "PRDGJOURNL",
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 22,
+        "fields": {
+            "plan_code": "MOTPIC-BA",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 23,
+        "fields": {
+            "plan_code": "MOTPIC-BA",
+            "subplan_code": "CINSTUDIES",
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 24,
+        "fields": {
+            "plan_code": "RADTV-BA",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 25,
+        "fields": {
+            "plan_code": "RADTV-BA",
+            "subplan_code": "PRODUCTN",
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 26,
+        "fields": {
+            "plan_code": "XCINSTUMIN",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 27,
+        "fields": {
+            "plan_code": "XDIGMEDMIN",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 28,
+        "fields": {
+            "plan_code": "XHMCOMMIN",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 29,
+        "fields": {
+            "plan_code": "XICOCMINOR",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 30,
+        "fields": {
+            "plan_code": "XJRNLSTDMI",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 31,
+        "fields": {
+            "plan_code": "XMAGJOUMIN",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 32,
+        "fields": {
+            "plan_code": "XMASSCOMMI",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 33,
+        "fields": {
+            "plan_code": "EMGMDA-MFA",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 34,
+        "fields": {
+            "plan_code": "LTGNADVCRT",
+            "subplan_code": null,
+            "college": [
+                "CCIE"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 35,
+        "fields": {
+            "plan_code": "STRCOMMPHD",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 36,
+        "fields": {
+            "plan_code": "DIGMED-MA",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 37,
+        "fields": {
+            "plan_code": "DIGMED-MA",
+            "subplan_code": "VISLANGDM",
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 38,
+        "fields": {
+            "plan_code": "DIGMED-MS",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 39,
+        "fields": {
+            "plan_code": "COMM-MA",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
     }
 ]

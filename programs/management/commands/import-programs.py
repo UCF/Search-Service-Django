@@ -16,6 +16,7 @@ class Command(BaseCommand):
         "PROF": "Professional"
     }
     mappings = {}
+    use_internal_mapping = False
 
     def add_arguments(self, parser):
         parser.add_argument('path', type=str, help='The url of the APIM API.')
@@ -28,15 +29,26 @@ class Command(BaseCommand):
             required=False
         )
 
+        parser.add_argument(
+            '--use-internal-mapping',
+            type=bool,
+            dest='use_internal_mapping',
+            help='Will use the college mappings within the search service data.',
+            required=False
+        )
+
     def handle(self, *args, **options):
         new_modified_date = timezone.now()
         path = options['path']
         mapping_path = options['mapping_path']
+        self.use_internal_mapping = options['use_internal_mapping']
         response = urllib2.urlopen(path)
 
-        if mapping_path:
+        if mapping_path and not self.use_internal_mapping:
             mapping_resp = urllib2.urlopen(mapping_path)
             self.mappings = json.loads(mapping_resp.read())
+        elif self.use_internal_mapping:
+            self.mappings = CollegeOverride.objects.all()
         else:
             self.mappings = None
 
@@ -111,12 +123,24 @@ class Command(BaseCommand):
         mapping = None
 
         if self.mappings:
-            mapping = [x for x in self.mappings['programs'] if x['plan_code'] == data['Plan'] and x['subplan_code'] == None]
+            if self.use_internal_mapping:
+                try:
+                    mapping = self.mappings.filter(plan_code=data['Plan'], subplan_code=None)
+                except:
+                    mapping = None
+            else:
+                mapping = [x for x in self.mappings['programs'] if x['plan_code'] == data['Plan'] and x['subplan_code'] == None]
 
         if mapping:
-            mapping = mapping[0]
-            data['College_Full'] = mapping['college']['name']
-            data['CollegeShort'] = mapping['college']['short_name']
+            if self.use_internal_mapping:
+                mapping = mapping[0]
+                data['College_Full'] = mapping.college.full_name
+                data['CollegeShort'] = mapping.college.short_name
+            else:
+                mapping = mapping[0]
+                data['College_Full'] = mapping['college']['name']
+                data['CollegeShort'] = mapping['college']['short_name']
+
 
         # Handle Colleges
         college, create = College.objects.get_or_create(
