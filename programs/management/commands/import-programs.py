@@ -47,11 +47,10 @@ class Command(BaseCommand):
         if mapping_path and not self.use_internal_mapping:
             mapping_resp = urllib2.urlopen(mapping_path)
             self.mappings = json.loads(mapping_resp.read())
+        elif self.use_internal_mapping:
+            self.mappings = CollegeOverride.objects.all()
         else:
             self.mappings = None
-
-        if self.use_internal_mapping:
-            self.mappings = CollegeOverride.objects.all()
 
         data = json.loads(response.read())
 
