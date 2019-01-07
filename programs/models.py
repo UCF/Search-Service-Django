@@ -50,11 +50,17 @@ class Degree(models.Model):
     def __unicode__(self):
         return self.name
 
+class CollegeManager(models.Manager):
+    def get_by_natural_key(self, short_name):
+        return self.get(short_name=short_name)
+
 
 class College(models.Model):
     """
     A college, including various names and urls
     """
+    objects = CollegeManager()
+
     full_name = models.CharField(max_length=255, null=False, blank=False)
     short_name = models.CharField(max_length=255, null=True, blank=False)
     college_url = models.URLField(null=True, blank=True)
