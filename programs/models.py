@@ -287,6 +287,37 @@ class CollegeOverride(models.Model):
     subplan_code = models.CharField(max_length=10, null=True, blank=True)
     college = models.ForeignKey(College, null=False, blank=False)
 
+    @property
+    def program(self):
+        program = Program.objects.filter(plan_code=self.plan_code, subplan_code=self.subplan_code)
+
+        if len(program):
+            return program[0]
+
+        return None
+
+    def __str__(self):
+        program = self.program
+
+        if program is not None:
+            return '{0} - {1} Override'.format(program.name, self.college.short_name)
+
+        if self.subplan_code is not None:
+            return '{0} {1} - {2} Override'.format(self.plan_code, self.subplan_code, self.college.short_name)
+
+        return '{0} - {1} Tuition Override'.format(self.plan_code, self.college.short_name)
+
+    def __unicode__(self):
+        program = self.program
+
+        if program is not None:
+            return '{0} - {1} Override'.format(program.name, self.college.short_name)
+
+        if self.subplan_code is not None:
+            return '{0} {1} - {2} Override'.format(self.plan_code, self.subplan_code, self.college.short_name)
+
+        return '{0} - {1} Tuition Override'.format(self.plan_code, self.college.short_name)
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
