@@ -577,5 +577,49 @@
                 "COS"
             ]
         }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 36,
+        "fields": {
+            "plan_code": "DIGMED-MA",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 37,
+        "fields": {
+            "plan_code": "DIGMED-MA",
+            "subplan_code": "VISLANGDM",
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 38,
+        "fields": {
+            "plan_code": "DIGMED-MS",
+            "subplan_code": null,
+            "college": [
+                "CAH"
+            ]
+        }
+    },
+    {
+        "model": "programs.collegeoverride",
+        "pk": 39,
+        "fields": {
+            "plan_code": "COMM-MA",
+            "subplan_code": null,
+            "college": [
+                "COS"
+            ]
+        }
     }
 ]
