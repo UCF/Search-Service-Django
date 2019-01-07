@@ -130,6 +130,15 @@ class Program(models.Model):
                                        related_name='subplans')
     created = models.DateTimeField(auto_now_add=True, null=False)
     modified = models.DateTimeField(auto_now=True, null=False)
+    resident_tuition = models.DecimalField(null=True, blank=True, max_digits=7, decimal_places=2)
+    nonresident_tuition = models.DecimalField(null=True, blank=True, max_digits=7, decimal_places=2)
+    tuition_types = [
+        ('SCH', 'Single Credit Hour'),
+        ('TRM', 'Term'),
+        ('CRS', 'Course'),
+        ('ANN', 'Annual')
+    ]
+    tuition_type = models.CharField(max_length=3, null=True, blank=True, choices=tuition_types)
 
     class Meta:
         unique_together = ('plan_code', 'subplan_code')

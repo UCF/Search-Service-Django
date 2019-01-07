@@ -211,6 +211,9 @@ class ProgramSerializer(serializers.ModelSerializer):
             'career',
             'degree',
             'parent_program',
-            'subplans'
+            'subplans',
+            'resident_tuition',
+            'nonresident_tuition',
+            'tuition_type'
         )
         model = Program
