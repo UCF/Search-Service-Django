@@ -58,3 +58,15 @@ class ProgramAdmin(admin.ModelAdmin):
     readonly_fields = ('created', 'modified')
     search_fields = ('name', )
     list_filter = ('level__name', 'colleges__full_name', )
+
+@admin.register(Fee)
+class FeeAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(TuitionOverride)
+class TuitionOverrideAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(CollegeOverride)
+class CollegeOverrideAdmin(admin.ModelAdmin):
+    pass

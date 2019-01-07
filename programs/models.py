@@ -130,6 +130,15 @@ class Program(models.Model):
                                        related_name='subplans')
     created = models.DateTimeField(auto_now_add=True, null=False)
     modified = models.DateTimeField(auto_now=True, null=False)
+    resident_tuition = models.DecimalField(null=True, blank=True, max_digits=7, decimal_places=2)
+    nonresident_tuition = models.DecimalField(null=True, blank=True, max_digits=7, decimal_places=2)
+    tuition_types = [
+        ('SCH', 'Single Credit Hour'),
+        ('TRM', 'Term'),
+        ('CRS', 'Course'),
+        ('ANN', 'Annual')
+    ]
+    tuition_type = models.CharField(max_length=3, null=True, blank=True, choices=tuition_types)
 
     class Meta:
         unique_together = ('plan_code', 'subplan_code')
@@ -219,6 +228,58 @@ class ProgramDescription(models.Model):
 
     def __unicode__(self):
         return '{0} {1}'.format(self.program.name, self.description_type.name)
+
+class Fee(models.Model):
+    fee_name = models.CharField(max_length=255, null=False, blank=False)
+
+    def __str__(self):
+        return self.fee_name
+
+    def __unicode__(self):
+        return self.fee_name
+
+class TuitionOverride(models.Model):
+    tuition_code = models.CharField(max_length=10, null=False, blank=False)
+    plan_code = models.CharField(max_length=10, null=False, blank=False)
+    subplan_code = models.CharField(max_length=10, null=True, blank=True)
+    skip = models.BooleanField(default=False, null=False, blank=False)
+    required_fees = models.ManyToManyField(Fee)
+
+    @property
+    def program(self):
+        program = Program.objects.filter(plan_code=self.plan_code, subplan_code=self.subplan_code)
+
+        if len(program):
+            return program[0]
+
+        return None
+
+    def __str__(self):
+        program = Program.objects.filter(plan_code=self.plan_code, subplan_code=self.subplan_code)
+
+        if len(program):
+            return '{0} Tuition Override'.format(program[0].name)
+
+        if self.subplan_code is not None:
+            return '{0} {1} Tuition Override'.format(self.plan_code, self.subplan_code)
+
+        return '{0} Tuition Override'.format(self.plan_code)
+
+    def __unicode__(self):
+        program = self.program
+
+        if program is not None:
+            return '{0} Tuition Override'.format(program.name)
+
+        if self.subplan_code is not None:
+            return '{0} {1} Tuition Override'.format(self.plan_code, self.subplan_code)
+
+        return '{0} Tuition Override'.format(self.plan_code)
+
+class CollegeOverride(models.Model):
+    plan_code = models.CharField(max_length=10, null=False, blank=False)
+    subplan_code = models.CharField(max_length=10, null=True, blank=True)
+    college = models.ForeignKey(College, null=False, blank=False)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
