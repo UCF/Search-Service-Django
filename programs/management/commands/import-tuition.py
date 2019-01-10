@@ -120,9 +120,6 @@ class Command(BaseCommand):
             except:
                 mapping = None
 
-            if mapping:
-                self.get_schedule_code(program, mapping)
-
             # Empty values if skip is true then continue
             if mapping and mapping.skip:
                 program.resident_tuition = None
