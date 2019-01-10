@@ -126,6 +126,7 @@ class Command(BaseCommand):
                 program.nonresident_tuition = None
                 program.tuition_type = None
                 program.save()
+                self.program_skipped += 1
                 continue
 
             schedule_code = self.get_schedule_code(program, mapping)
