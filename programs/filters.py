@@ -45,3 +45,13 @@ class DepartmentFilter(django_filters.FilterSet):
             'search',
             'school'
         )
+
+class TuitionOverrideFilter(django_filters.FilterSet):
+
+    class Meta:
+        model = TuitionOverride
+        fields = (
+            'tuition_code',
+            'plan_code',
+            'subplan_code'
+        )

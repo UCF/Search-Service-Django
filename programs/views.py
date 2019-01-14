@@ -132,6 +132,7 @@ class CollegeOverrideListView(generics.ListAPIView):
 class TuitionOverrideListView(generics.ListAPIView):
     queryset = TuitionOverride.objects.all()
     serializer_class = TuitionOverrideSerializer
+    filter_class = TuitionOverrideFilter
 
 class TuitionOverrideCreateView(generics.CreateAPIView):
     serializer_class = TuitionOverrideSerializer
