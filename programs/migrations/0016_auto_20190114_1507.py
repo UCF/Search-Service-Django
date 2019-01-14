@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='tuitionoverride',
             name='required_fees',
-            field=models.ManyToManyField(blank=True, null=True, to='programs.Fee'),
+            field=models.ManyToManyField(blank=True, to='programs.Fee'),
         ),
     ]
