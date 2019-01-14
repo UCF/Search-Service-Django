@@ -137,7 +137,7 @@ class TuitionOverrideListView(generics.ListAPIView):
 class TuitionOverrideCreateView(generics.CreateAPIView):
     serializer_class = TuitionOverrideSerializer
 
-class TuitionOverrideDetailView(generics.RetrieveUpdateAPIView):
+class TuitionOverrideDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = TuitionOverride.objects.all()
     lookup_field = 'id'
     serializer_class = TuitionOverrideSerializer
