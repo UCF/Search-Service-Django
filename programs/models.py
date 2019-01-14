@@ -249,7 +249,7 @@ class TuitionOverride(models.Model):
     plan_code = models.CharField(max_length=10, null=False, blank=False)
     subplan_code = models.CharField(max_length=10, null=True, blank=True)
     skip = models.BooleanField(default=False, null=False, blank=False)
-    required_fees = models.ManyToManyField(Fee, null=True, blank=True)
+    required_fees = models.ManyToManyField(Fee, blank=True)
 
     @property
     def program(self):
