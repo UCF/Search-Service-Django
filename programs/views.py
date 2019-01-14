@@ -33,7 +33,7 @@ class MultipleFieldLookupMixin(object):
 
 
 class CoreAPI(APIView):
-    
+
     def get(self, request, format=None):
         return Response({
             'programs': reverse('api.programs.list', request=request),
@@ -123,3 +123,18 @@ class ProgramDescriptionTypeListView(generics.ListAPIView):
     queryset = ProgramDescriptionType.objects.all()
     serializer_class = ProgramDescriptionTypeSerializer
 
+class CollegeOverrideListView(generics.ListAPIView):
+    queryset = CollegeOverride.objects.all()
+    serializer_class = CollegeOverrideSerializer
+
+class TuitionOverrideListView(generics.ListAPIView):
+    queryset = TuitionOverride.objects.all()
+    serializer_class = TuitionOverrideSerializer
+
+class TuitionOverrideCreateView(generics.CreateAPIView):
+    serializer_class = TuitionOverrideSerializer
+
+class TuitionOverrideDetailView(generics.RetrieveUpdateAPIView):
+    queryset = TuitionOverride.objects.all()
+    lookup_field = 'id'
+    serializer_class = TuitionOverrideSerializer
