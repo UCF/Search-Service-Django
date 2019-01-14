@@ -70,5 +70,21 @@ urlpatterns = [
     url(r'^profiles/(?P<id>\d+)/$',
         ProgramProfileDetailView.as_view(),
         name='api.profiles.detail'
+    ),
+    url(r'^college-mappings/$',
+        CollegeOverrideListView.as_view(),
+        name='api.collegeoverride.list'
+    ),
+    url(r'^tuition-mappings/$',
+        TuitionOverrideListView.as_view(),
+        name='api.tuitionoverride.list',
+    ),
+    url(r'^tuition-mappings/create/$',
+        TuitionOverrideCreateView.as_view(),
+        name='api.tuitionoverride.create'
+    ),
+    url(r'^tuition-mappings/(?P<id>\d+)/$',
+        TuitionOverrideDetailView.as_view(),
+        name='api.tuitionoverride.detail'
     )
 ]

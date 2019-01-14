@@ -33,7 +33,7 @@ class MultipleFieldLookupMixin(object):
 
 
 class CoreAPI(APIView):
-    
+
     def get(self, request, format=None):
         return Response({
             'programs': reverse('api.programs.list', request=request),
@@ -45,7 +45,9 @@ class CoreAPI(APIView):
             'descriptions-create': reverse('api.descriptions.create', request=request),
             'descriptionTypes': reverse('api.descriptions.types.list', request=request),
             'profiles-create': reverse('api.profiles.create', request=request),
-            'profileTypes': reverse('api.profiles.types.list', request=request)
+            'profileTypes': reverse('api.profiles.types.list', request=request),
+            'college-mappings': reverse('api.collegeoverride.list', request=request),
+            'tuition-mappings': reverse('api.tuitionoverride.list', request=request)
         })
 
 # Create your views here.
@@ -123,3 +125,19 @@ class ProgramDescriptionTypeListView(generics.ListAPIView):
     queryset = ProgramDescriptionType.objects.all()
     serializer_class = ProgramDescriptionTypeSerializer
 
+class CollegeOverrideListView(generics.ListAPIView):
+    queryset = CollegeOverride.objects.all()
+    serializer_class = CollegeOverrideSerializer
+
+class TuitionOverrideListView(generics.ListAPIView):
+    queryset = TuitionOverride.objects.all()
+    serializer_class = TuitionOverrideSerializer
+    filter_class = TuitionOverrideFilter
+
+class TuitionOverrideCreateView(generics.CreateAPIView):
+    serializer_class = TuitionOverrideSerializer
+
+class TuitionOverrideDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = TuitionOverride.objects.all()
+    lookup_field = 'id'
+    serializer_class = TuitionOverrideSerializer

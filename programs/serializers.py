@@ -217,3 +217,13 @@ class ProgramSerializer(serializers.ModelSerializer):
             'tuition_type'
         )
         model = Program
+
+class CollegeOverrideSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = CollegeOverride
+
+class TuitionOverrideSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = TuitionOverride
