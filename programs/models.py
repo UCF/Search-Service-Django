@@ -121,8 +121,8 @@ class Program(models.Model):
     """
     name = models.CharField(max_length=500, null=False, blank=False)
     credit_hours = models.IntegerField(null=True, blank=True)
-    plan_code = models.CharField(max_length=10, null=False, blank=False)
-    subplan_code = models.CharField(max_length=10, null=True, blank=True)
+    plan_code = models.CharField(max_length=255, null=False, blank=False)
+    subplan_code = models.CharField(max_length=255, null=True, blank=True)
     catalog_url = models.URLField(null=True, blank=True)
     colleges = models.ManyToManyField(College, blank=True)
     departments = models.ManyToManyField(Department, blank=True)
