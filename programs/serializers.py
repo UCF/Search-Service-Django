@@ -166,6 +166,7 @@ class RelatedProgramSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = (
+            'id',
             'name',
             'online',
             'url'
