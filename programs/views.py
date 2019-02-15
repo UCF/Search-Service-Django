@@ -31,6 +31,22 @@ class MultipleFieldLookupMixin(object):
         self.check_object_permissions(self.request, obj)
         return obj
 
+class DymanicFieldsMixin(object):
+    """
+    Allows for return fields to be defined.
+    """
+    def __init__(self, *args, **kwargs):
+        # Instantiate the superclass normally
+        super(DymanicFieldsMixin, self).__init__(*args, **kwargs)
+
+        fields = self.context['request'].QUERY_PARAMS.get('fields')
+        if fields:
+            fields = fields.split(',')
+            # Drop any fields that are not specified in the `fields` argument.
+            allowed = set(fields)
+            existing = set(self.fields.keys())
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
 
 class CoreAPI(APIView):
 

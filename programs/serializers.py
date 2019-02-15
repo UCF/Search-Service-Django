@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse
 from programs.models import *
 
 from django.db import IntegrityError
+from drf_dynamic_fields import DynamicFieldsMixin
 
 
 # Custom Serializers
@@ -174,7 +175,7 @@ class RelatedProgramSerializer(serializers.ModelSerializer):
         model = Program
 
 
-class ProgramSerializer(serializers.ModelSerializer):
+class ProgramSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
     career = serializers.StringRelatedField(many=False)
     degree = serializers.StringRelatedField(many=False)
