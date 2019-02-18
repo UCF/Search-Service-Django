@@ -31,7 +31,8 @@ INSTALLED_APPS = [
     'programs',
     'rest_framework',
     'django_filters',
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    'drf_dynamic_fields'
 ]
 
 MIDDLEWARE = [

@@ -31,7 +31,6 @@ class MultipleFieldLookupMixin(object):
         self.check_object_permissions(self.request, obj)
         return obj
 
-
 class CoreAPI(APIView):
 
     def get(self, request, format=None):
