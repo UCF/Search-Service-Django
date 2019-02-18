@@ -271,7 +271,6 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,parent_program",
-            "degree-import": "id,name,plan_code,subplan_code,parent_program,colleges,departments,is_subplan,resident_tuition,nonresident_tuition,tuition_type"
         }
         model = Program
 
