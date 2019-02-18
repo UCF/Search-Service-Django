@@ -269,9 +269,10 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'nonresident_tuition',
             'tuition_type'
         )
-        fieldsets = (
-            {"simple": "name,plan_code,subplan_code"}
-        )
+        fieldsets = {
+            "identifiers": "id,name,plan_code,subplan_code,parent_program",
+            "degree-import": "id,name,plan_code,subplan_code,parent_program,colleges,departments,is_subplan,resident_tuition,nonresident_tuition,tuition_type"
+        }
         model = Program
 
 class CollegeOverrideSerializer(serializers.ModelSerializer):
