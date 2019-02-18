@@ -35,7 +35,7 @@ class DynamicFieldSetMixin(DynamicFieldsMixin):
             request, 'query_params', getattr(request, 'GET', None)
         )
         if params is None:
-            warnings.warn('Request object does not contain query paramters')
+            warnings.warn('Request object does not contain query parameters')
 
         # Get fieldset
         try:
