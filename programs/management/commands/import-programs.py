@@ -81,9 +81,7 @@ class Command(BaseCommand):
                 for sp in d['SubPlans']:
                     self.add_subplan(sp, program)
 
-        # Remove stale programs
-        Program.objects.filter(modified__lt=new_modified_date).delete()
-
+        self.deactivate_stale_programs
         self.print_results()
 
         return 0
@@ -280,7 +278,8 @@ class Command(BaseCommand):
         results = [
             ('Programs Processed', self.programs_processed),
             ('Programs Created', self.programs_added),
-            ('Programs Updated', self.programs_updated)
+            ('Programs Updated', self.programs_updated),
+            ('Programs Deactivated', self.programs_deactivated)
         ]
         relationships = [
             ('Programs with college change', self.colleges_changed),
