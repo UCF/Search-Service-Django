@@ -4,6 +4,7 @@ from programs.models import *
 
 import urllib2
 import json
+from tabulate import tabulate
 
 from unidecode import unidecode
 
@@ -17,6 +18,20 @@ class Command(BaseCommand):
     }
     mappings = {}
     use_internal_mapping = False
+    programs_processed = 0
+    programs_added = 0
+    programs_deactivated = 0
+    programs_updated = 0
+    colleges_added = 0
+    departments_added = 0
+    # Refers to colleges being removed from a program
+    colleges_changed = 0
+    # Refers to departments being removed from a program
+    departments_changed = 0
+    # A collection of program ids added or updated
+    programs = []
+    # A list of programs deactived
+    deactivated_programs = []
 
     def add_arguments(self, parser):
         parser.add_argument('path', type=str, help='The url of the APIM API.')
@@ -66,13 +81,14 @@ class Command(BaseCommand):
                 for sp in d['SubPlans']:
                     self.add_subplan(sp, program)
 
-        # Remove stale programs
-        Program.objects.filter(modified__lt=new_modified_date).delete()
+        self.deactivate_stale_programs()
+        self.print_results()
 
         return 0
 
     def add_program(self, data):
         program = None
+        self.programs_processed += 1
 
         # Correct college name issue
         data['College_Full'] = self.common_replace(data['College_Full'])
@@ -80,11 +96,13 @@ class Command(BaseCommand):
         try:
             program = Program.objects.get(plan_code=data['Plan'], subplan_code__isnull=True)
             program.name = unidecode(data['PlanName'])
+            self.programs_updated += 1
         except Program.DoesNotExist:
             program = Program(
                 name=unidecode(data['PlanName']),
                 plan_code=data['Plan']
             )
+            self.programs_added += 1
 
         # Handle Career
         career = self.career_mappings[data['Career']]
@@ -120,6 +138,8 @@ class Command(BaseCommand):
 
         program.save()
 
+        self.programs.append(program.id)
+
         mapping = None
 
         if self.mappings:
@@ -150,6 +170,19 @@ class Command(BaseCommand):
 
         program.colleges.add(college)
 
+        college_removed = False
+
+        # Remove non-primary colleges
+        for c in program.colleges.all():
+            if c.short_name != college.short_name:
+                program.colleges.remove(c)
+                if college_removed == False:
+                    college_removed = True
+
+
+        if college_removed:
+            self.colleges_changed += 1
+
         # Handle Departments
         department, create = Department.objects.get_or_create(
             full_name=data['Dept_Full']
@@ -160,6 +193,17 @@ class Command(BaseCommand):
             department.save()
 
         program.departments.add(department)
+
+        department_removed = False
+
+        for d in program.departments.all():
+            if d.full_name != department.full_name:
+                program.departments.remove(d)
+                if department_removed == False:
+                    department_removed = True
+
+        if department_removed:
+            self.departments_changed += 1
 
         program.save()
 
@@ -199,6 +243,8 @@ class Command(BaseCommand):
 
         program.save()
 
+        self.programs.append(program.id)
+
         # Handle Colleges and Departments
         for college in parent.colleges.all():
             program.colleges.add(college)
@@ -210,3 +256,52 @@ class Command(BaseCommand):
 
     def common_replace(self, input):
         return input.replace('&', 'and')
+
+    def deactivate_stale_programs(self):
+        """
+        Deactivate all programs not processed during the import
+        """
+        all_programs = Program.objects.all().values_list('id', flat=True)
+
+        for program in self.programs:
+            if program not in all_programs:
+                p = Program.objects.get(id=program)
+                p.active = False
+                p.save()
+                self.deactivated_programs.append(p.pk)
+                self.programs_deactivated += 1
+
+    def print_results(self):
+        """
+        Prints the results of the import to the stdout
+        """
+        results = [
+            ('Programs Processed', self.programs_processed),
+            ('Programs Created', self.programs_added),
+            ('Programs Updated', self.programs_updated),
+            ('Programs Deactivated', self.programs_deactivated)
+        ]
+        relationships = [
+            ('Programs with college change', self.colleges_changed),
+            ('Programs with department change', self.departments_changed),
+        ]
+        taxonomies = [
+            ('Colleges Created', self.colleges_added),
+            ('Departments Created', self.departments_added)
+        ]
+
+        self.stdout.write('''
+Import Complete!
+
+        ''')
+
+        self.stdout.write(tabulate(results, tablefmt='grid'), ending='\n\n')
+        self.stdout.write(tabulate(relationships, tablefmt='grid'), ending='\n\n')
+        self.stdout.write(tabulate(taxonomies, tablefmt='grid'), ending='\n\n')
+
+        if len(self.deactivated_programs) > 0:
+            row_headers = ["Name", "Level", "Degree", "Career"]
+            programs = Program.objects.filter(pk__in=self.deactivated_programs).values_list('name', 'level__name', 'degree__name', 'career__name')
+            self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
+        else:
+            self.stdout.write("There were no programs deactivated.", ending='\n\n')
