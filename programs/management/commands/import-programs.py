@@ -304,4 +304,4 @@ Import Complete!
             programs = Program.objects.filter(pk__in=self.deactivated_programs).values_list('name', 'level__name', 'degree__name', 'career__name')
             self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
         else:
-            self.stdout.write("There were no program deactivated.", ending='\n\n')
+            self.stdout.write("There were no programs deactivated.", ending='\n\n')
