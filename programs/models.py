@@ -145,6 +145,7 @@ class Program(models.Model):
         ('ANN', 'Annual')
     ]
     tuition_type = models.CharField(max_length=3, null=True, blank=True, choices=tuition_types)
+    active = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ('plan_code', 'subplan_code')

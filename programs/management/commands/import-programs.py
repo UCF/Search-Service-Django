@@ -4,6 +4,7 @@ from programs.models import *
 
 import urllib2
 import json
+from tabulate import tabulate
 
 from unidecode import unidecode
 
@@ -19,7 +20,7 @@ class Command(BaseCommand):
     use_internal_mapping = False
     programs_processed = 0
     programs_added = 0
-    programs_removed = 0
+    programs_deactivated = 0
     programs_updated = 0
     colleges_added = 0
     departments_added = 0
@@ -27,6 +28,10 @@ class Command(BaseCommand):
     colleges_changed = 0
     # Refers to departments being removed from a program
     departments_changed = 0
+    # A collection of program ids added or updated
+    programs = []
+    # A list of programs deactived
+    deactivated_programs = []
 
     def add_arguments(self, parser):
         parser.add_argument('path', type=str, help='The url of the APIM API.')
@@ -135,6 +140,8 @@ class Command(BaseCommand):
 
         program.save()
 
+        self.programs.append(program.id)
+
         mapping = None
 
         if self.mappings:
@@ -238,6 +245,8 @@ class Command(BaseCommand):
 
         program.save()
 
+        self.programs.append(program.id)
+
         # Handle Colleges and Departments
         for college in parent.colleges.all():
             program.colleges.add(college)
@@ -250,28 +259,57 @@ class Command(BaseCommand):
     def common_replace(self, input):
         return input.replace('&', 'and')
 
+    def deactivate_stale_programs(self):
+        """
+        Deactivate all programs not processed during the import
+        """
+        all_programs = Program.objects.all().values_list('id', flat=True)
+
+        for program in self.programs:
+            if program not in all_programs:
+                p = Program.objects.get(id=program)
+                p.active = False
+                p.save()
+                self.deactivated_programs.append(p.pk)
+                self.programs_deactivated += 1
+
     def print_results(self):
+        """
+        Prints the results of the import to the stdout
+        """
         self.stdout.write('''
 Import Complete!
 
 Programs Processed   : {0}
 Programs Created     : {1}
 Programs Updated     : {2}
+Programs Deactivated : {3}
 
 Programs with
-college change       : {3}
+college change       : {4}
 
 Programs with
-department change    : {4}
+department change    : {5}
 
-Colleges Created     : {5}
-Departments Created  : {6}
+Colleges Created     : {6}
+Departments Created  : {7}
+
+
         '''.format(
             self.programs_processed,
             self.programs_added,
             self.programs_updated,
+            self.programs_deactivated,
             self.colleges_changed,
             self.departments_changed,
             self.colleges_added,
             self.departments_added
         ))
+
+        if len(self.deactivated_programs) > 0:
+            row_headers = ["Name", "Level", "Degree", "Career"]
+            programs = Program.objects.filter(pk__in=self.deactivated_programs).values_list('name', 'level__name', 'degree__name', 'career__name')
+
+            self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='orgtbl'))
+        else:
+            self.stdout.write("There were no program deactivated.")
