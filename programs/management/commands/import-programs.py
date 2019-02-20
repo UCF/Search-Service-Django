@@ -17,6 +17,16 @@ class Command(BaseCommand):
     }
     mappings = {}
     use_internal_mapping = False
+    programs_processed = 0
+    programs_added = 0
+    programs_removed = 0
+    programs_updated = 0
+    colleges_added = 0
+    departments_added = 0
+    # Refers to colleges being removed from a program
+    colleges_changed = 0
+    # Refers to departments being removed from a program
+    departments_changed = 0
 
     def add_arguments(self, parser):
         parser.add_argument('path', type=str, help='The url of the APIM API.')
@@ -69,10 +79,13 @@ class Command(BaseCommand):
         # Remove stale programs
         Program.objects.filter(modified__lt=new_modified_date).delete()
 
+        self.print_results()
+
         return 0
 
     def add_program(self, data):
         program = None
+        self.programs_processed += 1
 
         # Correct college name issue
         data['College_Full'] = self.common_replace(data['College_Full'])
@@ -80,11 +93,13 @@ class Command(BaseCommand):
         try:
             program = Program.objects.get(plan_code=data['Plan'], subplan_code__isnull=True)
             program.name = unidecode(data['PlanName'])
+            self.programs_updated += 1
         except Program.DoesNotExist:
             program = Program(
                 name=unidecode(data['PlanName']),
                 plan_code=data['Plan']
             )
+            self.programs_added += 1
 
         # Handle Career
         career = self.career_mappings[data['Career']]
@@ -150,6 +165,19 @@ class Command(BaseCommand):
 
         program.colleges.add(college)
 
+        college_removed = False
+
+        # Remove non-primary colleges
+        for c in program.colleges.all():
+            if c.short_name != college.short_name:
+                program.colleges.remove(c)
+                if college_removed == False:
+                    college_removed = True
+
+
+        if college_removed:
+            self.colleges_changed += 1
+
         # Handle Departments
         department, create = Department.objects.get_or_create(
             full_name=data['Dept_Full']
@@ -160,6 +188,17 @@ class Command(BaseCommand):
             department.save()
 
         program.departments.add(department)
+
+        department_removed = False
+
+        for d in program.departments.all():
+            if d.full_name != department.full_name:
+                program.departments.remove(d)
+                if department_removed == False:
+                    department_removed = True
+
+        if department_removed:
+            self.departments_changed += 1
 
         program.save()
 
@@ -210,3 +249,29 @@ class Command(BaseCommand):
 
     def common_replace(self, input):
         return input.replace('&', 'and')
+
+    def print_results(self):
+        self.stdout.write('''
+Import Complete!
+
+Programs Processed   : {0}
+Programs Created     : {1}
+Programs Updated     : {2}
+
+Programs with
+college change       : {3}
+
+Programs with
+department change    : {4}
+
+Colleges Created     : {5}
+Departments Created  : {6}
+        '''.format(
+            self.programs_processed,
+            self.programs_added,
+            self.programs_updated,
+            self.colleges_changed,
+            self.departments_changed,
+            self.colleges_added,
+            self.departments_added
+        ))
