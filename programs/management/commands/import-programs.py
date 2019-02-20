@@ -81,7 +81,7 @@ class Command(BaseCommand):
                 for sp in d['SubPlans']:
                     self.add_subplan(sp, program)
 
-        self.deactivate_stale_programs
+        self.deactivate_stale_programs()
         self.print_results()
 
         return 0
