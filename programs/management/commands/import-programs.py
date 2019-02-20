@@ -277,39 +277,32 @@ class Command(BaseCommand):
         """
         Prints the results of the import to the stdout
         """
+        results = [
+            ('Programs Processed', self.programs_processed),
+            ('Programs Created', self.programs_added),
+            ('Programs Updated', self.programs_updated)
+        ]
+        relationships = [
+            ('Programs with college change', self.colleges_changed),
+            ('Programs with department change', self.departments_changed),
+        ]
+        taxonomies = [
+            ('Colleges Created', self.colleges_added),
+            ('Departments Created', self.departments_added)
+        ]
+
         self.stdout.write('''
 Import Complete!
 
-Programs Processed   : {0}
-Programs Created     : {1}
-Programs Updated     : {2}
-Programs Deactivated : {3}
+        ''')
 
-Programs with
-college change       : {4}
-
-Programs with
-department change    : {5}
-
-Colleges Created     : {6}
-Departments Created  : {7}
-
-
-        '''.format(
-            self.programs_processed,
-            self.programs_added,
-            self.programs_updated,
-            self.programs_deactivated,
-            self.colleges_changed,
-            self.departments_changed,
-            self.colleges_added,
-            self.departments_added
-        ))
+        self.stdout.write(tabulate(results, tablefmt='grid'), ending='\n\n')
+        self.stdout.write(tabulate(relationships, tablefmt='grid'), ending='\n\n')
+        self.stdout.write(tabulate(taxonomies, tablefmt='grid'), ending='\n\n')
 
         if len(self.deactivated_programs) > 0:
             row_headers = ["Name", "Level", "Degree", "Career"]
             programs = Program.objects.filter(pk__in=self.deactivated_programs).values_list('name', 'level__name', 'degree__name', 'career__name')
-
-            self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='orgtbl'))
+            self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
         else:
-            self.stdout.write("There were no program deactivated.")
+            self.stdout.write("There were no program deactivated.", ending='\n\n')
