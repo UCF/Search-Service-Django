@@ -12,6 +12,7 @@ class ProgramFilter(django_filters.FilterSet):
         model = Program
         fields = (
             'search',
+            'active',
             'plan_code',
             'subplan_code',
             'subplan_code__isnull',
