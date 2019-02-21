@@ -211,6 +211,7 @@ class Command(BaseCommand):
 
     def add_subplan(self, data, parent):
         program = None
+        self.programs_processed += 1
 
         try:
             program = Program.objects.get(
@@ -218,6 +219,7 @@ class Command(BaseCommand):
                 subplan_code=data['Subplan'])
 
             program.name = unidecode(data['Subplan_Name'])
+            self.programs_updated += 1
         except Program.DoesNotExist:
             program = Program(
                 name=unidecode(data['Subplan_Name']),
@@ -225,6 +227,7 @@ class Command(BaseCommand):
                 subplan_code=data['Subplan'],
                 parent_program=parent
             )
+            self.programs_added += 1
 
         # Handle Career and Level
 
@@ -249,8 +252,28 @@ class Command(BaseCommand):
         for college in parent.colleges.all():
             program.colleges.add(college)
 
+        college_removed = False
+
+        # Remove non-primary colleges
+        for college in program.colleges.exclude(pk__in=parent.colleges.all().values_list('pk', flat=True)):
+            program.colleges.remove(college)
+            college_removed = True
+
+        if college_removed:
+            self.colleges_changed += 1
+
         for department in parent.departments.all():
             program.departments.add(department)
+
+        department_removed = False
+
+        # Remove non-primary departments
+        for department in program.departments.exclude(pk__in=parent.departments.all().values_list('pk', flat=True)):
+            program.departments.remove(department)
+            department_removed = True
+
+        if department_removed:
+            self.departments_changed += 1
 
         program.save()
 
