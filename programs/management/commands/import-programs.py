@@ -19,6 +19,7 @@ class Command(BaseCommand):
     mappings = {}
     use_internal_mapping = False
     new_modified_date = None
+    list_inactive = True
     programs_processed = 0
     programs_added = 0
     programs_deactivated = 0
@@ -69,6 +70,7 @@ class Command(BaseCommand):
         path = options['path']
         mapping_path = options['mapping_path']
         self.use_internal_mapping = options['use_internal_mapping']
+        self.list_inactive = options['list_inactive']
         response = urllib2.urlopen(path)
 
         if mapping_path and not self.use_internal_mapping:
@@ -358,7 +360,7 @@ Import Complete!
         else:
             self.stdout.write("There were no programs deactivated.", ending='\n\n')
 
-        if len(self.inactive_programs) > 0:
+        if len(self.inactive_programs) > 0 and self.list_inactive:
             row_headers = ["Name", "Level", "Degree", "Career", "PlanCode", "SubPlanCode"]
             programs = Program.objects.filter(pk__in=self.inactive_programs).values_list('name', 'level__name', 'degree__name', 'career__name', 'plan_code', 'subplan_code')
             self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
