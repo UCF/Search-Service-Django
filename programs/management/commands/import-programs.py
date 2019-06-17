@@ -121,7 +121,7 @@ class Command(BaseCommand):
         # If the program is inactive in our data,
         # skip the rest of the process but note
         # the inactive program for output
-        if program.active == False:
+        if program.active == False and data['Meta Data'][0]['Status'] == 'A':
             self.inactive_programs.append(program.pk)
             self.programs_updated -= 1
             return
@@ -253,7 +253,7 @@ class Command(BaseCommand):
             )
             self.programs_added += 1
 
-        if program.active == False:
+        if program.active == False and data['Meta Data'][0]['Status'] == 'A':
             self.inactive_programs.append(program.pk)
             self.programs_updated -= 1
             return
@@ -361,6 +361,9 @@ Import Complete!
             self.stdout.write("There were no programs deactivated.", ending='\n\n')
 
         if len(self.inactive_programs) > 0 and self.list_inactive:
+            self.stdout.write("Inactive Programs Present in Source Data (" + str(len(self.inactive_programs)) + "):", ending='\n\n')
             row_headers = ["Name", "Level", "Degree", "Career", "PlanCode", "SubPlanCode"]
             programs = Program.objects.filter(pk__in=self.inactive_programs).values_list('name', 'level__name', 'degree__name', 'career__name', 'plan_code', 'subplan_code')
             self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
+        else:
+            self.stdout.write("There were no inactive programs found in the source data.", ending='\n\n')
