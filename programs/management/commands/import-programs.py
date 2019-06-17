@@ -18,6 +18,7 @@ class Command(BaseCommand):
     }
     mappings = {}
     use_internal_mapping = False
+    new_modified_date = None
     programs_processed = 0
     programs_added = 0
     programs_deactivated = 0
@@ -32,6 +33,8 @@ class Command(BaseCommand):
     programs = []
     # A list of programs deactived
     deactivated_programs = []
+    # A list of inactive programs found in APIM data
+    inactive_programs = []
 
     def add_arguments(self, parser):
         parser.add_argument('path', type=str, help='The url of the APIM API.')
@@ -52,8 +55,17 @@ class Command(BaseCommand):
             required=False
         )
 
+        parser.add_argument(
+            '--list-inactive',
+            type=bool,
+            dest='list_inactive',
+            help='Will list inactive programs that were present in APIM data.',
+            default=True,
+            required=False
+        )
+
     def handle(self, *args, **options):
-        new_modified_date = timezone.now()
+        self.new_modified_date = timezone.now()
         path = options['path']
         mapping_path = options['mapping_path']
         self.use_internal_mapping = options['use_internal_mapping']
@@ -103,6 +115,14 @@ class Command(BaseCommand):
                 plan_code=data['Plan']
             )
             self.programs_added += 1
+
+        # If the program is inactive in our data,
+        # skip the rest of the process but note
+        # the inactive program for output
+        if program.active == False:
+            self.inactive_programs.append(program.pk)
+            self.programs_updated -= 1
+            return
 
         # Handle Career
         career = self.career_mappings[data['Career']]
@@ -205,6 +225,8 @@ class Command(BaseCommand):
         if department_removed:
             self.departments_changed += 1
 
+        program.modified = self.new_modified_date
+
         program.save()
 
         return program
@@ -228,6 +250,11 @@ class Command(BaseCommand):
                 parent_program=parent
             )
             self.programs_added += 1
+
+        if program.active == False:
+            self.inactive_programs.append(program.pk)
+            self.programs_updated -= 1
+            return
 
         # Handle Career and Level
 
@@ -274,6 +301,8 @@ class Command(BaseCommand):
 
         if department_removed:
             self.departments_changed += 1
+
+        program.modified = self.new_modified_date
 
         program.save()
 
@@ -328,3 +357,8 @@ Import Complete!
             self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
         else:
             self.stdout.write("There were no programs deactivated.", ending='\n\n')
+
+        if len(self.inactive_programs) > 0:
+            row_headers = ["Name", "Level", "Degree", "Career", "PlanCode", "SubPlanCode"]
+            programs = Program.objects.filter(pk__in=self.inactive_programs).values_list('name', 'level__name', 'degree__name', 'career__name', 'plan_code', 'subplan_code')
+            self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
