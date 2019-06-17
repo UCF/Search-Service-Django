@@ -124,7 +124,7 @@ class Command(BaseCommand):
         if program.active == False and data['Meta Data'][0]['Status'] == 'A':
             self.inactive_programs.append(program.pk)
             self.programs_updated -= 1
-            return
+            return program
 
         # Handle Career
         career = self.career_mappings[data['Career']]
