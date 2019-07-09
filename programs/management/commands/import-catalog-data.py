@@ -225,6 +225,13 @@ class Command(BaseCommand):
             p.catalog_url = None
             p.save()
 
+            # Wipe out existing catalog description
+            try:
+                description = p.descriptions.get(description_type=description_type)
+                description.delete()
+            except ProgramDescription.DoesNotExist:
+                pass
+
             p = MatchableProgram(p)
             filtered_entries = filter(lambda x: x.level == p.program.level, self.catalog_programs)
 
@@ -240,18 +247,13 @@ class Command(BaseCommand):
                 p.program.catalog_url = self.catalog_url.format(self.catalog_id, matched_entry.id)
                 p.program.save()
 
-                # Update the program description with the description provided in the matched catalog entry
-                try:
-                    description = p.program.descriptions.get(description_type=description_type)
-                    description.description = self.get_description(matched_entry.id)
-                    description.save()
-                except ProgramDescription.DoesNotExist:
-                    description = ProgramDescription(
-                        description_type=description_type,
-                        description=self.get_description(matched_entry.id),
-                        program=p.program
-                    )
-                    description.save()
+                # Create a new program description with the description provided in the matched catalog entry
+                description = ProgramDescription(
+                    description_type=description_type,
+                    description=self.get_description(matched_entry.id),
+                    program=p.program
+                )
+                description.save()
 
                 # Increment match counts for all programs and for the matched catalog entry
                 match_count += 1
