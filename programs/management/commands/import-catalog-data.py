@@ -195,7 +195,7 @@ class Command(BaseCommand):
         program_root = ET.fromstring(raw_data)
 
         for result in program_root.iter('result'):
-            if result.find('type') is not None:
+            if result.find('type') is not None and result.find('state').find('code').text == '1':
                 self.catalog_programs.append(
                     CatalogEntry(
                         result.find('id').text,
