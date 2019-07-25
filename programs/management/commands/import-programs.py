@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from programs.models import *
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import json
 from tabulate import tabulate
 
@@ -71,10 +71,10 @@ class Command(BaseCommand):
         mapping_path = options['mapping_path']
         self.use_internal_mapping = options['use_internal_mapping']
         self.list_inactive = options['list_inactive']
-        response = urllib2.urlopen(path)
+        response = urllib.request.urlopen(path)
 
         if mapping_path and not self.use_internal_mapping:
-            mapping_resp = urllib2.urlopen(mapping_path)
+            mapping_resp = urllib.request.urlopen(mapping_path)
             self.mappings = json.loads(mapping_resp.read())
         elif self.use_internal_mapping:
             self.mappings = CollegeOverride.objects.all()

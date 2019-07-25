@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 import itertools
 import logging
@@ -29,7 +29,7 @@ def clean_name(program_name):
     stop_words_cs = [
         'as'
     ]
-    name = ' '.join(filter(lambda x: x not in stop_words_cs, name.split()))
+    name = ' '.join([x for x in name.split() if x not in stop_words_cs])
 
     # Filter out case-insensitive stop words
     stop_words_ci = [
@@ -40,7 +40,7 @@ def clean_name(program_name):
         'track', 'graduate', 'certificate', 'bachelor', 'master',
         'doctor', 'online', 'ucf'
     ]
-    name = ' '.join(filter(lambda x: x.lower() not in stop_words_ci, name.split()))
+    name = ' '.join([x for x in name.split() if x.lower() not in stop_words_ci])
 
     return name
 
@@ -190,7 +190,7 @@ class Command(BaseCommand):
         return 0
 
     def get_catalog_programs(self, program_url):
-        response = urllib2.urlopen(program_url)
+        response = urllib.request.urlopen(program_url)
         raw_data = response.read()
         program_root = ET.fromstring(raw_data)
 
@@ -233,7 +233,7 @@ class Command(BaseCommand):
                 pass
 
             p = MatchableProgram(p)
-            filtered_entries = filter(lambda x: x.level == p.program.level, self.catalog_programs)
+            filtered_entries = [x for x in self.catalog_programs if x.level == p.program.level]
 
             for entry in filtered_entries:
                 match_score = fuzz.token_sort_ratio(p.name_clean, entry.name_clean)
@@ -259,12 +259,12 @@ class Command(BaseCommand):
                 match_count += 1
                 matched_entry.match_count += 1
 
-                logging.info(unicode('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(str('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace'))
             else:
-                logging.info(unicode('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(str('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace'))
 
-        print 'Matched {0}/{1} of Existing {2} Programs to a Catalog Entry: {3:.0f}%'.format(match_count, len(programs), career_name, float(match_count) / float(len(programs)) * 100)
-        print 'Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len(filter(lambda x: x.has_matches == True, self.catalog_programs)), len(self.catalog_programs), len(filter(lambda x: x.has_matches == True, self.catalog_programs)) / float(len(self.catalog_programs)) * 100)
+        print('Matched {0}/{1} of Existing {2} Programs to a Catalog Entry: {3:.0f}%'.format(match_count, len(programs), career_name, float(match_count) / float(len(programs)) * 100))
+        print('Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len([x for x in self.catalog_programs if x.has_matches == True]), len(self.catalog_programs), len([x for x in self.catalog_programs if x.has_matches == True]) / float(len(self.catalog_programs)) * 100))
 
 
     def get_description(self, program_id):
@@ -275,7 +275,7 @@ class Command(BaseCommand):
             self.catalog_id
         )
 
-        response = urllib2.urlopen(url)
+        response = urllib.request.urlopen(url)
         raw_data = response.read()
 
         # Strip xmlns attributes to parse string to xml without namespaces

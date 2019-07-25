@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models
 
@@ -126,11 +126,12 @@ class Program(models.Model):
     catalog_url = models.URLField(null=True, blank=True)
     colleges = models.ManyToManyField(College, blank=True)
     departments = models.ManyToManyField(Department, blank=True)
-    level = models.ForeignKey(Level)
-    career = models.ForeignKey(Career)
-    degree = models.ForeignKey(Degree)
+    level = models.ForeignKey(Level, on_delete=models.CASCADE)
+    career = models.ForeignKey(Career, on_delete=models.CASCADE)
+    degree = models.ForeignKey(Degree, on_delete=models.CASCADE)
     online = models.BooleanField(null=False, blank=False, default=False)
     parent_program = models.ForeignKey('self',
+                                       on_delete=models.CASCADE,
                                        null=True,
                                        blank=True,
                                        related_name='subplans')
@@ -193,11 +194,13 @@ class ProgramProfile(models.Model):
     """
     URLs to specific profile pages for programs
     """
-    profile_type = models.ForeignKey(ProgramProfileType)
+    profile_type = models.ForeignKey(
+        ProgramProfileType, on_delete=models.CASCADE)
     url = models.URLField(null=False, blank=False)
     primary = models.BooleanField(default=False, null=False, blank=False)
     program = models.ForeignKey(
         Program,
+        on_delete=models.CASCADE,
         null=False,
         blank=False,
         related_name='profiles'
@@ -217,11 +220,13 @@ class ProgramDescription(models.Model):
     """
     Program descriptions to be used on various sites
     """
-    description_type = models.ForeignKey(ProgramDescriptionType)
+    description_type = models.ForeignKey(
+        ProgramDescriptionType, on_delete=models.CASCADE)
     description = models.TextField(null=False, blank=False)
     primary = models.BooleanField(default=False, null=False, blank=False)
     program = models.ForeignKey(
         Program,
+        on_delete=models.CASCADE,
         null=False,
         blank=False,
         related_name='descriptions'
@@ -286,7 +291,7 @@ class TuitionOverride(models.Model):
 class CollegeOverride(models.Model):
     plan_code = models.CharField(max_length=10, null=False, blank=False)
     subplan_code = models.CharField(max_length=10, null=True, blank=True)
-    college = models.ForeignKey(College, null=False, blank=False)
+    college = models.ForeignKey(College, on_delete=models.CASCADE, null=False, blank=False)
 
     @property
     def program(self):
