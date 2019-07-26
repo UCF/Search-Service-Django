@@ -191,7 +191,7 @@ class Command(BaseCommand):
 
     def get_catalog_programs(self, program_url):
         response = urllib.request.urlopen(program_url)
-        raw_data = response.read()
+        raw_data = response.read().decode('utf-8')
         program_root = ET.fromstring(raw_data)
 
         for result in program_root.iter('result'):
@@ -199,8 +199,8 @@ class Command(BaseCommand):
                 self.catalog_programs.append(
                     CatalogEntry(
                         result.find('id').text,
-                        result.find('name').text.encode('ascii', 'ignore'),
-                        result.find('type').text.encode('ascii', 'ignore')
+                        result.find('name').text.encode('ascii', 'ignore').decode(),
+                        result.find('type').text.encode('ascii', 'ignore').decode()
                     )
                 )
 
@@ -259,9 +259,9 @@ class Command(BaseCommand):
                 match_count += 1
                 matched_entry.match_count += 1
 
-                logging.info(str('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace'))
+                logging.info('MATCH \n Matched program name: {0} \n Cleaned program name: {1} \n Catalog entry full name: {2} \n Cleaned catalog entry name: {3} \n Match score: {4} \n'.format(p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score))
             else:
-                logging.info(str('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace'))
+                logging.info('FAILURE \n Matched program name: {0} \n Cleaned program name: {1} \n'.format(p.program.name, p.name_clean))
 
         print('Matched {0}/{1} of Existing {2} Programs to a Catalog Entry: {3:.0f}%'.format(match_count, len(programs), career_name, float(match_count) / float(len(programs)) * 100))
         print('Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len([x for x in self.catalog_programs if x.has_matches == True]), len(self.catalog_programs), len([x for x in self.catalog_programs if x.has_matches == True]) / float(len(self.catalog_programs)) * 100))
@@ -276,7 +276,7 @@ class Command(BaseCommand):
         )
 
         response = urllib.request.urlopen(url)
-        raw_data = response.read()
+        raw_data = response.read().decode('utf-8')
 
         # Strip xmlns attributes to parse string to xml without namespaces
         data = re.sub(' xmlns(?:\:[a-z]*)?="[^"]+"', '', raw_data)
