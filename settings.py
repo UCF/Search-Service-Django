@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'programs',
+    'teledata',
     'rest_framework',
     'django_filters',
     'rest_framework.authtoken',
