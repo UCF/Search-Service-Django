@@ -167,8 +167,6 @@ IF(`teledata_combinedteledataview`.`organization` LIKE %s, 2, 0)
             '-score'
         )
 
-        print queryset.query
-
         return queryset
 
     def update_data(self):
