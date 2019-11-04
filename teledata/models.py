@@ -19,12 +19,6 @@ class Building(models.Model):
     abrev = models.CharField(max_length=255, null=True, blank=True)
     import_id = models.IntegerField(null=True, blank=True)
 
-    def __unicode__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name
-
 class Organization(models.Model):
     objects = QuerySet.as_manager()
 
@@ -40,12 +34,6 @@ class Organization(models.Model):
     last_updated = models.DateTimeField(null=True, blank=True)
     import_id = models.IntegerField(null=True, blank=True)
 
-    def __unicode__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name
-
 class Department(models.Model):
     objects = QuerySet.as_manager()
 
@@ -60,12 +48,6 @@ class Department(models.Model):
     secondary_comment = models.TextField(null=True, blank=True)
     last_updated = models.DateTimeField(null=True, blank=True)
     import_id = models.IntegerField(null=True, blank=True)
-
-    def __unicode__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name
 
 # Create your models here.
 class Staff(models.Model):
@@ -116,12 +98,6 @@ class Staff(models.Model):
     @property
     def sort_name(self):
         return '{0} {1}'.format(self.last_name, self.first_name)
-
-    def __unicode__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name
 
 class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
     """
