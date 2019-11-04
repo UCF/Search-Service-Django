@@ -1,6 +1,7 @@
 import os
 
 from settings import BASE_DIR
+from django.utils.log import DEFAULT_LOGGING
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'SUPERSECRETKEYHEREPLEASEANDTHANKYOU'
@@ -16,7 +17,11 @@ ALLOWED_HOSTS = []
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME'  : os.path.join(BASE_DIR, 'db.sqlite3'),
+    },
+    'teledata': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME'  : os.path.join(BASE_DIR, 'teledata.sqlite3'),
     }
 }
 
@@ -62,3 +67,40 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static") # Comment out when using locally
 STATICFILES_DIRS = [
     # Add static root path when debugging locally
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        },
+        'django.server': DEFAULT_LOGGING['formatters']['django.server'],
+        'programs.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
+        'teledata.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+        },
+        'sentry': {
+            'level': 'WARNING',
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler'
+        },
+        'django.server': DEFAULT_LOGGING['handlers']['django.server'],
+        'programs.management.commands': DEFAULT_LOGGING['handlers']['django.server'],
+        'teledata.management.commands': DEFAULT_LOGGING['handlers']['django.server'],
+    },
+    'loggers': {
+        '': {
+            'level': 'WARNING',
+            'handlers': ['console', 'sentry'],
+        },
+        'django.server': DEFAULT_LOGGING['loggers']['django.server'],
+        'programs.management.commands': DEFAULT_LOGGING['loggers']['django.server'],
+        'teledata.management.commands': DEFAULT_LOGGING['loggers']['django.server'],
+    }
+}

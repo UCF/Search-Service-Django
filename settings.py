@@ -29,10 +29,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'programs',
+    'teledata',
     'rest_framework',
     'django_filters',
     'rest_framework.authtoken',
-    'drf_dynamic_fields'
+    'drf_dynamic_fields',
+    'django_mysql'
 ]
 
 MIDDLEWARE = [
