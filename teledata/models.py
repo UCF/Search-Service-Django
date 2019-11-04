@@ -124,21 +124,43 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
     Custom manager that allows for special queries
     and update methods
     """
-    def score(self, search):
+    def score(self, search_query):
+        # Create empty list
+        query_params = []
+
+        for i in xrange(0, 11):
+            query_params.append(search_query)
+
+        # Add two instances of the search variable
+        # with wild cards wrapped around it
+        query_params.append('%' + search_query + '%')
+        query_params.append('%' + search_query + '%')
+
+        query_params = tuple(query_params)
+
+        # Generate RawSQL to be appended to the query
         return RawSQL("""
-MATCH(`teledata_combinedteledataview`.`first_name`, `teledata_combinedteledataview`.`last_name`) AGAINST (%s)
+MATCH(`teledata_combinedteledataview`.`first_name`, `teledata_combinedteledataview`.`last_name`) AGAINST (%s)  +
+IF(CONCAT(IFNULL(`teledata_combinedteledataview`.`first_name`, ''), ' ', IFNULL(`teledata_combinedteledataview`.`last_name`, '')) = %s, 15, 0) +
+IF(`teledata_combinedteledataview`.`phone` = %s, 15, 0) +
+IF(`teledata_combinedteledataview`.`email` = %s, 15, 0) +
+IF(`teledata_combinedteledataview`.`first_name` = %s, 13, 0) +
+IF(`teledata_combinedteledataview`.`last_name` = %s, 13, 0) +
+IF(SOUNDEX(CONCAT(IFNULL(`teledata_combinedteledataview`.`first_name`, ''), ' ', IFNULL(`teledata_combinedteledataview`.`last_name`, ''))) = SOUNDEX(%s), 12, 0) +
+IF(SOUNDEX(`teledata_combinedteledataview`.`last_name`) = SOUNDEX(%s), 8, 0) +
+IF(SOUNDEX(`teledata_combinedteledataview`.`first_name`) = SOUNDEX(%s), 3, 0) +
+IF(`teledata_combinedteledataview`.`department` = %s, 3, 0) +
+IF(`teledata_combinedteledataview`.`organization` = %s, 3, 0) +
+IF(`teledata_combinedteledataview`.`department` LIKE %s, 2, 0) +
+IF(`teledata_combinedteledataview`.`organization` LIKE %s, 2, 0)
         """,
-            (search,),
+            query_params,
             output_field=models.DecimalField()
         )
 
-    def search(self, **kwargs):
-        s = ''
-        if 'search' in kwargs:
-            s = kwargs['search']
-
+    def search(self, search_query):
         queryset = self.annotate(
-            score=self.score(s)
+            score=self.score(search_query)
         ).filter(
             score__gt=0
         ).order_by(
