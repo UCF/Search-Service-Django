@@ -118,10 +118,10 @@ class Staff(models.Model):
         return '{0} {1}'.format(self.last_name, self.first_name)
 
     def __unicode__(self):
-        return self.full_name_formatted()
+        return self.name
 
     def __str__(self):
-        return self.full_name_formatted()
+        return self.name
 
 class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
     """
