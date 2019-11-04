@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.db.models import Q, When, Case, Value
+from django.db.models.expressions import RawSQL
 from django_mysql.models import QuerySet
 from django_mysql.models import QuerySetMixin
 
@@ -124,21 +125,11 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
     and update methods
     """
     def score(self, search):
-        return Case(
-            When(name=search, then=Value(30)),
-            When(phone=search, then=Value(15)),
-            When(first_name=search, then=Value(13)),
-            When(last_name=search, then=Value(13)),
-            When(name__sounds_like=search, then=Value(12)),
-            When(last_name__sounds_like=search, then=Value(8)),
-            When(first_name__sounds_like=search, then=Value(3)),
-            When(department=search, then=Value(3)),
-            When(organization=search, then=Value(3)),
-            When(department__contains=search, then=Value(2)),
-            When(organization__contains=search, then=Value(2)),
-            When(name__contains=search, then=Value(1)),
-            default=Value(0),
-            output_field=models.IntegerField()
+        return RawSQL("""
+MATCH(`teledata_combinedteledataview`.`first_name`, `teledata_combinedteledataview`.`last_name`) AGAINST (%s)
+        """,
+            (search,),
+            output_field=models.DecimalField()
         )
 
     def search(self, **kwargs):
@@ -153,6 +144,8 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
         ).order_by(
             '-score'
         )
+
+        print queryset.query
 
         return queryset
 
