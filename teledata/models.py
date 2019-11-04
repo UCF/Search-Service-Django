@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import logging
+
 from django.db import models
 from django.db.models import Q, When, Case, Value
 from django.db.models.expressions import RawSQL
 from django_mysql.models import QuerySet
 from django_mysql.models import QuerySetMixin
+
+logger = logging.getLogger(__name__)
 
 class Building(models.Model):
     objects = QuerySet.as_manager()
@@ -201,7 +205,10 @@ IF(`teledata_combinedteledataview`.`organization` LIKE %s, 2, 0)
                 from_table='staff'
             )
 
-            record.save(doing_import=True)
+            try:
+                record.save(doing_import=True)
+            except Exception, e:
+                logger.error(str(e))
 
         for o in orgs:
             record = CombinedTeledataView(
@@ -215,7 +222,10 @@ IF(`teledata_combinedteledataview`.`organization` LIKE %s, 2, 0)
                 from_table='organizations'
             )
 
-            record.save(doing_import=True)
+            try:
+                record.save(doing_import=True)
+            except Exception, e:
+                logger.error(str(e))
 
         for d in depts:
             record = CombinedTeledataView(
@@ -231,7 +241,10 @@ IF(`teledata_combinedteledataview`.`organization` LIKE %s, 2, 0)
                 from_table='departments'
             )
 
-            record.save(doing_import=True)
+            try:
+                record.save(doing_import=True)
+            except Exception, e:
+                logger.error(str(e))
 
 class CombinedTeledataView(models.Model):
     alpha = models.NullBooleanField(default=True, null=True, blank=True)

@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from teledata.models import *
 import settings
+import logging
 
 import urllib2
 import logging
@@ -25,6 +26,7 @@ class Command(BaseCommand):
     staff_created = 0
     staff_updated = 0
     staff_error   = 0
+    logger        = logging.getLogger(__name__)
 
     def add_arguments(self, parser):
         pass
@@ -132,7 +134,12 @@ FROM
                 existing.name = item[1]
                 existing.descr = item[2]
                 existing.abrev = item[3]
-                existing.save()
+
+                try:
+                    existing.save()
+                except Exception, e:
+                    self.logger.error(str(e))
+                    self.bldg_error += 1
 
                 self.bldg_updated += 1
 
@@ -143,7 +150,12 @@ FROM
                     abrev=item[3],
                     import_id=item[0]
                 )
-                new.save()
+
+                try:
+                    new.save()
+                except Exception, e:
+                    self.logger.error(str(e))
+                    self.bldg_error += 1
 
                 self.bldg_created += 1
 
@@ -162,7 +174,12 @@ FROM
                 existing.last_updated = timezone.now()
                 existing.import_id = item[0]
 
-                existing.save()
+                try:
+                    existing.save()
+                except Exception, e:
+                    self.logger.error(str(e))
+                    self.org_error += 1
+
 
                 self.org_updated += 1
 
@@ -186,7 +203,11 @@ FROM
                     import_id = item[0]
                 )
 
-                new.save()
+                try:
+                    new.save()
+                except Exception, e:
+                    self.logger.error(str(e))
+                    self.org_error += 1
 
                 self.org_created += 1
 
@@ -215,7 +236,11 @@ FROM
                 existing.secondary_comment = item[9]
                 existing.last_updated = timezone.now()
 
-                existing.save()
+                try:
+                    existing.save()
+                except Exception, e:
+                    self.logger.error(str(e))
+                    self.dept_error += 1
 
                 self.dept_updated += 1
 
@@ -236,7 +261,11 @@ FROM
 
                 self.bldg_created += 1
 
-                new.save()
+                try:
+                    new.save()
+                except Exception, e:
+                    self.logger.error(str(e))
+                    self.dept_error += 1
 
     def import_staff(self, data):
         for item in data:
@@ -276,42 +305,41 @@ FROM
 
                 try:
                     existing.save()
-                except:
+                except Exception, e:
+                    self.logger.error(str(e))
                     self.staff_error += 1
 
                 self.staff_updated += 1
 
             except Staff.DoesNotExist:
+                new = Staff(
+                    alpha=alpha,
+                    last_name=item[1],
+                    suffix=item[2],
+                    name_title=item[3],
+                    first_name=item[4],
+                    middle=item[5],
+                    dept=dept,
+                    job_position=item[8],
+                    bldg=bldg,
+                    room=item[11],
+                    phone=item[12],
+                    email=item[13],
+                    email_machine=item[14],
+                    postal=item[15],
+                    last_updated=timezone.now(),
+                    listed=True,
+                    cellphone=item[17],
+                    import_id=item[0]
+                )
+
                 try:
-                    new = Staff(
-                        alpha=alpha,
-                        last_name=item[1],
-                        suffix=item[2],
-                        name_title=item[3],
-                        first_name=item[4],
-                        middle=item[5],
-                        dept=dept,
-                        job_position=item[8],
-                        bldg=bldg,
-                        room=item[11],
-                        phone=item[12],
-                        email=item[13],
-                        email_machine=item[14],
-                        postal=item[15],
-                        last_updated=timezone.now(),
-                        listed=True,
-                        cellphone=item[17],
-                        import_id=item[0]
-                    )
-
                     new.save()
-
-                    self.staff_created += 1
                 except Exception, e:
-                    print(e)
+                    self.logger.error(str(e))
                     self.staff_error += 1
-            except:
-                self.staff_error += 1
+
+                self.staff_created += 1
 
     def print_stats(self):
         stats = """
@@ -385,6 +413,8 @@ Errors : {11}
         staff_data = cursor.fetchall()
 
         self.import_staff(staff_data)
+
+        CombinedTeledataView.objects.update_data()
 
         self.print_stats()
 
