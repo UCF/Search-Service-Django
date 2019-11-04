@@ -16,15 +16,19 @@ class Command(BaseCommand):
 
     bldg_created  = 0
     bldg_updated  = 0
+    bldg_skipped  = 0
     bldg_error    = 0
     org_created   = 0
     org_updated   = 0
+    org_skipped   = 0
     org_error     = 0
     dept_created  = 0
     dept_updated  = 0
+    dept_skipped  = 0
     dept_error    = 0
     staff_created = 0
     staff_updated = 0
+    staff_skipped = 0
     staff_error   = 0
     logger        = logging.getLogger(__name__)
 
@@ -129,6 +133,11 @@ FROM
 
     def import_bldgs(self, data):
         for item in data:
+            # Require name and abrev
+            if item[1] is None or item[3] is None:
+                self.bldg_skipped += 1
+                continue
+
             try:
                 existing = Building.objects.get(import_id=item[0])
                 existing.name = item[1]
@@ -161,6 +170,11 @@ FROM
 
     def import_orgs(self, data):
         for item in data:
+            # Require name
+            if item[1] is None:
+                self.org_skipped += 1
+                continue
+
             try:
                 existing = Organization.objects.get(import_id=item[0])
                 existing.name = item[1]
@@ -213,6 +227,11 @@ FROM
 
     def import_depts(self, data):
         for item in data:
+            # Require name
+            if item[3] is None:
+                self.dept_skipped += 1
+                continue
+
             try:
                 org = Organization.objects.get(import_id=item[1])
             except Organization.DoesNotExist:
@@ -269,6 +288,10 @@ FROM
 
     def import_staff(self, data):
         for item in data:
+            if item[1] is None or item[4] is None:
+                self.staff_skipped += 1
+                continue
+
             try:
                 dept = Department.objects.get(import_id=item[7])
             except Department.DoesNotExist:
@@ -347,37 +370,45 @@ Buildings
 ---------
 Updated: {0}
 Created: {1}
-Errors : {2}
+Skipped: {2}
+Errors : {3}
 
 Organizations
 -------------
-Updated: {3}
-Created: {4}
-Errors : {5}
+Updated: {4}
+Created: {5}
+Skipped: {6}
+Errors : {7}
 
 Departments
 -----------
-Updated: {6}
-Created: {7}
-Errors : {8}
+Updated: {8}
+Created: {9}
+Skipped: {10}
+Errors : {11}
 
 Staff
 -----
-Updated: {9}
-Created: {10}
-Errors : {11}
+Updated: {12}
+Created: {13}
+Skipped: {14}
+Errors : {15}
         """.format(
             self.bldg_updated,
             self.bldg_created,
             self.bldg_error,
+            self.bldg_skipped,
             self.org_updated,
             self.org_created,
+            self.org_skipped,
             self.org_error,
             self.dept_updated,
             self.dept_created,
+            self.dept_skipped,
             self.dept_error,
             self.staff_updated,
             self.staff_created,
+            self.staff_skipped,
             self.staff_error
         )
 
