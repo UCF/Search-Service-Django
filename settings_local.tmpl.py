@@ -67,48 +67,39 @@ STATICFILES_DIRS = [
     # Add static root path when debugging locally
 ]
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
-        'standard': {
-            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt': "%d/%b/%Y %H:%M:%S"
+        'console': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
         },
+        'django.server': DEFAULT_LOGGING['formatters']['django.server'],
+        'programs.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
+        'teledata.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
     },
     'handlers': {
-        'null': {
-            'level': 'DEBUG',
-            'class': 'django.utils.log.NullHandler',
-        },
-        'logfile': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR + '/application.log',
-            'maxBytes': 50000,
-            'backupCount': 2,
-            'formatter': 'standard'
-        },
         'console': {
-            'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'standard'
-        }
+            'formatter': 'console',
+        },
+        'sentry': {
+            'level': 'WARNING',
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler'
+        },
+        'django.server': DEFAULT_LOGGING['handlers']['django.server'],
+        'programs.management.commands': DEFAULT_LOGGING['handlers']['django.server'],
+        'teledata.management.commands': DEFAULT_LOGGING['handlers']['django.server'],
     },
     'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'propogate': True,
-            'level' : 'WARN'
-        },
-        'django.db.backends': {
-            'handlers': ['console'],
-            'propogate': False,
-            'level': 'DEBUG'
-        },
         '': {
-            'handlers': ['console', 'logfile'],
-            'level': 'DEBUG'
-        }
-    },
+            'level': 'WARNING',
+            'handlers': ['console', 'sentry'],
+        },
+        'django.server': DEFAULT_LOGGING['loggers']['django.server'],
+        'programs.management.commands': DEFAULT_LOGGING['loggers']['django.server'],
+        'teledata.management.commands': DEFAULT_LOGGING['loggers']['django.server'],
+    }
 }
