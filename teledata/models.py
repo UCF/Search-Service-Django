@@ -4,8 +4,7 @@ from __future__ import unicode_literals
 import logging
 
 from django.db import models
-from django.db.models import Q, F, When, Case, Value, Expression, Sum, ExpressionWrapper
-from django.db.models.expressions import RawSQL
+from django.db.models import F, When, Case, Value, Expression
 from django_mysql.models import QuerySet, QuerySetMixin
 
 logger = logging.getLogger(__name__)
@@ -320,8 +319,6 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
         ).order_by(
             '-score'
         )
-
-        print queryset.query
 
         return queryset
 
