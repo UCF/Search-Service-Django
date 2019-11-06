@@ -6,7 +6,7 @@ urlpatterns = [
     url(r'^$',
         CoreAPI.as_view(),
         name='api.core'
-    ),
+        ),
     url(r'^programs/$',
         ProgramListView.as_view(),
         name='api.programs.list'
@@ -47,44 +47,44 @@ urlpatterns = [
         r'^descriptions/create/$',
         ProgramDescriptionCreateView.as_view(),
         name='api.descriptions.create'
-    ),
+        ),
     url(
         r'^descriptions/types/$',
         ProgramDescriptionTypeListView.as_view(),
         name='api.descriptions.types.list'
-    ),
+        ),
     url(r'^descriptions/(?P<id>\d+)/$',
         ProgramDescriptionDetailView.as_view(),
         name='api.descriptions.detail'
-    ),
+        ),
     url(
         r'^profiles/create/$',
         ProgramProfileCreateView.as_view(),
         name='api.profiles.create'
-    ),
+        ),
     url(
         r'^profiles/types/$',
         ProgramProfileTypeListView.as_view(),
         name='api.profiles.types.list'
-    ),
+        ),
     url(r'^profiles/(?P<id>\d+)/$',
         ProgramProfileDetailView.as_view(),
         name='api.profiles.detail'
-    ),
+        ),
     url(r'^college-mappings/$',
         CollegeOverrideListView.as_view(),
         name='api.collegeoverride.list'
-    ),
+        ),
     url(r'^tuition-mappings/$',
         TuitionOverrideListView.as_view(),
         name='api.tuitionoverride.list',
-    ),
+        ),
     url(r'^tuition-mappings/create/$',
         TuitionOverrideCreateView.as_view(),
         name='api.tuitionoverride.create'
-    ),
+        ),
     url(r'^tuition-mappings/(?P<id>\d+)/$',
         TuitionOverrideDetailView.as_view(),
         name='api.tuitionoverride.detail'
-    )
+        )
 ]

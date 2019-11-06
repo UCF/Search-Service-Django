@@ -28,13 +28,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'programs',
-    'teledata',
+
+    # 3rd party
     'rest_framework',
     'django_filters',
     'rest_framework.authtoken',
     'drf_dynamic_fields',
-    'django_mysql'
+    'django_mysql',
+
+    # Local
+    'programs',
+    'teledata',
 ]
 
 MIDDLEWARE = [
