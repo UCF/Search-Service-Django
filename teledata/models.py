@@ -180,138 +180,139 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
     and update methods
     """
     def search(self, search_query):
+        match_score = MatchAgainst(
+            [
+                F('first_name'),
+                F('last_name')
+            ],
+            Value(search_query),
+            models.DecimalField()
+        )
+
+        full_name_score = Case(
+            When(
+                name=search_query,
+                then=15
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        phone_score = Case(
+            When(
+                phone=search_query,
+                then=15
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        email_score = Case(
+            When(
+                phone=search_query,
+                then=15
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        first_name_score = Case(
+            When(
+                first_name=search_query,
+                then=13
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        last_name_score = Case(
+            When(
+                last_name=search_query,
+                then=13
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        name_sounds_score = Case(
+            When(
+                name__sounds_like=search_query,
+                then=12
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        last_name_sounds_score = Case(
+            When(
+                last_name__sounds_like=search_query,
+                then=8
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        first_name_sounds_score = Case(
+            When(
+                first_name__sounds_like=search_query,
+                then=8
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        department_score = Case(
+            When(
+                department=search_query,
+                then=3
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        organization_score = Case(
+            When(
+                organization=search_query,
+                then=3
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        department_like_score = Case(
+            When(
+                department__icontains=search_query,
+                then=2
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        organization_like_score=Case(
+            When(
+                organization__icontains=search_query,
+                then=3
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
         queryset = self.annotate(
-            match_score=MatchAgainst(
-                [
-                    F('first_name'),
-                    F('last_name')
-                ],
-                Value(search_query),
-                models.DecimalField()
+            score=(
+                match_score +
+                full_name_score +
+                phone_score +
+                email_score +
+                first_name_score +
+                last_name_score +
+                name_sounds_score +
+                last_name_sounds_score +
+                first_name_sounds_score +
+                department_score +
+                organization_score +
+                department_like_score +
+                organization_like_score
             )
-        ).annotate(
-            full_name_score=Case(
-                When(
-                    name=Value(search_query),
-                    then=Value(15)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            phone_score=Case(
-                When(
-                    phone=Value(search_query),
-                    then=Value(15)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            email_score=Case(
-                When(
-                    phone=Value(search_query),
-                    then=Value(15)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            first_name_score=Case(
-                When(
-                    first_name=Value(search_query),
-                    then=Value(13)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            last_name_score=Case(
-                When(
-                    last_name=Value(search_query),
-                    then=Value(13)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            name_sounds_score=Case(
-                When(
-                    name__sounds_like=search_query,
-                    then=Value(12)
-                ),
-                default=0,
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            last_name_sounds_score=Case(
-                When(
-                    last_name__sounds_like=Value(search_query),
-                    then=Value(8)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            first_name_sounds_score=Case(
-                When(
-                    first_name__sounds_like=Value(search_query),
-                    then=Value(8)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            department_score=Case(
-                When(
-                    department=Value(search_query),
-                    then=Value(3)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            organization_score=Case(
-                When(
-                    organization=Value(search_query),
-                    then=Value(3)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            department_like_score=Case(
-                When(
-                    department__contains=Value(search_query),
-                    then=Value(2)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            organization_like_score=Case(
-                When(
-                    organization__contains=Value(search_query),
-                    then=Value(3)
-                ),
-                default=Value(0),
-                output_field=models.DecimalField()
-            )
-        ).annotate(
-            score=
-                F('match_score') +
-                F('full_name_score') +
-                F('phone_score') +
-                F('email_score') +
-                F('first_name_score') +
-                F('last_name_score') +
-                F('name_sounds_score') +
-                F('last_name_sounds_score') +
-                F('first_name_sounds_score') +
-                F('department_score') +
-                F('organization_score') +
-                F('department_like_score') +
-                F('organization_like_score')
         ).filter(
             score__gt=0
         ).order_by(
@@ -319,6 +320,7 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
         )
 
         return queryset
+
 
     def update_data(self):
         """
