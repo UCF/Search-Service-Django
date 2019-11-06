@@ -4,12 +4,63 @@ from __future__ import unicode_literals
 import logging
 
 from django.db import models
-from django.db.models import Q, When, Case, Value
-from django.db.models.expressions import RawSQL
-from django_mysql.models import QuerySet
-from django_mysql.models import QuerySetMixin
+from django.db.models import F, When, Case, Value, Expression
+from django_mysql.models import QuerySet, QuerySetMixin
 
 logger = logging.getLogger(__name__)
+
+class MatchAgainst(Expression):
+    """
+    Custom expression that generated a MATCH() AGAINST()
+    expression for full text search on a mysql server.
+    """
+    template = 'MATCH(%(expressions)s) AGAINST(%(query)s)'
+
+    def __init__(self, expressions, query, output_field):
+        super(MatchAgainst, self).__init__(output_field=output_field)
+        if len(expressions) < 2:
+            raise ValueError('expressions must have at least 2 elements')
+        for expression in expressions:
+            if not hasattr(expression, 'resolve_expression'):
+                raise TypeError('%r is not an Expression' % expression)
+
+        self.expressions = expressions
+        self.query = query
+
+    def resolve_expression(self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False):
+        c = self.copy()
+        c.is_summary = summarize
+
+        for pos, expression in enumerate(self.expressions):
+            c.expressions[pos] = expression.resolve_expression(query, allow_joins, reuse, summarize, for_save)
+
+        return c
+
+    def as_sql(self, compiler, connection, template=None):
+        sql_expressions, sql_params = [], []
+
+        for expression in self.expressions:
+            sql, params = compiler.compile(expression)
+            sql_expressions.append(sql)
+            sql_params.extend(params)
+
+        q_sql, q_params = compiler.compile(self.query)
+        params.append(q_params)
+
+        template = template or self.template
+
+        data = {
+            'expressions': ','.join(sql_expressions),
+            'query': q_sql
+        }
+
+        return template % data, params
+
+    def get_source_expressions(self):
+        return self.expressions
+
+    def set_source_expressions(self, expressions):
+        self.expressions = expressions
 
 class Building(models.Model):
     objects = QuerySet.as_manager()
@@ -128,43 +179,139 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
     Custom manager that allows for special queries
     and update methods
     """
-    def score(self, search_query):
-        # Create empty list
-        query_params = []
-
-        for i in xrange(0, 11):
-            query_params.append(search_query)
-
-        # Add two instances of the search variable
-        # with wild cards wrapped around it
-        query_params.append('%' + search_query + '%')
-        query_params.append('%' + search_query + '%')
-
-        query_params = tuple(query_params)
-
-        # Generate RawSQL to be appended to the query
-        return RawSQL("""
-MATCH(`teledata_combinedteledataview`.`first_name`, `teledata_combinedteledataview`.`last_name`) AGAINST (%s)  +
-IF(CONCAT(IFNULL(`teledata_combinedteledataview`.`first_name`, ''), ' ', IFNULL(`teledata_combinedteledataview`.`last_name`, '')) = %s, 15, 0) +
-IF(`teledata_combinedteledataview`.`phone` = %s, 15, 0) +
-IF(`teledata_combinedteledataview`.`email` = %s, 15, 0) +
-IF(`teledata_combinedteledataview`.`first_name` = %s, 13, 0) +
-IF(`teledata_combinedteledataview`.`last_name` = %s, 13, 0) +
-IF(SOUNDEX(CONCAT(IFNULL(`teledata_combinedteledataview`.`first_name`, ''), ' ', IFNULL(`teledata_combinedteledataview`.`last_name`, ''))) = SOUNDEX(%s), 12, 0) +
-IF(SOUNDEX(`teledata_combinedteledataview`.`last_name`) = SOUNDEX(%s), 8, 0) +
-IF(SOUNDEX(`teledata_combinedteledataview`.`first_name`) = SOUNDEX(%s), 3, 0) +
-IF(`teledata_combinedteledataview`.`department` = %s, 3, 0) +
-IF(`teledata_combinedteledataview`.`organization` = %s, 3, 0) +
-IF(`teledata_combinedteledataview`.`department` LIKE %s, 2, 0) +
-IF(`teledata_combinedteledataview`.`organization` LIKE %s, 2, 0)
-        """,
-            query_params,
-            output_field=models.DecimalField()
-        )
-
     def search(self, search_query):
         queryset = self.annotate(
-            score=self.score(search_query)
+            match_score=MatchAgainst(
+                [
+                    F('first_name'),
+                    F('last_name')
+                ],
+                Value(search_query),
+                models.DecimalField()
+            )
+        ).annotate(
+            full_name_score=Case(
+                When(
+                    name=Value(search_query),
+                    then=Value(15)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            phone_score=Case(
+                When(
+                    phone=Value(search_query),
+                    then=Value(15)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            email_score=Case(
+                When(
+                    phone=Value(search_query),
+                    then=Value(15)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            first_name_score=Case(
+                When(
+                    first_name=Value(search_query),
+                    then=Value(13)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            last_name_score=Case(
+                When(
+                    last_name=Value(search_query),
+                    then=Value(13)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            name_sounds_score=Case(
+                When(
+                    name__sounds_like=search_query,
+                    then=Value(12)
+                ),
+                default=0,
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            last_name_sounds_score=Case(
+                When(
+                    last_name__sounds_like=Value(search_query),
+                    then=Value(8)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            first_name_sounds_score=Case(
+                When(
+                    first_name__sounds_like=Value(search_query),
+                    then=Value(8)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            department_score=Case(
+                When(
+                    department=Value(search_query),
+                    then=Value(3)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            organization_score=Case(
+                When(
+                    organization=Value(search_query),
+                    then=Value(3)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            department_like_score=Case(
+                When(
+                    department__contains=Value(search_query),
+                    then=Value(2)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            organization_like_score=Case(
+                When(
+                    organization__contains=Value(search_query),
+                    then=Value(3)
+                ),
+                default=Value(0),
+                output_field=models.DecimalField()
+            )
+        ).annotate(
+            score=
+                F('match_score') +
+                F('full_name_score') +
+                F('phone_score') +
+                F('email_score') +
+                F('first_name_score') +
+                F('last_name_score') +
+                F('name_sounds_score') +
+                F('last_name_sounds_score') +
+                F('first_name_sounds_score') +
+                F('department_score') +
+                F('organization_score') +
+                F('department_like_score') +
+                F('organization_like_score')
         ).filter(
             score__gt=0
         ).order_by(
