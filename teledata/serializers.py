@@ -11,6 +11,11 @@ class BuildingSerializer(serializers.ModelSerializer):
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
+    bldg = BuildingSerializer(
+        many=False,
+        read_only=True
+    )
+    
     class Meta:
         fields = '__all__'
         model = Organization
