@@ -5,11 +5,11 @@ from teledata.views import *
 urlpatterns = [
     url(r'^buildings/$',
         BuildingListView.as_view(),
-        name='api.buildings.list'
+        name='api.teledata.buildings.list'
         ),
     url(r'^departments/$',
         DepartmentListView.as_view(),
-        name='api.departments.list'
+        name='api.teledata.departments.list'
         ),
     url(r'^departments/(?P<id>\d+)/$',
         DepartmentDetailView.as_view(),
@@ -17,10 +17,10 @@ urlpatterns = [
         ),
     url(r'^organizations/$',
         OrganizationListView.as_view(),
-        name='api.organizations.list'
+        name='api.teledata.organizations.list'
         ),
     url(r'^staff/$',
         StaffListView.as_view(),
-        name='api.staff.list'
+        name='api.teledata.staff.list'
         ),
 ]
