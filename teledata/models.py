@@ -319,8 +319,6 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
             '-score'
         )
 
-        print queryset.query
-
         return queryset
 
 
