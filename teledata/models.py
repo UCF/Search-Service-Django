@@ -10,6 +10,10 @@ from django_mysql.models import QuerySet, QuerySetMixin
 logger = logging.getLogger(__name__)
 
 class MatchAgainst(Expression):
+    """
+    Custom expression that generated a MATCH() AGAINST()
+    expression for full text search on a mysql server.
+    """
     template = 'MATCH(%(expressions)s) AGAINST(%(query)s)'
 
     def __init__(self, expressions, query, output_field):
@@ -175,13 +179,7 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
     Custom manager that allows for special queries
     and update methods
     """
-    @property
-    def score_statement(self):
-        return
-
-
     def search(self, search_query):
-        # Create empty list
         queryset = self.annotate(
             match_score=MatchAgainst(
                 [
