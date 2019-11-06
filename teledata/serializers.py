@@ -27,7 +27,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
         many=False,
         read_only=True
     )
-    
+
     class Meta:
         fields = '__all__'
         model = Organization
@@ -65,6 +65,16 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 
 class StaffSerializer(serializers.ModelSerializer):
+    dept = DepartmentLinkSerializer(
+        many=False,
+        read_only=True
+    )
+
+    bldg = BuildingSerializer(
+        many=False,
+        read_only=True
+    )
+
     class Meta:
         fields = '__all__'
         model = Staff
