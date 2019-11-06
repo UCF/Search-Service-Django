@@ -11,6 +11,10 @@ urlpatterns = [
         DepartmentListView.as_view(),
         name='api.departments.list'
         ),
+    url(r'^departments/(?P<id>\d+)/$',
+        DepartmentDetailView.as_view(),
+        name='api.teledata.departments.detail'
+        ),
     url(r'^organizations/$',
         OrganizationListView.as_view(),
         name='api.organizations.list'

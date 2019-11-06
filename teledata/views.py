@@ -22,6 +22,12 @@ class DepartmentListView(generics.ListAPIView):
     serializer_class = DepartmentSerializer
 
 
+class DepartmentDetailView(generics.RetrieveAPIView):
+    queryset = Department.objects.all()
+    lookup_field = 'id'
+    serializer_class = DepartmentSerializer
+
+
 class OrganizationListView(generics.ListAPIView):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer

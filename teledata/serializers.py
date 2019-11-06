@@ -10,6 +10,18 @@ class BuildingSerializer(serializers.ModelSerializer):
         model = Building
 
 
+class OrganizationBriefSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = (
+            'name',
+            'phone',
+            'fax',
+            'url',
+            'room'
+        )
+        model = Organization
+
+
 class OrganizationSerializer(serializers.ModelSerializer):
     bldg = BuildingSerializer(
         many=False,
@@ -21,16 +33,19 @@ class OrganizationSerializer(serializers.ModelSerializer):
         model = Organization
 
 
-class OrganizationBriefSerializer(serializers.ModelSerializer):
+class DepartmentLinkSerializer(serializers.ModelSerializer):
+    detail_url = serializers.HyperlinkedIdentityField(
+        view_name='api.teledata.departments.detail',
+        lookup_field='id'
+    )
+    
     class Meta:
         fields = (
+            'id',
             'name',
-            'phone',
-            'fax',
-            'url',
-            'room'
+            'detail_url'
         )
-        model = Organization
+        model = Department    
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
