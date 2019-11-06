@@ -15,3 +15,18 @@ from teledata.serializers import *
 class BuildingListView(generics.ListAPIView):
     queryset = Building.objects.all()
     serializer_class = BuildingSerializer
+
+
+class DepartmentListView(generics.ListAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+
+
+class OrganizationListView(generics.ListAPIView):
+    queryset = Organization.objects.all()
+    serializer_class = OrganizationSerializer
+
+
+class StaffListView(generics.ListAPIView):
+    queryset = Staff.objects.all()
+    serializer_class = StaffSerializer
