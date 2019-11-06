@@ -15,8 +15,8 @@ class Building(models.Model):
     objects = QuerySet.as_manager()
 
     name = models.CharField(max_length=255, null=True, blank=True)
-    descr = models.CharField(max_length=255, null=True, blank=True)
-    abrev = models.CharField(max_length=255, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
+    abbr = models.CharField(max_length=255, null=True, blank=True)
     import_id = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
