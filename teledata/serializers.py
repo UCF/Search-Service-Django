@@ -10,16 +10,38 @@ class BuildingSerializer(serializers.ModelSerializer):
         model = Building
 
 
-class DepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = '__all__'
-        model = Department
-
-
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Organization
+
+
+class OrganizationBriefSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = (
+            'name',
+            'phone',
+            'fax',
+            'url',
+            'room'
+        )
+        model = Organization
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    bldg = BuildingSerializer(
+        many=False,
+        read_only=True
+    )
+
+    org = OrganizationBriefSerializer(
+        many=False,
+        read_only=True
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Department
 
 
 class StaffSerializer(serializers.ModelSerializer):
