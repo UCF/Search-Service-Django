@@ -44,3 +44,9 @@ class CombinedTeledataListView(generics.ListAPIView):
 
 class CombinedTeledataSearchView(CombinedTeledataListView):
     filter_class = CombinedTeledataFilter
+
+    def get_queryset(self):
+        if self.request.GET.get('search') is not None:
+            return CombinedTeledata.objects.search(self.request.GET.get('search'))
+        else:
+            return CombinedTeledata.objects.none()

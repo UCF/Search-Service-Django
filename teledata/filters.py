@@ -6,7 +6,7 @@ from teledata.models import CombinedTeledata
 
 # WIP:
 class CombinedTeledataFilter(django_filters.FilterSet):
-    search = filters.CharFilter(name='name', lookup_expr='icontains')
+    use = filters.CharFilter(name='from_table')
 
     class Meta:
         model = CombinedTeledata
