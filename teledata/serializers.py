@@ -83,4 +83,4 @@ class StaffSerializer(serializers.ModelSerializer):
 class CombinedTeledataSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
-        model = CombinedTeledataView
+        model = CombinedTeledata

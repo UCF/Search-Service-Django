@@ -174,7 +174,7 @@ class Staff(models.Model):
     def __str__(self):
         return self.name
 
-class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
+class CombinedTeledataManager(models.Manager, QuerySetMixin):
     """
     Custom manager that allows for special queries
     and update methods
@@ -334,7 +334,7 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
         self.all().delete()
 
         for s in staff:
-            record = CombinedTeledataView(
+            record = CombinedTeledata(
                 alpha=s.alpha,
                 name=s.name,
                 first_name=s.first_name,
@@ -360,7 +360,7 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
                 logger.error(str(e))
 
         for o in orgs:
-            record = CombinedTeledataView(
+            record = CombinedTeledata(
                 name=o.name,
                 sort_name=o.name,
                 phone=o.phone,
@@ -377,7 +377,7 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
                 logger.error(str(e))
 
         for d in depts:
-            record = CombinedTeledataView(
+            record = CombinedTeledata(
                 name=d.name,
                 sort_name=d.name,
                 phone=d.phone,
@@ -395,7 +395,7 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
             except Exception, e:
                 logger.error(str(e))
 
-class CombinedTeledataView(models.Model):
+class CombinedTeledata(models.Model):
     alpha = models.NullBooleanField(default=True, null=True, blank=True)
     name = models.CharField(max_length=255, null=False, blank=False)
     first_name = models.CharField(max_length=14, null=True, blank=True)
@@ -414,7 +414,7 @@ class CombinedTeledataView(models.Model):
     bldg_id = models.IntegerField(null=True, blank=True)
     room = models.CharField(max_length=255, null=True, blank=True)
     from_table = models.CharField(max_length=255, null=False, blank=False)
-    objects = CombinedTeledataViewManager()
+    objects = CombinedTeledataManager()
 
     def __unicode__(self):
         return self.name
@@ -428,7 +428,7 @@ class CombinedTeledataView(models.Model):
         doing_import parameter is True
         """
         if doing_import:
-            super(CombinedTeledataView, self).save()
+            super(CombinedTeledata, self).save()
         else:
             raise NotImplementedError(message="Saving is not possible on this method unless importing.")
 
@@ -438,7 +438,7 @@ class CombinedTeledataView(models.Model):
         doing_import parameter is True
         """
         if doing_import:
-            super(CombinedTeledataView, self).delete()
+            super(CombinedTeledata, self).delete()
         else:
             raise NotImplementedError(message="Deleting is not possible on this method unless importing.")
 

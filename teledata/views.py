@@ -39,7 +39,7 @@ class StaffListView(generics.ListAPIView):
     serializer_class = StaffSerializer
 
 class CombinedTeledataListView(generics.ListAPIView):
-    queryset = CombinedTeledataView.objects.all()
+    queryset = CombinedTeledata.objects.all()
     serializer_class = CombinedTeledataSerializer
 
 class CombinedTeledataSearchView(CombinedTeledataListView):
