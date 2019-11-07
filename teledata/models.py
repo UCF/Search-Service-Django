@@ -18,8 +18,8 @@ class MatchAgainst(Expression):
 
     def __init__(self, expressions, query, output_field):
         super(MatchAgainst, self).__init__(output_field=output_field)
-        if len(expressions) < 2:
-            raise ValueError('expressions must have at least 2 elements')
+        if len(expressions) < 1:
+            raise ValueError('expressions must have at least 1 elements')
         for expression in expressions:
             if not hasattr(expression, 'resolve_expression'):
                 raise TypeError('%r is not an Expression' % expression)
@@ -189,6 +189,14 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             models.DecimalField()
         )
 
+        match_name_score = MatchAgainst(
+            [
+                F('name')
+            ],
+            Value(search_query),
+            models.DecimalField()
+        )
+
         full_name_score = Case(
             When(
                 name=search_query,
@@ -300,6 +308,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
         queryset = self.annotate(
             score=(
                 match_score +
+                match_name_score +
                 full_name_score +
                 phone_score +
                 email_score +
