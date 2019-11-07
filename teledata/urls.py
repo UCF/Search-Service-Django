@@ -3,6 +3,10 @@ from django.conf.urls import url, include
 from teledata.views import *
 
 urlpatterns = [
+    url(r'^$',
+        CombinedTeledataSearchView.as_view(),
+        name='api.core'
+        ),
     url(r'^buildings/$',
         BuildingListView.as_view(),
         name='api.teledata.buildings.list'
