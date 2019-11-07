@@ -10,6 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from teledata.models import *
 from teledata.serializers import *
+from teledata.filters import *
 
 # Create your views here.
 class BuildingListView(generics.ListAPIView):
@@ -36,3 +37,10 @@ class OrganizationListView(generics.ListAPIView):
 class StaffListView(generics.ListAPIView):
     queryset = Staff.objects.all()
     serializer_class = StaffSerializer
+
+class CombinedTeledataListView(generics.ListAPIView):
+    queryset = CombinedTeledataView.objects.all()
+    serializer_class = CombinedTeledataSerializer
+
+class CombinedTeledataSearchView(CombinedTeledataListView):
+    filter_class = CombinedTeledataFilter
