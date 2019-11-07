@@ -78,3 +78,9 @@ class StaffSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Staff
+
+# WIP:
+class CombinedTeledataSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = CombinedTeledataView
