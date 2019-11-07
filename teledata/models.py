@@ -315,8 +315,6 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             )
         ).filter(
             score__gt=0
-        ).order_by(
-            '-score'
         )
 
         return queryset
