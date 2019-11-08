@@ -89,6 +89,10 @@ REST_FRAMEWORK = {
 
 WSGI_APPLICATION = 'wsgi.application'
 
+SILENCED_SYSTEM_CHECKS = [
+    'django_mysql.W002',
+]
+
 try:
     from settings_local import *
 except ImportError:
