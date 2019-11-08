@@ -18,8 +18,8 @@ class MatchAgainst(Expression):
 
     def __init__(self, expressions, query, output_field):
         super(MatchAgainst, self).__init__(output_field=output_field)
-        if len(expressions) < 2:
-            raise ValueError('expressions must have at least 2 elements')
+        if len(expressions) < 1:
+            raise ValueError('expressions must have at least 1 elements')
         for expression in expressions:
             if not hasattr(expression, 'resolve_expression'):
                 raise TypeError('%r is not an Expression' % expression)
@@ -133,7 +133,7 @@ class Staff(models.Model):
     bldg = models.ForeignKey(Building, on_delete=models.CASCADE)
     room = models.CharField(max_length=255, null=True, blank=True)
     phone = models.CharField(max_length=255, null=True, blank=True)
-    email = models.EmailField(max_length=50, null=True, blank=True)
+    email = models.EmailField(max_length=100, null=True, blank=True)
     email_machine = models.CharField(max_length=255, null=True, blank=True)
     postal = models.CharField(max_length=10, null=True, blank=True)
     last_updated = models.DateTimeField(null=True, blank=True)
@@ -174,7 +174,7 @@ class Staff(models.Model):
     def __str__(self):
         return self.name
 
-class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
+class CombinedTeledataManager(models.Manager, QuerySetMixin):
     """
     Custom manager that allows for special queries
     and update methods
@@ -184,6 +184,14 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
             [
                 F('first_name'),
                 F('last_name')
+            ],
+            Value(search_query),
+            models.DecimalField()
+        )
+
+        match_name_score = MatchAgainst(
+            [
+                F('name')
             ],
             Value(search_query),
             models.DecimalField()
@@ -300,6 +308,7 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
         queryset = self.annotate(
             score=(
                 match_score +
+                match_name_score +
                 full_name_score +
                 phone_score +
                 email_score +
@@ -315,8 +324,6 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
             )
         ).filter(
             score__gt=0
-        ).order_by(
-            '-score'
         )
 
         return queryset
@@ -334,7 +341,8 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
         self.all().delete()
 
         for s in staff:
-            record = CombinedTeledataView(
+            record = CombinedTeledata(
+                id=s.id,
                 alpha=s.alpha,
                 name=s.name,
                 first_name=s.first_name,
@@ -360,7 +368,8 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
                 logger.error(str(e))
 
         for o in orgs:
-            record = CombinedTeledataView(
+            record = CombinedTeledata(
+                id=o.id,
                 name=o.name,
                 sort_name=o.name,
                 phone=o.phone,
@@ -377,7 +386,8 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
                 logger.error(str(e))
 
         for d in depts:
-            record = CombinedTeledataView(
+            record = CombinedTeledata(
+                id=d.id,
                 name=d.name,
                 sort_name=d.name,
                 phone=d.phone,
@@ -395,7 +405,9 @@ class CombinedTeledataViewManager(models.Manager, QuerySetMixin):
             except Exception, e:
                 logger.error(str(e))
 
-class CombinedTeledataView(models.Model):
+class CombinedTeledata(models.Model):
+    pkid = models.AutoField(primary_key=True)
+    id = models.IntegerField(auto_created=False, null=True, blank=True)
     alpha = models.NullBooleanField(default=True, null=True, blank=True)
     name = models.CharField(max_length=255, null=False, blank=False)
     first_name = models.CharField(max_length=14, null=True, blank=True)
@@ -414,7 +426,7 @@ class CombinedTeledataView(models.Model):
     bldg_id = models.IntegerField(null=True, blank=True)
     room = models.CharField(max_length=255, null=True, blank=True)
     from_table = models.CharField(max_length=255, null=False, blank=False)
-    objects = CombinedTeledataViewManager()
+    objects = CombinedTeledataManager()
 
     def __unicode__(self):
         return self.name
@@ -428,7 +440,7 @@ class CombinedTeledataView(models.Model):
         doing_import parameter is True
         """
         if doing_import:
-            super(CombinedTeledataView, self).save()
+            super(CombinedTeledata, self).save()
         else:
             raise NotImplementedError(message="Saving is not possible on this method unless importing.")
 
@@ -438,7 +450,7 @@ class CombinedTeledataView(models.Model):
         doing_import parameter is True
         """
         if doing_import:
-            super(CombinedTeledataView, self).delete()
+            super(CombinedTeledata, self).delete()
         else:
             raise NotImplementedError(message="Deleting is not possible on this method unless importing.")
 

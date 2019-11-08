@@ -73,7 +73,7 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated'
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
@@ -88,6 +88,10 @@ REST_FRAMEWORK = {
 }
 
 WSGI_APPLICATION = 'wsgi.application'
+
+SILENCED_SYSTEM_CHECKS = [
+    'django_mysql.W002',
+]
 
 try:
     from settings_local import *

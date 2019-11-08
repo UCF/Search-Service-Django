@@ -10,6 +10,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from teledata.models import *
 from teledata.serializers import *
+from teledata.filters import *
+
+from rest_framework.filters import OrderingFilter
 
 # Create your views here.
 class BuildingListView(generics.ListAPIView):
@@ -36,3 +39,19 @@ class OrganizationListView(generics.ListAPIView):
 class StaffListView(generics.ListAPIView):
     queryset = Staff.objects.all()
     serializer_class = StaffSerializer
+
+class CombinedTeledataListView(generics.ListAPIView):
+    queryset = CombinedTeledata.objects.all()
+    serializer_class = CombinedTeledataSerializer
+
+class CombinedTeledataSearchView(CombinedTeledataListView):
+    filter_class = CombinedTeledataFilter
+    filter_backends = [DjangoFilterBackend,OrderingFilter]
+    ordering_fields = ['id', 'score']
+    ordering = ['-score']
+
+    def get_queryset(self):
+        if self.request.GET.get('search') is not None:
+            return CombinedTeledata.objects.search(self.request.GET.get('search'))
+        else:
+            return CombinedTeledata.objects.none()

@@ -38,14 +38,14 @@ class DepartmentLinkSerializer(serializers.ModelSerializer):
         view_name='api.teledata.departments.detail',
         lookup_field='id'
     )
-    
+
     class Meta:
         fields = (
             'id',
             'name',
             'detail_url'
         )
-        model = Department    
+        model = Department
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -78,3 +78,35 @@ class StaffSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Staff
+
+
+class CombinedTeledataSerializer(serializers.ModelSerializer):
+    score = serializers.DecimalField(
+        20,
+        10
+    )
+
+    class Meta:
+        fields = (
+            'score',
+            'id',
+            'alpha',
+            'name',
+            'first_name',
+            'last_name',
+            'sort_name',
+            'email',
+            'phone',
+            'fax',
+            'postal',
+            'job_position',
+            'department',
+            'dept_id',
+            'organization',
+            'org_id',
+            'building',
+            'bldg_id',
+            'room',
+            'from_table'
+        )
+        model = CombinedTeledata

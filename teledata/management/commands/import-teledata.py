@@ -141,8 +141,8 @@ FROM
             try:
                 existing = Building.objects.get(import_id=item[0])
                 existing.name = item[1]
-                existing.descr = item[2]
-                existing.abrev = item[3]
+                existing.description = item[2]
+                existing.abbr = item[3]
 
                 try:
                     existing.save()
@@ -155,8 +155,8 @@ FROM
             except Building.DoesNotExist:
                 new = Building(
                     name=item[1],
-                    descr=item[2],
-                    abrev=item[3],
+                    description=item[2],
+                    abbr=item[3],
                     import_id=item[0]
                 )
 
@@ -307,6 +307,14 @@ FROM
             else:
                 alpha = False
 
+            if (item[13] is not None and
+                item[14] is not None):
+                email = item[13] + item[14]
+                email_machine = item[14]
+            else:
+                email = None
+                email_machine = None
+
             try:
                 existing = Staff.objects.get(import_id=item[0])
                 existing.alpha = alpha
@@ -320,8 +328,8 @@ FROM
                 existing.bldg = bldg
                 existing.room = item[11]
                 existing.phone = item[12]
-                existing.email = item[13]
-                existing.email_machine = item[14]
+                existing.email = email
+                existing.email_machine = email_machine
                 existing.postal = item[15]
                 existing.last_updated = timezone.now()
                 existing.cellphone = item[17]
@@ -347,8 +355,8 @@ FROM
                     bldg=bldg,
                     room=item[11],
                     phone=item[12],
-                    email=item[13],
-                    email_machine=item[14],
+                    email=email,
+                    email_machine=email_machine,
                     postal=item[15],
                     last_updated=timezone.now(),
                     listed=True,
@@ -445,7 +453,7 @@ Errors : {15}
 
         self.import_staff(staff_data)
 
-        CombinedTeledataView.objects.update_data()
+        CombinedTeledata.objects.update_data()
 
         self.print_stats()
 
