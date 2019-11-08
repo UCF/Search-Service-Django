@@ -403,6 +403,8 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
                 logger.error(str(e))
 
 class CombinedTeledata(models.Model):
+    pkid = models.AutoField(primary_key=True)
+    id = models.IntegerField(db_index=True, auto_created=False)
     alpha = models.NullBooleanField(default=True, null=True, blank=True)
     name = models.CharField(max_length=255, null=False, blank=False)
     first_name = models.CharField(max_length=14, null=True, blank=True)
@@ -420,7 +422,7 @@ class CombinedTeledata(models.Model):
     building = models.CharField(max_length=255, null=True, blank=True)
     bldg_id = models.IntegerField(null=True, blank=True)
     room = models.CharField(max_length=255, null=True, blank=True)
-    from_table = models.CharField(max_length=255, null=False, blank=False)
+    from_table = models.CharField(max_length=255, null=False, blank=False, db_index=True)
     objects = CombinedTeledataManager()
 
     def __unicode__(self):
