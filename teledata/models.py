@@ -74,9 +74,28 @@ class Keyword(models.Model):
     content_object = fields.GenericForeignKey('content_type', 'object_id')
 
     def save(self):
+        """
+        Function that is called whenever
+        the keyword is created
+        """
         super(Keyword, self).save()
-        combined_obj = CombinedTeledata.objects.get(id=self.object_id)
-        combined_obj.keywords_combined.add(self)
+        try:
+            combined_obj = CombinedTeledata.objects.get(id=self.object_id)
+            combined_obj.keywords_combined.add(self)
+        except CombinedTeledata.DoesNotExist:
+            return
+
+    def delete(self):
+        """
+        Function that is called whenever
+        the keyword is deleted
+        """
+        try:
+            combined_obj = CombinedTeledata.objects.get(id=self.object_id)
+            combined_obj.keywords_combined.remove(self)
+        except CombinedTeledata.DoesNotExist:
+            combined_obj = None
+        super(Keyword, self).delete()
 
     def __unicode__(self):
         return self.phrase
@@ -382,7 +401,8 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
         orgs  = Organization.objects.all()
         depts = Department.objects.all()
 
-        # self.all().delete()
+        self.all().delete()
+
         for s in staff:
             record = CombinedTeledata(
                 id=s.id,
