@@ -12,6 +12,8 @@ from teledata.models import *
 from teledata.serializers import *
 from teledata.filters import *
 
+from rest_framework.filters import OrderingFilter
+
 # Create your views here.
 class BuildingListView(generics.ListAPIView):
     queryset = Building.objects.all()
@@ -44,6 +46,9 @@ class CombinedTeledataListView(generics.ListAPIView):
 
 class CombinedTeledataSearchView(CombinedTeledataListView):
     filter_class = CombinedTeledataFilter
+    filter_backends = [OrderingFilter]
+    ordering_fields = '__all__'
+    ordering = ['-score']
 
     def get_queryset(self):
         if self.request.GET.get('search') is not None:
