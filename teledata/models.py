@@ -234,7 +234,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
         keyword_like_score = Case(
             When(
                 keywords_combined__phrase__icontains=search_query,
-                then=50
+                then=30
             ),
             default=0,
             output_field=models.DecimalField()
