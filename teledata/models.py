@@ -342,7 +342,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
         for s in staff:
             record = CombinedTeledata(
-                id=s.id
+                id=s.id,
                 alpha=s.alpha,
                 name=s.name,
                 first_name=s.first_name,
@@ -369,7 +369,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
         for o in orgs:
             record = CombinedTeledata(
-                id=o.id
+                id=o.id,
                 name=o.name,
                 sort_name=o.name,
                 phone=o.phone,
@@ -387,7 +387,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
         for d in depts:
             record = CombinedTeledata(
-                id=d.id
+                id=d.id,
                 name=d.name,
                 sort_name=d.name,
                 phone=d.phone,
