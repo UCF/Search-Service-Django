@@ -407,7 +407,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
 class CombinedTeledata(models.Model):
     pkid = models.AutoField(primary_key=True)
-    id = models.IntegerField(auto_created=False)
+    id = models.IntegerField(auto_created=False, null=True, blank=True)
     alpha = models.NullBooleanField(default=True, null=True, blank=True)
     name = models.CharField(max_length=255, null=False, blank=False)
     first_name = models.CharField(max_length=14, null=True, blank=True)
