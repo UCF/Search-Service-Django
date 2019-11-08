@@ -79,7 +79,7 @@ class StaffSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Staff
 
-# WIP:
+
 class CombinedTeledataSerializer(serializers.ModelSerializer):
     score = serializers.DecimalField(
         20,
