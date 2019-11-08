@@ -7,6 +7,9 @@ from django.db import models
 from django.db.models import F, When, Case, Value, Expression
 from django_mysql.models import QuerySet, QuerySetMixin
 
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import fields
+
 logger = logging.getLogger(__name__)
 
 class MatchAgainst(Expression):
@@ -62,6 +65,44 @@ class MatchAgainst(Expression):
     def set_source_expressions(self, expressions):
         self.expressions = expressions
 
+# Table Models
+
+class Keyword(models.Model):
+    phrase = models.CharField(max_length=255, blank=False, null=False)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = fields.GenericForeignKey('content_type', 'object_id')
+
+    def save(self):
+        """
+        Function that is called whenever
+        the keyword is created
+        """
+        super(Keyword, self).save()
+        try:
+            combined_obj = CombinedTeledata.objects.get(id=self.object_id)
+            combined_obj.keywords_combined.add(self)
+        except CombinedTeledata.DoesNotExist:
+            return
+
+    def delete(self):
+        """
+        Function that is called whenever
+        the keyword is deleted
+        """
+        try:
+            combined_obj = CombinedTeledata.objects.get(id=self.object_id)
+            combined_obj.keywords_combined.remove(self)
+        except CombinedTeledata.DoesNotExist:
+            combined_obj = None
+        super(Keyword, self).delete()
+
+    def __unicode__(self):
+        return self.phrase
+
+    def __str__(self):
+        return self.phrase
+
 class Building(models.Model):
     objects = QuerySet.as_manager()
 
@@ -90,6 +131,7 @@ class Organization(models.Model):
     url = models.URLField(max_length=500, null=True, blank=True)
     last_updated = models.DateTimeField(null=True, blank=True)
     import_id = models.IntegerField(null=True, blank=True)
+    keywords = fields.GenericRelation(Keyword)
 
     def __unicode__(self):
         return self.name
@@ -111,6 +153,7 @@ class Department(models.Model):
     secondary_comment = models.TextField(null=True, blank=True)
     last_updated = models.DateTimeField(null=True, blank=True)
     import_id = models.IntegerField(null=True, blank=True)
+    keywords = fields.GenericRelation(Keyword)
 
     def __unicode__(self):
         return self.name
@@ -139,6 +182,7 @@ class Staff(models.Model):
     last_updated = models.DateTimeField(null=True, blank=True)
     listed = models.BooleanField(default=True, null=False, blank=False)
     cellphone = models.CharField(max_length=50, null=True, blank=True)
+    keywords = fields.GenericRelation(Keyword)
     import_id = models.IntegerField(null=True, blank=True)
 
     @property
@@ -195,6 +239,24 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             ],
             Value(search_query),
             models.DecimalField()
+        )
+
+        keyword_score = Case(
+            When(
+                keywords_combined__phrase=search_query,
+                then=100
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        keyword_like_score = Case(
+            When(
+                keywords_combined__phrase__icontains=search_query,
+                then=30
+            ),
+            default=0,
+            output_field=models.DecimalField()
         )
 
         full_name_score = Case(
@@ -309,6 +371,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             score=(
                 match_score +
                 match_name_score +
+                keyword_score +
                 full_name_score +
                 phone_score +
                 email_score +
@@ -324,7 +387,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             )
         ).filter(
             score__gt=0
-        )
+        ).distinct()
 
         return queryset
 
@@ -364,6 +427,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
             try:
                 record.save(doing_import=True)
+                record.keywords_combined = s.keywords.all()
             except Exception, e:
                 logger.error(str(e))
 
@@ -382,6 +446,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
             try:
                 record.save(doing_import=True)
+                record.keywords_combined = o.keywords.all()
             except Exception, e:
                 logger.error(str(e))
 
@@ -402,6 +467,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
             try:
                 record.save(doing_import=True)
+                record.keywords_combined = d.keywords.all()
             except Exception, e:
                 logger.error(str(e))
 
@@ -426,6 +492,7 @@ class CombinedTeledata(models.Model):
     bldg_id = models.IntegerField(null=True, blank=True)
     room = models.CharField(max_length=255, null=True, blank=True)
     from_table = models.CharField(max_length=255, null=False, blank=False)
+    keywords_combined = models.ManyToManyField(Keyword, related_name='combined', db_constraint=False)
     objects = CombinedTeledataManager()
 
     def __unicode__(self):
