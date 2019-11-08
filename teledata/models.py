@@ -133,7 +133,7 @@ class Staff(models.Model):
     bldg = models.ForeignKey(Building, on_delete=models.CASCADE)
     room = models.CharField(max_length=255, null=True, blank=True)
     phone = models.CharField(max_length=255, null=True, blank=True)
-    email = models.EmailField(max_length=50, null=True, blank=True)
+    email = models.EmailField(max_length=100, null=True, blank=True)
     email_machine = models.CharField(max_length=255, null=True, blank=True)
     postal = models.CharField(max_length=10, null=True, blank=True)
     last_updated = models.DateTimeField(null=True, blank=True)

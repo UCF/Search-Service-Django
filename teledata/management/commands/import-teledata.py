@@ -307,6 +307,14 @@ FROM
             else:
                 alpha = False
 
+            if (item[13] is not None and
+                item[14] is not None):
+                email = item[13] + item[14]
+                email_machine = item[14]
+            else:
+                email = None
+                email_machine = None
+
             try:
                 existing = Staff.objects.get(import_id=item[0])
                 existing.alpha = alpha
@@ -320,8 +328,8 @@ FROM
                 existing.bldg = bldg
                 existing.room = item[11]
                 existing.phone = item[12]
-                existing.email = item[13]
-                existing.email_machine = item[14]
+                existing.email = email
+                existing.email_machine = email_machine
                 existing.postal = item[15]
                 existing.last_updated = timezone.now()
                 existing.cellphone = item[17]
