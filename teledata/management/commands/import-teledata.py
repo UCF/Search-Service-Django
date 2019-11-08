@@ -141,8 +141,8 @@ FROM
             try:
                 existing = Building.objects.get(import_id=item[0])
                 existing.name = item[1]
-                existing.descr = item[2]
-                existing.abrev = item[3]
+                existing.description = item[2]
+                existing.abbr = item[3]
 
                 try:
                     existing.save()
@@ -155,8 +155,8 @@ FROM
             except Building.DoesNotExist:
                 new = Building(
                     name=item[1],
-                    descr=item[2],
-                    abrev=item[3],
+                    description=item[2],
+                    abbr=item[3],
                     import_id=item[0]
                 )
 
@@ -445,7 +445,7 @@ Errors : {15}
 
         self.import_staff(staff_data)
 
-        CombinedTeledataView.objects.update_data()
+        CombinedTeledata.objects.update_data()
 
         self.print_stats()
 
