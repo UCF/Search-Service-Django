@@ -9,4 +9,10 @@ class CombinedTeledataFilter(django_filters.FilterSet):
 
     class Meta:
         model = CombinedTeledata
-        fields = ('__all__')
+        fields = (
+            'pkid',
+            'id',
+            'alpha',
+            'name',
+            'use'
+        )
