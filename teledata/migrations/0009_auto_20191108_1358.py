@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='combinedteledata',
             name='id',
-            field=models.IntegerField(primary_key=False, auto_created=False),
+            field=models.IntegerField(primary_key=False, auto_created=False, null=True),
         ),
         migrations.RunPython(forward_migration, reverse_migration)
     ]
