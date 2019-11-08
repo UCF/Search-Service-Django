@@ -46,8 +46,8 @@ class CombinedTeledataListView(generics.ListAPIView):
 
 class CombinedTeledataSearchView(CombinedTeledataListView):
     filter_class = CombinedTeledataFilter
-    filter_backends = [OrderingFilter]
-    ordering_fields = '__all__'
+    filter_backends = [DjangoFilterBackend,OrderingFilter]
+    ordering_fields = ['id', 'score']
     ordering = ['-score']
 
     def get_queryset(self):
