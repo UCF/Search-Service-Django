@@ -76,7 +76,7 @@ class Keyword(models.Model):
     def save(self):
         super(Keyword, self).save()
         combined_obj = CombinedTeledata.objects.get(id=self.object_id)
-        combined_obj.keywords_combined.add(self.phrase)
+        combined_obj.keywords_combined.add(self)
 
     def __unicode__(self):
         return self.phrase
