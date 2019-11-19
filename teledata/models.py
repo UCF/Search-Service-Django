@@ -73,6 +73,12 @@ class Keyword(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = fields.GenericForeignKey('content_type', 'object_id')
 
+    def get_from_table(self, name):
+        if name == 'staff':
+            return name
+        elif name in ['department', 'organization']:
+            return "{0}s".format(name)
+
     def save(self):
         """
         Function that is called whenever
@@ -80,9 +86,13 @@ class Keyword(models.Model):
         """
         super(Keyword, self).save()
         try:
-            combined_obj = CombinedTeledata.objects.get(id=self.object_id)
+            from_table = self.get_from_table(self.content_type.name)
+
+            combined_obj = CombinedTeledata.objects.get(id=self.object_id, from_table=from_table)
             combined_obj.keywords_combined.add(self)
         except CombinedTeledata.DoesNotExist:
+            return
+        except:
             return
 
     def delete(self):
@@ -91,6 +101,8 @@ class Keyword(models.Model):
         the keyword is deleted
         """
         try:
+            from_table = self.get_from_table(self.content_type.name)
+
             combined_obj = CombinedTeledata.objects.get(id=self.object_id)
             combined_obj.keywords_combined.remove(self)
         except CombinedTeledata.DoesNotExist:
