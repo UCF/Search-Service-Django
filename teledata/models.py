@@ -94,9 +94,9 @@ class Keyword(models.Model):
                 combined_obj = CombinedTeledata.objects.get(id=self.object_id, from_table=from_table)
                 combined_obj.keywords_combined.add(self)
         except CombinedTeledata.DoesNotExist:
-            logger.warn('Cannot create keywords_combined record for {0} - {1}. No record exists'.format(self.pharse, self.content_object.name))
+            logger.warn('Cannot create keywords_combined record for {0} - {1}. No record exists'.format(self.phrase, self.content_object.name))
         except:
-            logger.warn('Cannot create keywords_combined record for {0} - {1}. Possibly more than one object returned.'.format(self.pharse, self.content_object.name))
+            logger.warn('Cannot create keywords_combined record for {0} - {1}. Possibly more than one object returned.'.format(self.phrase, self.content_object.name))
 
     def delete(self):
         """
