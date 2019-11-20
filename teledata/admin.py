@@ -38,4 +38,9 @@ class StaffAdmin(admin.ModelAdmin):
 
 @admin.register(Keyword)
 class KeywordAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('phrase',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'content_type':
+            kwargs['queryset'] = ContentType.objects.filter(app_label='teledata', model__in=['staff', 'organization', 'department'])
+        return super(KeywordAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
