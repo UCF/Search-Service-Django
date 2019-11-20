@@ -73,6 +73,14 @@ class Keyword(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = fields.GenericForeignKey('content_type', 'object_id')
 
+    def get_from_table(self, name):
+        if name == 'staff':
+            return name
+        elif name in ['department', 'organization']:
+            return "{0}s".format(name)
+
+        return None
+
     def save(self):
         """
         Function that is called whenever
@@ -80,10 +88,15 @@ class Keyword(models.Model):
         """
         super(Keyword, self).save()
         try:
-            combined_obj = CombinedTeledata.objects.get(id=self.object_id)
-            combined_obj.keywords_combined.add(self)
+            from_table = self.get_from_table(self.content_type.name)
+
+            if from_table is not None:
+                combined_obj = CombinedTeledata.objects.get(id=self.object_id, from_table=from_table)
+                combined_obj.keywords_combined.add(self)
         except CombinedTeledata.DoesNotExist:
-            return
+            logger.warn('Cannot create keywords_combined record for {0} - {1}. No record exists'.format(self.phrase, self.content_object.name))
+        except:
+            logger.warn('Cannot create keywords_combined record for {0} - {1}. Possibly more than one object returned.'.format(self.phrase, self.content_object.name))
 
     def delete(self):
         """
@@ -91,10 +104,15 @@ class Keyword(models.Model):
         the keyword is deleted
         """
         try:
-            combined_obj = CombinedTeledata.objects.get(id=self.object_id)
-            combined_obj.keywords_combined.remove(self)
-        except CombinedTeledata.DoesNotExist:
+            from_table = self.get_from_table(self.content_type.name)
+
+            if from_table is not None:
+                combined_obj = CombinedTeledata.objects.get(id=self.object_id, from_table=from_table)
+                combined_obj.keywords_combined.remove(self)
+        except:
+            logger.warn('Cannot remove keywords_combined record for {0} - {1}. Record may not exist.'.format(self.phrase, self.content_object.name))
             combined_obj = None
+
         super(Keyword, self).delete()
 
     def __unicode__(self):
