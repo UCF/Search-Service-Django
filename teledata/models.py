@@ -79,6 +79,8 @@ class Keyword(models.Model):
         elif name in ['department', 'organization']:
             return "{0}s".format(name)
 
+        return None
+
     def save(self):
         """
         Function that is called whenever
@@ -88,12 +90,13 @@ class Keyword(models.Model):
         try:
             from_table = self.get_from_table(self.content_type.name)
 
-            combined_obj = CombinedTeledata.objects.get(id=self.object_id, from_table=from_table)
-            combined_obj.keywords_combined.add(self)
+            if from_table is not None:
+                combined_obj = CombinedTeledata.objects.get(id=self.object_id, from_table=from_table)
+                combined_obj.keywords_combined.add(self)
         except CombinedTeledata.DoesNotExist:
-            return
+            logger.warn('Cannot create keywords_combined record for {0} - {1}. No record exists'.format(self.pharse, self.content_object.name))
         except:
-            return
+            logger.warn('Cannot create keywords_combined record for {0} - {1}. Possibly more than one object returned.'.format(self.pharse, self.content_object.name))
 
     def delete(self):
         """
@@ -103,10 +106,13 @@ class Keyword(models.Model):
         try:
             from_table = self.get_from_table(self.content_type.name)
 
-            combined_obj = CombinedTeledata.objects.get(id=self.object_id)
-            combined_obj.keywords_combined.remove(self)
-        except CombinedTeledata.DoesNotExist:
+            if from_table is not None:
+                combined_obj = CombinedTeledata.objects.get(id=self.object_id, from_table=from_table)
+                combined_obj.keywords_combined.remove(self)
+        except:
+            logger.warn('Cannot remove keywords_combined record for {0} - {1}. Record may not exist.'.format(self.phrase, self.content_object.name))
             combined_obj = None
+
         super(Keyword, self).delete()
 
     def __unicode__(self):
