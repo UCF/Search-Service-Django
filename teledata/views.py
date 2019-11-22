@@ -11,6 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from teledata.models import *
 from teledata.serializers import *
 from teledata.filters import *
+from teledata.pagination import BackwardsCompatiblePagination
 
 from rest_framework.filters import OrderingFilter
 
@@ -47,6 +48,7 @@ class CombinedTeledataListView(generics.ListAPIView):
 class CombinedTeledataSearchView(CombinedTeledataListView):
     filter_class = CombinedTeledataFilter
     filter_backends = [DjangoFilterBackend,OrderingFilter]
+    pagination_class = BackwardsCompatiblePagination
     ordering_fields = ['id', 'score']
     ordering = ['-score']
 
