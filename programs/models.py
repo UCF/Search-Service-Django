@@ -319,6 +319,30 @@ class CollegeOverride(models.Model):
 
         return '{0} - {1} Tuition Override'.format(self.plan_code, self.college.short_name)
 
+class AcademicYear(models.Model):
+    code = models.CharField(max_length=4, null=False, blank=False)
+    display = models.CharField(max_length=9, null=False, blank=False)
+
+    def __unicode__(self):
+        return self.code
+
+    def __str__(self):
+        return self.code
+
+
+class ProgramOutcomeStat(models.Model):
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='outcomes')
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='outcomes')
+    employed_full_time = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    continuing_edication = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
+
+    def __unicode__(self):
+        return "{0} Outcomes".format(self.program.name)
+
+    def __str__(self):
+        return "{0} Outcomes".format(self.program.name)
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
