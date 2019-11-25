@@ -253,8 +253,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
     descriptions = ProgramDescriptionLinkedSerializer(many=True, read_only=False)
     profiles = ProgramProfileLinkedSerializer(many=True, read_only=False)
-    outcomes = ProgramOutcomeStatSerializer(many=True, read_only=False)
-    latest_outcome = serializers.SerializerMethodField()
+    outcomes = serializers.SerializerMethodField()
 
     colleges = CollegeLinkSerializer(
         many=True,
@@ -269,19 +268,18 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     parent_program = RelatedProgramSerializer(many=False, read_only=True)
     subplans = RelatedProgramSerializer(many=True, read_only=True)
 
-    def get_latest_outcome(self, program):
-        latest_year = AcademicYear.objects.order_by('-code').first()
-        data = None
-        if latest_year:
-            try:
-                qs = ProgramOutcomeStat.objects.get(program=program, academic_year=latest_year)
-            except ProgramOutcomeStat.DoesNotExist:
-                qs = None
+    def get_outcomes(self, program):
+        all_outcome_data = program.outcomes.all()
+        latest_outcome_data = program.outcomes.order_by('-academic_year__code').first()
+        by_year_serializer = ProgramOutcomeStatSerializer(instance=all_outcome_data, many=True)
+        latest_serializer = ProgramOutcomeStatSerializer(instance=latest_outcome_data, many=False)
 
-            if qs is not None:
-                serializer = ProgramOutcomeStatSerializer(instance=qs, many=False)
-                data = serializer.data
-        return data
+        retval = {
+            'by_year': by_year_serializer.data,
+            'latest': latest_serializer.data
+        }
+
+        return retval
 
     class Meta:
         fields = (
@@ -304,8 +302,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'resident_tuition',
             'nonresident_tuition',
             'tuition_type',
-            'outcomes',
-            'latest_outcome'
+            'outcomes'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,parent_program",
