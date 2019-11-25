@@ -1,11 +1,12 @@
-var gulp        = require('gulp'),
-    configLocal = require('./gulp-config.json'),
-    merge       = require('merge');
+const fs    = require('fs');
+const gulp  = require('gulp');
+const merge = require('merge');
 
-var configDefault = {
-  sync: false,
-  syncTarget: 'http://localhost'
-},
-config = merge(configDefault, configLocal);
+/* eslint-disable no-sync */
+if (fs.existsSync('./gulp-config.json')) {
+  const overrides = JSON.parse(fs.readFileSync('./gulp-config.json'));
+  config = merge(config, overrides);
+}
+/* eslint-enable no-sync */
 
-gulp.task('default', []);
+gulp.task('default', '');
