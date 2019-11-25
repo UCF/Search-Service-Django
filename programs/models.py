@@ -335,7 +335,7 @@ class ProgramOutcomeStat(models.Model):
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='outcomes')
     program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='outcomes')
     employed_full_time = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
-    continuing_edication = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    continuing_education = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
     avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
 
     def __unicode__(self):

@@ -240,7 +240,7 @@ class ProgramOutcomeStatSerializer(serializers.ModelSerializer):
             'academic_year_code',
             'academic_year_display',
             'employed_full_time',
-            'continuing_edication',
+            'continuing_education',
             'avg_annual_earnings'
         )
         model = ProgramOutcomeStat
