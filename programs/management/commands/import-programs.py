@@ -110,10 +110,12 @@ class Command(BaseCommand):
         try:
             program = Program.objects.get(plan_code=data['Plan'], subplan_code__isnull=True)
             program.name = unidecode(data['PlanName'])
+            program.cip_code = data['CIP']
             self.programs_updated += 1
         except Program.DoesNotExist:
             program = Program(
                 name=unidecode(data['PlanName']),
+                cip_code=data['CIP'],
                 plan_code=data['Plan']
             )
             self.programs_added += 1
