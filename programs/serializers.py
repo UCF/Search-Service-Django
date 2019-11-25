@@ -278,8 +278,9 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             except ProgramOutcomeStat.DoesNotExist:
                 qs = None
 
-            serializer = ProgramOutcomeStatSerializer(instance=qs, many=False)
-            data = serializer.data
+            if qs is not None:
+                serializer = ProgramOutcomeStatSerializer(instance=qs, many=False)
+                data = serializer.data
         return data
 
     class Meta:
