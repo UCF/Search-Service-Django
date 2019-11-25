@@ -70,3 +70,11 @@ class TuitionOverrideAdmin(admin.ModelAdmin):
 @admin.register(CollegeOverride)
 class CollegeOverrideAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(AcademicYear)
+class AcademicYearAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(ProgramOutcomeStat)
+class ProgramOutcomeStatAdmin(admin.ModelAdmin):
+    pass

@@ -339,10 +339,10 @@ class ProgramOutcomeStat(models.Model):
     avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
 
     def __unicode__(self):
-        return "{0} Outcomes".format(self.program.name)
+        return "{0} Outcomes - {1}".format(self.program.name, self.academic_year.display)
 
     def __str__(self):
-        return "{0} Outcomes".format(self.program.name)
+        return "{0} Outcomes {1}".format(self.program.name, self.academic_year.display)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):

@@ -4,6 +4,7 @@ from programs.models import *
 import warnings
 
 from django.db import IntegrityError
+from django.db.models import Max
 from drf_dynamic_fields import DynamicFieldsMixin
 
 class DynamicFieldSetMixin(DynamicFieldsMixin):
@@ -225,6 +226,25 @@ class RelatedProgramSerializer(serializers.ModelSerializer):
         )
         model = Program
 
+class AcademicYearSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('__all__')
+        model = AcademicYear
+
+class ProgramOutcomeStatSerializer(serializers.ModelSerializer):
+    academic_year_code = serializers.ReadOnlyField(source='academic_year.code', read_only=True)
+    academic_year_display = serializers.ReadOnlyField(source='academic_year.display', read_only=True)
+
+    class Meta:
+        fields = (
+            'academic_year_code',
+            'academic_year_display',
+            'employed_full_time',
+            'continuing_edication',
+            'avg_annual_earnings'
+        )
+        model = ProgramOutcomeStat
+
 
 class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
@@ -233,6 +253,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
     descriptions = ProgramDescriptionLinkedSerializer(many=True, read_only=False)
     profiles = ProgramProfileLinkedSerializer(many=True, read_only=False)
+    outcomes = ProgramOutcomeStatSerializer(many=True, read_only=False)
+    latest_outcome = serializers.SerializerMethodField()
 
     colleges = CollegeLinkSerializer(
         many=True,
@@ -246,6 +268,19 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
     parent_program = RelatedProgramSerializer(many=False, read_only=True)
     subplans = RelatedProgramSerializer(many=True, read_only=True)
+
+    def get_latest_outcome(self, program):
+        latest_year = AcademicYear.objects.order_by('-code').first()
+        data = None
+        if latest_year:
+            try:
+                qs = ProgramOutcomeStat.objects.get(program=program, academic_year=latest_year)
+            except ProgramOutcomeStat.DoesNotExist:
+                qs = None
+
+            serializer = ProgramOutcomeStatSerializer(instance=qs, many=False)
+            data = serializer.data
+        return data
 
     class Meta:
         fields = (
@@ -267,7 +302,9 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'subplans',
             'resident_tuition',
             'nonresident_tuition',
-            'tuition_type'
+            'tuition_type',
+            'outcomes',
+            'latest_outcome'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,parent_program",
