@@ -115,8 +115,8 @@ class Command(BaseCommand):
         except Program.DoesNotExist:
             program = Program(
                 name=unidecode(data['PlanName']),
-                cip_code=data['CIP'],
-                plan_code=data['Plan']
+                plan_code=data['Plan'],
+                cip_code=data['CIP']
             )
             self.programs_added += 1
 
