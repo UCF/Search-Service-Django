@@ -291,6 +291,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'profiles',
             'plan_code',
             'subplan_code',
+            'cip_code',
             'catalog_url',
             'colleges',
             'departments',
@@ -305,7 +306,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'outcomes'
         )
         fieldsets = {
-            "identifiers": "id,name,plan_code,subplan_code,parent_program",
+            "identifiers": "id,name,plan_code,subplan_code,cip_code,parent_program",
         }
         model = Program
 
