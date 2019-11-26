@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<p class="lead">The UCF search web service is a publicly available service that allows queries to made against various UCF data. Currently UCF's directory is the only available data source, allowing you to find people, organizations, departments, and buildings at UCF.</p>
+<h2 class="mb-2">Usage</h2>
+<p>Results from the web service are returned as JSON encoded data. The service runs over HTTP, so all that needs to be done to make a query and view its results is make an HTTP request to the service URL.</p>
+<h2 class="mb-2">Simple Example</h2>
+<p>The default search will usually be all you need. Simply supply a search term and retrieve the results.</p>
+<pre>
+<code>http://search.smca.ucf.edu/service.php?search=Hitt</code>
+</pre>
+<p><strong>Results:</strong></p>
+<pre>
+<code>
+{"query":"Hitt","results":[
+{"score":"18.4153079986572","id":"1048","name":"John Hitt"...
+{"score":"0","id":"10347","name":"John Chitty"...
+{"score":"0","id":"12939","name":"Shannon Whitten"...
+{"score":"0","id":"13354","name":"Shannon Whitten"...
+{"score":"0","id":"16775","name":"Tempie Whittington"...
+"resultCount":5,"error":null,"queryTime":0.129077196121,"options":{"search":"Hitt"}}
+</code>
+</pre>
+{% endblock %}
