@@ -114,12 +114,14 @@ class DepartmentLinkSerializer(serializers.ModelSerializer):
             'update_url'
         )
         model = Department
+        ref_name = 'ProgramDepartmentLink'
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Department
+        ref_name = 'ProgramDepartment'
 
 
 class ProgramProfileTypeSerializer(serializers.ModelSerializer):

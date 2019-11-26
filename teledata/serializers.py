@@ -46,6 +46,7 @@ class DepartmentLinkSerializer(serializers.ModelSerializer):
             'detail_url'
         )
         model = Department
+        ref_name = 'TeledataDepartmentLink'
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -62,6 +63,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Department
+        ref_name = 'TeledataDepartment'
 
 
 class StaffSerializer(serializers.ModelSerializer):
