@@ -1,27 +1,7 @@
 {% extends 'base.html' %}
-{% block menu_block %}
-<nav class="navbar navbar-toggleable-lg navbar-light bg-primary">
-  <div class="container">
-    <button class="navbar-toggler navbar-toggler-right collapsed ml-auto" type="button" data-toggle="collapse" data-target="#sectionMenu" aria-controls="sectionMenu" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavDropdown">
-      <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="#directory">Directory Data</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#program">Program Data</a>
-        </li>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
-{% endblock %}
 {% block body %}
 <div class="container mt-5">
-<p class="lead">The UCF search web service is a publicly available service that allows queries to made against various UCF data. Current, the service provides UCF's directory data as well as degree program information.</p>
+<p class="lead">The UCF search web service is a publicly available service that allows queries to made against various UCF data. Currently, the service provides UCF's directory data.</p>
 <section id="directory">
 <h2 class="mb-4">Directory Data</h2>
 <p>The <code>teledata</code> application provides directory information for UCF staff, organizations, departments and buildings. There are list views for each data type as well as a combined search view for staff, organizations and departments.</p>
@@ -279,85 +259,6 @@
       <a class="btn btn-block btn-primary" href="{% url 'api.teledata.departments.list' %}">Explore the API</a>
     </div>
   </div>
-</div>
-</section>
-<section id="program">
-<h2 class="mb-4">Program Data</h2>
-<p>The <code>programs</code> application provides information on UCF's academic programs, related department and meta data.</p>
-<h3 id="programs-search-views" class="heading-underline">Search View</h3>
-<p>The program search view provides an interface for searching for UCF programs using a number of filters.</p>
-<h4 class="my-4">Parameters</h4>
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>Parameter</th>
-      <th>Description</th>
-      <th>Allowable Values</th>
-      <th>Required</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>search</code></td>
-      <td>Search query against the program <code>name</code> field.</td>
-      <td>Alphanumeric Characters</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><code>active</code></td>
-      <td>Filters results based on the <code>active</code> flag, used to indicate if a program is offered.</td>
-      <td>
-        <ul class="list-unstyled">
-          <li><code>1</code> - Return all records</li>
-          <li><code>2</code> - Return active Programs</li>
-          <li><code>3</code> - Return inactive Programs</li>
-        </ul>
-      </td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><code>plan_code</code></td>
-      <td>The PeopleSoft plan code of the program.</td>
-      <td>Alphanumeric characters</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><code>subplan_code</code></td>
-      <td>The PeopleSoft subplan code of the program.</td>
-      <td>Alphanumeric characters</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><code>subplan_code__is_null</code></td>
-      <td>When <code>True</code> will return all programs that are not subplans.</td>
-      <td>
-        <ul class="list-unstyled">
-          <li><code>true</code> - Will return only parent plans</li>
-          <li><code>false</code> - Will return only subplans</li>
-        </ul>
-      </td>
-      <tr>No</tr>
-    </tr>
-    <tr>
-      <td><code>online</code></td>
-      <td>Determines if programs marked as <code>online</code> should be returned.</td>
-      <td>
-        <ul class="list-unstyled">
-          <li><code>1</code> - Return all records</li>
-          <li><code>2</code> - Return online programs</li>
-          <li><code>3</code> - Return non-online programs</li>
-        </ul>
-      </td>
-      <tr>No</tr>
-    </tr>
-    <tr>
-      <td><code>level</code></td>
-      <td>Filter by program level.</td>
-      <td>Values</td>
-      <td>No</td>
-    </tr>
-  </tbody>
-</table>
 </div>
 </section>
 {% endblock %}
