@@ -1,6 +1,28 @@
 {% extends 'base.html' %}
+{% block menu_block %}
+<nav class="navbar navbar-toggleable-lg navbar-light bg-primary">
+  <div class="container">
+    <button class="navbar-toggler navbar-toggler-right collapsed ml-auto" type="button" data-toggle="collapse" data-target="#sectionMenu" aria-controls="sectionMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="#directory">Directory Data</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#program">Program Data</a>
+        </li>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
 {% block body %}
+<div class="container mt-5">
 <p class="lead">The UCF search web service is a publicly available service that allows queries to made against various UCF data. Current, the service provides UCF's directory data as well as degree program information.</p>
+<section id="directory">
 <h2 class="mb-4">Directory Data</h2>
 <p>The <code>teledata</code> application provides directory information for UCF staff, organizations, departments and buildings. There are list views for each data type as well as a combined search view for staff, organizations and departments.</p>
 <h3 class="heading-underline mb-4">API Endpoints</h3>
@@ -19,6 +41,10 @@
 <ul class="mb-5">
   <li><a href="{% url 'api.teledata.departments.detail' id=1 %}">Department Detail (for Department ID 1)</a>: <code>{% url 'api.teledata.departments.detail' id=1 %}</code></li>
 </ul>
+</section>
+<section id="program">
 <h2 class="mb-4">Program Data</h2>
 <p class="text-danger">#TODO Add Some Stuff</p>
+</div>
+</section>
 {% endblock %}

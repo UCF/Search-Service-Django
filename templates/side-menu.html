@@ -1,9 +1,0 @@
-{% if menu %}
-<ul class="list-unstyled">
-  {% for item in menu %}
-    <li class="list-group-item{% if item.active %} active{% endif %}">
-      <a class="text-secondary" href="{{ item.url }}">{{ item.text }}</a>
-    </li>
-  {% endfor %}
-</ul>
-{% endif %}
