@@ -99,16 +99,16 @@ class Command(BaseCommand):
                 year.save()
             level = self.get_outcome_level(row['Level'])
             employed_full_time = self.percent_to_decimal(row['Employed Full-time %'])
-            continuing_education = self.percent_to_decimal(row['Continuing Education'])
+            continuing_education = self.percent_to_decimal(row['Continuing Education %'])
             avg_annual_earnings = self.dollars_to_decimal(row['Avg Annual Earnings'])
 
             outcome_programs = self.get_outcome_programs(programs, cip, level)
             if len(outcome_programs):
                 outcome = ProgramOutcomeStat(
-                    academic_year = year
-                    #employed_full_time = employed_full_time,
-                    #continuing_education = continuing_education,
-                    #avg_annual_earnings = avg_annual_earnings
+                    academic_year = year,
+                    employed_full_time = employed_full_time,
+                    continuing_education = continuing_education,
+                    avg_annual_earnings = avg_annual_earnings
                 )
                 outcome.save()
                 outcome.program.add(*outcome_programs)
