@@ -102,7 +102,7 @@ class Command(BaseCommand):
             avg_annual_earnings = self.dollars_to_decimal(row['Avg Annual Earnings'])
 
             outcome_programs = self.get_outcome_programs(programs, cip, level)
-            if programs_count:
+            if len(outcome_programs):
                 outcome = ProgramOutcomeStat(
                     academic_year = year,
                     employed_full_time = employed_full_time,
