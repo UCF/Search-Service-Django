@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
-from decimal import Decimal
+import decimal
 import urllib2
 import itertools
 import logging
@@ -73,6 +73,7 @@ class Command(BaseCommand):
         # If we have new outcome data to process, delete any existing data.
         # Otherwise, abort this process:
         if outcomes_count:
+            print 'Deleting all existing outcome data.'
             ProgramOutcomeStat.objects.all().delete()
         else:
             print 'No outcome data to process. Assignment of new program outcome data aborted.'
@@ -104,12 +105,12 @@ class Command(BaseCommand):
             outcome_programs = self.get_outcome_programs(programs, cip, level)
             if len(outcome_programs):
                 outcome = ProgramOutcomeStat(
-                    academic_year = year,
-                    employed_full_time = employed_full_time,
-                    continuing_education = continuing_education,
-                    avg_annual_earnings = avg_annual_earnings
+                    academic_year = year
+                    #employed_full_time = employed_full_time,
+                    #continuing_education = continuing_education,
+                    #avg_annual_earnings = avg_annual_earnings
                 )
-                # TODO throws RelatedObjectDoesNotExist error :(
+                outcome.save()
                 outcome.program.add(*outcome_programs)
                 outcome.save()
 
@@ -169,8 +170,9 @@ class Command(BaseCommand):
     Returns None if the given string is false-y.
     '''
     def percent_to_decimal(self, percent):
+        decimal.getcontext().prec = 8
         if percent:
-            return Decimal(percent.replace('%', '').strip())
+            return decimal.Decimal(percent.replace('%', '').strip())
 
         return None
 
@@ -179,7 +181,8 @@ class Command(BaseCommand):
     Returns None if the given string is false-y.
     '''
     def dollars_to_decimal(self, dollars):
+        decimal.getcontext().prec = 2
         if dollars:
-            return Decimal(dollars.replace('$', '').replace(',', '').strip())
+            return decimal.Decimal(dollars.replace('$', '').replace(',', '').strip())
 
         return None
