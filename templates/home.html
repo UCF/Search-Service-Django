@@ -26,7 +26,7 @@
 <h2 class="mb-4">Directory Data</h2>
 <p>The <code>teledata</code> application provides directory information for UCF staff, organizations, departments and buildings. There are list views for each data type as well as a combined search view for staff, organizations and departments.</p>
 <h3 class="heading-underline">Search View</h3>
-The directory search view is the primary view used for retrieving directory data. The view will search staff, departments and organizations and return all results that return a `score` value of more than 0.
+<p>The directory search view is the primary view used for retrieving directory data. The view will search staff, departments and organizations and return all results that return a `score` value of more than 0.</p>
 <h4 class="my-4">Parameters</h4>
 <table class="table table-bordered">
   <thead>
@@ -283,7 +283,81 @@ The directory search view is the primary view used for retrieving directory data
 </section>
 <section id="program">
 <h2 class="mb-4">Program Data</h2>
-<p class="text-danger">#TODO Add Some Stuff</p>
+<p>The <code>programs</code> application provides information on UCF's academic programs, related department and meta data.</p>
+<h3 id="programs-search-views" class="heading-underline">Search View</h3>
+<p>The program search view provides an interface for searching for UCF programs using a number of filters.</p>
+<h4 class="my-4">Parameters</h4>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+      <th>Allowable Values</th>
+      <th>Required</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>search</code></td>
+      <td>Search query against the program <code>name</code> field.</td>
+      <td>Alphanumeric Characters</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code>active</code></td>
+      <td>Filters results based on the <code>active</code> flag, used to indicate if a program is offered.</td>
+      <td>
+        <ul class="list-unstyled">
+          <li><code>1</code> - Return all records</li>
+          <li><code>2</code> - Return active Programs</li>
+          <li><code>3</code> - Return inactive Programs</li>
+        </ul>
+      </td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code>plan_code</code></td>
+      <td>The PeopleSoft plan code of the program.</td>
+      <td>Alphanumeric characters</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code>subplan_code</code></td>
+      <td>The PeopleSoft subplan code of the program.</td>
+      <td>Alphanumeric characters</td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code>subplan_code__is_null</code></td>
+      <td>When <code>True</code> will return all programs that are not subplans.</td>
+      <td>
+        <ul class="list-unstyled">
+          <li><code>true</code> - Will return only parent plans</li>
+          <li><code>false</code> - Will return only subplans</li>
+        </ul>
+      </td>
+      <tr>No</tr>
+    </tr>
+    <tr>
+      <td><code>online</code></td>
+      <td>Determines if programs marked as <code>online</code> should be returned.</td>
+      <td>
+        <ul class="list-unstyled">
+          <li><code>1</code> - Return all records</li>
+          <li><code>2</code> - Return online programs</li>
+          <li><code>3</code> - Return non-online programs</li>
+        </ul>
+      </td>
+      <tr>No</tr>
+    </tr>
+    <tr>
+      <td><code>level</code></td>
+      <td>Filter by program level.</td>
+      <td>Values</td>
+      <td>No</td>
+    </tr>
+  </tbody>
+</table>
 </div>
 </section>
 {% endblock %}
