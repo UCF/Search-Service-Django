@@ -4,10 +4,113 @@ from django.views.generic import TemplateView
 
 from core.views import *
 
+from teledata.views import *
+from programs.views import *
+
 urlpatterns = [
     url(
         r'^$',
         HomeView.as_view(),
         name='home'
-    )
+    ),
+    url(
+        r'^docs/teledata/',
+        TeledataSearchDocView.as_view(),
+        name='docs.teledata.search'
+    ),
+    url(
+        r'^docs/teledata/staff/',
+        TeledataStaffDocView.as_view(),
+        name='docs.teledata.staff.list'
+    ),
+    url(
+        r'^docs/teledata/organizations/',
+        TeledataOrganizationDocView.as_view(),
+        name='docs.teledata.organizations.list'
+    ),
+    url(
+        r'^docs/teledata/departments/',
+        TeledataDepartmentDocView.as_view(),
+        name='docs.teledata.departments.list'
+    ),
+    url(
+        r'^docs/teledata/buildings/',
+        TeledataBuildingDocView.as_view(),
+        name='docs.teledata.buildings.list'
+    ),
+    url(
+        r'^docs/programs/search/',
+        ProgramSearchDocView.as_view(),
+        name='docs.programs.search'
+    ),
+    url(
+        r'^docs/programs/list/',
+        ProgramListDocView.as_view(),
+        name='docs.programs.list'
+    ),
+    url(
+        r'^docs/programs/detail/',
+        ProgramDetailDocView.as_view(),
+        name='docs.programs.detail'
+    ),
+    url(
+        r'^docs/colleges/search/',
+        ProgramSearchDocView.as_view(),
+        name='docs.colleges.search'
+    ),
+    url(
+        r'^docs/colleges/list/',
+        CollegeListDocView.as_view(),
+        name='docs.colleges.list'
+    ),
+    url(
+        r'^docs/colleges/detail/',
+        CollegeDetailDocView.as_view(),
+        name='docs.colleges.detail'
+    ),
+    url(
+        r'^docs/departments/search/',
+        DepartmentSearchDocView.as_view(),
+        name='docs.departments.search'
+    ),
+    url(
+        r'^docs/departments/list/',
+        DepartmentListDocView.as_view(),
+        name='docs.departments.list'
+    ),
+    url(
+        r'^docs/departments/detail/',
+        DepartmentDetailDocView.as_view(),
+        name='docs.departments.detail'
+    ),
+    url(
+        r'^docs/descriptions/detail/',
+        DescriptionDetailDocView.as_view(),
+        name='docs.descriptions.detail'
+    ),
+    url(
+        r'^docs/descriptions/create/',
+        DescriptionCreateDocView.as_view(),
+        name='docs.descriptions.create'
+    ),
+    url(
+        r'^docs/descriptions/types/list/',
+        DescriptionTypeListDocView.as_view(),
+        name='docs.descriptions.types.list'
+    ),
+    url(
+        r'^docs/profiles/detail/',
+        DescriptionDetailDocView.as_view(),
+        name='docs.profiles.detail'
+    ),
+    url(
+        r'^docs/profiles/create/',
+        DescriptionCreateDocView.as_view(),
+        name='docs.profiles.create'
+    ),
+    url(
+        r'^docs/profiles/types/list/',
+        DescriptionTypeListDocView.as_view(),
+        name='docs.profiles.types.list'
+    ),
 ]
