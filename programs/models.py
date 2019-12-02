@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import math
 
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -329,6 +330,29 @@ class AcademicYear(models.Model):
 
     def __str__(self):
         return self.code
+
+class CIP(models.Model):
+    code = models.DecimalField(max_digits=6, decimal_places=4, null=False, blank=False)
+    two_digit = models.IntegerField(null=False, blank=True)
+    four_digit = models.DecimalField(max_digits=4, decimal_places=2, null=False, blank=True)
+    six_digit = models.DecimalField(max_digits=6, decimal_places=4, null=False, blank=True)
+
+    def truncate(self, value, places):
+        return math.floor(value * 10 ** places) / 10 ** places
+
+    def save(self, *args, **kwargs):
+        if self.code is not None:
+            self.two_digit = self.truncate(self.code, 0)
+            self.four_digit = self.truncate(self.code, 2)
+            self.six_digit = self.truncate(self.code, 4)
+
+        super(CIP, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return str(self.code)
+
+    def __str__(self):
+        return str(self.code)
 
 
 class ProgramOutcomeStat(models.Model):
