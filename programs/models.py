@@ -2,7 +2,9 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import re
 import math
+from decimal import Decimal
 
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -330,12 +332,32 @@ class AcademicYear(models.Model):
 
     def __str__(self):
         return self.code
+class CIPManager(models.Manager):
+    """
+    Custom manager for searching for CIPs
+    """
+    def search(self, code):
+        matches = re.match('^(?P<area>\d{2})\.?(?P<subarea>\d{2})?(?P<precise>\d{2})?$', code).groupdict()
+        area = matches['area'] if 'area' in matches.keys() else None
+
+        if area:
+            subarea = matches['subarea'] if matches['subarea'] is not None else '00'
+            precise = matches['precise'] if matches['precise'] is not None else '00'
+            search = '{0}.{1}{2}'.format(area, subarea, precise)
+        else:
+            search = None
+
+        if search:
+            return self.filter(code=Decimal(search))
+        else:
+            return self.none()
 
 class CIP(models.Model):
     code = models.DecimalField(max_digits=6, decimal_places=4, null=False, blank=False)
     two_digit = models.IntegerField(null=False, blank=True)
     four_digit = models.DecimalField(max_digits=4, decimal_places=2, null=False, blank=True)
     six_digit = models.DecimalField(max_digits=6, decimal_places=4, null=False, blank=True)
+    objects = CIPManager()
 
     def truncate(self, value, places):
         return math.floor(value * 10 ** places) / 10 ** places
