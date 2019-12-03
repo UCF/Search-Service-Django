@@ -12,7 +12,13 @@ import csv
 class Command(BaseCommand):
     help = 'Imports program outcome statistics from a CSV'
 
+    programs = []
+    programs_count = 0
+    programs_matched = set()
     outcome_data = []
+    outcomes_count = 0
+    outcomes_matched_count = 0
+    outcomes_skipped_count = 0
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -22,7 +28,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--verbose',
-            help='Be verbose',
+            help='Use verbose logging',
             action='store_const',
             dest='loglevel',
             const=logging.INFO,
@@ -37,42 +43,42 @@ class Command(BaseCommand):
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
-        # Fetch all outcome data; assign to self.outcome_data:
+        # Fetch programs (only process programs that have a CIP):
+        self.programs = Program.objects.filter(cip_code__isnull=False)
+        self.programs_count = len(self.programs)
+
+        # Fetch all outcome data:
         self.get_outcome_data(self.path)
 
         # Assign outcome data to existing programs:
         self.assign_program_outcomes()
 
-        return 0
+        # Print results
+        self.print_results()
 
     def get_outcome_data(self, csv_url):
+        # TODO add check to ensure file is actually a CSV--non CSV files will still get read!
         try:
             response = urllib2.urlopen(csv_url)
-        except Exception, e: # TODO
-            print e
-            # pass # TODO couldn't access file
+        except Exception, e:
+            logging.error('\n ERROR opening CSV: %s' % e)
+            return
 
         try:
             csv_reader = csv.DictReader(response)
-        except Exception, e: # TODO
-            print e
-            #pass # TODO couldn't read file
+        except csv.Error:
+            logging.error('\n ERROR reading CSV: CSV does not have valid headers or is malformed.')
+            return
 
         for row in csv_reader:
             self.outcome_data.append(row)
 
-    def assign_program_outcomes(self):
-        # Only process programs that are not subplans:
-        programs = Program.objects.filter(parent_program__isnull=True)
-        programs_count = len(programs)
-        programs_matched_count = 0
-        outcomes_count = len(self.outcome_data)
-        outcomes_matched_count = 0
-        outcomes_skipped_count = 0
+        self.outcomes_count = len(self.outcome_data)
 
+    def assign_program_outcomes(self):
         # If we have new outcome data to process, delete any existing data.
         # Otherwise, abort this process:
-        if outcomes_count:
+        if self.outcomes_count:
             print 'Deleting all existing outcome data.'
             ProgramOutcomeStat.objects.all().delete()
         else:
@@ -85,7 +91,8 @@ class Command(BaseCommand):
             cip = row['CIP']
             year_code = self.get_outcome_year_code(row['Year'])
             if not cip or not year_code:
-                outcomes_skipped_count += 1
+                self.outcomes_skipped_count += 1
+                logging.info(unicode('\n SKIPPED Outcome Data with Year "%s", CIP "%s", and Level "%s"' % (year.display, cip, level.name)).encode('ascii', 'xmlcharrefreplace'))
                 continue
 
             # Get or create an AcademicYear object
@@ -102,27 +109,25 @@ class Command(BaseCommand):
             continuing_education = self.percent_to_decimal(row['Continuing Education %'])
             avg_annual_earnings = self.dollars_to_decimal(row['Avg Annual Earnings'])
 
-            outcome_programs = self.get_outcome_programs(programs, cip, level)
+            outcome_programs = self.get_outcome_programs(cip, level)
             if len(outcome_programs):
-                outcome = ProgramOutcomeStat(
-                    academic_year = year,
-                    employed_full_time = employed_full_time,
-                    continuing_education = continuing_education,
-                    avg_annual_earnings = avg_annual_earnings
-                )
-                outcome.save()
-                outcome.program.add(*outcome_programs)
-                outcome.save()
+                # outcome = ProgramOutcomeStat(
+                #     academic_year = year,
+                #     employed_full_time = employed_full_time,
+                #     continuing_education = continuing_education,
+                #     avg_annual_earnings = avg_annual_earnings
+                # )
+                # outcome.save()
+                # outcome.program.add(*outcome_programs)
+                # outcome.save()
 
-
-
-        #    if: # TODO
-        #        logging.info(unicode('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace'))
-        #    else:
-        #        logging.info(unicode('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace'))
-
-        #print 'Matched {0}/{1} of Existing {2} Programs to a Catalog Entry: {3:.0f}%'.format(match_count, len(programs), career_name, float(match_count) / float(len(programs)) * 100)
-        #print 'Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len(filter(lambda x: x.has_matches == True, self.catalog_programs)), len(self.catalog_programs), len(filter(lambda x: x.has_matches == True, self.catalog_programs)) / float(len(self.catalog_programs)) * 100)
+                # Update import stats
+                self.programs_matched.update(outcome_programs)
+                self.outcomes_matched_count += 1
+                logging.info(unicode('\n MATCH Outcome Data with Year "%s", CIP "%s", and Level "%s" to %d existing programs' % (year.display, cip, level.name, len(outcome_programs))).encode('ascii', 'xmlcharrefreplace'))
+            else:
+                self.outcomes_skipped_count += 1
+                logging.info(unicode('\n FAILURE Outcome Data with Year "%s", CIP "%s", and Level "%s" - no program matches found' % (year.display, cip, level.name)).encode('ascii', 'xmlcharrefreplace'))
 
 
     '''
@@ -138,9 +143,9 @@ class Command(BaseCommand):
         except Level.DoesNotExist:
             temp_level = None
 
-        if self.type == 'Doctorate':
+        if original_level == 'Doctorate':
             return Level.objects.get(name='Doctoral')
-        elif self.type == 'Medicine':
+        elif original_level == 'Medicine':
             return Level.objects.get(name='Professional')
 
         return None
@@ -162,8 +167,8 @@ class Command(BaseCommand):
     '''
     Return Program(s) that match against a given CIP and program level.
     '''
-    def get_outcome_programs(self, programs, cip, level):
-        return list(programs.filter(cip_code=cip, level=level))
+    def get_outcome_programs(self, cip, level):
+        return list(self.programs.filter(cip_code=cip, level=level))
 
     '''
     Converts a string with a percentage value to a Decimal.
@@ -186,3 +191,11 @@ class Command(BaseCommand):
             return decimal.Decimal(dollars.replace('$', '').replace(',', '').strip())
 
         return None
+
+    def print_results(self):
+        print 'Finished import of Program Outcome data.'
+        if self.programs_count:
+            print 'Created one or more ProgramOutcomeStats for {0}/{1} existing Programs: {2:.0f}%'.format(len(self.programs_matched), self.programs_count, float(len(self.programs_matched)) / float(self.programs_count) * 100)
+        if self.outcomes_count:
+            print 'Matched {0}/{1} of fetched Outcome data rows to at least one existing Program: {2:.0f}%'.format(self.outcomes_matched_count, self.outcomes_count, float(self.outcomes_matched_count) / float(self.outcomes_count) * 100)
+            print 'Skipped {0} rows of Outcome data.'.format(self.outcomes_skipped_count)
