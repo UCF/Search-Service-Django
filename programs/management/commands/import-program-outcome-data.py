@@ -195,7 +195,7 @@ class Command(BaseCommand):
     def print_results(self):
         print 'Finished import of Program Outcome data.'
         if self.programs_count:
-            print 'Created one or more ProgramOutcomeStats for {0}/{1} existing Programs: {2:.0f}%'.format(len(self.programs_matched), self.programs_count, float(len(self.programs_matched)) / float(self.programs_count) * 100)
+            print 'Created one or more ProgramOutcomeStats for {0}/{1} existing Programs with a CIP: {2:.0f}%'.format(len(self.programs_matched), self.programs_count, float(len(self.programs_matched)) / float(self.programs_count) * 100)
         if self.outcomes_count:
             print 'Matched {0}/{1} of fetched Outcome data rows to at least one existing Program: {2:.0f}%'.format(self.outcomes_matched_count, self.outcomes_count, float(self.outcomes_matched_count) / float(self.outcomes_count) * 100)
             print 'Skipped {0} rows of Outcome data.'.format(self.outcomes_skipped_count)
