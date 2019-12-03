@@ -88,6 +88,7 @@ class Command(BaseCommand):
         for row in self.outcome_data:
             # CIP and year code are required.
             # Skip row if they're missing/invalid
+            # TODO update to get or create an existing CIP object
             cip = row['CIP']
             year_code = self.get_outcome_year_code(row['Year'])
             if not cip or not year_code:
@@ -111,6 +112,7 @@ class Command(BaseCommand):
 
             outcome_programs = self.get_outcome_programs(cip, level)
             if len(outcome_programs):
+                # TODO update
                 # outcome = ProgramOutcomeStat(
                 #     academic_year = year,
                 #     employed_full_time = employed_full_time,
