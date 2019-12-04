@@ -345,6 +345,9 @@ class CIP(models.Model):
     subarea = models.IntegerField(null=True, blank=True)
     precise = models.IntegerField(null=True, blank=True)
 
+    prev_version = models.ForeignKey('self', null=True, blank=True, related_name='next_versions')
+    next_version = models.ForeignKey('self', null=True, blank=True, related_name='previous_versions')
+
     def save(self, *args, **kwargs):
         if self.code is not None:
             matches = re.match('^(?P<area>\d{2})\.?(?P<subarea>\d{2})?(?P<precise>\d{2})?$', self.code).groupdict()
