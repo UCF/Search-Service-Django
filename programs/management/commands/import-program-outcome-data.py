@@ -57,7 +57,6 @@ class Command(BaseCommand):
         self.print_results()
 
     def get_outcome_data(self, csv_url):
-        # TODO add check to ensure file is actually a CSV--non CSV files will still get read!
         try:
             response = urllib2.urlopen(csv_url)
             http_message = response.info()
