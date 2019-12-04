@@ -77,7 +77,8 @@ class AcademicYearAdmin(admin.ModelAdmin):
 
 @admin.register(CIP)
 class CIPAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('name', 'code')
+    list_filter = ('version',)
 
 @admin.register(ProgramOutcomeStat)
 class ProgramOutcomeStatAdmin(admin.ModelAdmin):

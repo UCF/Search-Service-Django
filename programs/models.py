@@ -357,10 +357,18 @@ class CIP(models.Model):
         super(CIP, self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return str(self.code)
+        return "{0} - {1} ({2})".format(
+            str(self.code),
+            self.name,
+            self.version
+        )
 
     def __str__(self):
-        return str(self.code)
+        return "{0} - {1} ({2})".format(
+            str(self.code),
+            self.name,
+            self.version
+        )
 
 
 class ProgramOutcomeStat(models.Model):
