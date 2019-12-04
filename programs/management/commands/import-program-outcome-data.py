@@ -60,6 +60,9 @@ class Command(BaseCommand):
         # TODO add check to ensure file is actually a CSV--non CSV files will still get read!
         try:
             response = urllib2.urlopen(csv_url)
+            http_message = response.info()
+            if http_message.type != 'text/csv':
+                raise Exception('File retrieved does not have a mimetype of "text/csv"')
         except Exception, e:
             logging.error('\n ERROR opening CSV: %s' % e)
             return
