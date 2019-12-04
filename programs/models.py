@@ -332,8 +332,14 @@ class AcademicYear(models.Model):
         return self.code
 
 class CIP(models.Model):
+    versions = [
+        ('2010', '2010'),
+        ('2020', '2020')
+    ]
+
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=False, blank=False)
+    version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default='2020')
     code = models.CharField(max_length=7, null=False, blank=False)
     area = models.IntegerField(null=False, blank=True)
     subarea = models.IntegerField(null=True, blank=True)
