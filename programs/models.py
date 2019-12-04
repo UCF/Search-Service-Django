@@ -332,6 +332,8 @@ class AcademicYear(models.Model):
         return self.code
 
 class CIP(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False)
+    description = models.TextField(null=False, blank=False)
     code = models.CharField(max_length=7, null=False, blank=False)
     area = models.IntegerField(null=False, blank=True)
     subarea = models.IntegerField(null=True, blank=True)
