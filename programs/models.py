@@ -345,15 +345,14 @@ class CIP(models.Model):
     subarea = models.IntegerField(null=True, blank=True)
     precise = models.IntegerField(null=True, blank=True)
 
-    prev_version = models.ForeignKey('self', null=True, blank=True, related_name='next_versions')
-    next_version = models.ForeignKey('self', null=True, blank=True, related_name='previous_versions')
+    next_version = models.OneToOneField('self', null=True, blank=True, related_name='previous_version')
 
     def save(self, *args, **kwargs):
         if self.code is not None:
             matches = re.match('^(?P<area>\d{2})\.?(?P<subarea>\d{2})?(?P<precise>\d{2})?$', self.code).groupdict()
             self.area = int(matches['area'])
-            self.subarea = int(matches['subarea'])
-            self.precise = int(matches['precise'])
+            self.subarea = int(matches['subarea']) if matches['subarea'] is not None else 0
+            self.precise = int(matches['precise']) if matches['precise'] is not None else 0
 
         super(CIP, self).save(*args, **kwargs)
 

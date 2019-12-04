@@ -75,6 +75,10 @@ class CollegeOverrideAdmin(admin.ModelAdmin):
 class AcademicYearAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(CIP)
+class CIPAdmin(admin.ModelAdmin):
+    pass
+
 @admin.register(ProgramOutcomeStat)
 class ProgramOutcomeStatAdmin(admin.ModelAdmin):
     pass
