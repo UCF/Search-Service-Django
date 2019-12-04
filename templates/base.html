@@ -10,22 +10,23 @@
     <!-- Athena CSS -->
     <link rel="stylesheet" href="https://cdn.ucf.edu/athena-framework/latest/css/framework.min.css">
   </head>
-  <body>
-    <header class="site-header">
-      <div class="media-background-container">
+  <body data-spy="scroll" data-target="#sidebar">
+    <header>
+      <div class="media-background-container bg-default">
         <picture class="media-background-picture">
-          <source srcset="{% static 'img/dark-lines.jpg' %}" media="(min-width: 1200px)">
+          <source srcset="{% static 'img/dark-lines.jpg' %}" media="(min-width: 576px)">
           <source srcset="{% static 'img/dark-lines-xs.jpg' %}" media="(max-width: 575px)">
-          <img class="media-background object-fit-cover" src="{% static 'img/dark-lines.jpg' %}" alt data-object-fit="cover">
+          <img class="media-background object-fit-cover" src="{% static 'img/dark-lines.jpg' %}" alt="" data-object-fit="cover">
         </picture>
         <div class="container my-5">
-          <h1 class="header-title text-inverse">{{ heading }}</h1>
+          <h1 class="display-4 text-inverse">{{ heading }}</h1>
         </div>
       </div>
     </header>
-      {% block menu_block %}{% endblock %}
-      {% block body %}{% endblock %}
-    </div>
+
+    {% block menu_block %}{% endblock %}
+    {% block body %}{% endblock %}
+
     <!-- jQuery first, then Tether, then Athena JS. -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.3/js/tether.min.js" integrity="sha256-mIiWebTG82x+OcV3vUA49ffGDIAJ53uC9jflw5/+REs=" crossorigin="anonymous"></script>
