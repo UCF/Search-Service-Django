@@ -337,6 +337,11 @@ class AcademicYear(models.Model):
         return self.code
 
 
+class CIPVersionManager(models.Manager):
+    def get_queryset(self):
+        return super(CIPVersionManager, self).get_queryset().filter(version=settings.CIP_CURRENT_VERSION)
+
+
 class CIP(models.Model):
     versions = [
         ('2010', '2010'),
@@ -377,11 +382,6 @@ class CIP(models.Model):
             self.name,
             self.version
         )
-
-
-class CIPVersionManager(models.Manager):
-    def get_queryset(self):
-        return super(CIPVersionManager, self).get_queryset().filter(version=settings.CIP_CURRENT_VERSION)
 
 
 class ProgramOutcomeStat(models.Model):
