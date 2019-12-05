@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import re
 
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -329,6 +330,27 @@ class AcademicYear(models.Model):
 
     def __str__(self):
         return self.code
+
+class CIP(models.Model):
+    code = models.CharField(max_length=7, null=False, blank=False)
+    area = models.IntegerField(null=False, blank=True)
+    subarea = models.IntegerField(null=True, blank=True)
+    precise = models.IntegerField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.code is not None:
+            matches = re.match('^(?P<area>\d{2})\.?(?P<subarea>\d{2})?(?P<precise>\d{2})?$', self.code).groupdict()
+            self.area = int(matches['area'])
+            self.subarea = int(matches['subarea'])
+            self.precise = int(matches['precise'])
+
+        super(CIP, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return str(self.code)
+
+    def __str__(self):
+        return str(self.code)
 
 
 class ProgramOutcomeStat(models.Model):
