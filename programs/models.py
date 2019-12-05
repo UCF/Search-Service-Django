@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import re
 
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -319,6 +320,51 @@ class CollegeOverride(models.Model):
             return '{0} {1} - {2} Override'.format(self.plan_code, self.subplan_code, self.college.short_name)
 
         return '{0} - {1} Tuition Override'.format(self.plan_code, self.college.short_name)
+
+class AcademicYear(models.Model):
+    code = models.CharField(max_length=4, null=False, blank=False)
+    display = models.CharField(max_length=9, null=False, blank=False)
+
+    def __unicode__(self):
+        return self.code
+
+    def __str__(self):
+        return self.code
+
+class CIP(models.Model):
+    code = models.CharField(max_length=7, null=False, blank=False)
+    area = models.IntegerField(null=False, blank=True)
+    subarea = models.IntegerField(null=True, blank=True)
+    precise = models.IntegerField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.code is not None:
+            matches = re.match('^(?P<area>\d{2})\.?(?P<subarea>\d{2})?(?P<precise>\d{2})?$', self.code).groupdict()
+            self.area = int(matches['area'])
+            self.subarea = int(matches['subarea'])
+            self.precise = int(matches['precise'])
+
+        super(CIP, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return str(self.code)
+
+    def __str__(self):
+        return str(self.code)
+
+
+class ProgramOutcomeStat(models.Model):
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='outcomes')
+    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='outcomes')
+    employed_full_time = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    continuing_education = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
+
+    def __unicode__(self):
+        return "{0} Outcomes - {1}".format(self.program.name, self.academic_year.display)
+
+    def __str__(self):
+        return "{0} Outcomes {1}".format(self.program.name, self.academic_year.display)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
