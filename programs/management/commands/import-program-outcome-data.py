@@ -35,16 +35,25 @@ class Command(BaseCommand):
             default=logging.WARNING,
             required=False
         )
+        parser.add_argument(
+            '--cip-version',
+            type=str,
+            dest='cip_version',
+            help='The version of CIPs used by programs in this import.',
+            default=settings.CIP_CURRENT_VERSION,
+            required=False
+        )
 
     def handle(self, *args, **options):
         self.path = options['path']
         self.loglevel = options['loglevel']
+        self.cip_version = options['cip_version']
 
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
         # Fetch programs (only process programs that have a CIP):
-        self.programs = Program.objects.filter(cip_code__isnull=False)
+        self.programs = Program.objects.filter(cip__version=self.cip_version)
         self.programs_count = len(self.programs)
 
         # Fetch all outcome data:
@@ -90,12 +99,11 @@ class Command(BaseCommand):
         for row in self.outcome_data:
             # CIP and year code are required.
             # Skip row if they're missing/invalid
-            # TODO update to get or create an existing CIP object
-            cip = row['CIP']
+            cip = self.get_outcome_cip(row['CIP'])
             year_code = self.get_outcome_year_code(row['Year'])
             if not cip or not year_code:
                 self.outcomes_skipped_count += 1
-                logging.info(unicode('\n SKIPPED Outcome Data with Year "%s", CIP "%s", and Level "%s"' % (year.display, cip, level.name)).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(unicode('\n SKIPPED Outcome Data with Year "%s", CIP "%s", and Level "%s"' % (row['Year'], row['CIP'], row['Level'])).encode('ascii', 'xmlcharrefreplace'))
                 continue
 
             # Get or create an AcademicYear object
@@ -114,24 +122,28 @@ class Command(BaseCommand):
 
             outcome_programs = self.get_outcome_programs(cip, level)
             if len(outcome_programs):
-                # TODO update
-                # outcome = ProgramOutcomeStat(
-                #     academic_year = year,
-                #     employed_full_time = employed_full_time,
-                #     continuing_education = continuing_education,
-                #     avg_annual_earnings = avg_annual_earnings
-                # )
-                # outcome.save()
-                # outcome.program.add(*outcome_programs)
-                # outcome.save()
+                outcome = None
+                for program in outcome_programs:
+                    if not outcome:
+                        outcome = ProgramOutcomeStat(
+                            academic_year = year,
+                            program = program,
+                            #employed_full_time = employed_full_time,
+                            #continuing_education = continuing_education,
+                            #avg_annual_earnings = avg_annual_earnings
+                        )
+                        outcome.save()
+                    else:
+                        program.outcomes.add(outcome)
+                        program.save()
 
                 # Update import stats
                 self.programs_matched.update(outcome_programs)
                 self.outcomes_matched_count += 1
-                logging.info(unicode('\n MATCH Outcome Data with Year "%s", CIP "%s", and Level "%s" to %d existing programs' % (year.display, cip, level.name, len(outcome_programs))).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(unicode('\n MATCH Outcome Data with Year "%s", CIP "%s", and Level "%s" to %d existing programs' % (year.display, cip.code, level.name, len(outcome_programs))).encode('ascii', 'xmlcharrefreplace'))
             else:
                 self.outcomes_skipped_count += 1
-                logging.info(unicode('\n FAILURE Outcome Data with Year "%s", CIP "%s", and Level "%s" - no program matches found' % (year.display, cip, level.name)).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(unicode('\n FAILURE Outcome Data with Year "%s", CIP "%s", and Level "%s" - no program matches found' % (year.display, cip.code, level.name)).encode('ascii', 'xmlcharrefreplace'))
 
 
     '''
@@ -155,6 +167,19 @@ class Command(BaseCommand):
         return None
 
     '''
+    Given a CIP code string, returns a CIP object under the
+    current CIP version.
+    '''
+    def get_outcome_cip(self, cip_code):
+        cip = None
+        try:
+            cip = CIP.objects.get(code=cip_code, version=self.cip_version)
+        except CIP.DoesNotExist:
+            pass
+
+        return cip
+
+    '''
     Given a year range string, returns a 4-digit year code suitable
     for an AcademicYear's `code` field.
     '''
@@ -172,7 +197,7 @@ class Command(BaseCommand):
     Return Program(s) that match against a given CIP and program level.
     '''
     def get_outcome_programs(self, cip, level):
-        return list(self.programs.filter(cip_code=cip, level=level))
+        return list(self.programs.filter(level=level, cip__in=[cip]))
 
     '''
     Converts a string with a percentage value to a Decimal.
