@@ -75,6 +75,11 @@ class CollegeOverrideAdmin(admin.ModelAdmin):
 class AcademicYearAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(CIP)
+class CIPAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'code')
+    list_filter = ('version',)
+
 @admin.register(ProgramOutcomeStat)
 class ProgramOutcomeStatAdmin(admin.ModelAdmin):
     pass
