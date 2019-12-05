@@ -57,9 +57,11 @@ class Command(BaseCommand):
         self.print_results()
 
     def get_outcome_data(self, csv_url):
-        # TODO add check to ensure file is actually a CSV--non CSV files will still get read!
         try:
             response = urllib2.urlopen(csv_url)
+            http_message = response.info()
+            if http_message.type != 'text/csv':
+                raise Exception('File retrieved does not have a mimetype of "text/csv"')
         except Exception, e:
             logging.error('\n ERROR opening CSV: %s' % e)
             return
@@ -88,6 +90,7 @@ class Command(BaseCommand):
         for row in self.outcome_data:
             # CIP and year code are required.
             # Skip row if they're missing/invalid
+            # TODO update to get or create an existing CIP object
             cip = row['CIP']
             year_code = self.get_outcome_year_code(row['Year'])
             if not cip or not year_code:
@@ -111,6 +114,7 @@ class Command(BaseCommand):
 
             outcome_programs = self.get_outcome_programs(cip, level)
             if len(outcome_programs):
+                # TODO update
                 # outcome = ProgramOutcomeStat(
                 #     academic_year = year,
                 #     employed_full_time = employed_full_time,
