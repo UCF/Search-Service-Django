@@ -51,6 +51,7 @@ class Degree(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class CollegeManager(models.Manager):
     def get_by_natural_key(self, short_name):
         return self.get(short_name=short_name)
@@ -238,6 +239,7 @@ class ProgramDescription(models.Model):
     def __unicode__(self):
         return '{0} {1}'.format(self.program.name, self.description_type.name)
 
+
 class Fee(models.Model):
     fee_name = models.CharField(max_length=255, null=False, blank=False)
 
@@ -246,6 +248,7 @@ class Fee(models.Model):
 
     def __unicode__(self):
         return self.fee_name
+
 
 class TuitionOverride(models.Model):
     tuition_code = models.CharField(max_length=10, null=False, blank=False)
@@ -285,6 +288,7 @@ class TuitionOverride(models.Model):
 
         return '{0} Tuition Override'.format(self.plan_code)
 
+
 class CollegeOverride(models.Model):
     plan_code = models.CharField(max_length=10, null=False, blank=False)
     subplan_code = models.CharField(max_length=10, null=True, blank=True)
@@ -321,6 +325,7 @@ class CollegeOverride(models.Model):
 
         return '{0} - {1} Tuition Override'.format(self.plan_code, self.college.short_name)
 
+
 class AcademicYear(models.Model):
     code = models.CharField(max_length=4, null=False, blank=False)
     display = models.CharField(max_length=9, null=False, blank=False)
@@ -331,6 +336,12 @@ class AcademicYear(models.Model):
     def __str__(self):
         return self.code
 
+
+class CIPVersionManager(models.Manager):
+    def get_queryset(self):
+        return super(CIPVersionManager, self).get_queryset().filter(version=settings.CIP_CURRENT_VERSION)
+
+
 class CIP(models.Model):
     versions = [
         ('2010', '2010'),
@@ -339,12 +350,14 @@ class CIP(models.Model):
 
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=False, blank=False)
-    version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default='2020')
+    version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default=settings.CIP_CURRENT_VERSION)
     code = models.CharField(max_length=7, null=False, blank=False)
     area = models.IntegerField(null=False, blank=True)
     subarea = models.IntegerField(null=True, blank=True)
     precise = models.IntegerField(null=True, blank=True)
 
+    objects = models.Manager()
+    current_version = CIPVersionManager()
     next_version = models.OneToOneField('self', null=True, blank=True, related_name='previous_version')
 
     def save(self, *args, **kwargs):
@@ -383,6 +396,7 @@ class ProgramOutcomeStat(models.Model):
 
     def __str__(self):
         return "{0} Outcomes {1}".format(self.program.name, self.academic_year.display)
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
