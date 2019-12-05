@@ -172,13 +172,7 @@ class Program(models.Model):
     credit_hours = models.IntegerField(null=True, blank=True)
     plan_code = models.CharField(max_length=255, null=False, blank=False)
     subplan_code = models.CharField(max_length=255, null=True, blank=True)
-    cip = models.ForeignKey(
-        CIP,
-        models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='programs'
-    )
+    cip = models.ManyToManyField(CIP, blank=True)
     catalog_url = models.URLField(null=True, blank=True)
     colleges = models.ManyToManyField(College, blank=True)
     departments = models.ManyToManyField(Department, blank=True)
