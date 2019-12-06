@@ -168,10 +168,10 @@ class AcademicYear(models.Model):
     display = models.CharField(max_length=9, null=False, blank=False)
 
     def __unicode__(self):
-        return self.code
+        return self.display
 
     def __str__(self):
-        return self.code
+        return self.display
 
 
 class ProgramOutcomeStat(models.Model):
