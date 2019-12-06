@@ -90,6 +90,53 @@ class Department(models.Model):
         return self.full_name
 
 
+class CIPVersionManager(models.Manager):
+    def get_queryset(self):
+        return super(CIPVersionManager, self).get_queryset().filter(version=settings.CIP_CURRENT_VERSION)
+
+
+class CIP(models.Model):
+    versions = [
+        ('2010', '2010'),
+        ('2020', '2020')
+    ]
+
+    name = models.CharField(max_length=255, null=False, blank=False)
+    description = models.TextField(null=False, blank=False)
+    version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default=settings.CIP_CURRENT_VERSION)
+    code = models.CharField(max_length=7, null=False, blank=False)
+    area = models.IntegerField(null=False, blank=True)
+    subarea = models.IntegerField(null=True, blank=True)
+    precise = models.IntegerField(null=True, blank=True)
+
+    objects = models.Manager()
+    current_version = CIPVersionManager()
+    next_version = models.OneToOneField('self', null=True, blank=True, related_name='previous_version')
+
+    def save(self, *args, **kwargs):
+        if self.code is not None:
+            matches = re.match('^(?P<area>\d{2})\.?(?P<subarea>\d{2})?(?P<precise>\d{2})?$', self.code).groupdict()
+            self.area = int(matches['area'])
+            self.subarea = int(matches['subarea']) if matches['subarea'] is not None else 0
+            self.precise = int(matches['precise']) if matches['precise'] is not None else 0
+
+        super(CIP, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return "{0} - {1} ({2})".format(
+            str(self.code),
+            self.name,
+            self.version
+        )
+
+    def __str__(self):
+        return "{0} - {1} ({2})".format(
+            str(self.code),
+            self.name,
+            self.version
+        )
+
+
 class ProgramProfileType(models.Model):
     """
     Types of program profiles, e.g. Main Site, UCF Online
@@ -125,7 +172,7 @@ class Program(models.Model):
     credit_hours = models.IntegerField(null=True, blank=True)
     plan_code = models.CharField(max_length=255, null=False, blank=False)
     subplan_code = models.CharField(max_length=255, null=True, blank=True)
-    cip_code = models.CharField(max_length=255, null=True, blank=True)
+    cip = models.ManyToManyField(CIP, blank=True)
     catalog_url = models.URLField(null=True, blank=True)
     colleges = models.ManyToManyField(College, blank=True)
     departments = models.ManyToManyField(Department, blank=True)
@@ -335,53 +382,6 @@ class AcademicYear(models.Model):
 
     def __str__(self):
         return self.code
-
-
-class CIPVersionManager(models.Manager):
-    def get_queryset(self):
-        return super(CIPVersionManager, self).get_queryset().filter(version=settings.CIP_CURRENT_VERSION)
-
-
-class CIP(models.Model):
-    versions = [
-        ('2010', '2010'),
-        ('2020', '2020')
-    ]
-
-    name = models.CharField(max_length=255, null=False, blank=False)
-    description = models.TextField(null=False, blank=False)
-    version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default=settings.CIP_CURRENT_VERSION)
-    code = models.CharField(max_length=7, null=False, blank=False)
-    area = models.IntegerField(null=False, blank=True)
-    subarea = models.IntegerField(null=True, blank=True)
-    precise = models.IntegerField(null=True, blank=True)
-
-    objects = models.Manager()
-    current_version = CIPVersionManager()
-    next_version = models.OneToOneField('self', null=True, blank=True, related_name='previous_version')
-
-    def save(self, *args, **kwargs):
-        if self.code is not None:
-            matches = re.match('^(?P<area>\d{2})\.?(?P<subarea>\d{2})?(?P<precise>\d{2})?$', self.code).groupdict()
-            self.area = int(matches['area'])
-            self.subarea = int(matches['subarea']) if matches['subarea'] is not None else 0
-            self.precise = int(matches['precise']) if matches['precise'] is not None else 0
-
-        super(CIP, self).save(*args, **kwargs)
-
-    def __unicode__(self):
-        return "{0} - {1} ({2})".format(
-            str(self.code),
-            self.name,
-            self.version
-        )
-
-    def __str__(self):
-        return "{0} - {1} ({2})".format(
-            str(self.code),
-            self.name,
-            self.version
-        )
 
 
 class ProgramOutcomeStat(models.Model):
