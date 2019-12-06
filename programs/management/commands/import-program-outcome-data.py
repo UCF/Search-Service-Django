@@ -122,13 +122,13 @@ class Command(BaseCommand):
 
             outcome_programs = self.get_outcome_programs(cip, level)
             if len(outcome_programs):
-                outcome = ProgramOutcomeStat(
+                outcome, created = ProgramOutcomeStat.objects.get_or_create(
                     academic_year = year,
-                    cip = cip,
-                    #employed_full_time = employed_full_time,
-                    #continuing_education = continuing_education,
-                    #avg_annual_earnings = avg_annual_earnings
+                    cip = cip
                 )
+                #outcome.employed_full_time = employed_full_time
+                #outcome.continuing_education = continuing_education
+                #outcome.avg_annual_earnings = avg_annual_earnings
                 outcome.save()
 
                 for program in outcome_programs:
