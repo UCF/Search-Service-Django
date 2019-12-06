@@ -140,3 +140,17 @@ class TuitionOverrideDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = TuitionOverride.objects.all()
     lookup_field = 'id'
     serializer_class = TuitionOverrideSerializer
+
+class CIPListView(generics.ListAPIView):
+    queryset = CIP.objects.all()
+    serializer_class = CIPSerializer
+
+class CIPDetailView(generics.RetrieveAPIView):
+    queryset = CIP.objects.all()
+    lookup_field = 'code'
+    serializer_class = CIPSerializer
+
+    def get_object(self):
+        version = self.kwargs['version'] if 'version' in self.kwargs.keys() else settings.CIP_CURRENT_VERSION
+        code = str(self.kwargs['code'])
+        return CIP.objects.get(version=version, code=code)
