@@ -182,10 +182,10 @@ class ProgramOutcomeStat(models.Model):
     avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
 
     def __unicode__(self):
-        return "{0} Outcomes - {1}".format(self.program.name, self.academic_year.display)
+        return "{0} Outcomes - {1}".format(self.cip.code, self.academic_year.display)
 
     def __str__(self):
-        return "{0} Outcomes {1}".format(self.program.name, self.academic_year.display)
+        return "{0} Outcomes {1}".format(self.cip.code, self.academic_year.display)
 
 class Program(models.Model):
     """
