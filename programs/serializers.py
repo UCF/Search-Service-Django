@@ -269,7 +269,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     subplans = RelatedProgramSerializer(many=True, read_only=True)
 
     def get_outcomes(self, program):
-        all_outcome_data = program.outcomes.all()
+        all_outcome_data = program.outcomes.all().order_by('-academic_year__code')
         latest_outcome_data = program.outcomes.order_by('-academic_year__code').first()
         by_year_serializer = ProgramOutcomeStatSerializer(instance=all_outcome_data, many=True)
         latest_serializer = ProgramOutcomeStatSerializer(instance=latest_outcome_data, many=False)
