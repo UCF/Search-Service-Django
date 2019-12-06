@@ -122,6 +122,8 @@ class Command(BaseCommand):
 
             outcome_programs = self.get_outcome_programs(cip, level)
             if len(outcome_programs):
+                #TODO need to either update this to create a unique ProgramOutcomeStat
+                # for each program, or update ForeignKey
                 outcome = None
                 for program in outcome_programs:
                     if not outcome:
