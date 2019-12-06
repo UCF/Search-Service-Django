@@ -163,6 +163,29 @@ class ProgramDescriptionType(models.Model):
     def __unicode__(self):
         return self.name
 
+class AcademicYear(models.Model):
+    code = models.CharField(max_length=4, null=False, blank=False)
+    display = models.CharField(max_length=9, null=False, blank=False)
+
+    def __unicode__(self):
+        return self.code
+
+    def __str__(self):
+        return self.code
+
+
+class ProgramOutcomeStat(models.Model):
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='outcomes')
+    cip = models.ForeignKey(CIP, on_delete=models.CASCADE, related_name='outcomes')
+    employed_full_time = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    continuing_education = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
+
+    def __unicode__(self):
+        return "{0} Outcomes - {1}".format(self.program.name, self.academic_year.display)
+
+    def __str__(self):
+        return "{0} Outcomes {1}".format(self.program.name, self.academic_year.display)
 
 class Program(models.Model):
     """
@@ -195,6 +218,7 @@ class Program(models.Model):
         ('ANN', 'Annual')
     ]
     tuition_type = models.CharField(max_length=3, null=True, blank=True, choices=tuition_types)
+    outcomes = models.ManyToManyField(ProgramOutcomeStat, related_name='programs')
     active = models.BooleanField(default=True)
 
     class Meta:
@@ -371,31 +395,6 @@ class CollegeOverride(models.Model):
             return '{0} {1} - {2} Override'.format(self.plan_code, self.subplan_code, self.college.short_name)
 
         return '{0} - {1} Tuition Override'.format(self.plan_code, self.college.short_name)
-
-
-class AcademicYear(models.Model):
-    code = models.CharField(max_length=4, null=False, blank=False)
-    display = models.CharField(max_length=9, null=False, blank=False)
-
-    def __unicode__(self):
-        return self.code
-
-    def __str__(self):
-        return self.code
-
-
-class ProgramOutcomeStat(models.Model):
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='outcomes')
-    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='outcomes')
-    employed_full_time = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
-    continuing_education = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
-    avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
-
-    def __unicode__(self):
-        return "{0} Outcomes - {1}".format(self.program.name, self.academic_year.display)
-
-    def __str__(self):
-        return "{0} Outcomes {1}".format(self.program.name, self.academic_year.display)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
