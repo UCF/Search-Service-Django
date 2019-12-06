@@ -168,17 +168,17 @@ class AcademicYear(models.Model):
     display = models.CharField(max_length=9, null=False, blank=False)
 
     def __unicode__(self):
-        return self.code
+        return self.display
 
     def __str__(self):
-        return self.code
+        return self.display
 
 
 class ProgramOutcomeStat(models.Model):
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='outcomes')
     cip = models.ForeignKey(CIP, on_delete=models.CASCADE, related_name='outcomes')
-    employed_full_time = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
-    continuing_education = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    employed_full_time = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
+    continuing_education = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
     avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
 
     def __unicode__(self):
