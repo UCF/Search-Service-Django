@@ -120,8 +120,6 @@ class Command(BaseCommand):
             continuing_education = self.percent_to_decimal(row['Continuing Education %'])
             avg_annual_earnings = self.dollars_to_decimal(row['Avg Annual Earnings'])
 
-            print('{0} - {1} - {2}', employed_full_time, continuing_education, avg_annual_earnings)
-
             outcome_programs = self.get_outcome_programs(cip, level)
             if len(outcome_programs):
                 outcome = ProgramOutcomeStat(
