@@ -122,22 +122,18 @@ class Command(BaseCommand):
 
             outcome_programs = self.get_outcome_programs(cip, level)
             if len(outcome_programs):
-                #TODO need to either update this to create a unique ProgramOutcomeStat
-                # for each program, or update ForeignKey
-                outcome = None
+                outcome = ProgramOutcomeStat(
+                    academic_year = year,
+                    cip = cip,
+                    #employed_full_time = employed_full_time,
+                    #continuing_education = continuing_education,
+                    #avg_annual_earnings = avg_annual_earnings
+                )
+                outcome.save()
+
                 for program in outcome_programs:
-                    if not outcome:
-                        outcome = ProgramOutcomeStat(
-                            academic_year = year,
-                            program = program,
-                            #employed_full_time = employed_full_time,
-                            #continuing_education = continuing_education,
-                            #avg_annual_earnings = avg_annual_earnings
-                        )
-                        outcome.save()
-                    else:
-                        program.outcomes.add(outcome)
-                        program.save()
+                    program.outcomes.add(outcome)
+                    program.save()
 
                 # Update import stats
                 self.programs_matched.update(outcome_programs)
