@@ -95,7 +95,7 @@ urlpatterns = [
         CIPDetailView.as_view(),
         name='api.cip.detail.default_year'
         ),
-    url(r'cips/(?P<version>\d{4})/(?P<code>\d{2}\.?\d{0,2}\d{0,2})/$',
+    url(r'cips/(?P<code>\d{2}\.?\d{0,2}\d{0,2})/(?P<version>\d{4})/$',
         CIPDetailView.as_view(),
         name='api.cip.detail'
         )
