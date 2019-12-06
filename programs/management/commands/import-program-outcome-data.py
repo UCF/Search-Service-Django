@@ -67,7 +67,8 @@ class Command(BaseCommand):
 
     def get_outcome_data(self, csv_url):
         try:
-            response = urllib2.urlopen(csv_url)
+            context = ssl.SSLContext()
+            response = urllib2.urlopen(csv_url, context=context)
             http_message = response.info()
             if http_message.type != 'text/csv':
                 raise Exception('File retrieved does not have a mimetype of "text/csv"')
