@@ -7,6 +7,7 @@ import itertools
 import logging
 import sys
 import csv
+import ssl
 
 
 class Command(BaseCommand):
