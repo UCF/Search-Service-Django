@@ -291,7 +291,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'profiles',
             'plan_code',
             'subplan_code',
-            'cip_code',
+            'cip',
             'catalog_url',
             'colleges',
             'departments',
