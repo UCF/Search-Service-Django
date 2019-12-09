@@ -68,7 +68,7 @@ class Command(BaseCommand):
 
     def get_outcome_data(self, csv_url):
         try:
-            context = ssl.SSLContext()
+            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
             response = urllib2.urlopen(csv_url, context=context)
             http_message = response.info()
             if http_message.type != 'text/csv':
