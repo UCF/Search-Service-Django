@@ -6,6 +6,7 @@ from rest_framework import generics
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.pagination import LimitOffsetPagination
 from django_filters.rest_framework import DjangoFilterBackend
 # from django_filters.rest_framework.filters import SearchFilter
 
@@ -30,6 +31,10 @@ class MultipleFieldLookupMixin(object):
         obj = get_object_or_404(queryset, **filter)
         self.check_object_permissions(self.request, obj)
         return obj
+
+class LimitedPaginationMixin(LimitOffsetPagination):
+    default_limit = 25
+    max_limit = 50
 
 class CoreAPI(APIView):
 
@@ -140,3 +145,18 @@ class TuitionOverrideDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = TuitionOverride.objects.all()
     lookup_field = 'id'
     serializer_class = TuitionOverrideSerializer
+
+class CIPListView(generics.ListAPIView):
+    queryset = CIP.objects.all()
+    serializer_class = CIPSerializer
+    pagination_class = LimitedPaginationMixin
+
+class CIPDetailView(generics.RetrieveAPIView):
+    queryset = CIP.objects.all()
+    lookup_field = 'code'
+    serializer_class = CIPSerializer
+
+    def get_object(self):
+        version = self.kwargs['version'] if 'version' in self.kwargs.keys() else settings.CIP_CURRENT_VERSION
+        code = str(self.kwargs['code'])
+        return CIP.objects.get(version=version, code=code)

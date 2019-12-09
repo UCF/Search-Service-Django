@@ -231,6 +231,75 @@ class AcademicYearSerializer(serializers.ModelSerializer):
         fields = ('__all__')
         model = AcademicYear
 
+class CIPSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = (
+            'name',
+            'description',
+            'version',
+            'code',
+            'area',
+            'subarea',
+            'precise'
+        )
+        model = CIP
+
+class CIPSerializer(serializers.ModelSerializer):
+    area_detail = serializers.SerializerMethodField()
+    subarea_detail = serializers.SerializerMethodField()
+    precise_detail = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = (
+            'name',
+            'description',
+            'version',
+            'code',
+            'area',
+            'subarea',
+            'precise',
+            'area_detail',
+            'subarea_detail',
+            'precise_detail'
+        )
+        model = CIP
+
+    def get_area_detail(self, obj):
+        try:
+            cip = CIP.objects.get(area=obj.area, subarea=0, precise=0, version=obj.version)
+        except:
+            return None
+
+        if cip == obj:
+            return None
+
+        ser = CIPSimpleSerializer(cip)
+        return ser.data
+
+    def get_subarea_detail(self, obj):
+        try:
+            cip = CIP.objects.get(area=obj.area, subarea=obj.subarea, precise=0, version=obj.version)
+        except:
+            return None
+
+        if cip == obj:
+            return None
+
+        ser = CIPSimpleSerializer(cip)
+        return ser.data
+
+    def get_precise_detail(self, obj):
+        try:
+            cip = CIP.objects.get(area=obj.area, subarea=obj.subarea, precise=obj.precise, version=obj.version)
+        except:
+            return None
+
+        if cip == obj:
+            return None
+
+        ser = CIPSimpleSerializer(cip)
+        return ser.data
+
 class ProgramOutcomeStatSerializer(serializers.ModelSerializer):
     academic_year_code = serializers.ReadOnlyField(source='academic_year.code', read_only=True)
     academic_year_display = serializers.ReadOnlyField(source='academic_year.display', read_only=True)
@@ -244,7 +313,6 @@ class ProgramOutcomeStatSerializer(serializers.ModelSerializer):
             'avg_annual_earnings'
         )
         model = ProgramOutcomeStat
-
 
 class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
@@ -291,7 +359,6 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'profiles',
             'plan_code',
             'subplan_code',
-            'cip',
             'catalog_url',
             'colleges',
             'departments',
