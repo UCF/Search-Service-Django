@@ -99,6 +99,20 @@
                 <td>Whether all records should be pulled for staff members or only the primary (alpha) record</td>
                 <td><code>True</code>/<code>False</code></td>
               </tr>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -324,6 +338,124 @@
           The building list view provides a list of building records including name and abbreviation.
         </p>
 
+        <h4 id="directory-buildings-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-buildings-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The building list view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-buildings-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>name</code></td>
+                <td>The full name of the building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>description</code></td>
+                <td>A brief extended description of the building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>abbr</code></td>
+                <td>The building's official abbreviated name.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>import_id</code></td>
+                <td>The building's official ID number.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <hr class="my-5">
 
         <h3 id="directory-orgs" class="h2 mt-5">Organizations List</h3>
@@ -334,6 +466,166 @@
         <p>
           The organization list view provides a list of organization records including building and contact information.
         </p>
+
+        <h4 id="directory-orgs-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-orgs-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The organization list view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-orgs-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>bldg</code></td>
+                <td>The Building this organization is located in. See <a href="#directory-buildings-schema">the result schema for Buildings List results</a> for more information.</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>name</code></td>
+                <td>The full name of the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>room</code></td>
+                <td>The room number for the organization within its building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>postal</code></td>
+                <td>The postal code of the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>phone</code></td>
+                <td>The phone number of the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>fax</code></td>
+                <td>The fax number of the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>primary_comment</code></td>
+                <td>Additional notes/details about the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>secondary_comment</code></td>
+                <td>Additional notes/details about the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>url</code></td>
+                <td>URL pointing to this organization's website.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>last_updated</code></td>
+                <td>When this organization's information was last refreshed in the search service.</td>
+                <td>String (datetime stamp)</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>import_id</code></td>
+                <td>The organization's official ID number.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <hr class="my-5">
 
@@ -346,6 +638,168 @@
           The department list view provides a list of department records including building, organization and contact information.
         </p>
 
+        <h4 id="directory-depts-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-depts-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The department list view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-depts-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>bldg</code></td>
+                <td>The Building this department is located in. See <a href="#directory-buildings-schema">the result schema
+                    for Buildings List results</a> for more information.</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>org</code></td>
+                <td>The Organization this department is grouped under. See <a href="#directory-orgs-schema">the result schema
+                    for Organizations List results</a> for more information.</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>list_order</code></td>
+                <td>Position this department should be ordered in when displayed in a list of departments.</td>
+                <td>Integer</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>name</code></td>
+                <td>The full name of the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>room</code></td>
+                <td>The room number for the department within its building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>phone</code></td>
+                <td>The phone number of the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>fax</code></td>
+                <td>The fax number of the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>primary_comment</code></td>
+                <td>Additional notes/details about the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>secondary_comment</code></td>
+                <td>Additional notes/details about the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>last_updated</code></td>
+                <td>When this department's information was last refreshed in the search service.</td>
+                <td>String (datetime stamp)</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>import_id</code></td>
+                <td>The department's official ID number.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <hr class="my-5">
 
         <h3 id="directory-staff" class="h2 mt-5">Staff List</h3>
@@ -356,6 +810,209 @@
         <p>
           The staff list view provides a list of staff records including department, building, and contact information.
         </p>
+
+        <h4 id="directory-staff-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-staff-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The staff list view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-staff-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>dept</code></td>
+                <td>Details about the Department this staff member is part of. Links to a single Department detail view with more information about the department (<code>detail_url</code>).</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>bldg</code></td>
+                <td>The Building this department is located in. See <a href="#directory-buildings-schema">the result schema
+                    for Buildings List results</a> for more information.</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>alpha</code></td>
+                <td>Indicates if this is the primary record of a staff member.</td>
+                <td>Boolean</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>last_name</code></td>
+                <td>The last name of the staff member.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>suffix</code></td>
+                <td>The staff member's name suffix.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>name_title</code></td>
+                <td>The name title of the staff member (e.g. Mr., Mrs.).</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>first_name</code></td>
+                <td>The first name of the staff member.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>middle</code></td>
+                <td>The middle name of the staff member.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>job_position</code></td>
+                <td>The staff member's job position.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>room</code></td>
+                <td>The room number for the staff member within their building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>phone</code></td>
+                <td>The phone number of the staff member.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>email</code></td>
+                <td>The staff member's full email address.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>email_machine</code></td>
+                <td>The domain of the staff member's email address.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>postal</code></td>
+                <td>The staff member's postal code.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>last_updated</code></td>
+                <td>When this staff member's information was last refreshed in the search service.</td>
+                <td>String (datetime stamp)</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>listed</code></td>
+                <td></td>
+                <td>Boolean</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>cellphone</code></td>
+                <td></td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>import_id</code></td>
+                <td>The staff member's imported ID number.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
       </section>
 
