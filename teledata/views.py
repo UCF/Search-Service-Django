@@ -50,10 +50,10 @@ class CombinedTeledataSearchView(CombinedTeledataListView):
     filter_backends = [DjangoFilterBackend,OrderingFilter]
     pagination_class = BackwardsCompatiblePagination
     ordering_fields = ['id', 'score']
-    ordering = ['-score']
 
     def get_queryset(self):
         if self.request.GET.get('search') is not None:
-            return CombinedTeledata.objects.search(self.request.GET.get('search'))
+            return CombinedTeledata.objects.search(self.request.GET.get('search')).order_by('-score')
         else:
-            return CombinedTeledata.objects.none()
+            # There is no score because the query isn't run. Order by id
+            return CombinedTeledata.objects.none().order_by('id')
