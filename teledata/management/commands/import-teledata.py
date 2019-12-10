@@ -14,6 +14,7 @@ class Command(BaseCommand):
     conn = None
     help = 'Imports teledata from the shadow tables provided by IKM'
 
+    last_updated  = timezone.now()
     bldg_created  = 0
     bldg_updated  = 0
     bldg_skipped  = 0
@@ -22,14 +23,17 @@ class Command(BaseCommand):
     org_updated   = 0
     org_skipped   = 0
     org_error     = 0
+    org_deleted   = 0
     dept_created  = 0
     dept_updated  = 0
     dept_skipped  = 0
     dept_error    = 0
+    dept_deleted  = 0
     staff_created = 0
     staff_updated = 0
     staff_skipped = 0
     staff_error   = 0
+    staff_deleted = 0
     logger        = logging.getLogger(__name__)
 
     def add_arguments(self, parser):
@@ -185,7 +189,7 @@ FROM
                 existing.primary_comment = item[7]
                 existing.secondary_comment = item[8]
                 existing.url = item[9]
-                existing.last_updated = timezone.now()
+                existing.last_updated = self.last_updated
                 existing.import_id = item[0]
 
                 try:
@@ -213,7 +217,7 @@ FROM
                     primary_comment = item[7],
                     secondary_comment = item[8],
                     url = item[9],
-                    last_updated = timezone.now(),
+                    last_updated = self.last_updated,
                     import_id = item[0]
                 )
 
@@ -253,7 +257,7 @@ FROM
                 existing.fax = item[7]
                 existing.primary_comment = item[8]
                 existing.secondary_comment = item[9]
-                existing.last_updated = timezone.now()
+                existing.last_updated = self.last_updated
 
                 try:
                     existing.save()
@@ -274,7 +278,7 @@ FROM
                     fax=item[7],
                     primary_comment=item[8],
                     secondary_comment=item[9],
-                    last_updated=timezone.now(),
+                    last_updated=self.last_updated,
                     import_id=item[0]
                 )
 
@@ -331,7 +335,7 @@ FROM
                 existing.email = email
                 existing.email_machine = email_machine
                 existing.postal = item[15]
-                existing.last_updated = timezone.now()
+                existing.last_updated = self.last_updated
                 existing.cellphone = item[17]
 
                 try:
@@ -358,7 +362,7 @@ FROM
                     email=email,
                     email_machine=email_machine,
                     postal=item[15],
-                    last_updated=timezone.now(),
+                    last_updated=self.last_updated,
                     listed=True,
                     cellphone=item[17],
                     import_id=item[0]
@@ -371,6 +375,19 @@ FROM
                     self.staff_error += 1
 
                 self.staff_created += 1
+
+    def delete_stale(self):
+        stale_orgs  = Organization.objects.filter(last_updated__lt=self.last_updated)
+        stale_depts = Department.objects.filter(last_updated__lt=self.last_updated)
+        stale_staff = Staff.objects.filter(last_updated__lt=self.last_updated)
+
+        self.org_deleted = stale_orgs.count()
+        self.dept_deleted = stale_depts.count()
+        self.staff_deleted = stale_staff.count()
+
+        stale_orgs.delete()
+        stale_depts.delete()
+        stale_staff.delete()
 
     def print_stats(self):
         stats = """
@@ -387,20 +404,23 @@ Updated: {4}
 Created: {5}
 Skipped: {6}
 Errors : {7}
+Deleted: {8}
 
 Departments
 -----------
-Updated: {8}
-Created: {9}
-Skipped: {10}
-Errors : {11}
+Updated: {9}
+Created: {10}
+Skipped: {11}
+Errors : {12}
+Deleted: {13}
 
 Staff
 -----
-Updated: {12}
-Created: {13}
-Skipped: {14}
-Errors : {15}
+Updated: {14}
+Created: {15}
+Skipped: {16}
+Errors : {17}
+Deleted: {18}
         """.format(
             self.bldg_updated,
             self.bldg_created,
@@ -410,14 +430,17 @@ Errors : {15}
             self.org_created,
             self.org_skipped,
             self.org_error,
+            self.org_deleted,
             self.dept_updated,
             self.dept_created,
             self.dept_skipped,
             self.dept_error,
+            self.dept_deleted,
             self.staff_updated,
             self.staff_created,
             self.staff_skipped,
-            self.staff_error
+            self.staff_error,
+            self.staff_deleted
         )
 
         print(stats)
@@ -452,6 +475,9 @@ Errors : {15}
         staff_data = cursor.fetchall()
 
         self.import_staff(staff_data)
+
+        # Delete all stale data
+        self.delete_stale()
 
         CombinedTeledata.objects.update_data()
 
