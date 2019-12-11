@@ -1,13 +1,9 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
-import decimal
-import urllib2
-import itertools
 import logging
 import sys
 import csv
-import ssl
 
 
 class Command(BaseCommand):
@@ -16,6 +12,7 @@ class Command(BaseCommand):
     socs_data = []
     socs_count = 0
     socs_added = 0
+    socs_updated = 0
     socs_skipped = 0
 
     def add_arguments(self, parser):
@@ -82,9 +79,6 @@ class Command(BaseCommand):
         self.socs_count = len(self.socs_data)
 
     def assign_socs(self):
-        if self.socs_count > 0:
-            SOC.objects.all().delete()
-
         for soc in self.socs_data:
             cip_code = soc['CIP Code'].strip()
             cip_title = soc['CIP Title'].strip()
@@ -98,23 +92,34 @@ class Command(BaseCommand):
                 cip = None
 
             if cip is not None and soc_code != 'NO MATCH':
+                try:
+                    existing = SOC.objects.get(code=soc_code, version=self.soc_version)
+                    existing.name = cip_title
+                    existing.cip = cip
+                    existing.save()
 
-                new_soc = SOC(
-                    name=cip_title,
-                    code=soc_code,
-                    version=self.soc_version,
-                    cip=cip
-                )
+                    self.socs_updated += 1
+                except SOC.DoesNotExist:
+                    new_soc = SOC(
+                        name=cip_title,
+                        code=soc_code,
+                        version=self.soc_version,
+                        cip=cip
+                    )
 
-                new_soc.save()
-
-                self.socs_added += 1
+                    new_soc.save()
+                    self.socs_added += 1
             else:
                 self.socs_skipped +=1
 
     def print_results(self):
-        print 'Finished import of SOC data.'
-        if self.socs_added:
-            print 'Created and associated {0} SOC codes.'.format(self.socs_added)
-        if self.socs_skipped:
-            print 'Skipped {0} SOC codes.'.format(self.socs_skipped)
+        created_percent = (float(self.socs_added) / float(self.socs_count)) * 100 if self.socs_added > 0 else 0
+        updated_percent = (float(self.socs_updated) / float(self.socs_count)) * 100 if self.socs_updated > 0 else 0
+        skipped_percent = (float(self.socs_skipped) / float(self.socs_count)) * 100 if self.socs_skipped > 0 else 0
+
+        print '\nFinished import of SOC (Occupational) data.\n'
+
+        print 'Processed: {0}'.format(self.socs_count)
+        print 'Created:   {0} ({1}%)'.format(self.socs_added, round(created_percent))
+        print 'Updated:   {0} ({1}%)'.format(self.socs_updated, round(updated_percent))
+        print 'Skipped:   {0} ({1}%)'.format(self.socs_skipped, round(skipped_percent))
