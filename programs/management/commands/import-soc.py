@@ -7,7 +7,7 @@ import csv
 
 
 class Command(BaseCommand):
-    help = 'Imports program outcome statistics from a CSV'
+    help = 'Imports Occupational codes (SOC) and associates them with Instructional Program codes (CIP)'
 
     socs_data = []
     socs_count = 0
