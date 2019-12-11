@@ -46,7 +46,9 @@ class CoreAPI(APIView):
             'profiles-create': reverse('api.profiles.create', request=request),
             'profileTypes': reverse('api.profiles.types.list', request=request),
             'college-mappings': reverse('api.collegeoverride.list', request=request),
-            'tuition-mappings': reverse('api.tuitionoverride.list', request=request)
+            'tuition-mappings': reverse('api.tuitionoverride.list', request=request),
+            'images': reverse('api.images.list', request=request),
+            'images-search': reverse('api.images.search', request=request),
         })
 
 # Create your views here.

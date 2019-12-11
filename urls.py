@@ -20,6 +20,9 @@ urlpatterns = [
     url(r'^api/v1/teledata/',
         include('teledata.urls')
         ),
+    url(r'^api/v1/images/',
+        include('images.urls')
+        ),
     url(r'^api/v1/',
         include('programs.urls')
         ),
