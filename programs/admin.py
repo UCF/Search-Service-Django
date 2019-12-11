@@ -80,6 +80,10 @@ class CIPAdmin(admin.ModelAdmin):
     search_fields = ('name', 'code')
     list_filter = ('version',)
 
+@admin.register(SOC)
+class SOCAdmin(admin.ModelAdmin):
+    pass
+
 @admin.register(ProgramOutcomeStat)
 class ProgramOutcomeStatAdmin(admin.ModelAdmin):
     pass

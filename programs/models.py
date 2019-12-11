@@ -136,6 +136,32 @@ class CIP(models.Model):
             self.version
         )
 
+class JobPosition(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False)
+
+    def __unicode__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
+
+class SOC(models.Model):
+    versions = [
+        ('2010', '2010'),
+    ]
+
+    name = models.CharField(max_length=255, null=False, blank=False)
+    code = models.CharField(max_length=7, null=False, blank=False)
+    version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default=settings.SOC_CURRENT_VERSION)
+    cip = models.ForeignKey(CIP, on_delete=models.CASCADE, related_name='occupations')
+    jobs = models.ManyToManyField(JobPosition, related_name='occupations')
+
+    def __unicode__(self):
+        return "{0} - {1}".format(self.name, self.code)
+
+    def __str__(self):
+        return "{0} - {1}".format(self.name, self.code)
+
 
 class ProgramProfileType(models.Model):
     """

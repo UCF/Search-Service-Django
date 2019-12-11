@@ -108,3 +108,5 @@ LOGGING = {
 # Set a base CIP version to use when filtering other objects by CIP.
 # More info: https://nces.ed.gov/ipeds/cipcode/
 CIP_CURRENT_VERSION = '2010'
+
+SOC_CURRENT_VERSION = '2010'
