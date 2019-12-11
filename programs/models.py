@@ -163,6 +163,25 @@ class SOC(models.Model):
         return "{0} - {1}".format(self.name, self.code)
 
 
+class EmploymentProjection(models.Model):
+    report_years = [
+        ('1828', '2018-2028'),
+    ]
+
+    soc = models.ForeignKey(SOC, on_delete=models.CASCADE, related_name='projections')
+    report = models.CharField(max_length=4, default=settings.PROJ_CURRENT_REPORT, choices=report_years, null=False, blank=False)
+    begin_employment = models.IntegerField(null=False, blank=False)
+    end_employment = models.IntegerField(null=False, blank=False)
+    change = models.IntegerField(null=False, blank=False)
+    change_percentage = models.DecimalField(max_digits=12, decimal_places=2, null=False, blank=False)
+    openings = models.IntegerField(null=False, blank=False)
+
+    def __unicode__(self):
+        return '{0} - {1} Projections'.format(self.soc.name, self.report)
+
+    def __str__(self):
+        return '{0} - {1} Projections'.format(self.soc.name, self.report)
+
 class ProgramProfileType(models.Model):
     """
     Types of program profiles, e.g. Main Site, UCF Online

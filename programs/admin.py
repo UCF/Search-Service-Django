@@ -84,6 +84,10 @@ class CIPAdmin(admin.ModelAdmin):
 class SOCAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(EmploymentProjection)
+class EmploymentProjectionAdmin(admin.ModelAdmin):
+    pass
+
 @admin.register(ProgramOutcomeStat)
 class ProgramOutcomeStatAdmin(admin.ModelAdmin):
     pass
