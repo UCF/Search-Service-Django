@@ -4,6 +4,7 @@ from programs.models import *
 import logging
 import sys
 import csv
+import mimetypes
 
 
 class Command(BaseCommand):
@@ -52,6 +53,11 @@ class Command(BaseCommand):
         self.loglevel = options['loglevel']
         self.cip_version = options['cip_version']
         self.soc_version = options['soc_version']
+
+        mime_type, encoding = mimetypes.guess_type(self.file)
+
+        if mime_type != 'text/csv':
+            raise Exception('File provided does not have a mimetype of "text/csv"')
 
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)

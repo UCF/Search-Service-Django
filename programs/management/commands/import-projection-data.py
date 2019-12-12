@@ -14,6 +14,8 @@ class Command(BaseCommand):
     projection_data = []
     projections_added = 0
     projections_skipped = 0
+    jobs_added = 0
+    jobs_assigned = 0
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -70,10 +72,10 @@ class Command(BaseCommand):
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
-        # Fetch all outcome data:
+        # Reads all the projection data:
         self.get_projections(self.file)
 
-        # Assign outcome data to existing programs:
+        # Assigns the projection data to records
         self.assign_projections()
 
         # Print results
@@ -133,6 +135,9 @@ class Command(BaseCommand):
                 soc.jobs.clear()
 
                 for job in jobs:
+                    if job is None:
+                        continue
+
                     try:
                         position = JobPosition.objects.get(name=job)
                     except JobPosition.DoesNotExist:
@@ -141,8 +146,10 @@ class Command(BaseCommand):
                         )
 
                         position.save()
+                        self.jobs_added += 1
 
                     soc.jobs.add(position)
+                    self.jobs_assigned += 1
 
                 self.projections_added += 1
             else:
@@ -167,5 +174,25 @@ class Command(BaseCommand):
         return None
 
     def print_results(self):
-        print 'Finished importing projection data.'
+        retval = """
+Finished importing projection data.
+-----------------------------------
+
+Projection records processed: {0}
+Projection records added:     {1}
+Projection records skipped:   {2}
+
+-----------------------------------
+
+Job Positions Created:        {3}
+Job Positions Assigned:       {4}
+        """.format(
+            self.projection_count,
+            self.projections_added,
+            self.projections_skipped,
+            self.jobs_added,
+            self.jobs_assigned
+        )
+
+        print(retval)
 
