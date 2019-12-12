@@ -43,7 +43,7 @@ class Image(models.Model):
     download_url = models.URLField(null=True, blank=True)
     thumbnail_url = models.URLField(null=True, blank=True)
     caption = models.CharField(max_length=500, null=True, blank=True)
-    tags = models.ManyToManyField(ImageTag, blank=True)
+    tags = models.ManyToManyField(ImageTag, blank=True, related_name='images')
 
     def __str__(self):
         return self.filename
