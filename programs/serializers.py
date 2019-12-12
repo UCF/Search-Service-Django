@@ -335,6 +335,8 @@ class EmploymentProjectionSerializer(serializers.ModelSerializer):
         return projection.soc.name
 
 class EmploymentProjectionTotalsSerializer(serializers.Serializer):
+    begin_year = serializers.IntegerField()
+    end_year = serializers.IntegerField()
     begin_employment = serializers.IntegerField()
     end_employment = serializers.IntegerField()
     change = serializers.IntegerField()
@@ -393,6 +395,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             change_percentage=Avg('change_percentage'),
             openings=Sum('openings')
         )
+        obj['begin_year'] = program.current_projections.first().report_year_begin
+        obj['end_year'] = program.current_projections.first().report_year_end
 
         serializer = EmploymentProjectionTotalsSerializer(obj, many=False)
         return serializer.data

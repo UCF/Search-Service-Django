@@ -109,6 +109,9 @@ LOGGING = {
 # More info: https://nces.ed.gov/ipeds/cipcode/
 CIP_CURRENT_VERSION = '2010'
 
+# Set a base SOC version to use when filtering other objects by SOC.
+# More info: https://www.bls.gov/soc/
 SOC_CURRENT_VERSION = '2010'
 
+# Set the current employment projection report year range
 PROJ_CURRENT_REPORT = '1828'
