@@ -399,7 +399,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
         first_projection = program.current_projections.first()
 
         obj['begin_year'] = first_projection.report_year_begin if first_projection is not None else None
-        obj['end_year'] = first_projection.report_year_end if first_projection is not None
+        obj['end_year'] = first_projection.report_year_end if first_projection is not None else None
 
         serializer = EmploymentProjectionTotalsSerializer(obj, many=False)
         return serializer.data
