@@ -395,8 +395,11 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             change_percentage=Avg('change_percentage'),
             openings=Sum('openings')
         )
-        obj['begin_year'] = program.current_projections.first().report_year_begin
-        obj['end_year'] = program.current_projections.first().report_year_end
+
+        first_projection = program.current_projections.first()
+
+        obj['begin_year'] = first_projection.report_year_begin if first_projection is not None else None
+        obj['end_year'] = first_projection.report_year_end if first_projection is not None
 
         serializer = EmploymentProjectionTotalsSerializer(obj, many=False)
         return serializer.data
