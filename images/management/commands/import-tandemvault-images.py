@@ -20,11 +20,9 @@ class Command(BaseCommand):
     tandemvault_page_count      = 0 # total number of paged Tandem Vault API results
     images_created              = 0
     images_updated              = 0
-    images_skipped              = 0
     images_deleted              = 0
     tags_created                = 0
     tags_updated                = 0
-    tags_skipped                = 0
     tags_deleted                = 0
 
     def add_arguments(self, parser):
@@ -153,18 +151,23 @@ class Command(BaseCommand):
         # Fetch the page:
         page_json = self.fetch_tandemvault_assets_page(page)
 
+        if not page_json:
+            logging.warning('Failed to retrieve page %d of Tandem Vault assets. Skipping images.' % page)
+            return
+
         # Process each image in the results:
         for image in page_json:
             self.process_image(image)
 
     '''
     Processes a single Tandem Vault image.
-
-    TODO catch/handle exceptions
     '''
     def process_image(self, tandemvault_image):
         # Fetch the single API result
         single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
+        if not single_json:
+            logging.warning('Failed to retrieve single image info for Tandem Vault image with ID %d. Skipping image.' % tandemvault_image['id'])
+            return
 
         download_url = self.tandemvault_download_url.format(single_json['id'])
 
@@ -177,12 +180,14 @@ class Command(BaseCommand):
             image.filename = single_json['filename']
             image.extension = single_json['ext']
             image.copyright = single_json['copyright']
-            image.contributor = single_json['contributor']
+            image.contributor = single_json['contributor']['to_s']
             image.width_full = int(single_json['width'])
             image.height_full = int(single_json['height'])
             image.download_url = download_url
             image.thumbnail_url = single_json['grid_url'] # use 'grid_url' instead of 'thumb_url' due to slightly larger size
             image.caption = single_json['short_caption']
+
+            self.images_updated += 1
         except Image.DoesNotExist:
             image = Image(
                 filename = single_json['filename'],
@@ -190,13 +195,15 @@ class Command(BaseCommand):
                 source = self.source,
                 source_id = single_json['id'],
                 copyright = single_json['copyright'],
-                contributor = single_json['contributor'],
+                contributor=single_json['contributor']['to_s'],
                 width_full = int(single_json['width']),
                 height_full = int(single_json['height']),
                 download_url = download_url,
                 thumbnail_url = single_json['grid_url'],
                 caption = single_json['short_caption']
             )
+
+            self.images_created += 1
 
         image.save()
 
@@ -229,6 +236,11 @@ class Command(BaseCommand):
                 )
                 image.tags.add(tandemvault_tag)
 
+                if created:
+                    self.tags_created += 1
+                else:
+                    self.tags_updated += 1
+
         # If Azure Computer Vision tagging is enabled,
         # send the image to Azure:
         if self.assign_tags:
@@ -252,43 +264,55 @@ class Command(BaseCommand):
                     )
                     image.tags.add(azure_tag)
 
+                    if created:
+                        self.tags_created += 1
+                    else:
+                        self.tags_updated += 1
+
         image.save()
 
     '''
     Fetches a single page of results on the Tandem Vault assets API.
-
-    TODO catch/handle exceptions
     '''
     def fetch_tandemvault_assets_page(self, page):
         params = self.tandemvault_assets_params.copy()
         params.update({
             'page': page
         })
-        response = requests.get(
-            self.tandemvault_assets_api_url,
-            params=params
-        )
-        response_json = response.json()
 
-        # Set some required importer properties if
-        # this is the first page request:
-        if page == 1:
-            self.tandemvault_total_images = int(response.headers['total-results'])
-            self.tandemvault_page_count = math.ceil(self.tandemvault_total_images / len(response_json))
+        response_json = None
+
+        try:
+            response = requests.get(
+                self.tandemvault_assets_api_url,
+                params=params
+            )
+            response_json = response.json()
+
+            # Set some required importer properties if
+            # this is the first page request:
+            if page == 1:
+                self.tandemvault_total_images = int(response.headers['total-results'])
+                self.tandemvault_page_count = math.ceil(self.tandemvault_total_images / len(response_json))
+        except Exception, e:
+            logging.warning('\nERROR retrieving assets page data: %s' % e)
 
         return response_json
 
     '''
     Fetches an API result for a single Tandem Vault image.
-
-    TODO catch/handle exceptions
     '''
     def fetch_tandemvault_asset(self, tandemvault_image_id):
-        response = requests.get(
-            self.tandemvault_asset_api_url.format(tandemvault_image_id),
-            params=self.tandemvault_asset_params
-        )
-        response_json = response.json()
+        response_json = None
+
+        try:
+            response = requests.get(
+                self.tandemvault_asset_api_url.format(tandemvault_image_id),
+                params=self.tandemvault_asset_params
+            )
+            response_json = response.json()
+        except Exception, e:
+            logging.warning('\nERROR retrieving single asset data: %s' % e)
 
         return response_json
 
@@ -311,29 +335,23 @@ Images
 ---------
 Created: {0}
 Updated: {1}
-Skipped: {2}
-Deleted: {3}
+Deleted: {2}
 
 Image Tags
 -------------
-Created: {4}
-Updated: {5}
-Skipped: {6}
-Deleted: {7}
+Created: {3}
+Updated: {4}
+Deleted: {5}
         """.format(
             self.images_created,
             self.images_updated,
-            self.images_skipped,
             self.images_deleted,
             self.tags_created,
             self.tags_updated,
-            self.tags_skipped,
             self.tags_deleted
         )
 
         print(stats)
-
-        return
 
     '''
     Deletes Image objects sourced from Tandem Vault that are no
@@ -352,5 +370,3 @@ Deleted: {7}
 
         stale_images.delete()
         stale_tags.delete()
-
-        return
