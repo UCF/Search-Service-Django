@@ -95,7 +95,7 @@ class Command(BaseCommand):
                 try:
                     existing = SOC.objects.get(code=soc_code, version=self.soc_version)
                     existing.name = cip_title
-                    existing.cip = cip
+                    existing.cip.add(cip)
                     existing.save()
 
                     self.socs_updated += 1
@@ -103,11 +103,12 @@ class Command(BaseCommand):
                     new_soc = SOC(
                         name=cip_title,
                         code=soc_code,
-                        version=self.soc_version,
-                        cip=cip
+                        version=self.soc_version
                     )
 
                     new_soc.save()
+
+                    new_soc.cip.add(cip)
                     self.socs_added += 1
             else:
                 self.socs_skipped +=1

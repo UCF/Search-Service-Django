@@ -153,7 +153,7 @@ class SOC(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     code = models.CharField(max_length=7, null=False, blank=False)
     version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default=settings.SOC_CURRENT_VERSION)
-    cip = models.ForeignKey(CIP, on_delete=models.CASCADE, related_name='occupations')
+    cip = models.ManyToManyField(CIP, related_name='occupations')
     jobs = models.ManyToManyField(JobPosition, related_name='occupations')
 
     def __unicode__(self):
@@ -181,6 +181,14 @@ class EmploymentProjection(models.Model):
 
     def __str__(self):
         return '{0} - {1} Projections'.format(self.soc.name, self.report)
+
+    @property
+    def report_year_begin(self):
+        return '20{0}'.format(self.report[:2])
+
+    @property
+    def report_year_end(self):
+        return '20{0}'.format(self.report[2:4])
 
 class ProgramProfileType(models.Model):
     """
@@ -306,6 +314,29 @@ class Program(models.Model):
             return True
 
         return False
+
+    @property
+    def current_cip(self):
+        return self.cip.get(version=settings.CIP_CURRENT_VERSION)
+
+    @property
+    def current_occupations(self):
+        return self.current_cip.occupations.filter(version=settings.SOC_CURRENT_VERSION)
+
+    @property
+    def current_projections(self):
+        projections = EmploymentProjection.objects.filter(soc__in=self.current_occupations, report=settings.PROJ_CURRENT_REPORT).distinct()
+        return projections
+
+    @property
+    def careers(self):
+        retval = []
+        for occupation in self.current_occupations:
+            for job in occupation.jobs.all():
+                if job.name not in retval:
+                    retval.append(job.name)
+
+        return retval
 
 
 class ProgramProfile(models.Model):

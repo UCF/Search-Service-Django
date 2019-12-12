@@ -90,8 +90,8 @@ class Command(BaseCommand):
         self.projection_count = len(self.projection_data)
 
     def assign_projections(self):
-        if self.projection_count > 0:
-            EmploymentProjection.objects.filter(report=self.report_version)
+        # Clear all employment projections
+        EmploymentProjection.objects.filter(report=self.report_version).delete()
 
         for proj in self.projection_data:
             title_jobs = proj['title']
@@ -109,17 +109,37 @@ class Command(BaseCommand):
                 soc = None
 
             if soc is not None:
-                obj = EmploymentProjection(
-                    soc=soc,
-                    report=self.report_version,
-                    begin_employment=self.decimal_to_thousands(begin_value),
-                    end_employment=self.decimal_to_thousands(end_value),
-                    change=self.decimal_to_thousands(change),
-                    change_percentage=decimal.Decimal(change_perc),
-                    openings=self.decimal_to_thousands(openings)
-                )
+                # Only create if the object doesn't already exist
+                try:
+                    ep = EmploymentProjection.objects.get(soc=soc, report=self.report_version)
+                except EmploymentProjection.DoesNotExist:
+                    obj = EmploymentProjection(
+                        soc=soc,
+                        report=self.report_version,
+                        begin_employment=self.decimal_to_thousands(begin_value),
+                        end_employment=self.decimal_to_thousands(end_value),
+                        change=self.decimal_to_thousands(change),
+                        change_percentage=decimal.Decimal(change_perc),
+                        openings=self.decimal_to_thousands(openings)
+                    )
 
-                obj.save()
+                    obj.save()
+
+                # Add the job positions
+                # Clear all postings first
+                soc.jobs.clear()
+
+                for job in jobs:
+                    try:
+                        position = JobPosition.objects.get(name=job)
+                    except JobPosition.DoesNotExist:
+                        position = JobPosition(
+                            name=job
+                        )
+
+                        position.save()
+
+                    soc.jobs.add(position)
 
                 self.projections_added += 1
             else:

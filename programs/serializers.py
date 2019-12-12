@@ -314,6 +314,26 @@ class ProgramOutcomeStatSerializer(serializers.ModelSerializer):
         )
         model = ProgramOutcomeStat
 
+class EmploymentProjectionSerializer(serializers.ModelSerializer):
+    soc_name = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = (
+            'soc_name',
+            'report',
+            'begin_employment',
+            'end_employment',
+            'change',
+            'change_percentage',
+            'openings',
+            'report_year_begin',
+            'report_year_end'
+        )
+        model = EmploymentProjection
+
+    def get_soc_name(self, projection):
+        return projection.soc.name
+
 class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
     career = serializers.StringRelatedField(many=False)
@@ -322,6 +342,9 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     descriptions = ProgramDescriptionLinkedSerializer(many=True, read_only=False)
     profiles = ProgramProfileLinkedSerializer(many=True, read_only=False)
     outcomes = serializers.SerializerMethodField()
+
+    projections = serializers.SerializerMethodField()
+    careers = serializers.SerializerMethodField()
 
     colleges = CollegeLinkSerializer(
         many=True,
@@ -349,6 +372,13 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
         return retval
 
+    def get_projections(self, program):
+        projection_serializer = EmploymentProjectionSerializer(instance=program.current_projections, many=True)
+        return projection_serializer.data
+
+    def get_careers(self, program):
+        return program.careers
+
     class Meta:
         fields = (
             'id',
@@ -370,7 +400,9 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'resident_tuition',
             'nonresident_tuition',
             'tuition_type',
-            'outcomes'
+            'outcomes',
+            'projections',
+            'careers'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,cip_code,parent_program",
