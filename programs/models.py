@@ -340,10 +340,11 @@ class Program(models.Model):
     @property
     def careers(self):
         retval = []
-        for occupation in self.current_occupations:
-            for job in occupation.jobs.all():
-                if job.name not in retval:
-                    retval.append(job.name)
+        if self.current_occupations:
+            for occupation in self.current_occupations:
+                for job in occupation.jobs.all():
+                    if job.name not in retval:
+                        retval.append(job.name)
 
         return retval
 
