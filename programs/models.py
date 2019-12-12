@@ -327,26 +327,19 @@ class Program(models.Model):
         if self.current_cip:
             return self.current_cip.occupations.filter(version=settings.SOC_CURRENT_VERSION)
         else:
-            return None
+            return SOC.objects.none()
 
     @property
     def current_projections(self):
-        if self.current_occupations:
+        if self.current_occupations.count() > 0:
             projections = EmploymentProjection.objects.filter(soc__in=self.current_occupations, report=settings.PROJ_CURRENT_REPORT).distinct()
             return projections
         else:
-            return None
+            return EmploymentProjection.objects.none()
 
     @property
     def careers(self):
-        retval = []
-        if self.current_occupations:
-            for occupation in self.current_occupations:
-                for job in occupation.jobs.all():
-                    if job.name not in retval:
-                        retval.append(job.name)
-
-        return retval
+        return self.current_occupations.values_list('jobs__name', flat=True).distinct()
 
 
 class ProgramProfile(models.Model):
