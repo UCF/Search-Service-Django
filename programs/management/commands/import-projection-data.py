@@ -2,12 +2,10 @@ from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
 import decimal
-import urllib2
-import itertools
 import logging
 import sys
 import csv
-import ssl
+import mimetypes
 
 
 class Command(BaseCommand):
@@ -63,6 +61,11 @@ class Command(BaseCommand):
         self.cip_version = options['cip_version']
         self.soc_version = options['soc_version']
         self.report_version = options['report_version']
+
+        mime_type, encoding = mimetypes.guess_type(self.file.name)
+
+        if mime_type != 'text/csv':
+            raise Exception('File provided does not have a mimetype of "text/csv"')
 
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
