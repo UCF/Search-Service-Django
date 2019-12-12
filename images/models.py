@@ -14,12 +14,19 @@ class ImageTag(models.Model):
         blank=True,
         symmetrical=True
     )
+    source = models.CharField(max_length=255, null=True, blank=True, default='UCF Search Service')
 
     def __str__(self):
         return self.name
 
     def __unicode__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.source:
+            self.source = 'UCF Search Service'
+
+        super(ImageTag, self).save(*args, **kwargs)
 
 
 class Image(models.Model):
