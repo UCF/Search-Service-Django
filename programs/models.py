@@ -317,11 +317,17 @@ class Program(models.Model):
 
     @property
     def current_cip(self):
-        return self.cip.get(version=settings.CIP_CURRENT_VERSION)
+        try:
+            return self.cip.get(version=settings.CIP_CURRENT_VERSION)
+        except CIP.DoesNotExist:
+            return None
 
     @property
     def current_occupations(self):
-        return self.current_cip.occupations.filter(version=settings.SOC_CURRENT_VERSION)
+        if self.current_cip:
+            return self.current_cip.occupations.filter(version=settings.SOC_CURRENT_VERSION)
+        else:
+            return None
 
     @property
     def current_projections(self):
