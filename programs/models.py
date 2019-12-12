@@ -331,8 +331,11 @@ class Program(models.Model):
 
     @property
     def current_projections(self):
-        projections = EmploymentProjection.objects.filter(soc__in=self.current_occupations, report=settings.PROJ_CURRENT_REPORT).distinct()
-        return projections
+        if self.current_occupations:
+            projections = EmploymentProjection.objects.filter(soc__in=self.current_occupations, report=settings.PROJ_CURRENT_REPORT).distinct()
+            return projections
+        else:
+            return None
 
     @property
     def careers(self):
