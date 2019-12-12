@@ -339,7 +339,7 @@ class Program(models.Model):
 
     @property
     def careers(self):
-        return self.current_occupations.values_list('jobs__name', flat=True).distinct()
+        return self.current_occupations.filter(jobs__isnull=False).values_list('jobs__name', flat=True).distinct()
 
 
 class ProgramProfile(models.Model):
