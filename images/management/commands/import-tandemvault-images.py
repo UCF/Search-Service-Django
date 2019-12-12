@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from images.models import *
 
 import math
@@ -10,9 +11,11 @@ class Command(BaseCommand):
     help = 'Imports image assets from UCF\'s Tandem Vault instance.'
 
     source                      = 'Tandem Vault'
+    azure_source                = 'Azure'
     modified                    = timezone.now()
     tandemvault_assets_api_path = '/api/v1/assets/'
     tandemvault_asset_api_path  = '/api/v1/assets/{0}/'
+    tandemvault_download_path   = '/assets/{0}/'
     tandemvault_total_images    = 0 # total number of images in Tandem Vault API results
     tandemvault_page_count      = 0 # total number of paged Tandem Vault API results
     images_created              = 0
@@ -87,21 +90,22 @@ class Command(BaseCommand):
 
         self.tandemvault_assets_api_url = 'https://' + self.domain + self.tandemvault_assets_api_path
         self.tandemvault_asset_api_url = 'https://' + self.domain + self.tandemvault_asset_api_path
+        self.tandemvault_download_url = 'https://' + self.domain + self.tandemvault_download_path
 
         # TODO how to handle start/end dates? Do we always want to use the
         # same start date and force-delete old, existing images?
         self.tandemvault_assets_params = {
-            'api_key'         = self.tandemvault_api_key,
-            'state'           = 'accepted',
-            'date[start(1i)]' = '2017',
-            'date[start(2i)]' = '12',
-            'date[start(3i)]' = '1',
-            'date[end(1i)]'   = self.modified.year,
-            'date[end(2i)]'   = self.modified.month,
-            'date[end(3i)]'   = self.modified.day
+            'api_key': self.tandemvault_api_key,
+            'state': 'accepted',
+            'date[start(1i)]': '2017',
+            'date[start(2i)]': '12',
+            'date[start(3i)]': '1',
+            'date[end(1i)]': self.modified.year,
+            'date[end(2i)]': self.modified.month,
+            'date[end(3i)]': self.modified.day
         }
         self.tandemvault_asset_params = {
-            'api_key' = self.tandemvault_api_key
+            'api_key': self.tandemvault_api_key
         }
 
         # If a CSV of existing tags was provided, process it
@@ -137,9 +141,9 @@ class Command(BaseCommand):
         self.process_tandemvault_assets_page(1)
 
         # Loop through the other pages of results:
-        if self.tandemvault_page_count > 1:
-            for page in range(2, self.tandemvault_page_count):
-                self.process_tandemvault_assets_page(page)
+        # if self.tandemvault_page_count > 1:
+            # for page in range(2, self.tandemvault_page_count):
+                # self.process_tandemvault_assets_page(page)
 
     '''
     Fetches and loops through a single page of assets
@@ -159,36 +163,96 @@ class Command(BaseCommand):
     TODO catch/handle exceptions
     '''
     def process_image(self, tandemvault_image):
-        # Set up the initial Image object.
-        # TODO
-        # image = Image.objects.get_or_create(
-
-        # )
-
         # Fetch the single API result
-        single_json = self.fetch_tandemvault_asset(tandemvault_image.id)
+        single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
 
-        # TODO need to add any single_json data to the Image?
+        download_url = self.tandemvault_download_url.format(single_json['id'])
 
-        # image.save()
+        # Set up the initial Image object.
+        try:
+            image = Image.objects.get(
+                source=self.source,
+                source_id=single_json['id']
+            )
+            image.filename = single_json['filename']
+            image.extension = single_json['ext']
+            image.copyright = single_json['copyright']
+            image.contributor = single_json['contributor']
+            image.width_full = int(single_json['width'])
+            image.height_full = int(single_json['height'])
+            image.download_url = download_url
+            image.thumbnail_url = single_json['grid_url'] # use 'grid_url' instead of 'thumb_url' due to slightly larger size
+            image.caption = single_json['short_caption']
+        except Image.DoesNotExist:
+            image = Image(
+                filename = single_json['filename'],
+                extension = single_json['ext'],
+                source = self.source,
+                source_id = single_json['id'],
+                copyright = single_json['copyright'],
+                contributor = single_json['contributor'],
+                width_full = int(single_json['width']),
+                height_full = int(single_json['height']),
+                download_url = download_url,
+                thumbnail_url = single_json['grid_url'],
+                caption = single_json['short_caption']
+            )
 
-        tags = set(single_json.tag_list)
+        image.save()
+
+        # Clear existing set tags imported from Tandem Vault.
+        image.tags.remove(*image.tags.filter(source=self.source))
+
+        # If Azure Computer Vision tagging is enabled,
+        # clear existing tag relationships retrieved from Azure:
+        if self.assign_tags:
+            image.tags.filter(source=self.azure_source).clear()
+
+        # Create a unique list of existing tag names to avoid
+        # generating duplicates.  Prioritize tags from any other
+        # source besides Tandem Vault and Azure.
+        tag_names_unique = set([tag.name.lower() for tag in image.tags.all()])
+
+        # Get or create fresh ImageTags based on
+        # Tandem Vault's tag list for the image:
+        for tandemvault_tag_name in single_json['tag_list']:
+            tandemvault_tag_name = tandemvault_tag_name.strip()
+            tandemvault_tag_name_lower = tandemvault_tag_name.lower()
+            # If this tag doesn't already match the name of another tag
+            # assigned to the image, get or create an ImageTag object
+            # and assign it to the Image
+            if tandemvault_tag_name_lower not in tag_names_unique:
+                tag_names_unique.add(tandemvault_tag_name_lower)
+                tandemvault_tag, created = ImageTag.objects.get_or_create(
+                    name=tandemvault_tag_name,
+                    source=self.source
+                )
+                image.tags.add(tandemvault_tag)
 
         # If Azure Computer Vision tagging is enabled,
         # send the image to Azure:
         if self.assign_tags:
-            azure_data = self.azure_analyze_image(single_json.browse_url)
+            azure_data = self.azure_analyze_image(single_json['browse_url'])
             azure_tags = []
             if azure_data:
-                azure_tags = azure_data.tags
-            for azure_tag in azure_tags:
-                if azure_tag.confidence >= self.tag_confidence_threshold:
-                    # TODO update to create a new ImageTag on the fly
-                    tags.add(azure_tag.name)
+                azure_tags = azure_data['tags']
+            for azure_tag_data in azure_tags:
+                azure_tag_name = azure_tag_data['name'].strip()
+                azure_tag_name_lower = azure_tag_name.lower()
 
-        for tag in tags:
-            # TODO
-            pass
+                # If this tag meets our minimum confidence threshold and
+                # doesn't already match the name of another tag assigned to
+                # the image, get or create an ImageTag object and assign it
+                # to the Image:
+                if azure_tag_data.confidence >= self.tag_confidence_threshold and azure_tag_name_lower not in tag_names_unique:
+                    tag_names_unique.add(tandemvault_tag_name_lower)
+                    azure_tag, created = ImageTag.objects.get_or_create(
+                        name=azure_tag_name,
+                        source=self.azure_source
+                    )
+                    image.tags.add(azure_tag)
+
+        image.save()
 
     '''
     Fetches a single page of results on the Tandem Vault assets API.
@@ -209,10 +273,8 @@ class Command(BaseCommand):
         # Set some required importer properties if
         # this is the first page request:
         if page == 1:
-            self.tandemvault_total_images = int(
-                response.headers['total-results'])
-            self.tandemvault_page_count = math.ceil(
-                self.tandemvault_total_images / len(response_json))
+            self.tandemvault_total_images = int(response.headers['total-results'])
+            self.tandemvault_page_count = math.ceil(self.tandemvault_total_images / len(response_json))
 
         return response_json
 
@@ -231,6 +293,8 @@ class Command(BaseCommand):
         return response_json
 
     '''
+    Sends an image to Azure's Computer Vision API and returns data about it.
+
     TODO
     '''
     def azure_analyze_image(self, image_url):
