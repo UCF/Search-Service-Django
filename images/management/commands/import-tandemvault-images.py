@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from images.models import *
 
+from progress.bar import Bar
+
 import math
 import logging
 import requests
@@ -10,6 +12,7 @@ import requests
 class Command(BaseCommand):
     help = 'Imports image assets from UCF\'s Tandem Vault instance.'
 
+    progress_bar                = Bar('Processing')
     source                      = 'Tandem Vault'
     azure_source                = 'Azure'
     modified                    = timezone.now()
@@ -117,6 +120,7 @@ class Command(BaseCommand):
         self.delete_stale()
 
         # Print the results
+        self.progress_bar.finish()
         self.print_stats()
 
         return
@@ -163,6 +167,8 @@ class Command(BaseCommand):
     Processes a single Tandem Vault image.
     '''
     def process_image(self, tandemvault_image):
+        self.progress_bar.next()
+
         # Fetch the single API result
         single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
         if not single_json:
@@ -294,6 +300,7 @@ class Command(BaseCommand):
             if page == 1:
                 self.tandemvault_total_images = int(response.headers['total-results'])
                 self.tandemvault_page_count = math.ceil(self.tandemvault_total_images / len(response_json))
+                self.progress_bar.max = self.tandemvault_total_images
         except Exception, e:
             logging.warning('\nERROR retrieving assets page data: %s' % e)
 
