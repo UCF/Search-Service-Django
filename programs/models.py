@@ -136,6 +136,59 @@ class CIP(models.Model):
             self.version
         )
 
+class JobPosition(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False)
+
+    def __unicode__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
+
+class SOC(models.Model):
+    versions = [
+        ('2010', '2010'),
+    ]
+
+    name = models.CharField(max_length=255, null=False, blank=False)
+    code = models.CharField(max_length=7, null=False, blank=False)
+    version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default=settings.SOC_CURRENT_VERSION)
+    cip = models.ManyToManyField(CIP, related_name='occupations')
+    jobs = models.ManyToManyField(JobPosition, related_name='occupations')
+
+    def __unicode__(self):
+        return "{0} - {1}".format(self.name, self.code)
+
+    def __str__(self):
+        return "{0} - {1}".format(self.name, self.code)
+
+
+class EmploymentProjection(models.Model):
+    report_years = [
+        ('1828', '2018-2028'),
+    ]
+
+    soc = models.ForeignKey(SOC, on_delete=models.CASCADE, related_name='projections')
+    report = models.CharField(max_length=4, default=settings.PROJ_CURRENT_REPORT, choices=report_years, null=False, blank=False)
+    begin_employment = models.IntegerField(null=False, blank=False)
+    end_employment = models.IntegerField(null=False, blank=False)
+    change = models.IntegerField(null=False, blank=False)
+    change_percentage = models.DecimalField(max_digits=12, decimal_places=2, null=False, blank=False)
+    openings = models.IntegerField(null=False, blank=False)
+
+    def __unicode__(self):
+        return '{0} - {1} Projections'.format(self.soc.name, self.report)
+
+    def __str__(self):
+        return '{0} - {1} Projections'.format(self.soc.name, self.report)
+
+    @property
+    def report_year_begin(self):
+        return '20{0}'.format(self.report[:2])
+
+    @property
+    def report_year_end(self):
+        return '20{0}'.format(self.report[2:4])
 
 class ProgramProfileType(models.Model):
     """
@@ -261,6 +314,32 @@ class Program(models.Model):
             return True
 
         return False
+
+    @property
+    def current_cip(self):
+        try:
+            return self.cip.get(version=settings.CIP_CURRENT_VERSION)
+        except CIP.DoesNotExist:
+            return None
+
+    @property
+    def current_occupations(self):
+        if self.current_cip:
+            return self.current_cip.occupations.filter(version=settings.SOC_CURRENT_VERSION)
+        else:
+            return SOC.objects.none()
+
+    @property
+    def current_projections(self):
+        if self.current_occupations.count() > 0:
+            projections = EmploymentProjection.objects.filter(soc__in=self.current_occupations, report=settings.PROJ_CURRENT_REPORT).distinct()
+            return projections
+        else:
+            return EmploymentProjection.objects.none()
+
+    @property
+    def careers(self):
+        return self.current_occupations.filter(jobs__isnull=False).values_list('jobs__name', flat=True).distinct()
 
 
 class ProgramProfile(models.Model):

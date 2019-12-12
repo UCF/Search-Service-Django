@@ -4,7 +4,7 @@ from programs.models import *
 import warnings
 
 from django.db import IntegrityError
-from django.db.models import Max
+from django.db.models import Max, Avg, Sum
 from drf_dynamic_fields import DynamicFieldsMixin
 
 class DynamicFieldSetMixin(DynamicFieldsMixin):
@@ -314,6 +314,35 @@ class ProgramOutcomeStatSerializer(serializers.ModelSerializer):
         )
         model = ProgramOutcomeStat
 
+class EmploymentProjectionSerializer(serializers.ModelSerializer):
+    soc_name = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = (
+            'soc_name',
+            'report',
+            'begin_employment',
+            'end_employment',
+            'change',
+            'change_percentage',
+            'openings',
+            'report_year_begin',
+            'report_year_end'
+        )
+        model = EmploymentProjection
+
+    def get_soc_name(self, projection):
+        return projection.soc.name
+
+class EmploymentProjectionTotalsSerializer(serializers.Serializer):
+    begin_year = serializers.IntegerField()
+    end_year = serializers.IntegerField()
+    begin_employment = serializers.IntegerField()
+    end_employment = serializers.IntegerField()
+    change = serializers.IntegerField()
+    change_percentage = serializers.DecimalField(max_digits=12, decimal_places=2)
+    openings = serializers.IntegerField()
+
 class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
     career = serializers.StringRelatedField(many=False)
@@ -322,6 +351,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     descriptions = ProgramDescriptionLinkedSerializer(many=True, read_only=False)
     profiles = ProgramProfileLinkedSerializer(many=True, read_only=False)
     outcomes = serializers.SerializerMethodField()
+    projection_totals = serializers.SerializerMethodField()
+    careers = serializers.SerializerMethodField()
 
     colleges = CollegeLinkSerializer(
         many=True,
@@ -349,6 +380,31 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
         return retval
 
+    def get_projections(self, program):
+        projection_serializer = EmploymentProjectionSerializer(instance=program.current_projections, many=True)
+        return projection_serializer.data
+
+    def get_careers(self, program):
+        return program.careers
+
+    def get_projection_totals(self, program):
+        obj = program.current_projections.aggregate(
+            begin_employment=Sum('begin_employment'),
+            end_employment=Sum('end_employment'),
+            change=Sum('change'),
+            change_percentage=Avg('change_percentage'),
+            openings=Sum('openings')
+        )
+
+        first_projection = program.current_projections.first()
+
+        obj['begin_year'] = first_projection.report_year_begin if first_projection is not None else None
+        obj['end_year'] = first_projection.report_year_end if first_projection is not None else None
+
+        serializer = EmploymentProjectionTotalsSerializer(obj, many=False)
+        return serializer.data
+
+
     class Meta:
         fields = (
             'id',
@@ -370,7 +426,9 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'resident_tuition',
             'nonresident_tuition',
             'tuition_type',
-            'outcomes'
+            'outcomes',
+            'projection_totals',
+            'careers'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,cip_code,parent_program",
