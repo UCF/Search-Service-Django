@@ -2,11 +2,12 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from images.models import *
 
-from progress.bar import Bar
-
 import math
 import logging
+
 import requests
+from progress.bar import Bar
+from dateutil.parser import *
 
 
 class Command(BaseCommand):
@@ -24,6 +25,7 @@ class Command(BaseCommand):
     images_created              = 0
     images_updated              = 0
     images_deleted              = 0
+    images_skipped              = 0
     tags_created                = 0
     tags_updated                = 0
     tags_deleted                = 0
@@ -58,10 +60,11 @@ class Command(BaseCommand):
         ),
         parser.add_argument(
             '--assign-tags',
-            type=bool,
-            help='Set to True to pass all imported images to Azure\'s Computer Vision API to generate image tags.',
+            type=str,
+            help='Specify what images, if any, should be processed with Azure\'s Computer Vision API to generate image tags.',
             dest='assign-tags',
-            default=False,
+            default='none',
+            choices=['all', 'new_modified', 'none'],
             required=False
         ),
         parser.add_argument(
@@ -81,11 +84,11 @@ class Command(BaseCommand):
         self.assign_tags = options['assign-tags']
         self.tag_confidence_threshold = options['tag-confidence-threshold']
 
-        if self.assign_tags and not self.azure_api_key:
+        if self.assign_tags != 'none' and not self.azure_api_key:
             print 'Azure API key required to assign tags via the Computer Vision API. Please provide an Azure API key and try again.'
             return
 
-        if self.assign_tags and self.tag_confidence_threshold > 1 or self.tag_confidence_threshold < 0:
+        if self.assign_tags != 'none' and self.tag_confidence_threshold > 1 or self.tag_confidence_threshold < 0:
             print 'Tag confidence threshold value must be a value between 0 and 1.'
             return
 
@@ -169,32 +172,61 @@ class Command(BaseCommand):
     def process_image(self, tandemvault_image):
         self.progress_bar.next()
 
-        # Fetch the single API result
-        single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
-        if not single_json:
-            logging.warning('Failed to retrieve single image info for Tandem Vault image with ID %d. Skipping image.' % tandemvault_image['id'])
-            return
-
-        download_url = self.tandemvault_download_url.format(single_json['id'])
+        download_url = self.tandemvault_download_url.format(tandemvault_image['id'])
+        single_json = None
 
         # Set up the initial Image object.
         try:
             image = Image.objects.get(
                 source=self.source,
-                source_id=single_json['id']
+                source_id=tandemvault_image['id']
             )
-            image.filename = single_json['filename']
-            image.extension = single_json['ext']
-            image.copyright = single_json['copyright']
-            image.contributor = single_json['contributor']['to_s']
-            image.width_full = int(single_json['width'])
-            image.height_full = int(single_json['height'])
-            image.download_url = download_url
-            image.thumbnail_url = single_json['grid_url'] # use 'grid_url' instead of 'thumb_url' due to slightly larger size
-            image.caption = single_json['short_caption']
 
-            self.images_updated += 1
+            # Check if this image has been modified in Tandem Vault since
+            # the last time the image was modified in the Search Service.
+            # Only retrieve single image details if changes have been
+            # made since the last time the Search Service image was updated:
+            last_modified = image.modified if image.modified else image.created
+            tandemvault_image_modified = parse(tandemvault_image['modified_at'])
+            if last_modified < parse(tandemvault_image['modified_at']):
+                # Fetch the single API result
+                single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
+                if not single_json:
+                    logging.warning('Failed to retrieve single image info for Tandem Vault image with ID %d. Skipping image.' % tandemvault_image['id'])
+                    self.images_skipped += 1
+                    return
+
+                image.filename = single_json['filename']
+                image.extension = single_json['ext']
+                image.copyright = single_json['copyright']
+                image.contributor = single_json['contributor']['to_s']
+                image.width_full = int(single_json['width'])
+                image.height_full = int(single_json['height'])
+                image.download_url = download_url
+                image.thumbnail_url = single_json['grid_url'] # use 'grid_url' instead of 'thumb_url' due to slightly larger size
+                image.caption = single_json['short_caption']
+
+                self.images_updated += 1
+            else:
+                if self.assign_tags == 'all':
+                    # Continue processing the image without single image
+                    # data; allow tagging via Azure later:
+                    self.images_updated += 1
+                    logging.info('Skipping retrieval of single image data for image with ID %d since there are no updates, but still assigning tags via Azure.' % tandemvault_image['id'])
+                else:
+                    # Return here/stop processing the image completely:
+                    self.images_skipped += 1
+                    logging.info('Skipping image with ID %d entirely, since there are no updates.' % tandemvault_image['id'])
+                    return
         except Image.DoesNotExist:
+            # Fetch the single API result
+            single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
+            if not single_json:
+                logging.warning('Failed to retrieve single image info for Tandem Vault image with ID %d. Skipping image.' % tandemvault_image['id'])
+                self.images_skipped += 1
+                return
+
+            # Create new Image
             image = Image(
                 filename = single_json['filename'],
                 extension = single_json['ext'],
@@ -211,45 +243,49 @@ class Command(BaseCommand):
 
             self.images_created += 1
 
-        image.save()
+        #image.save()
 
-        # Clear existing set tags imported from Tandem Vault.
-        image.tags.remove(*image.tags.filter(source=self.source))
+        # Clear existing set tags imported from Tandem Vault if
+        # we retrieved single image data/didn't skip it:
+        if single_json:
+            image.tags.remove(*image.tags.filter(source=self.source))
 
         # If Azure Computer Vision tagging is enabled,
         # clear existing tag relationships retrieved from Azure:
-        if self.assign_tags:
-            image.tags.filter(source=self.azure_source).clear()
+        if self.assign_tags != 'none':
+            image.tags.remove(*image.tags.filter(source=self.azure_source))
 
         # Create a unique list of existing tag names to avoid
         # generating duplicates.  Prioritize tags from any other
         # source besides Tandem Vault and Azure.
         tag_names_unique = set([tag.name.lower() for tag in image.tags.all()])
 
-        # Get or create fresh ImageTags based on
-        # Tandem Vault's tag list for the image:
-        for tandemvault_tag_name in single_json['tag_list']:
-            tandemvault_tag_name = tandemvault_tag_name.strip()
-            tandemvault_tag_name_lower = tandemvault_tag_name.lower()
-            # If this tag doesn't already match the name of another tag
-            # assigned to the image, get or create an ImageTag object
-            # and assign it to the Image
-            if tandemvault_tag_name_lower not in tag_names_unique:
-                tag_names_unique.add(tandemvault_tag_name_lower)
-                tandemvault_tag, created = ImageTag.objects.get_or_create(
-                    name=tandemvault_tag_name,
-                    source=self.source
-                )
-                image.tags.add(tandemvault_tag)
+        # Get or create fresh ImageTags based on Tandem Vault's
+        # tag list for the image, if we retrieved single
+        # image data for the image/didn't skip it:
+        if single_json:
+            for tandemvault_tag_name in single_json['tag_list']:
+                tandemvault_tag_name = tandemvault_tag_name.strip()
+                tandemvault_tag_name_lower = tandemvault_tag_name.lower()
+                # If this tag doesn't already match the name of another tag
+                # assigned to the image, get or create an ImageTag object
+                # and assign it to the Image
+                if tandemvault_tag_name_lower not in tag_names_unique:
+                    tag_names_unique.add(tandemvault_tag_name_lower)
+                    tandemvault_tag, created = ImageTag.objects.get_or_create(
+                        name=tandemvault_tag_name,
+                        source=self.source
+                    )
+                    image.tags.add(tandemvault_tag)
 
-                if created:
-                    self.tags_created += 1
-                else:
-                    self.tags_updated += 1
+                    if created:
+                        self.tags_created += 1
+                    else:
+                        self.tags_updated += 1
 
         # If Azure Computer Vision tagging is enabled,
         # send the image to Azure:
-        if self.assign_tags:
+        if self.assign_tags != 'none':
             azure_data = self.azure_analyze_image(single_json['browse_url'])
             azure_tags = []
             if azure_data:
@@ -343,16 +379,18 @@ Images
 Created: {0}
 Updated: {1}
 Deleted: {2}
+Skipped: {3}
 
 Image Tags
 -------------
-Created: {3}
-Updated: {4}
-Deleted: {5}
+Created: {4}
+Updated: {5}
+Deleted: {6}
         """.format(
             self.images_created,
             self.images_updated,
             self.images_deleted,
+            self.images_skipped,
             self.tags_created,
             self.tags_updated,
             self.tags_deleted
@@ -366,6 +404,7 @@ Deleted: {5}
     are not assigned to any Images.
     '''
     def delete_stale(self):
+        # TODO unmodified (skipped) programs need their modified field to be updated; else they get deleted here
         stale_images = Image.objects.filter(
             modified__lt=self.modified,
             source=self.source
