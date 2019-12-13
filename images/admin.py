@@ -10,7 +10,7 @@ from .models import *
 
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
-    readonly_fields = ('created', 'modified')
+    readonly_fields = ('created', 'modified', 'last_imported')
     search_fields = ('filename',)
 
 

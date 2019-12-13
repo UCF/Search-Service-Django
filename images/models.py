@@ -32,6 +32,7 @@ class ImageTag(models.Model):
 class Image(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=False)
     modified = models.DateTimeField(auto_now=True, null=False)
+    last_imported = models.DateTimeField(null=True, blank=True)
     filename = models.CharField(max_length=500, null=False, blank=False)
     extension = models.CharField(max_length=255, null=False, blank=False)
     source = models.CharField(max_length=255, null=True, blank=True, default='UCF Search Service')
