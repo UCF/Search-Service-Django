@@ -8,6 +8,8 @@ import logging
 import requests
 from progress.bar import Bar
 from dateutil.parser import *
+from azure.cognitiveservices.vision.computervision import ComputerVisionClient
+from msrest.authentication import CognitiveServicesCredentials
 
 
 class Command(BaseCommand):
@@ -30,16 +32,20 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'domain',
+            '--tandemvault-domain',
             type=str,
-            help='The base domain of UCF\'s Tandem Vault'
+            help='The base domain of UCF\'s Tandem Vault',
+            dest='tandemvault-domain',
+            default=settings.UCF_TANDEMVAULT_DOMAIN,
+            required=False
         ),
         parser.add_argument(
             '--tandemvault-api-key',
             type=str,
             help='The API key used to connect to Tandem Vault',
             dest='tandemvault-api-key',
-            required=True
+            default=settings.TANDEMVAULT_API_KEY,
+            required=False
         ),
         parser.add_argument(
             '--tandemvault-tags-csv-url',
@@ -49,16 +55,25 @@ class Command(BaseCommand):
             required=False
         ),
         parser.add_argument(
-            '--azure-api-key',
+            '--azure-endpoint',
             type=str,
-            help='The API key used to connect to Azure',
-            dest='azure-api-key',
+            help='The endpoint to use with Azure\'s Computer Vision services',
+            dest='azure-endpoint',
+            default=settings.COMPUTER_VISION_ENDPOINT,
+            required=False
+        ),
+        parser.add_argument(
+            '--azure-subscription-key',
+            type=str,
+            help='The API subscription used to connect to Azure',
+            dest='azure-subscription-key',
+            default=settings.COMPUTER_VISION_SUBSCRIPTION_KEY,
             required=False
         ),
         parser.add_argument(
             '--assign-tags',
             type=str,
-            help='Specify what images, if any, should be processed with Azure\'s Computer Vision API to generate image tags.',
+            help='Specify what images, if any, should be processed with Azure\'s Computer Vision services to generate image tags.',
             dest='assign-tags',
             default='none',
             choices=['all', 'new_modified', 'none'],
@@ -74,24 +89,33 @@ class Command(BaseCommand):
         ),
 
     def handle(self, *args, **options):
-        self.domain = options['domain'].replace('http://', '').replace('https://', '')
+        self.tandemvault_domain = options['tandemvault-domain'].replace('http://', '').replace('https://', '')
         self.tandemvault_api_key = options['tandemvault-api-key']
         self.tandemvault_tags_csv = options['tandemvault-tags-csv-url']
-        self.azure_api_key = options['azure-api-key']
+        self.azure_endpoint = options['azure-endpoint']
+        self.azure_subscription_key = options['azure-subscription-key']
         self.assign_tags = options['assign-tags']
         self.tag_confidence_threshold = options['tag-confidence-threshold']
 
-        if self.assign_tags != 'none' and not self.azure_api_key:
-            print 'Azure API key required to assign tags via the Computer Vision API. Please provide an Azure API key and try again.'
+        if not self.tandemvault_api_key or not self.tandemvault_domain:
+            print 'Tandemvault domain and API key are required to perform an import. Update your settings_local.py or provide these values manually.'
+            return
+
+        if self.assign_tags != 'none' and not self.azure_endpoint:
+            print 'Azure endpoint required to assign tags via the Computer Vision API. Please provide an Azure endpoint and try again.'
+            return
+
+        if self.assign_tags != 'none' and not self.azure_subscription_key:
+            print 'Azure subscription key required to assign tags via the Computer Vision API. Please provide an Azure subscription key and try again.'
             return
 
         if self.assign_tags != 'none' and self.tag_confidence_threshold > 1 or self.tag_confidence_threshold < 0:
             print 'Tag confidence threshold value must be a value between 0 and 1.'
             return
 
-        self.tandemvault_assets_api_url = 'https://' + self.domain + self.tandemvault_assets_api_path
-        self.tandemvault_asset_api_url = 'https://' + self.domain + self.tandemvault_asset_api_path
-        self.tandemvault_download_url = 'https://' + self.domain + self.tandemvault_download_path
+        self.tandemvault_assets_api_url = 'https://' + self.tandemvault_domain + self.tandemvault_assets_api_path
+        self.tandemvault_asset_api_url = 'https://' + self.tandemvault_domain + self.tandemvault_asset_api_path
+        self.tandemvault_download_url = 'https://' + self.tandemvault_domain + self.tandemvault_download_path
 
         now = timezone.now()
         self.modified = now
@@ -110,6 +134,18 @@ class Command(BaseCommand):
         self.tandemvault_asset_params = {
             'api_key': self.tandemvault_api_key
         }
+
+        # If enabled, et up a client for interfacing
+        # with Azure Computer Vision:
+        if self.assign_tags != 'none':
+            try:
+                self.computervision_client = ComputerVisionClient(
+                    self.azure_endpoint,
+                    CognitiveServicesCredentials(self.azure_subscription_key)
+                )
+            except Exception, e:
+                logging.error('ERROR establishing Azure Computer Vision client: %s' % e)
+                return
 
         # If a CSV of existing tags was provided, process it
         if self.tandemvault_tags_csv:
@@ -288,9 +324,9 @@ class Command(BaseCommand):
             azure_data = self.azure_analyze_image(single_json['browse_url'])
             azure_tags = []
             if azure_data:
-                azure_tags = azure_data['tags']
+                azure_tags = azure_data.tags
             for azure_tag_data in azure_tags:
-                azure_tag_name = azure_tag_data['name'].strip()
+                azure_tag_name = azure_tag_data.name.strip()
                 azure_tag_name_lower = azure_tag_name.lower()
 
                 # If this tag meets our minimum confidence threshold and
@@ -358,11 +394,9 @@ class Command(BaseCommand):
 
     '''
     Sends an image to Azure's Computer Vision API and returns data about it.
-
-    TODO
     '''
     def azure_analyze_image(self, image_url):
-        pass
+        return self.computervision_client.tag_image(image_url)
 
     '''
     Displays information about the import.

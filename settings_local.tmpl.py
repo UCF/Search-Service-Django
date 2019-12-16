@@ -122,3 +122,15 @@ PROJ_CURRENT_REPORT = '1828'
 # NOTE: increasing this value will cause older images to be removed
 # during a future image import!
 IMPORTED_IMAGE_LIMIT = (2017, 12, 1)
+
+# The domain name for UCF's Tandem Vault.
+UCF_TANDEMVAULT_DOMAIN = 'ucf.tandemvault.com'
+
+# An API key to use with UCF's Tandem Vault.
+TANDEMVAULT_API_KEY = ''
+
+# An endpoint to use with Azure's Computer Vision library.
+COMPUTER_VISION_ENDPOINT = ''
+
+# A subscription key to use with the Computer Vision endpoint noted above.
+COMPUTER_VISION_SUBSCRIPTION_KEY = ''
