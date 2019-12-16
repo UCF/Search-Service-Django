@@ -26,7 +26,6 @@ class Command(BaseCommand):
     images_deleted              = 0
     images_skipped              = 0
     tags_created                = 0
-    tags_updated                = 0
     tags_deleted                = 0
 
     def add_arguments(self, parser):
@@ -280,11 +279,8 @@ class Command(BaseCommand):
                         source=self.source
                     )
                     image.tags.add(tandemvault_tag)
-                    # TODO more tags get flagged 'updated' than 'created'?
                     if created:
                         self.tags_created += 1
-                    else:
-                        self.tags_updated += 1
 
         # If Azure Computer Vision tagging is enabled,
         # send the image to Azure:
@@ -311,8 +307,6 @@ class Command(BaseCommand):
 
                     if created:
                         self.tags_created += 1
-                    else:
-                        self.tags_updated += 1
 
         image.save()
 
@@ -387,15 +381,13 @@ Skipped: {3}
 Image Tags
 -------------
 Created: {4}
-Updated: {5}
-Deleted: {6}
+Deleted: {5}
         """.format(
             self.images_created,
             self.images_updated,
             self.images_deleted,
             self.images_skipped,
             self.tags_created,
-            self.tags_updated,
             self.tags_deleted
         )
 
