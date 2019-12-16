@@ -210,6 +210,8 @@ class Command(BaseCommand):
         download_url = self.tandemvault_download_url.format(tandemvault_image['id'])
         single_json = None
 
+        logging.debug("Processing image with ID %s, Download URL %s" % (tandemvault_image['id'], download_url))
+
         # Set up the initial Image object.
         try:
             image = Image.objects.get(
@@ -327,6 +329,7 @@ class Command(BaseCommand):
                 azure_tags = azure_data.tags
             for azure_tag_data in azure_tags:
                 azure_tag_name = azure_tag_data.name.strip()
+                logging.debug("AZURE TAG: %s | CONFIDENCE: %s" % (azure_tag_name, azure_tag_data.confidence))
                 azure_tag_name_lower = azure_tag_name.lower()
 
                 # If this tag meets our minimum confidence threshold and
