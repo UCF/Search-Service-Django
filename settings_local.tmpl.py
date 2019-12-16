@@ -104,3 +104,5 @@ LOGGING = {
         'teledata.management.commands': DEFAULT_LOGGING['loggers']['django.server'],
     }
 }
+
+APP_NAME = 'UCF Search Service'

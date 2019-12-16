@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.db import models
 
 # Create your models here.
@@ -24,7 +25,7 @@ class ImageTag(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.source:
-            self.source = 'UCF Search Service'
+            self.source = settings.APP_NAME
 
         super(ImageTag, self).save(*args, **kwargs)
 
@@ -35,7 +36,7 @@ class Image(models.Model):
     last_imported = models.DateTimeField(null=True, blank=True)
     filename = models.CharField(max_length=500, null=False, blank=False)
     extension = models.CharField(max_length=255, null=False, blank=False)
-    source = models.CharField(max_length=255, null=True, blank=True, default='UCF Search Service')
+    source = models.CharField(max_length=255, null=True, blank=True, default=settings.APP_NAME)
     source_id = models.CharField(max_length=255, null=True, blank=True)
     copyright = models.CharField(max_length=255, null=True, blank=True)
     contributor = models.CharField(max_length=500, null=True, blank=True)
@@ -54,9 +55,7 @@ class Image(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.source:
-            self.source = 'UCF Search Service'
-            self.source_id = self.pk
-        if not self.source_id:
+            self.source = settings.APP_NAME
             self.source_id = self.pk
 
         super(Image, self).save(*args, **kwargs)
