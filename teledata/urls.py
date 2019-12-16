@@ -5,7 +5,7 @@ from teledata.views import *
 urlpatterns = [
     url(r'^$',
         CombinedTeledataSearchView.as_view(),
-        name='api.core'
+        name='api.teledata.search'
         ),
     url(r'^buildings/$',
         BuildingListView.as_view(),

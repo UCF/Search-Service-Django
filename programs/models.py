@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import re
 
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -50,6 +51,7 @@ class Degree(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class CollegeManager(models.Manager):
     def get_by_natural_key(self, short_name):
         return self.get(short_name=short_name)
@@ -88,6 +90,106 @@ class Department(models.Model):
         return self.full_name
 
 
+class CIPVersionManager(models.Manager):
+    def get_queryset(self):
+        return super(CIPVersionManager, self).get_queryset().filter(version=settings.CIP_CURRENT_VERSION)
+
+
+class CIP(models.Model):
+    versions = [
+        ('2010', '2010'),
+        ('2020', '2020')
+    ]
+
+    name = models.CharField(max_length=255, null=False, blank=False)
+    description = models.TextField(null=False, blank=False)
+    version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default=settings.CIP_CURRENT_VERSION)
+    code = models.CharField(max_length=7, null=False, blank=False)
+    area = models.IntegerField(null=False, blank=True)
+    subarea = models.IntegerField(null=True, blank=True)
+    precise = models.IntegerField(null=True, blank=True)
+
+    objects = models.Manager()
+    current_version = CIPVersionManager()
+    next_version = models.OneToOneField('self', null=True, blank=True, related_name='previous_version')
+
+    def save(self, *args, **kwargs):
+        if self.code is not None:
+            matches = re.match('^(?P<area>\d{2})\.?(?P<subarea>\d{2})?(?P<precise>\d{2})?$', self.code).groupdict()
+            self.area = int(matches['area'])
+            self.subarea = int(matches['subarea']) if matches['subarea'] is not None else 0
+            self.precise = int(matches['precise']) if matches['precise'] is not None else 0
+
+        super(CIP, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return "{0} - {1} ({2})".format(
+            str(self.code),
+            self.name,
+            self.version
+        )
+
+    def __str__(self):
+        return "{0} - {1} ({2})".format(
+            str(self.code),
+            self.name,
+            self.version
+        )
+
+class JobPosition(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False)
+
+    def __unicode__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
+
+class SOC(models.Model):
+    versions = [
+        ('2010', '2010'),
+    ]
+
+    name = models.CharField(max_length=255, null=False, blank=False)
+    code = models.CharField(max_length=7, null=False, blank=False)
+    version = models.CharField(max_length=4, null=False, blank=False, choices=versions, default=settings.SOC_CURRENT_VERSION)
+    cip = models.ManyToManyField(CIP, related_name='occupations')
+    jobs = models.ManyToManyField(JobPosition, related_name='occupations')
+
+    def __unicode__(self):
+        return "{0} - {1}".format(self.name, self.code)
+
+    def __str__(self):
+        return "{0} - {1}".format(self.name, self.code)
+
+
+class EmploymentProjection(models.Model):
+    report_years = [
+        ('1828', '2018-2028'),
+    ]
+
+    soc = models.ForeignKey(SOC, on_delete=models.CASCADE, related_name='projections')
+    report = models.CharField(max_length=4, default=settings.PROJ_CURRENT_REPORT, choices=report_years, null=False, blank=False)
+    begin_employment = models.IntegerField(null=False, blank=False)
+    end_employment = models.IntegerField(null=False, blank=False)
+    change = models.IntegerField(null=False, blank=False)
+    change_percentage = models.DecimalField(max_digits=12, decimal_places=2, null=False, blank=False)
+    openings = models.IntegerField(null=False, blank=False)
+
+    def __unicode__(self):
+        return '{0} - {1} Projections'.format(self.soc.name, self.report)
+
+    def __str__(self):
+        return '{0} - {1} Projections'.format(self.soc.name, self.report)
+
+    @property
+    def report_year_begin(self):
+        return '20{0}'.format(self.report[:2])
+
+    @property
+    def report_year_end(self):
+        return '20{0}'.format(self.report[2:4])
+
 class ProgramProfileType(models.Model):
     """
     Types of program profiles, e.g. Main Site, UCF Online
@@ -114,6 +216,29 @@ class ProgramDescriptionType(models.Model):
     def __unicode__(self):
         return self.name
 
+class AcademicYear(models.Model):
+    code = models.CharField(max_length=4, null=False, blank=False)
+    display = models.CharField(max_length=9, null=False, blank=False)
+
+    def __unicode__(self):
+        return self.display
+
+    def __str__(self):
+        return self.display
+
+
+class ProgramOutcomeStat(models.Model):
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='outcomes')
+    cip = models.ForeignKey(CIP, on_delete=models.CASCADE, related_name='outcomes')
+    employed_full_time = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
+    continuing_education = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
+    avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
+
+    def __unicode__(self):
+        return "{0} Outcomes - {1}".format(self.cip.code, self.academic_year.display)
+
+    def __str__(self):
+        return "{0} Outcomes {1}".format(self.cip.code, self.academic_year.display)
 
 class Program(models.Model):
     """
@@ -123,6 +248,7 @@ class Program(models.Model):
     credit_hours = models.IntegerField(null=True, blank=True)
     plan_code = models.CharField(max_length=255, null=False, blank=False)
     subplan_code = models.CharField(max_length=255, null=True, blank=True)
+    cip = models.ManyToManyField(CIP, blank=True)
     catalog_url = models.URLField(null=True, blank=True)
     colleges = models.ManyToManyField(College, blank=True)
     departments = models.ManyToManyField(Department, blank=True)
@@ -145,6 +271,7 @@ class Program(models.Model):
         ('ANN', 'Annual')
     ]
     tuition_type = models.CharField(max_length=3, null=True, blank=True, choices=tuition_types)
+    outcomes = models.ManyToManyField(ProgramOutcomeStat, related_name='programs')
     active = models.BooleanField(default=True)
 
     class Meta:
@@ -187,6 +314,32 @@ class Program(models.Model):
             return True
 
         return False
+
+    @property
+    def current_cip(self):
+        try:
+            return self.cip.get(version=settings.CIP_CURRENT_VERSION)
+        except CIP.DoesNotExist:
+            return None
+
+    @property
+    def current_occupations(self):
+        if self.current_cip:
+            return self.current_cip.occupations.filter(version=settings.SOC_CURRENT_VERSION)
+        else:
+            return SOC.objects.none()
+
+    @property
+    def current_projections(self):
+        if self.current_occupations.count() > 0:
+            projections = EmploymentProjection.objects.filter(soc__in=self.current_occupations, report=settings.PROJ_CURRENT_REPORT).distinct()
+            return projections
+        else:
+            return EmploymentProjection.objects.none()
+
+    @property
+    def careers(self):
+        return self.current_occupations.filter(jobs__isnull=False).values_list('jobs__name', flat=True).distinct()
 
 
 class ProgramProfile(models.Model):
@@ -236,6 +389,7 @@ class ProgramDescription(models.Model):
     def __unicode__(self):
         return '{0} {1}'.format(self.program.name, self.description_type.name)
 
+
 class Fee(models.Model):
     fee_name = models.CharField(max_length=255, null=False, blank=False)
 
@@ -244,6 +398,7 @@ class Fee(models.Model):
 
     def __unicode__(self):
         return self.fee_name
+
 
 class TuitionOverride(models.Model):
     tuition_code = models.CharField(max_length=10, null=False, blank=False)
@@ -283,6 +438,7 @@ class TuitionOverride(models.Model):
 
         return '{0} Tuition Override'.format(self.plan_code)
 
+
 class CollegeOverride(models.Model):
     plan_code = models.CharField(max_length=10, null=False, blank=False)
     subplan_code = models.CharField(max_length=10, null=True, blank=True)
@@ -318,6 +474,7 @@ class CollegeOverride(models.Model):
             return '{0} {1} - {2} Override'.format(self.plan_code, self.subplan_code, self.college.short_name)
 
         return '{0} - {1} Tuition Override'.format(self.plan_code, self.college.short_name)
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
