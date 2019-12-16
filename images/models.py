@@ -15,7 +15,7 @@ class ImageTag(models.Model):
         blank=True,
         symmetrical=True
     )
-    source = models.CharField(max_length=255, null=True, blank=True, default='UCF Search Service')
+    source = models.CharField(max_length=255, null=True, blank=True, default=settings.APP_NAME)
 
     def __str__(self):
         return self.name
