@@ -30,7 +30,6 @@ class Command(BaseCommand):
     tags_deleted                = 0
 
     def add_arguments(self, parser):
-        # TODO allow date range or minimum date to be passed in?
         parser.add_argument(
             'domain',
             type=str,
@@ -99,14 +98,12 @@ class Command(BaseCommand):
         self.modified = now
         self.imported = now
 
-        # TODO how to handle start/end dates? Do we always want to use the
-        # same start date and force-delete old, existing images?
         self.tandemvault_assets_params = {
             'api_key': self.tandemvault_api_key,
             'state': 'accepted',
-            'date[start(1i)]': '2017',
-            'date[start(2i)]': '12',
-            'date[start(3i)]': '1',
+            'date[start(1i)]': settings.IMPORTED_IMAGE_LIMIT[0],
+            'date[start(2i)]': settings.IMPORTED_IMAGE_LIMIT[1],
+            'date[start(3i)]': settings.IMPORTED_IMAGE_LIMIT[2],
             'date[end(1i)]': self.modified.year,
             'date[end(2i)]': self.modified.month,
             'date[end(3i)]': self.modified.day
