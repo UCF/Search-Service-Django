@@ -16,7 +16,6 @@ class Command(BaseCommand):
     progress_bar                = Bar('Processing')
     source                      = 'Tandem Vault'
     azure_source                = 'Azure'
-    modified                    = timezone.now()
     tandemvault_assets_api_path = '/api/v1/assets/'
     tandemvault_asset_api_path  = '/api/v1/assets/{0}/'
     tandemvault_download_path   = '/assets/{0}/'
@@ -95,6 +94,10 @@ class Command(BaseCommand):
         self.tandemvault_assets_api_url = 'https://' + self.domain + self.tandemvault_assets_api_path
         self.tandemvault_asset_api_url = 'https://' + self.domain + self.tandemvault_asset_api_path
         self.tandemvault_download_url = 'https://' + self.domain + self.tandemvault_download_path
+
+        now = timezone.now()
+        self.modified = now
+        self.imported = now
 
         # TODO how to handle start/end dates? Do we always want to use the
         # same start date and force-delete old, existing images?
@@ -183,12 +186,11 @@ class Command(BaseCommand):
             )
 
             # Check if this image has been modified in Tandem Vault since
-            # the last time the image was modified in the Search Service.
+            # the last time the image was imported into the Search Service.
             # Only retrieve single image details if changes have been
-            # made since the last time the Search Service image was updated:
-            last_modified = image.modified if image.modified else image.created
+            # made since the last time the Search Service image was imported:
             tandemvault_image_modified = parse(tandemvault_image['modified_at'])
-            if last_modified < parse(tandemvault_image['modified_at']):
+            if image.last_imported < parse(tandemvault_image['modified_at']):
                 # Fetch the single API result
                 single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
                 if not single_json:
@@ -214,6 +216,9 @@ class Command(BaseCommand):
                     self.images_updated += 1
                     logging.info('Skipping retrieval of single image data for image with ID %d since there are no updates, but still assigning tags via Azure.' % tandemvault_image['id'])
                 else:
+                    image.last_imported = self.imported
+                    image.save()
+
                     # Return here/stop processing the image completely:
                     self.images_skipped += 1
                     logging.info('Skipping image with ID %d entirely, since there are no updates.' % tandemvault_image['id'])
@@ -243,7 +248,8 @@ class Command(BaseCommand):
 
             self.images_created += 1
 
-        #image.save()
+        image.last_imported = self.imported
+        image.save()
 
         # Clear existing set tags imported from Tandem Vault if
         # we retrieved single image data/didn't skip it:
@@ -277,7 +283,7 @@ class Command(BaseCommand):
                         source=self.source
                     )
                     image.tags.add(tandemvault_tag)
-
+                    # TODO more tags get flagged 'updated' than 'created'?
                     if created:
                         self.tags_created += 1
                     else:
@@ -404,9 +410,8 @@ Deleted: {6}
     are not assigned to any Images.
     '''
     def delete_stale(self):
-        # TODO unmodified (skipped) programs need their modified field to be updated; else they get deleted here
         stale_images = Image.objects.filter(
-            modified__lt=self.modified,
+            last_imported__lt=self.imported,
             source=self.source
         )
         stale_tags = ImageTag.objects.filter(images=None)
