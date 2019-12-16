@@ -86,5 +86,17 @@ urlpatterns = [
     url(r'^tuition-mappings/(?P<id>\d+)/$',
         TuitionOverrideDetailView.as_view(),
         name='api.tuitionoverride.detail'
+        ),
+    url(r'^cips/$',
+        CIPListView.as_view(),
+        name='api.cip.list'
+        ),
+    url(r'^cips/(?P<code>\d{2}\.?\d{0,2}\d{0,2})/$',
+        CIPDetailView.as_view(),
+        name='api.cip.detail.default_year'
+        ),
+    url(r'cips/(?P<code>\d{2}\.?\d{0,2}\d{0,2})/(?P<version>\d{4})/$',
+        CIPDetailView.as_view(),
+        name='api.cip.detail'
         )
 ]

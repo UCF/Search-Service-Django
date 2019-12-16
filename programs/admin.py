@@ -70,3 +70,24 @@ class TuitionOverrideAdmin(admin.ModelAdmin):
 @admin.register(CollegeOverride)
 class CollegeOverrideAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(AcademicYear)
+class AcademicYearAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(CIP)
+class CIPAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'code')
+    list_filter = ('version',)
+
+@admin.register(SOC)
+class SOCAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(EmploymentProjection)
+class EmploymentProjectionAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(ProgramOutcomeStat)
+class ProgramOutcomeStatAdmin(admin.ModelAdmin):
+    pass

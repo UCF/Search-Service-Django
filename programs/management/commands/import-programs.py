@@ -65,12 +65,22 @@ class Command(BaseCommand):
             required=False
         )
 
+        parser.add_argument(
+            '--cip-version',
+            type=str,
+            dest='cip_version',
+            help='The version of CIPs used by programs in this import.',
+            default=settings.CIP_CURRENT_VERSION,
+            required=False
+        )
+
     def handle(self, *args, **options):
         self.new_modified_date = timezone.now()
         path = options['path']
         mapping_path = options['mapping_path']
         self.use_internal_mapping = options['use_internal_mapping']
         self.list_inactive = options['list_inactive']
+        self.cip_version = options['cip_version']
         response = urllib2.urlopen(path)
 
         if mapping_path and not self.use_internal_mapping:
@@ -227,6 +237,22 @@ class Command(BaseCommand):
         if department_removed:
             self.departments_changed += 1
 
+        # Remove any existing relationship to a current-version CIP
+        # if it exists (in case the CIP changed in this import
+        # for some reason).
+        existing_cips = program.cip
+        if existing_cips.exists():
+            existing_cip = CIP.objects.get(version=self.cip_version, code=data['CIP'], program=program.pk)
+            program.cip.remove(existing_cip)
+
+        # Add an existing, current-version CIP object to the program.
+        if data['CIP']:
+            try:
+                cip = CIP.objects.get(version=self.cip_version, code=data['CIP'])
+                program.cip.add(cip)
+            except CIP.DoesNotExist:
+                pass
+
         program.modified = self.new_modified_date
 
         program.save()
@@ -259,7 +285,6 @@ class Command(BaseCommand):
             return
 
         # Handle Career and Level
-
         program.career = parent.career
         program.level = parent.level
 
@@ -276,6 +301,11 @@ class Command(BaseCommand):
         program.save()
 
         self.programs.append(program.id)
+
+        # Handle CIP. Subplans should always use the
+        # parent program's CIP(s)
+        for cip in parent.cip.all():
+            program.cip.add(cip)
 
         # Handle Colleges and Departments
         for college in parent.colleges.all():

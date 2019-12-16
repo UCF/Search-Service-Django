@@ -1,0 +1,1059 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="container my-4 my-sm-5">
+  <p class="lead mb-5">The UCF Search Service is a publicly available web service that allows queries to made against various UCF data. Results from the Search Service are returned as JSON.</p>
+</div>
+<div class="container mb-5">
+  <div class="row">
+    <div id="sidebar" class="col-lg-3 hidden-md-down bg-faded sticky-top py-4" style="height: 100vh; overflow-y: scroll; scrollbar-width: none; -ms-overflow-style: none;">
+      <strong class="d-block h6 text-uppercase letter-spacing-3 p-3">
+        <a class="text-secondary" href="#directory">Directory Data</a>
+      </strong>
+      <ul class="nav nav-pills flex-column">
+        <li class="nav-item">
+          <a class="nav-link w-100" href="#directory-search">Directory Search</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link w-100" href="#directory-buildings">Buildings List</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link w-100" href="#directory-orgs">Organizations List</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link w-100" href="#directory-depts">Departments List</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link w-100" href="#directory-staff">Staff List</a>
+        </li>
+      </ul>
+
+      <hr class="my-4">
+
+      <strong class="d-block h6 text-uppercase letter-spacing-3 p-3">
+        <a class="text-secondary" href="#programs">Degree Programs</a>
+      </strong>
+      <p class="px-3 mb-5 small font-italic">Documentation coming soon</p>
+
+      <hr class="my-4">
+
+      <strong class="d-block h6 text-uppercase letter-spacing-3 p-3">
+        <a class="text-secondary" href="#more-info">More Information</a>
+      </strong>
+      <ul class="nav nav-pills flex-column">
+        <li class="nav-item">
+          <a class="nav-link w-100" href="#data-sources">Data Sources</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link w-100" href="#contact">Contact</a>
+        </li>
+      </ul>
+    </div>
+    <div class="col-lg-9 pl-lg-5 mb-5">
+      <section id="directory" aria-labelledby="directory-heading">
+        <h2 id="directory-heading" class="h1 mt-4 mb-3">Directory Data (Teledata)</h2>
+        <p>The <code>teledata</code> application provides directory information for UCF <strong>staff</strong>, <strong>organizations</strong>, <strong>departments</strong> and <strong>buildings</strong>.</p>
+        <p>A <a href="#directory-search">combined search view</a> for staff, organizations, and departments is available, as well as individual list views for <a href="#directory-staff">staff</a>, <a href="#directory-orgs">organizations</a>, <a href="#directory-depts">departments</a>, and <a href="#directory-buildings">buildings</a>.</p>
+
+        <hr class="my-5">
+
+        <h3 id="directory-search" class="h2">Directory Search View</h3>
+        <p class="bg-faded py-1 px-2 rounded mb-3">
+          <a href="{% url 'api.teledata.search' %}" target="_blank"><code>{% url 'api.teledata.search' %}</code></a>
+        </p>
+        <p>The directory search view is the primary view used for retrieving directory data. This view will search staff, departments and organizations and return all results with a <a href="#directory-search-schema"><code>score</code> value</a> greater than 0. Note that this view does not return buildings.</p>
+
+        <h4 id="directory-search-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>search</code>
+                  <span class="mt-2 mb-3 small d-block font-italic text-default-aw">Required</span>
+                </td>
+                <td>The search string. This can include multiple search words with spaces in between.</td>
+                <td>Alphanumeric characters and spaces.</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>use</code>
+                </td>
+                <td>Limits the results to a specific object type.</td>
+                <td><code>staff</code>, <code>departments</code> and <code>organizations</code></td>
+              </tr>
+              <tr>
+                <td>
+                  <code>alpha</code>
+                </td>
+                <td>Whether all records should be pulled for staff members or only the primary (alpha) record</td>
+                <td><code>True</code>/<code>False</code></td>
+              </tr>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-search-examples" class="h5 text-uppercase my-4">Examples</h4>
+
+        <div class="card mb-4">
+          <div class="card-block">
+            <h5 id="directory-search-examples-simple" class="h6">Simple Search</h5>
+            <p class="small font-italic mb-0">Returns staff, departments and organizations that match the search term "Smith"</p>
+            <pre class="mt-4 mb-0"><code>{% url 'api.teledata.search' %}?search=Smith</code></pre>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-block">
+            <h5 id="directory-search-examples-staff" class="h6">Staff Search</h5>
+            <p class="small font-italic mb-0">Returns staff that match the search term "Smith"</p>
+            <pre class="mt-4 mb-0"><code>{% url 'api.teledata.search' %}?search=Smith&use=staff</code></pre>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-block">
+            <h5 id="directory-search-examples-org" class="h6">Organization Search</h5>
+            <p class="small font-italic mb-0">Returns organizations that match the search term "Facilities"</p>
+            <pre class="mt-4 mb-0"><code>{% url 'api.teledata.search' %}?search=Facilities&use=organizations</code></pre>
+          </div>
+        </div>
+
+        <h4 id="directory-search-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The directory search view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>resultCount</code></td>
+                <td>Alias of the <code>count</code> field for backwards compatibility with the previous version of the Search Service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-search-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>score</code></td>
+                <td>The relevance score of the result, calculated based on a number of factors.</td>
+                <td>Decimal (appears as a string in JSON)</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>alpha</code></td>
+                <td>Indicates if this is the primary record of a staff member.</td>
+                <td>Boolean</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>name</code></td>
+                <td>The full name of the staff member, organization or department.</td>
+                <td>String</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>first_name</code></td>
+                <td>The first name of staff records.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>last_name</code></td>
+                <td>The last name of staff records</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>sort_name</code></td>
+                <td>For staff records, this field will be the name ordered last to first. Organizations and departments will have the same value as the <code>name</code> field.</td>
+                <td>String</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>email</code></td>
+                <td>The email for staff records.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>phone</code></td>
+                <td>The phone number of the staff member, organization or department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>fax</code></td>
+                <td>The fax number of the organization or department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>postal</code></td>
+                <td>The postal code of the record.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>job_position</code></td>
+                <td>The position title of the staff member record.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>department</code></td>
+                <td>The department name of the staff member record.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>dept_id</code></td>
+                <td>The id of the department within the search service data.</td>
+                <td>Integer</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>organization</code></td>
+                <td>The organization name of the staff member of department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>org_id</code></td>
+                <td>The id of the organization within the search service data.</td>
+                <td>Integer</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>building</code></td>
+                <td>The building name of the record.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>bldg_id</code></td>
+                <td>The id of the building within the search service data.</td>
+                <td>Integer</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>room</code></td>
+                <td>The room number of the staff member, department of organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>from_table</code></td>
+                <td>The type of the record. Can be <code>staff</code>, <code>departments</code> or <code>organizations</code>.</td>
+                <td>String</td>
+                <td>No</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <hr class="my-5">
+
+        <h3 id="directory-buildings" class="h2 mt-5">Buildings List</h3>
+        <p class="bg-faded py-1 px-2 rounded mb-3">
+          <a href="{% url 'api.teledata.buildings.list' %}" target="_blank"><code>{% url 'api.teledata.buildings.list' %}</code></a>
+        </p>
+        <p>
+          The building list view provides a list of building records including name and abbreviation.
+        </p>
+
+        <h4 id="directory-buildings-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-buildings-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The building list view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-buildings-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>name</code></td>
+                <td>The full name of the building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>description</code></td>
+                <td>A brief extended description of the building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>abbr</code></td>
+                <td>The building's official abbreviated name.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>import_id</code></td>
+                <td>The building's official ID number.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <hr class="my-5">
+
+        <h3 id="directory-orgs" class="h2 mt-5">Organizations List</h3>
+        <p class="bg-faded py-1 px-2 rounded mb-3">
+          <a href="{% url 'api.teledata.organizations.list' %}"
+            target="_blank"><code>{% url 'api.teledata.organizations.list' %}</code></a>
+        </p>
+        <p>
+          The organization list view provides a list of organization records including building and contact information.
+        </p>
+
+        <h4 id="directory-orgs-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-orgs-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The organization list view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-orgs-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>bldg</code></td>
+                <td>The Building this organization is located in. See <a href="#directory-buildings-schema">the result schema for Buildings List results</a> for more information.</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>name</code></td>
+                <td>The full name of the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>room</code></td>
+                <td>The room number for the organization within its building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>postal</code></td>
+                <td>The postal code of the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>phone</code></td>
+                <td>The phone number of the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>fax</code></td>
+                <td>The fax number of the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>primary_comment</code></td>
+                <td>Additional notes/details about the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>secondary_comment</code></td>
+                <td>Additional notes/details about the organization.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>url</code></td>
+                <td>URL pointing to this organization's website.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>last_updated</code></td>
+                <td>When this organization's information was last refreshed in the search service.</td>
+                <td>String (datetime stamp)</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>import_id</code></td>
+                <td>The organization's official ID number.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <hr class="my-5">
+
+        <h3 id="directory-depts" class="h2 mt-5">Departments List</h3>
+        <p class="bg-faded py-1 px-2 rounded mb-3">
+          <a href="{% url 'api.teledata.departments.list' %}"
+            target="_blank"><code>{% url 'api.teledata.departments.list' %}</code></a>
+        </p>
+        <p>
+          The department list view provides a list of department records including building, organization and contact information.
+        </p>
+
+        <h4 id="directory-depts-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-depts-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The department list view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-depts-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>bldg</code></td>
+                <td>The Building this department is located in. See <a href="#directory-buildings-schema">the result schema
+                    for Buildings List results</a> for more information.</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>org</code></td>
+                <td>The Organization this department is grouped under. See <a href="#directory-orgs-schema">the result schema
+                    for Organizations List results</a> for more information.</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>list_order</code></td>
+                <td>Position this department should be ordered in when displayed in a list of departments.</td>
+                <td>Integer</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>name</code></td>
+                <td>The full name of the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>room</code></td>
+                <td>The room number for the department within its building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>phone</code></td>
+                <td>The phone number of the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>fax</code></td>
+                <td>The fax number of the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>primary_comment</code></td>
+                <td>Additional notes/details about the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>secondary_comment</code></td>
+                <td>Additional notes/details about the department.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>last_updated</code></td>
+                <td>When this department's information was last refreshed in the search service.</td>
+                <td>String (datetime stamp)</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>import_id</code></td>
+                <td>The department's official ID number.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <hr class="my-5">
+
+        <h3 id="directory-staff" class="h2 mt-5">Staff List</h3>
+        <p class="bg-faded py-1 px-2 rounded mb-3">
+          <a href="{% url 'api.teledata.staff.list' %}"
+            target="_blank"><code>{% url 'api.teledata.staff.list' %}</code></a>
+        </p>
+        <p>
+          The staff list view provides a list of staff records including department, building, and contact information.
+        </p>
+
+        <h4 id="directory-staff-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-staff-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The staff list view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="directory-staff-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>dept</code></td>
+                <td>Details about the Department this staff member is part of. Links to a single Department detail view with more information about the department (<code>detail_url</code>).</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>bldg</code></td>
+                <td>The Building this department is located in. See <a href="#directory-buildings-schema">the result schema
+                    for Buildings List results</a> for more information.</td>
+                <td>Object</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>alpha</code></td>
+                <td>Indicates if this is the primary record of a staff member.</td>
+                <td>Boolean</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>last_name</code></td>
+                <td>The last name of the staff member.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>suffix</code></td>
+                <td>The staff member's name suffix.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>name_title</code></td>
+                <td>The name title of the staff member (e.g. Mr., Mrs.).</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>first_name</code></td>
+                <td>The first name of the staff member.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>middle</code></td>
+                <td>The middle name of the staff member.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>job_position</code></td>
+                <td>The staff member's job position.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>room</code></td>
+                <td>The room number for the staff member within their building.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>phone</code></td>
+                <td>The phone number of the staff member.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>email</code></td>
+                <td>The staff member's full email address.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>email_machine</code></td>
+                <td>The domain of the staff member's email address.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>postal</code></td>
+                <td>The staff member's postal code.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>last_updated</code></td>
+                <td>When this staff member's information was last refreshed in the search service.</td>
+                <td>String (datetime stamp)</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>listed</code></td>
+                <td></td>
+                <td>Boolean</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>cellphone</code></td>
+                <td></td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>import_id</code></td>
+                <td>The staff member's imported ID number.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+
+      <hr class="my-5 hr-3">
+
+
+      <section id="programs" aria-labelledby="programs-heading">
+        <h2 id="programs-heading" class="h1 mt-4 mb-3">Degree Program Data</h2>
+        <p class="font-italic text-default-aw">Documentation coming soon</p>
+      </section>
+
+
+      <hr class="my-5 hr-3">
+
+
+      <section id="more-info" aria-labelledby="more-info-heading">
+        <h2 id="more-info-heading" class="h1 mt-4 mb-3">More Information</h2>
+
+        <h3 id="data-sources" class="h2 mt-5 mb-3">Data Sources</h3>
+        <p>Data included in the UCF Search Service is aggregated from multiple sources, listed below:</p>
+        <dl class="row mt-4">
+          <dt class="col-sm-4">Directory data (teledata)</dt>
+          <dd class="col-sm-8 mb-3">Sourced from <a target="_blank" href="https://ucf.service-now.com/ucfit?id=kb_article&sys_id=8c42d35313342fcc17507b304244b0b5">UCF Phonebook</a> data, managed by UCF IT.</dd>
+          <dt class="col-sm-4">Degree program data</dt>
+          <dd class="col-sm-8">General program information and metadata is sourced from <a target="_blank" href="https://ikm.ucf.edu/academic-programs/academic-program-inventory/">UCF's Academic Program Inventory Master (APIM)</a>, managed by IKM.</dd>
+          <dd class="col-sm-8 offset-sm-4">Catalog descriptions and links are sourced from the <a target="_blank" href="http://catalog.ucf.edu/">online UCF Catalog</a>.</dd>
+          <dd class="col-sm-8 offset-sm-4">Tuition data is sourced from <a target="_blank" href="https://studentaccounts.ucf.edu/tf-tuitionratescurrent/">Student Account Services</a>.</dd>
+          <dd class="col-sm-8 offset-sm-4">Program outcomes/statistics are sourced from IKM.</dd>
+          <dd class="col-sm-8 offset-sm-4 mb-3">Classification of Instructional Programs (CIP) code lists, titles and descriptions are sourced from <a target="_blank" href="https://nces.ed.gov/ipeds/cipcode/">IPEDS (Integrated Postsecondary Education Data System)</a>.</dd>
+        </dl>
+        <p>Data is pulled from these sources on a regular basis, depending on the type of data.  Directory data is scheduled to refresh every 12 hours; program metadata and catalog information is retrieved monthly.</p>
+
+        <h3 id="contact" class="h2 mt-5 mb-3">Contact</h3>
+        <p>The UCF Search Service is managed by UCF Web Communications.</p>
+        <p>For <strong>general questions</strong> about the Search Service, please email <a href="mailto:webcom@ucf.edu">webcom@ucf.edu</a>.</p>
+        <p>If you'd like to submit a <strong>bug report</strong> (e.g. an API view not loading properly, or params not working as expected), please <a target="_blank" href="https://github.com/UCF/Search-Service-Django/issues/new">submit a new issue in Github</a> detailing the problem, how you encountered the problem, and expected behavior.</p>
+        <div class="alert alert-info my-4 p-sm-5">
+          <h4 class="h6 text-uppercase mb-3">Reporting Inaccurate/Missing Data</h4>
+          <p>Before contacting UCF Web Communications to report problems with data in the Search Service, please verify that said data is accurate at its source (see "<a class="alert-link" href="#data-sources">Data Sources</a>" above.)</p>
+          <p>If data is inaccurate in any of those sources, please <strong>contact the owners of those resources</strong> to resolve the issue.</p>
+          <p class="mb-0">If you've determined that the data problem is specific to the Search Service, please email <a class="alert-link" href="mailto:webcom@ucf.edu">webcom@ucf.edu</a> detailing the problem.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
