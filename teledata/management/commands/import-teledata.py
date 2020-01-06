@@ -313,8 +313,8 @@ FROM
 
             if (item[13] is not None and
                 item[14] is not None):
-                email = item[13] + item[14]
-                email_machine = item[14]
+                email = item[13].lower() + item[14].lower()
+                email_machine = item[14].lower()
             else:
                 email = None
                 email_machine = None
