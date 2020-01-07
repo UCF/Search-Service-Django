@@ -66,10 +66,10 @@ class Command(BaseCommand):
         ),
         parser.add_argument(
             '--tag-confidence-threshold',
-            type=float,
-            help='The minimum confidence ranking an automatically-generated tag must have to be assigned to an image. Provide a decimal value between 0 and 100.',
+            type=str,
+            help='The minimum confidence ranking an automatically-generated tag must have to be assigned to an image. Accepts "mean-adjusted" (default) or a decimal value between 0 and 100.',
             dest='tag-confidence-threshold',
-            default=0,
+            default='mean-adjusted',
             required=False
         ),
 
@@ -95,9 +95,15 @@ class Command(BaseCommand):
             print 'AWS secret key required to assign tags via Rekognition. Please set a secret key in your settings_local.py file and try again.'
             return
 
-        if self.assign_tags != 'none' and self.tag_confidence_threshold > 1 or self.tag_confidence_threshold < 0:
-            print 'Tag confidence threshold value must be a value between 0 and 1.'
-            return
+        if self.assign_tags != 'none':
+            if is_float(self.tag_confidence_threshold):
+                self.tag_confidence_threshold = float(self.tag_confidence_threshold)
+                if self.tag_confidence_threshold > 100 or self.tag_confidence_threshold < 0:
+                    print 'Tag confidence threshold value must be either "mean-adjusted" or a value between 0 and 100'
+                    return
+            elif self.tag_confidence_threshold != 'mean-adjusted':
+                print 'Tag confidence threshold value must be either "mean-adjusted" or a value between 0 and 100'
+                return
 
         self.tandemvault_assets_api_url = 'https://' + self.tandemvault_domain + self.tandemvault_assets_api_path
         self.tandemvault_asset_api_url = 'https://' + self.tandemvault_domain + self.tandemvault_asset_api_path
@@ -320,18 +326,30 @@ class Command(BaseCommand):
         if self.assign_tags != 'none':
             rekognition_data = self.get_rekognition_data(image.thumbnail_url)
             rekognition_tags = []
+            rekognition_tag_score_mean = None
+
+            print image.thumbnail_url
+
             if rekognition_data:
                 rekognition_tags = rekognition_data['labels']
+                if self.tag_confidence_threshold == 'mean-adjusted':
+                    rekognition_tag_score_mean = rekognition_data['labels_mean_confidence_score']
+                    print "MEAN TAG SCORE FOR IMAGE: %s" % (
+                        rekognition_tag_score_mean)
+
             for rekognition_tag_data in rekognition_tags:
                 rekognition_tag_name = rekognition_tag_data['Name'].strip()
-                logging.debug("GENERATED TAG: %s | CONFIDENCE: %s" % (rekognition_tag_name, rekognition_tag_data['Confidence']))
+                rekognition_tag_score = rekognition_tag_data['Confidence']
+                # logging.debug("GENERATED TAG: %s | CONFIDENCE: %s" % (rekognition_tag_name, rekognition_tag_score))
+                print "GENERATED TAG: %s | CONFIDENCE: %s" % (
+                    rekognition_tag_name, rekognition_tag_score)
                 rekognition_tag_name_lower = rekognition_tag_name.lower()
 
                 # If this tag meets our minimum confidence threshold and
                 # doesn't already match the name of another tag assigned to
                 # the image, get or create an ImageTag object and assign it
                 # to the Image:
-                if rekognition_tag_data['Confidence'] >= self.tag_confidence_threshold and rekognition_tag_name_lower not in tag_names_unique:
+                if self.confidence_threshold_met(rekognition_tag_score, rekognition_tag_score_mean) and rekognition_tag_name_lower not in tag_names_unique:
                     tag_names_unique.add(rekognition_tag_name_lower)
                     rekognition_tag, created = ImageTag.objects.get_or_create(
                         name=rekognition_tag_name,
@@ -409,8 +427,25 @@ class Command(BaseCommand):
                 Image={'Bytes': image_data}
             )
             data['labels'] = response['Labels']
+            # Calculate mean confidence score if the
+            # script's confidence threshold is set to 'mean-adjusted':
+            if self.tag_confidence_threshold == 'mean-adjusted':
+                mean_score = ( sum([label['Confidence'] for label in data['labels']]) / len(data['labels']) )
+                data['labels_mean_confidence_score'] = mean_score
 
         return data
+
+    '''
+    Determines if a tag confidence score meets the required threshold.
+    '''
+    def confidence_threshold_met(self, confidence_score, mean=80):
+        if self.tag_confidence_threshold == 'mean-adjusted':
+            if mean < 80:
+                mean = 80
+            return confidence_score >= mean
+        else:
+            return confidence_score >= self.tag_confidence_threshold
+
 
     '''
     Displays information about the import.
@@ -461,3 +496,14 @@ Script executed in {6}
 
         stale_images.delete()
         stale_tags.delete()
+
+
+'''
+Utility function for determining if a value is translatable into a float.
+'''
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
