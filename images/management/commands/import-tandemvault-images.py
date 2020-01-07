@@ -19,6 +19,19 @@ class Command(BaseCommand):
     progress_bar                = Bar('Processing')
     source                      = 'Tandem Vault'
     auto_tag_source             = 'AWS Rekognition'
+    auto_tag_blacklist          = [
+        'human',
+        'apparel',
+        'clothing',
+        'skin',
+        'dating',
+        'photo',
+        'photography',
+        'mammal'
+    ]
+    auto_tag_translations       = {
+        'american football': 'football'
+    }
     tandemvault_assets_api_path = '/api/v1/assets/'
     tandemvault_asset_api_path  = '/api/v1/assets/{0}/'
     tandemvault_download_path   = '/assets/{0}/'
@@ -328,22 +341,22 @@ class Command(BaseCommand):
             rekognition_tags = []
             rekognition_tag_score_mean = None
 
-            print image.thumbnail_url
+            logging.debug("GENERATING TAGS FOR IMAGE: %s" % (image.thumbnail_url))
 
             if rekognition_data:
                 rekognition_tags = rekognition_data['labels']
                 if self.tag_confidence_threshold == 'mean-adjusted':
                     rekognition_tag_score_mean = rekognition_data['labels_mean_confidence_score']
-                    print "MEAN TAG SCORE FOR IMAGE: %s" % (
-                        rekognition_tag_score_mean)
+                    logging.debug("MEAN TAG SCORE FOR IMAGE: %s" % (
+                        rekognition_tag_score_mean
+                    ))
 
             for rekognition_tag_data in rekognition_tags:
                 rekognition_tag_name = rekognition_tag_data['Name'].strip()
                 rekognition_tag_score = rekognition_tag_data['Confidence']
-                # logging.debug("GENERATED TAG: %s | CONFIDENCE: %s" % (rekognition_tag_name, rekognition_tag_score))
-                print "GENERATED TAG: %s | CONFIDENCE: %s" % (
-                    rekognition_tag_name, rekognition_tag_score)
                 rekognition_tag_name_lower = rekognition_tag_name.lower()
+
+                logging.debug("GENERATED TAG: %s | CONFIDENCE: %s" % (rekognition_tag_name, rekognition_tag_score))
 
                 # If this tag meets our minimum confidence threshold and
                 # doesn't already match the name of another tag assigned to
@@ -426,7 +439,16 @@ class Command(BaseCommand):
             response = self.aws_client.detect_labels(
                 Image={'Bytes': image_data}
             )
-            data['labels'] = response['Labels']
+
+            for label in response['Labels']:
+                # Perform translations for individual labels
+                if label['Name'].lower() in self.auto_tag_translations:
+                    label['Name'] = self.auto_tag_translations[label['Name'].lower()]
+
+                # Perform blacklisting for individual labels
+                if label['Name'].lower() not in self.auto_tag_blacklist:
+                    data['labels'].append(label)
+
             # Calculate mean confidence score if the
             # script's confidence threshold is set to 'mean-adjusted':
             if self.tag_confidence_threshold == 'mean-adjusted':
