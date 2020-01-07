@@ -129,8 +129,11 @@ UCF_TANDEMVAULT_DOMAIN = 'ucf.tandemvault.com'
 # An API key to use with UCF's Tandem Vault.
 TANDEMVAULT_API_KEY = ''
 
-# An endpoint to use with Azure's Computer Vision library.
-COMPUTER_VISION_ENDPOINT = ''
+# An AWS Access Key ID with sufficient permissions to access Rekognition.
+AWS_ACCESS_KEY = ''
 
-# A subscription key to use with the Computer Vision endpoint noted above.
-COMPUTER_VISION_SUBSCRIPTION_KEY = ''
+# An AWS Secret Key for accessing Rekognition.
+AWS_SECRET_KEY = ''
+
+# The region name to use when accessing Rekognition.
+AWS_REGION = 'us-east-1'
