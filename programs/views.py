@@ -163,3 +163,16 @@ class CIPDetailView(generics.RetrieveAPIView):
         version = self.kwargs['version'] if 'version' in self.kwargs.keys() else settings.CIP_CURRENT_VERSION
         code = str(self.kwargs['code'])
         return CIP.objects.get(version=version, code=code)
+
+class ProgramOutcomeView(APIView):
+    def get(self, request, format=None, **kwargs):
+        program = Program.objects.get(id=kwargs['id'])
+        outcomes = program.outcomes.all()
+        latest = program.outcomes.order_by('-academic_year__code').first()
+
+        retval = {
+            'by_year': ProgramOutcomeStatSerializer(instance=outcomes, many=True).data,
+            'latest': ProgramOutcomeStatSerializer(instance=latest, many=False).data
+        }
+
+        return Response(retval)

@@ -350,7 +350,10 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
     descriptions = ProgramDescriptionLinkedSerializer(many=True, read_only=False)
     profiles = ProgramProfileLinkedSerializer(many=True, read_only=False)
-    outcomes = serializers.SerializerMethodField()
+    outcomes = serializers.HyperlinkedIdentityField(
+        view_name='api.programs.outcomes',
+        lookup_field='id'
+    )
     projection_totals = serializers.SerializerMethodField()
     careers = serializers.SerializerMethodField()
 
@@ -366,19 +369,6 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
     parent_program = RelatedProgramSerializer(many=False, read_only=True)
     subplans = RelatedProgramSerializer(many=True, read_only=True)
-
-    def get_outcomes(self, program):
-        all_outcome_data = program.outcomes.all()
-        latest_outcome_data = program.outcomes.order_by('-academic_year__code').first()
-        by_year_serializer = ProgramOutcomeStatSerializer(instance=all_outcome_data, many=True)
-        latest_serializer = ProgramOutcomeStatSerializer(instance=latest_outcome_data, many=False)
-
-        retval = {
-            'by_year': by_year_serializer.data,
-            'latest': latest_serializer.data
-        }
-
-        return retval
 
     def get_projections(self, program):
         projection_serializer = EmploymentProjectionSerializer(instance=program.current_projections, many=True)

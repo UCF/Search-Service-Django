@@ -15,6 +15,11 @@ urlpatterns = [
         ProgramDetailView.as_view(),
         name='api.programs.detail'
         ),
+    url(
+        r'programs/(?P<id>\d+)/outcomes/$',
+        ProgramOutcomeView.as_view(),
+        name='api.programs.outcomes'
+        ),
     url(r'^programs/search/$',
         ProgramSearchView.as_view(),
         name='api.programs.search'
