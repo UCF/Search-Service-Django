@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     # Local
     'programs',
     'teledata',
+    'images',
     'core'
 ]
 
