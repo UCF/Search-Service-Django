@@ -29,10 +29,19 @@ class Command(BaseCommand):
             help='CSV file containing existing tag and synonym information from Tandem Vault',
             dest='file',
             required=True
+        ),
+        parser.add_argument(
+            '--delete-stale',
+            type=bool,
+            help='Whether or not stale tags (tags not assigned to any Images) should be deleted.',
+            dest='delete-stale',
+            default=False,
+            required=False
         )
 
     def handle(self, *args, **options):
         self.tandemvault_tags_csv = options['file']
+        self.do_delete_stale = options['delete-stale']
 
         # Start a timer for the bulk of the script
         self.exec_time = 0
@@ -43,7 +52,8 @@ class Command(BaseCommand):
         self.process_tandemvault_tags()
 
         # Delete stale Tandem Vault image tags
-        #self.delete_stale()
+        if self.do_delete_stale:
+            self.delete_stale()
 
         # Stop timer
         self.exec_end = timeit.default_timer()
@@ -136,9 +146,8 @@ Script executed in {3}
         print(stats)
 
     '''
-    Deletes Image objects sourced from Tandem Vault that are no
-    longer present in Tandem Vault, and deletes ImageTags sources
-    from Tandem Vault that are not assigned to any Images.
+    Deletes ImageTags sourced from Tandem Vault
+    that are not assigned to any Images.
     '''
     def delete_stale(self):
         stale_tags = ImageTag.objects.filter(images=None, source=self.source)
