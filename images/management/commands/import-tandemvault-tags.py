@@ -1,11 +1,11 @@
 from django.core.management.base import BaseCommand
 from images.models import *
 
+import csv
 import logging
 import timeit
 import datetime
 
-import requests
 from progress.bar import Bar
 
 
@@ -14,21 +14,23 @@ class Command(BaseCommand):
 
     progress_bar = Bar('Processing')
     source       = 'Tandem Vault'
+    tags         = []
+    tag_count    = 0
     tags_created = 0
     tags_updated = 0
     tags_deleted = 0
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--tandemvault-tags-csv-url',
-            type=str,
-            help='URL that points to a CSV containing existing tag and synonym information from Tandem Vault',
-            dest='tandemvault-tags-csv-url',
+            '--file',
+            type=file,
+            help='CSV file containing existing tag and synonym information from Tandem Vault',
+            dest='file',
             required=True
         )
 
     def handle(self, *args, **options):
-        self.tandemvault_tags_csv = options['tandemvault-tags-csv-url']
+        self.tandemvault_tags_csv = options['file']
 
         # Start a timer for the bulk of the script
         self.exec_time = 0
@@ -36,9 +38,10 @@ class Command(BaseCommand):
 
         # Process the CSV
         self.load_tandemvault_tags()
+        self.process_tandemvault_tags()
 
         # Delete stale Tandem Vault image tags
-        self.delete_stale()
+        #self.delete_stale()
 
         # Stop timer
         self.exec_end = timeit.default_timer()
@@ -51,12 +54,28 @@ class Command(BaseCommand):
         return
 
     '''
-    Pre-load a CSV of Tandem Vault tags + synonyms.
-
-    TODO
+    Load a CSV of Tandem Vault tags + synonyms.
     '''
-    def load_tandemvault_tags():
-        pass
+    def load_tandemvault_tags(self):
+        try:
+            csv_reader = csv.DictReader(self.tandemvault_tags_csv)
+        except csv.Error:
+            logging.error(
+                '\n ERROR reading CSV: CSV does not have valid headers or is malformed.')
+            return
+
+        for row in csv_reader:
+            self.tags.append(row)
+
+        self.tag_count = len(self.tags)
+
+    '''
+    Process loaded Tandem Vault tags.
+    '''
+    def process_tandemvault_tags(self):
+        for tag in self.tags:
+            # TODO
+            print tag
 
     '''
     Displays information about the import.
