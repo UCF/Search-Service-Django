@@ -2,11 +2,13 @@ from django.core.management.base import BaseCommand
 from images.models import *
 
 import csv
+import datetime
+import json
 import logging
 import timeit
-import datetime
 
 from progress.bar import Bar
+from unidecode import unidecode
 
 
 class Command(BaseCommand):
@@ -73,9 +75,44 @@ class Command(BaseCommand):
     Process loaded Tandem Vault tags.
     '''
     def process_tandemvault_tags(self):
-        for tag in self.tags:
-            # TODO
-            print tag
+        for tandemvault_tag in self.tags:
+            name = self.clean_tag_name(tandemvault_tag['name'])
+            # Empty tags can exist in this data for whatever reason;
+            # skip them if present
+            if not name:
+                continue
+
+            synonyms = filter(None, [self.clean_tag_name(synonym) for synonym in json.loads(tandemvault_tag['synonym_names'])])
+
+            tag, created = ImageTag.objects.get_or_create(name=name, source=self.source)
+            if created:
+                self.tags_created += 1
+            else:
+                self.tags_updated += 1
+
+            # Remove existing Tandem Vault synonym relationships
+            existing_synonyms = tag.synonyms.filter(source=self.source)
+            if existing_synonyms:
+                tag.synonyms.remove(*existing_synonyms)
+
+            # Assign fresh Tandem Vault synonym relationships
+            for synonym in synonyms:
+                s, created = ImageTag.objects.get_or_create(name=synonym, source=self.source)
+                tag.synonyms.add(s)
+
+            tag.save()
+
+    '''
+    Sanitizes tag names
+    '''
+    def clean_tag_name(self, name):
+        try:
+            name = name.decode('utf-8')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            # we tried; make it behave
+            name = unidecode(name)
+
+        return name.lower().strip()
 
     '''
     Displays information about the import.
