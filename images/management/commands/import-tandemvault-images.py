@@ -485,19 +485,23 @@ Script executed in {6}
     Deletes Image objects sourced from Tandem Vault that are no
     longer present in Tandem Vault, and deletes ImageTags that
     are not assigned to any Images.
+
+    ** NOTE: stale tag deletion is commented out for now, until
+    we can create a complete set of image + Tandem Vault tag data
+    in the search service
     '''
     def delete_stale(self):
         stale_images = Image.objects.filter(
             last_imported__lt=self.imported,
             source=self.source
         )
-        stale_tags = ImageTag.objects.filter(images=None)
+        # stale_tags = ImageTag.objects.filter(images=None)
 
         self.images_deleted = stale_images.count()
-        self.tags_deleted = stale_tags.count()
+        # self.tags_deleted = stale_tags.count()
 
         stale_images.delete()
-        stale_tags.delete()
+        # stale_tags.delete()
 
 
 '''
