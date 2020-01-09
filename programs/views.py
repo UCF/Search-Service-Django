@@ -163,3 +163,42 @@ class CIPDetailView(generics.RetrieveAPIView):
         version = self.kwargs['version'] if 'version' in self.kwargs.keys() else settings.CIP_CURRENT_VERSION
         code = str(self.kwargs['code'])
         return CIP.objects.get(version=version, code=code)
+
+class ProgramOutcomeView(APIView):
+    def get(self, request, format=None, **kwargs):
+        program = Program.objects.get(id=kwargs['id'])
+        outcomes = program.outcomes.all()
+        latest = program.outcomes.order_by('-academic_year__code').first()
+
+        retval = {
+            'by_year': ProgramOutcomeStatSerializer(instance=outcomes, many=True).data,
+            'latest': ProgramOutcomeStatSerializer(instance=latest, many=False).data
+        }
+
+        return Response(retval)
+
+class ProgramProjectionTotalsView(APIView):
+    def get(request, format=None, **kwargs):
+        program = Program.objects.get(id=kwargs['id'])
+
+        obj = program.current_projections.aggregate(
+            begin_employment=Sum('begin_employment'),
+            end_employment=Sum('end_employment'),
+            change=Sum('change'),
+            change_percentage=Avg('change_percentage'),
+            openings=Sum('openings')
+        )
+
+        first_projection = program.current_projections.first()
+
+        obj['begin_year'] = first_projection.report_year_begin if first_projection is not None else None
+        obj['end_year'] = first_projection.report_year_end if first_projection is not None else None
+
+        serializer = EmploymentProjectionTotalsSerializer(obj, many=False)
+        return Response(serializer.data)
+
+class ProgramCareerView(APIView):
+    def get(request, format=None, **kwargs):
+        program = Program.objects.get(id=kwargs['id'])
+
+        return Response(program.careers.all())

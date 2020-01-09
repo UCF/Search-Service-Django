@@ -15,6 +15,21 @@ urlpatterns = [
         ProgramDetailView.as_view(),
         name='api.programs.detail'
         ),
+    url(
+        r'^programs/(?P<id>\d+)/outcomes/$',
+        ProgramOutcomeView.as_view(),
+        name='api.programs.outcomes'
+        ),
+    url(
+        r'^programs/(?P<id>\d+)/projections/$',
+        ProgramProjectionTotalsView.as_view(),
+        name='api.programs.projections'
+        ),
+    url(
+        r'^programs/(?P<id>\d+)/careers/$',
+        ProgramCareerView.as_view(),
+        name='api.programs.careers'
+        ),
     url(r'^programs/search/$',
         ProgramSearchView.as_view(),
         name='api.programs.search'
