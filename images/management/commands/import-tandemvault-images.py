@@ -62,13 +62,6 @@ class Command(BaseCommand):
             required=False
         ),
         parser.add_argument(
-            '--tandemvault-tags-csv-url',
-            type=str,
-            help='URL that points to a CSV containing existing tag and synonym information from Tandem Vault',
-            dest='tandemvault-tags-csv-url',
-            required=False
-        ),
-        parser.add_argument(
             '--assign-tags',
             type=str,
             help='Specify what images, if any, should be processed with AWS\'s Rekognition services to generate image tags.',
@@ -89,7 +82,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.tandemvault_domain = options['tandemvault-domain'].replace('http://', '').replace('https://', '')
         self.tandemvault_api_key = options['tandemvault-api-key']
-        self.tandemvault_tags_csv = options['tandemvault-tags-csv-url']
         self.aws_access_key = settings.AWS_ACCESS_KEY
         self.aws_secret_key = settings.AWS_SECRET_KEY
         self.aws_region = settings.AWS_REGION
@@ -157,10 +149,6 @@ class Command(BaseCommand):
                 logging.error('ERROR establishing client: %s' % e)
                 return
 
-        # If a CSV of existing tags was provided, process it
-        if self.tandemvault_tags_csv:
-            self.load_tandemvault_tags()
-
         # Fetch + loop through all Tandem Vault API results
         self.process_images()
 
@@ -176,14 +164,6 @@ class Command(BaseCommand):
         self.print_stats()
 
         return
-
-    '''
-    Pre-load a CSV of Tandem Vault tags + synonyms.
-
-    TODO
-    '''
-    def load_tandemvault_tags():
-        pass
 
     '''
     The main image processing function that executes all API
