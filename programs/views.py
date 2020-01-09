@@ -176,3 +176,29 @@ class ProgramOutcomeView(APIView):
         }
 
         return Response(retval)
+
+class ProgramProjectionTotalsView(APIView):
+    def get(request, format=None, **kwargs):
+        program = Program.objects.get(id=kwargs['id'])
+
+        obj = program.current_projections.aggregate(
+            begin_employment=Sum('begin_employment'),
+            end_employment=Sum('end_employment'),
+            change=Sum('change'),
+            change_percentage=Avg('change_percentage'),
+            openings=Sum('openings')
+        )
+
+        first_projection = program.current_projections.first()
+
+        obj['begin_year'] = first_projection.report_year_begin if first_projection is not None else None
+        obj['end_year'] = first_projection.report_year_end if first_projection is not None else None
+
+        serializer = EmploymentProjectionTotalsSerializer(obj, many=False)
+        return Response(serializer.data)
+
+class ProgramCareerView(APIView):
+    def get(request, format=None, **kwargs):
+        program = Program.objects.get(id=kwargs['id'])
+
+        return Response(program.careers.all())

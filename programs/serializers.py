@@ -354,8 +354,14 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
         view_name='api.programs.outcomes',
         lookup_field='id'
     )
-    projection_totals = serializers.SerializerMethodField()
-    careers = serializers.SerializerMethodField()
+    projection_totals = serializers.HyperlinkedIdentityField(
+        view_name='api.programs.projections',
+        lookup_field='id'
+    )
+    careers = serializers.HyperlinkedIdentityField(
+        view_name='api.programs.careers',
+        lookup_field='id'
+    )
 
     colleges = CollegeLinkSerializer(
         many=True,
@@ -376,24 +382,6 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
     def get_careers(self, program):
         return program.careers
-
-    def get_projection_totals(self, program):
-        obj = program.current_projections.aggregate(
-            begin_employment=Sum('begin_employment'),
-            end_employment=Sum('end_employment'),
-            change=Sum('change'),
-            change_percentage=Avg('change_percentage'),
-            openings=Sum('openings')
-        )
-
-        first_projection = program.current_projections.first()
-
-        obj['begin_year'] = first_projection.report_year_begin if first_projection is not None else None
-        obj['end_year'] = first_projection.report_year_end if first_projection is not None else None
-
-        serializer = EmploymentProjectionTotalsSerializer(obj, many=False)
-        return serializer.data
-
 
     class Meta:
         fields = (
