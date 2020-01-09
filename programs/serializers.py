@@ -376,13 +376,6 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     parent_program = RelatedProgramSerializer(many=False, read_only=True)
     subplans = RelatedProgramSerializer(many=True, read_only=True)
 
-    def get_projections(self, program):
-        projection_serializer = EmploymentProjectionSerializer(instance=program.current_projections, many=True)
-        return projection_serializer.data
-
-    def get_careers(self, program):
-        return program.careers
-
     class Meta:
         fields = (
             'id',
