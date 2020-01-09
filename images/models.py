@@ -4,12 +4,13 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import models
 
+import core.models
+
 # Create your models here.
 
 
-# TODO add object overrides to enforce case-insensitivity on tag names
 class ImageTag(models.Model):
-    name = models.CharField(max_length=255, null=False, blank=False)
+    name = core.models.LowercaseCharField(max_length=255, unique=True, null=False, blank=False)
     synonyms = models.ManyToManyField(
         'self',
         blank=True,
