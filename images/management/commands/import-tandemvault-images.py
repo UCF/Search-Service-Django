@@ -65,7 +65,7 @@ class RekognitionWorker(Thread):
             finally:
                 self.queue.task_done()
 
-    def get_rekognition_data(image_url):
+    def get_rekognition_data(self, image_url):
         """
         Sends an image to AWS Rekognition and returns data about that image.
         """
@@ -95,7 +95,7 @@ class RekognitionWorker(Thread):
 
             # Calculate mean confidence score if the
             # script's confidence threshold is set to 'mean-adjusted':
-            if self.tag_confidence_threshold == 'mean-adjusted':
+            if self.threshold == 'mean-adjusted':
                 mean_score = ( sum([label['Confidence'] for label in data['labels']]) / len(data['labels']) )
                 data['labels_mean_confidence_score'] = mean_score
 
@@ -105,12 +105,12 @@ class RekognitionWorker(Thread):
         """
         Determines if a tag confidence score meets the required threshold.
         """
-        if self.tag_confidence_threshold == 'mean-adjusted':
+        if self.threshold == 'mean-adjusted':
             if mean < 80:
                 mean = 80
             return confidence_score >= mean
         else:
-            return confidence_score >= self.tag_confidence_threshold
+            return confidence_score >= self.threshold
 
     def process_rekognition_tags(self, image_data):
         image = image_data.image
@@ -122,7 +122,7 @@ class RekognitionWorker(Thread):
 
         if rekognition_data:
             rekognition_tags = rekognition_data['labels']
-            if self.tag_confidence_threshold == 'mean-adjusted':
+            if self.threshold == 'mean-adjusted':
                 rekognition_tag_score_mean = rekognition_data['labels_mean_confidence_score']
                 logging.debug("MEAN TAG SCORE FOR IMAGE: %s" % (
                     rekognition_tag_score_mean
