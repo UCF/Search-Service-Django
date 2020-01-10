@@ -53,7 +53,7 @@ class Command(BaseCommand):
             dest='tandemvault-domain',
             default=settings.UCF_TANDEMVAULT_DOMAIN,
             required=False
-        ),
+        )
         parser.add_argument(
             '--tandemvault-api-key',
             type=str,
@@ -61,7 +61,7 @@ class Command(BaseCommand):
             dest='tandemvault-api-key',
             default=settings.TANDEMVAULT_API_KEY,
             required=False
-        ),
+        )
         parser.add_argument(
             '--assign-tags',
             type=str,
@@ -70,7 +70,7 @@ class Command(BaseCommand):
             default='none',
             choices=['all', 'new_modified', 'none'],
             required=False
-        ),
+        )
         parser.add_argument(
             '--tag-confidence-threshold',
             type=str,
@@ -78,13 +78,22 @@ class Command(BaseCommand):
             dest='tag-confidence-threshold',
             default='mean-adjusted',
             required=False
-        ),
+        )
         parser.add_argument(
             '--number-threads',
             type=int,
             help='The number of threads to use to concurrently fetch Rekognition results',
             dest='number-threads',
             default=10,
+            required=False
+        )
+        parser.add_argument(
+            '--verbose',
+            help='Use verbose logging',
+            action='store_const',
+            dest='loglevel',
+            const=logging.INFO,
+            default=logging.WARNING,
             required=False
         )
 
@@ -97,6 +106,9 @@ class Command(BaseCommand):
         self.assign_tags = options['assign-tags']
         self.tag_confidence_threshold = options['tag-confidence-threshold']
         self.number_threads = options['number-threads']
+
+        # Set logging level
+        logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
         if not self.tandemvault_api_key or not self.tandemvault_domain:
             print 'Tandemvault domain and API key are required to perform an import. Update your settings_local.py or provide these values manually.'
