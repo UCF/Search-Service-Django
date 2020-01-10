@@ -60,3 +60,9 @@ class Image(models.Model):
             self.source_id = self.pk
 
         super(Image, self).save(*args, **kwargs)
+
+    @property
+    def tags_with_synonyms(self):
+        tags = self.tags.all()
+        synonyms = ImageTag.objects.filter(synonyms__in=tags)
+        return tags.union(synonyms)
