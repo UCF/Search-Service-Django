@@ -14,7 +14,7 @@ class ImageTag(models.Model):
     synonyms = models.ManyToManyField(
         'self',
         blank=True,
-        symmetrical=True
+        symmetrical=False
     )
     source = models.CharField(max_length=255, null=True, blank=True, default=settings.APP_NAME)
 
