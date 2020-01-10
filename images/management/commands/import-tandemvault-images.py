@@ -62,6 +62,8 @@ class RekognitionWorker(Thread):
                     # If we are processing tags, then let's go!
                     image_data = self.process_rekognition_tags(image_data)
                     self.results.append(image_data)
+            except Exception, ex:
+                logging.warning("There was an exception while processing a rekognition request: %s", ex)
             finally:
                 self.queue.task_done()
 
