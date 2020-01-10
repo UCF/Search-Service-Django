@@ -13,6 +13,8 @@ class ImageSerializer(serializers.ModelSerializer):
             'extension',
             'source',
             'source_id',
+            'source_created',
+            'source_modified',
             'copyright',
             'contributor',
             'width_full',

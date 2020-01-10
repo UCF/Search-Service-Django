@@ -218,7 +218,7 @@ class Command(BaseCommand):
             # Only retrieve single image details if changes have been
             # made since the last time the Search Service image was imported:
             tandemvault_image_modified = parse(tandemvault_image['modified_at'])
-            if image.last_imported < parse(tandemvault_image['modified_at']):
+            if image.last_imported < tandemvault_image_modified:
                 # Fetch the single API result
                 single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
                 if not single_json:
@@ -228,6 +228,8 @@ class Command(BaseCommand):
 
                 image.filename = single_json['filename']
                 image.extension = single_json['ext']
+                image.source_created = parse(single_json['created_at'])
+                image.source_modified = tandemvault_image_modified
                 image.copyright = single_json['copyright']
                 image.contributor = single_json['contributor']['to_s']
                 image.width_full = int(single_json['width'])
@@ -265,8 +267,10 @@ class Command(BaseCommand):
                 extension = single_json['ext'],
                 source = self.source,
                 source_id = single_json['id'],
+                source_created = parse(single_json['created_at']),
+                source_modified = parse(single_json['modified_at']),
                 copyright = single_json['copyright'],
-                contributor=single_json['contributor']['to_s'],
+                contributor = single_json['contributor']['to_s'],
                 width_full = int(single_json['width']),
                 height_full = int(single_json['height']),
                 download_url = download_url,

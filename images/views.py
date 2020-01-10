@@ -24,5 +24,5 @@ class ImageDetailView(generics.RetrieveAPIView):
 class ImageSearchView(ImageListView):
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['filename', 'tags__name', 'tags__synonyms__name', 'caption']
-    ordering_fields = ['created', 'modified']
-    ordering = ['modified']
+    ordering_fields = ['source_created', 'source_modified']
+    ordering = ['-source_modified']
