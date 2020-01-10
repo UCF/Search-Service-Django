@@ -113,11 +113,16 @@ class Command(BaseCommand):
 
             synonyms = filter(None, [self.clean_tag_name(synonym) for synonym in json.loads(tandemvault_tag['synonym_names'])])
 
-            tag, created = ImageTag.objects.get_or_create(name=name, source=self.source)
-            if created:
-                self.tags_created += 1
-            else:
+            try:
+                tag = ImageTag.objects.get(name=name)
                 self.tags_updated += 1
+            except ImageTag.DoesNotExist:
+                tag = ImageTag(
+                    name=name,
+                    source=self.source
+                )
+                tag.save()
+                self.tags_created += 1
 
             # Remove existing Tandem Vault synonym relationships
             existing_synonyms = tag.synonyms.filter(source=self.source)
@@ -126,7 +131,14 @@ class Command(BaseCommand):
 
             # Assign fresh Tandem Vault synonym relationships
             for synonym in synonyms:
-                s, created = ImageTag.objects.get_or_create(name=synonym, source=self.source)
+                try:
+                    s = ImageTag.objects.get(name=synonym)
+                except ImageTag.DoesNotExist:
+                    s = ImageTag(
+                        name=synonym,
+                        source=self.source
+                    )
+                    s.save()
                 tag.synonyms.add(s)
                 self.synonyms_assigned += 1
 
