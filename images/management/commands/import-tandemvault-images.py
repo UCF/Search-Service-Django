@@ -12,7 +12,7 @@ from progress.bar import Bar
 from dateutil.parser import *
 import boto3
 
-from multiprocessing.pool import Pool
+from multiprocessing.dummy import Pool
 
 class Command(BaseCommand):
     help = 'Imports image assets from UCF\'s Tandem Vault instance.'
@@ -201,8 +201,8 @@ class Command(BaseCommand):
             logging.warning('Failed to retrieve page %d of Tandem Vault assets. Skipping images.' % page)
             return
 
-        with Pool(self.number_threads) as p:
-            p.map(self.process_image, page_json)
+        pool = Pool(self.number_threads)
+        pool.map(self.process_image, page_json)
 
     '''
     Processes a single Tandem Vault image.
