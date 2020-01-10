@@ -14,7 +14,7 @@ class ImageTag(models.Model):
     synonyms = models.ManyToManyField(
         'self',
         blank=True,
-        symmetrical=True
+        symmetrical=False
     )
     source = models.CharField(max_length=255, null=True, blank=True, default=settings.APP_NAME)
 
@@ -60,3 +60,9 @@ class Image(models.Model):
             self.source_id = self.pk
 
         super(Image, self).save(*args, **kwargs)
+
+    @property
+    def tags_with_synonyms(self):
+        tags = self.tags.all()
+        synonyms = ImageTag.objects.filter(synonyms__in=tags)
+        return tags.union(synonyms)

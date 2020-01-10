@@ -4,9 +4,22 @@ from images.models import *
 
 
 class ImageSerializer(serializers.ModelSerializer):
-    # TODO include synonyms!
-    tags = serializers.StringRelatedField(many=True)
+    tags = serializers.StringRelatedField(many=True, source='tags_with_synonyms')
 
     class Meta:
-        fields = '__all__'
+        fields = (
+            'created',
+            'modified',
+            'filename',
+            'extension',
+            'source',
+            'copyright',
+            'contributor',
+            'width_full',
+            'height_full',
+            'download_url',
+            'thumbnail_url',
+            'caption',
+            'tags'
+        )
         model = Image
