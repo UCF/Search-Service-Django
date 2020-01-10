@@ -8,11 +8,11 @@ class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = (
-            'created',
-            'modified',
+            'id',
             'filename',
             'extension',
             'source',
+            'source_id',
             'copyright',
             'contributor',
             'width_full',

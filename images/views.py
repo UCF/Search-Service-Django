@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render
 from rest_framework import generics
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 from images.models import *
 from images.serializers import *
@@ -21,4 +22,7 @@ class ImageDetailView(generics.RetrieveAPIView):
 
 
 class ImageSearchView(ImageListView):
-    filter_class = ImageFilter
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['filename', 'tags__name', 'tags__synonyms__name', 'caption']
+    ordering_fields = ['created', 'modified']
+    ordering = ['modified']
