@@ -308,20 +308,26 @@ class Command(BaseCommand):
         # image data for the image/didn't skip it:
         if single_json:
             for tandemvault_tag_name in single_json['tag_list']:
-                tandemvault_tag_name = tandemvault_tag_name.strip()
-                tandemvault_tag_name_lower = tandemvault_tag_name.lower()
+                tandemvault_tag_name_lower = tandemvault_tag_name.lower().strip()
                 # If this tag doesn't already match the name of another tag
                 # assigned to the image, get or create an ImageTag object
                 # and assign it to the Image
                 if tandemvault_tag_name_lower not in tag_names_unique:
                     tag_names_unique.add(tandemvault_tag_name_lower)
-                    tandemvault_tag, created = ImageTag.objects.get_or_create(
-                        name=tandemvault_tag_name,
-                        source=self.source
-                    )
-                    image.tags.add(tandemvault_tag)
-                    if created:
+
+                    try:
+                        tandemvault_tag = ImageTag.objects.get(
+                            name=tandemvault_tag_name_lower
+                        )
+                    except ImageTag.DoesNotExist:
+                        tandemvault_tag = ImageTag(
+                            name=tandemvault_tag_name_lower,
+                            source=self.source
+                        )
+                        tandemvault_tag.save()
                         self.tags_created += 1
+
+                    image.tags.add(tandemvault_tag)
 
         # If Rekognition tagging is enabled,
         # send the image to Rekognition:
@@ -341,9 +347,8 @@ class Command(BaseCommand):
                     ))
 
             for rekognition_tag_data in rekognition_tags:
-                rekognition_tag_name = rekognition_tag_data['Name'].strip()
+                rekognition_tag_name = rekognition_tag_data['Name'].lower().strip()
                 rekognition_tag_score = rekognition_tag_data['Confidence']
-                rekognition_tag_name_lower = rekognition_tag_name.lower()
 
                 logging.debug("GENERATED TAG: %s | CONFIDENCE: %s" % (rekognition_tag_name, rekognition_tag_score))
 
@@ -351,16 +356,22 @@ class Command(BaseCommand):
                 # doesn't already match the name of another tag assigned to
                 # the image, get or create an ImageTag object and assign it
                 # to the Image:
-                if self.confidence_threshold_met(rekognition_tag_score, rekognition_tag_score_mean) and rekognition_tag_name_lower not in tag_names_unique:
-                    tag_names_unique.add(rekognition_tag_name_lower)
-                    rekognition_tag, created = ImageTag.objects.get_or_create(
-                        name=rekognition_tag_name,
-                        source=self.auto_tag_source
-                    )
-                    image.tags.add(rekognition_tag)
+                if self.confidence_threshold_met(rekognition_tag_score, rekognition_tag_score_mean) and rekognition_tag_name not in tag_names_unique:
+                    tag_names_unique.add(rekognition_tag_name)
 
-                    if created:
+                    try:
+                        rekognition_tag = ImageTag.objects.get(
+                            name=rekognition_tag_name
+                        )
+                    except ImageTag.DoesNotExist:
+                        rekognition_tag = ImageTag(
+                            name=rekognition_tag_name,
+                            source=self.auto_tag_source
+                        )
+                        rekognition_tag.save()
                         self.tags_created += 1
+
+                    image.tags.add(rekognition_tag)
 
         image.save()
 
