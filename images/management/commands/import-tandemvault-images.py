@@ -12,6 +12,7 @@ from progress.bar import Bar
 from dateutil.parser import *
 import boto3
 
+from multiprocessing.pool import Pool
 
 class Command(BaseCommand):
     help = 'Imports image assets from UCF\'s Tandem Vault instance.'
@@ -78,6 +79,14 @@ class Command(BaseCommand):
             default='mean-adjusted',
             required=False
         ),
+        parser.add_argument(
+            '--number-threads',
+            type=int,
+            help='The number of threads to use to concurrently fetch Rekognition results',
+            dest='number-threads',
+            default=10,
+            required=False
+        )
 
     def handle(self, *args, **options):
         self.tandemvault_domain = options['tandemvault-domain'].replace('http://', '').replace('https://', '')
@@ -87,6 +96,7 @@ class Command(BaseCommand):
         self.aws_region = settings.AWS_REGION
         self.assign_tags = options['assign-tags']
         self.tag_confidence_threshold = options['tag-confidence-threshold']
+        self.number_threads = options['number-threads']
 
         if not self.tandemvault_api_key or not self.tandemvault_domain:
             print 'Tandemvault domain and API key are required to perform an import. Update your settings_local.py or provide these values manually.'
@@ -191,9 +201,8 @@ class Command(BaseCommand):
             logging.warning('Failed to retrieve page %d of Tandem Vault assets. Skipping images.' % page)
             return
 
-        # Process each image in the results:
-        for image in page_json:
-            self.process_image(image)
+        with Pool(self.number_threads) as p:
+            p.map(self.process_image, page_json)
 
     '''
     Processes a single Tandem Vault image.
