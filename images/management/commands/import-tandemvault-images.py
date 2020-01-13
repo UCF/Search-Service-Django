@@ -472,6 +472,8 @@ class Command(BaseCommand):
                 self.images_updated += 1
             else:
                 if self.assign_tags == 'all':
+                    process_tags = True
+
                     # Download thumbnail of image for Rekognition later
                     image_file = self.download_tandemvault_image(thumb_url)
 
@@ -633,12 +635,14 @@ class Command(BaseCommand):
             try:
                 taken_date_str = img_exif_dict[self.photo_taken_exif_key]
                 taken_date = datetime.datetime.strptime(taken_date_str, '%Y:%m:%d %H:%M:%S')
+                # Make the parsed date timezone-aware
+                taken_date_tz = timezone.make_aware(taken_date)
             except Exception:
                 # If the taken date isn't available, or we
                 # can't parse it, just move on:
                 pass
 
-        return taken_date
+        return taken_date_tz
 
     def print_stats(self):
         """
