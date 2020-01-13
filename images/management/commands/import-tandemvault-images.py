@@ -19,6 +19,7 @@ import boto3
 from Queue import Queue
 from threading import Thread
 
+
 class ImageData(object):
     """
     Temporary data class for image data
@@ -61,11 +62,11 @@ class RekognitionWorker(Thread):
                 # If we're not processing tags, just return
                 # the data unchanged
                 if image_data.process_tags == False:
-                    self.results.append(image_data)
+                    self.results.put(image_data)
                 else:
                     # If we are processing tags, then let's go!
                     image_data = self.process_rekognition_tags(image_data)
-                    self.results.append(image_data)
+                    self.results.put(image_data)
             except Exception, ex:
                 logging.warning("There was an exception while processing a rekognition request: %s", ex)
             finally:
@@ -385,7 +386,7 @@ class Command(BaseCommand):
             return
 
         image_queue = Queue()
-        image_list = []
+        image_list = Queue()
 
         for image in page_json:
             img_data = self.process_image(image)
@@ -405,7 +406,9 @@ class Command(BaseCommand):
 
         image_queue.join()
 
-        self.process_tags(image_list)
+        retval = list(image_list.queue)
+
+        self.process_tags(retval)
 
 
     def process_image(self, tandemvault_image):
@@ -550,58 +553,14 @@ class Command(BaseCommand):
                 if tandemvault_tag_name_lower not in tag_names_unique:
                     tag_names_unique.add(tandemvault_tag_name_lower)
 
+        image.save()
+
         return ImageData(
             image,
             image_file,
             tag_names_unique,
             process_tags
         )
-
-        # If Rekognition tagging is enabled,
-        # send the image to Rekognition:
-        if self.assign_tags != 'none':
-            rekognition_data = self.get_rekognition_data(image_file)
-            rekognition_tags = []
-            rekognition_tag_score_mean = None
-
-            logging.debug("GENERATING TAGS FOR IMAGE: %s" % (image.thumbnail_url))
-
-            if rekognition_data:
-                rekognition_tags = rekognition_data['labels']
-                if self.tag_confidence_threshold == 'mean-adjusted':
-                    rekognition_tag_score_mean = rekognition_data['labels_mean_confidence_score']
-                    logging.debug("MEAN TAG SCORE FOR IMAGE: %s" % (
-                        rekognition_tag_score_mean
-                    ))
-
-            for rekognition_tag_data in rekognition_tags:
-                rekognition_tag_name = rekognition_tag_data['Name'].lower().strip()
-                rekognition_tag_score = rekognition_tag_data['Confidence']
-
-                logging.debug("GENERATED TAG: %s | CONFIDENCE: %s" % (rekognition_tag_name, rekognition_tag_score))
-
-                # If this tag meets our minimum confidence threshold and
-                # doesn't already match the name of another tag assigned to
-                # the image, get or create an ImageTag object and assign it
-                # to the Image:
-                if self.confidence_threshold_met(rekognition_tag_score, rekognition_tag_score_mean) and rekognition_tag_name not in tag_names_unique:
-                    tag_names_unique.add(rekognition_tag_name)
-
-                    try:
-                        rekognition_tag = ImageTag.objects.get(
-                            name=rekognition_tag_name
-                        )
-                    except ImageTag.DoesNotExist:
-                        rekognition_tag = ImageTag(
-                            name=rekognition_tag_name,
-                            source=self.auto_tag_source
-                        )
-                        rekognition_tag.save()
-                        self.tags_created += 1
-
-                    image.tags.add(rekognition_tag)
-
-        image.save()
 
     def fetch_tandemvault_assets_page(self, page):
         """
