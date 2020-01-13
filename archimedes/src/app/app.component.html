@@ -1,36 +1,60 @@
 <div class="container">
     <div class="row">
-      <div class="col mt-5">
-        <app-search-box
-            (programResults)="updateProgramResults($event)"
-            (programLoading)="programLoading = $event"
-            (programError)="programError = $event"
-            (newsResults)="updateNewsResults($event)"
-            (newsLoading)="newsLoading = $event"
-            (newsError)="newsError = $event">
-        </app-search-box>
+        <div class="col mt-5">
+            <app-search-box (programResults)="updateProgramResults($event)" (programLoading)="programLoading = $event"
+                (programError)="programError = $event" (newsResults)="updateNewsResults($event)"
+                (newsLoading)="newsLoading = $event" (newsError)="newsError = $event">
+            </app-search-box>
 
-        <p *ngIf="programLoading">Loading programs...</p>
-        <p *ngIf="programError">Error loading programs</p>
 
-        <p *ngIf="newsLoading">Loading news articles...</p>
-        <p *ngIf="newsError">Error loading news articles</p>
-
-        <div class="program-results" *ngIf="programResults">
-            <h2>Programs</h2>
-            <p>{{programResults.count}} programs found</p>
-            <ul>
-                <app-program *ngFor="let program of programResults.results | slice:0:5" [program]="program"></app-program>
-            </ul>
         </div>
-
-        <div class="news-results" *ngIf="newsResults">
-            <h2>News</h2>
-            <ul>
-                <app-news *ngFor="let news of newsResults | slice:0:5" [news]="news"></app-news>
-            </ul>
-        </div>
-
-      </div>
     </div>
-  </div>
+    <div class="row mt-5">
+        <div class="col-lg-4">
+
+            <div class="program-results" *ngIf="programResults || programLoading || programError">
+                <h2 class="h4 text-uppercase">
+                    Programs <app-loading-icon *ngIf="programLoading" (programLoading)="programLoading = $event"></app-loading-icon>
+                </h2>
+
+                <div class="alert alert-danger" *ngIf="programError">
+                    Error loading programs
+                </div>
+                <div class="alert alert-info"  *ngIf="programResults && programResults.results.length === 0">
+                    No Programs Found
+                </div>
+
+                <div *ngIf="programResults && programResults.results.length > 0">
+                    {{programResults.count}} programs found
+                </div>
+
+                <ul *ngIf="programResults && programResults.results.length > 0">
+                    <app-program *ngFor="let program of programResults.results | slice:0:5" [program]="program">
+                    </app-program>
+                </ul>
+            </div>
+
+        </div>
+        <div class="col-lg-4">
+
+            <div class="news-results" *ngIf="newsResults || newsLoading || newsError">
+                <h2 class="h4 text-uppercase">
+                    News <app-loading-icon *ngIf="newsLoading" (newsLoading)="newsLoading = $event"></app-loading-icon>
+                </h2>
+
+                <div class="alert alert-danger" *ngIf="newsError">
+                    Error loading news articles
+                </div>
+                <div class="alert alert-info" *ngIf="newsResults && newsResults.length === 0">
+                    No News Articles Found
+                </div>
+
+                <ul *ngIf="newsResults && newsResults.length > 0">
+                    <app-news *ngFor="let news of newsResults | slice:0:5" [news]="news"></app-news>
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+</div>

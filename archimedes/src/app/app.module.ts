@@ -7,13 +7,15 @@ import { HttpClientModule } from '@angular/common/http';
 import { ProgramComponent } from './component/program/program.component';
 import { SearchBoxComponent } from './component/search-box/search-box.component';
 import { NewsComponent } from './component/news/news.component';
+import { LoadingIconComponent } from './component/loading-icon/loading-icon.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     ProgramComponent,
     SearchBoxComponent,
-    NewsComponent
+    NewsComponent,
+    LoadingIconComponent
   ],
   imports: [
     BrowserModule,
