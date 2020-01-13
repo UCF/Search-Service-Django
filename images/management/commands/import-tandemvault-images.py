@@ -9,6 +9,9 @@ import timeit
 import datetime
 
 import requests
+from PIL import Image as PILImage
+from PIL import ExifTags
+import StringIO
 from progress.bar import Bar
 from dateutil.parser import *
 import boto3
@@ -20,13 +23,14 @@ class ImageData(object):
     """
     Temporary data class for image data
     """
-    def __init__(self, image, tv_tags, process_tags=True):
+    def __init__(self, image, image_file, tv_tags, process_tags=True):
         """
         Initializes a new instance of ImageData
         :param image: An Image model object
         :param tv_tags: A list of Tandemvault tags
         """
         self.image = image
+        self.image_file = image_file
         self.tv_tags = tv_tags
         self.rk_tags = []
         self.process_tags = process_tags
@@ -67,7 +71,7 @@ class RekognitionWorker(Thread):
             finally:
                 self.queue.task_done()
 
-    def get_rekognition_data(self, image_url):
+    def get_rekognition_data(self, image_file):
         """
         Sends an image to AWS Rekognition and returns data about that image.
         """
@@ -75,15 +79,10 @@ class RekognitionWorker(Thread):
             'labels': []
         }
 
-        try:
-            image_data = requests.get(image_url).content
-        except Exception, e:
-            logging.warning('\nERROR downloading single image: %s' % e)
-
-        if image_data:
+        if image_file is not None:
             # Object and scene detection labels (tags)
             response = self.aws_client.detect_labels(
-                Image={'Bytes': image_data}
+                Image={'Bytes': image_file}
             )
 
             for label in response['Labels']:
@@ -115,12 +114,12 @@ class RekognitionWorker(Thread):
             return confidence_score >= self.threshold
 
     def process_rekognition_tags(self, image_data):
-        image = image_data.image
-        rekognition_data = self.get_rekognition_data(image.thumbnail_url)
+        image_file = image_data.image_file
+        rekognition_data = self.get_rekognition_data(image_file)
         rekognition_tags = []
         rekognition_tag_score_mean = None
 
-        logging.debug("GENERATING TAGS FOR IMAGE: %s" % (image.thumbnail_url))
+        logging.debug("GENERATING TAGS FOR IMAGE: %s" % (image_data.image.thumbnail_url))
 
         if rekognition_data:
             rekognition_tags = rekognition_data['labels']
@@ -169,6 +168,7 @@ class Command(BaseCommand):
     tandemvault_download_path   = '/assets/{0}/'
     tandemvault_total_images    = 0 # total number of images in Tandem Vault API results
     tandemvault_page_count      = 0 # total number of paged Tandem Vault API results
+    photo_taken_exif_key        = 36867 # 'DateTimeOriginal' EXIF data key
     images_created              = 0
     images_updated              = 0
     images_deleted              = 0
@@ -416,11 +416,14 @@ class Command(BaseCommand):
         self.progress_bar.next()
 
         download_url = self.tandemvault_download_url.format(tandemvault_image['id'])
+        thumb_url = tandemvault_image['browse_url'] # Use 'browse_url' instead of 'thumb_url' due to slightly larger size
+        photo_taken = None
         single_json = None
 
         logging.debug("Processing image with ID %s, Download URL %s" % (tandemvault_image['id'], download_url))
 
         process_tags = False
+        image_file = None
 
         # Set up the initial Image object.
         try:
@@ -436,6 +439,13 @@ class Command(BaseCommand):
             tandemvault_image_modified = parse(tandemvault_image['modified_at'])
             if image.last_imported < tandemvault_image_modified:
                 process_tags = True
+
+                # Download thumbnail of image
+                image_file = self.download_tandemvault_image(thumb_url)
+
+                # Retrieve photo taken date from EXIF data
+                photo_taken = self.get_tandemvault_image_taken_date(image_file)
+
                 # Fetch the single API result
                 single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
                 if not single_json:
@@ -447,17 +457,21 @@ class Command(BaseCommand):
                 image.extension = single_json['ext']
                 image.source_created = parse(single_json['created_at'])
                 image.source_modified = tandemvault_image_modified
+                image.photo_taken = photo_taken
                 image.copyright = single_json['copyright']
                 image.contributor = single_json['contributor']['to_s']
                 image.width_full = int(single_json['width'])
                 image.height_full = int(single_json['height'])
                 image.download_url = download_url
-                image.thumbnail_url = single_json['browse_url'] # use 'browse_url' instead of 'thumb_url' due to slightly larger size
+                image.thumbnail_url = image_thumb_url
                 image.caption = single_json['short_caption']
 
                 self.images_updated += 1
             else:
                 if self.assign_tags == 'all':
+                    # Download thumbnail of image for Rekognition later
+                    image_file = self.download_tandemvault_image(thumb_url)
+
                     # Continue processing the image without single image
                     # data; allow tagging via Rekognition later:
                     self.images_updated += 1
@@ -472,6 +486,13 @@ class Command(BaseCommand):
                     return None
         except Image.DoesNotExist:
             process_tags = True
+
+            # Download thumbnail of image
+            image_file = self.download_tandemvault_image(thumb_url)
+
+            # Retrieve photo taken date from EXIF data
+            photo_taken = self.get_tandemvault_image_taken_date(image_file)
+
             # Fetch the single API result
             single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
             if not single_json:
@@ -487,6 +508,7 @@ class Command(BaseCommand):
                 source_id = single_json['id'],
                 source_created = parse(single_json['created_at']),
                 source_modified = parse(single_json['modified_at']),
+                photo_taken = photo_taken,
                 copyright = single_json['copyright'],
                 contributor = single_json['contributor']['to_s'],
                 width_full = int(single_json['width']),
@@ -530,6 +552,7 @@ class Command(BaseCommand):
 
         return ImageData(
             image,
+            image_file,
             tag_names_unique,
             process_tags
         )
@@ -537,7 +560,7 @@ class Command(BaseCommand):
         # If Rekognition tagging is enabled,
         # send the image to Rekognition:
         if self.assign_tags != 'none':
-            rekognition_data = self.get_rekognition_data(image.thumbnail_url)
+            rekognition_data = self.get_rekognition_data(image_file)
             rekognition_tags = []
             rekognition_tag_score_mean = None
 
@@ -625,6 +648,38 @@ class Command(BaseCommand):
             logging.warning('\nERROR retrieving single asset data: %s' % e)
 
         return response_json
+
+    def download_tandemvault_image(self, image_url):
+        image_file = None
+
+        try:
+            image_file = requests.get(image_url).content
+        except Exception, e:
+            logging.warning('\nERROR downloading image from Tandem Vault: %s' % e)
+
+        return image_file
+
+    def get_tandemvault_image_taken_date(self, image_file):
+        taken_date = None
+
+        try:
+            pil_img = PILImage.open(StringIO.StringIO(image_file))
+        except Exception, e:
+            logging.warning('\nERROR opening image with Pillow: %s' % e)
+            return taken_date
+
+        img_exif = pil_img.getexif()
+        if img_exif is not None:
+            img_exif_dict = dict(img_exif)
+            try:
+                taken_date_str = img_exif_dict[self.photo_taken_exif_key]
+                taken_date = datetime.datetime.strptime(taken_date_str, '%Y:%m:%d %H:%M:%S')
+            except Exception:
+                # If the taken date isn't available, or we
+                # can't parse it, just move on:
+                pass
+
+        return taken_date
 
     def print_stats(self):
         """
