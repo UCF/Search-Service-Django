@@ -195,6 +195,22 @@ class Command(BaseCommand):
             required=False
         )
         parser.add_argument(
+            '--start-date',
+            type=str,
+            help='Start of a date range by which images should be retrieved from Tandem Vault. Expected format: mm-dd-yyyy',
+            dest='start-date',
+            default=datetime.date(*settings.IMPORTED_IMAGE_LIMIT).strftime('%m-%d-%Y'),
+            required=False
+        )
+        parser.add_argument(
+            '--end-date',
+            type=str,
+            help='End of a date range by which images should be retrieved from Tandem Vault. Expected format: mm-dd-yyyy',
+            dest='end-date',
+            default=timezone.now().strftime('%m-%d-%Y'),
+            required=False
+        )
+        parser.add_argument(
             '--assign-tags',
             type=str,
             help='Specify what images, if any, should be processed with AWS\'s Rekognition services to generate image tags.',
@@ -232,6 +248,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.tandemvault_domain = options['tandemvault-domain'].replace('http://', '').replace('https://', '')
         self.tandemvault_api_key = options['tandemvault-api-key']
+        self.tandemvault_start_date = parse(options['start-date'])
+        self.tandemvault_end_date = parse(options['end-date'])
         self.aws_access_key = settings.AWS_ACCESS_KEY
         self.aws_secret_key = settings.AWS_SECRET_KEY
         self.aws_region = settings.AWS_REGION
@@ -276,12 +294,12 @@ class Command(BaseCommand):
         self.tandemvault_assets_params = {
             'api_key': self.tandemvault_api_key,
             'state': 'accepted',
-            'date[start(1i)]': settings.IMPORTED_IMAGE_LIMIT[0],
-            'date[start(2i)]': settings.IMPORTED_IMAGE_LIMIT[1],
-            'date[start(3i)]': settings.IMPORTED_IMAGE_LIMIT[2],
-            'date[end(1i)]': self.modified.year,
-            'date[end(2i)]': self.modified.month,
-            'date[end(3i)]': self.modified.day
+            'date[start(1i)]': self.tandemvault_start_date.year,
+            'date[start(2i)]': self.tandemvault_start_date.month,
+            'date[start(3i)]': self.tandemvault_start_date.day,
+            'date[end(1i)]': self.tandemvault_end_date.year,
+            'date[end(2i)]': self.tandemvault_end_date.month,
+            'date[end(3i)]': self.tandemvault_end_date.day,
         }
         self.tandemvault_asset_params = {
             'api_key': self.tandemvault_api_key
