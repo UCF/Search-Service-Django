@@ -1,0 +1,10 @@
+<div class="news-results" *ngIf="data.results">
+    <h2>Programs</h2>
+    <ul>
+        <li *ngFor="let program of data.results">
+            <a href="{{program.catalog_url}}" target="_blank">
+                {{program.name}}
+            </a>
+        </li>
+    </ul>
+</div>
