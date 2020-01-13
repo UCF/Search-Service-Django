@@ -28,3 +28,4 @@ gulp-config.json
 # Static Files
 static/admin/*
 static/rest_framework/*
+node_modules

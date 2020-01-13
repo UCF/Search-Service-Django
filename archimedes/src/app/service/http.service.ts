@@ -6,25 +6,20 @@ import { catchError } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
-export class LocationService {
-
-  locationUrl = "https://map.ucf.edu/search/.json";
+export class HttpService {
 
   constructor(
     private httpClient: HttpClient
   ) { }
 
-  searchLocations(query: string): Observable<any> {
+  search(apiURL: string, query: string): Observable<any> {
     if (!query.trim()) {
       return of(null);
     }
+    const params = new HttpParams().set('search', query);
 
-    const params = new HttpParams()
-      .set('q', query)
-      .set('extended', 'true');
-
-    return this.httpClient.get(this.locationUrl, { params }).pipe(
-      catchError(this.handleError<any[]>('searchLocations', []))
+    return this.httpClient.get(apiURL, { params }).pipe(
+      // catchError(this.handleError<any[]>('httpService', []))
     );
   }
 
@@ -36,6 +31,4 @@ export class LocationService {
       return of(result as T);
     };
   }
-
-
 }
