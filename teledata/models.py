@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 import logging
 
+import re
+
 from django.db import models
 from django.db.models import F, When, Case, Value, Expression
 from django_mysql.models import QuerySet, QuerySetMixin
@@ -241,7 +243,38 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
     Custom manager that allows for special queries
     and update methods
     """
+    phone_num_re = '\(?(?P<first>\d{3})?\)?[\s\-]?(?P<second>\d{1}|\d{3})?[\s\-]?(?P<final>\d{4})$'
+
     def search(self, search_query):
+        phone_matches = re.match(self.phone_num_re, search_query)
+
+        if phone_matches:
+            queryset = self.phone_match(phone_matches)
+        else:
+            queryset = self.general_match(search_query)
+
+        return queryset
+
+    def phone_match(self, matches):
+        first = matches.group('first')
+        second = matches.group('second')
+        final = matches.group('final')
+
+        search_query = ''
+        if first is not None:
+            search_query += first + '-'
+
+        if second is not None:
+            search_query += second + '-'
+
+        if final is not None:
+            search_query += final
+
+        print search_query
+
+        return CombinedTeledata.objects.filter(phone__endswith=search_query).extra(select = {'score': 30})
+
+    def general_match(self, search_query):
         match_score = MatchAgainst(
             [
                 F('first_name'),
