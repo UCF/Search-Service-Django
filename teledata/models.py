@@ -270,8 +270,6 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
         if final is not None:
             search_query += final
 
-        print search_query
-
         return CombinedTeledata.objects.filter(phone__endswith=search_query).extra(select = {'score': 30})
 
     def general_match(self, search_query):
