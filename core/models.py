@@ -11,4 +11,7 @@ class LowercaseCharField(models.CharField):
         super(LowercaseCharField, self).__init__(*args, **kwargs)
 
     def get_prep_value(self, value):
-        return value.lower()
+        value = super(LowercaseCharField, self).get_prep_value(value)
+        if value is not None:
+            return value.lower()
+        return ''
