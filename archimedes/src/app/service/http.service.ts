@@ -11,12 +11,26 @@ export class HttpService {
     private httpClient: HttpClient
   ) { }
 
-  search(apiURL: string, query: string): Observable<any> {
+  search(searchType: string, query: string): Observable<any> {
     if (!query.trim()) {
       return of(null);
     }
-    const params = new HttpParams().set('search', query);
 
-    return this.httpClient.get(apiURL, { params });
+    let params;
+    // TODO: apiUrls this configurable
+    let apiUrl;
+
+    switch (searchType) {
+      case 'programs':
+        apiUrl = 'https://searchdev.cm.ucf.edu/api/v1/programs/search/';
+        params = new HttpParams().set('search', query);
+        break;
+      case 'news':
+        apiUrl = 'https://wwwqa.cc.ucf.edu/news/wp-json/wp/v2/posts';
+        params = new HttpParams().set('tag_slugs[]', query);
+        break;
+    }
+
+    return this.httpClient.get(apiUrl, { params });
   }
 }
