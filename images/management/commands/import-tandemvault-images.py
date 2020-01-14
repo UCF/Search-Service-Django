@@ -658,7 +658,7 @@ class Command(BaseCommand):
             except Exception:
                 # If the taken date isn't available, or we
                 # can't parse it, just move on:
-                pass
+                taken_date_tz = None
 
         return taken_date_tz
 
