@@ -151,10 +151,10 @@ Finished import of {0} Tandem Vault image tags.
 
 Created: {1}
 Updated: {2}
-Skipped: {4}
-Synonyms assigned: {5}
+Skipped: {3}
+Synonyms assigned: {4}
 
-Script executed in {6}
+Script executed in {5}
         """.format(
             self.tag_count,
             self.tags_created,
