@@ -239,17 +239,17 @@ class Command(BaseCommand):
             required=False
         )
         parser.add_argument(
-            '--delete-stale-images',
-            type=bool,
-            help='If enabled, existing Image objects that are not present in the retrieved Tandem Vault data will be removed.',
-            dest='delete-stale-images',
-            default=True,
+            '--preserve-stale-images',
+            help='If enabled, existing Image objects that are not present in the retrieved Tandem Vault data will *not* be deleted.',
+            action='store_true',
+            dest='preserve-stale-images',
+            default=False,
             required=False
         )
         parser.add_argument(
             '--delete-stale-tags',
-            type=bool,
-            help='If enabled, existing ImageTag objects that have no assigned Images will be removed (but respects synonym relationships, one level deep).',
+            help='If enabled, existing ImageTag objects that have no assigned Images will be deleted (but synonym relationships one level deep will be respected).',
+            action='store_true',
             dest='delete-stale-tags',
             default=False,
             required=False
@@ -275,7 +275,7 @@ class Command(BaseCommand):
         self.assign_tags = options['assign-tags']
         self.tag_confidence_threshold = options['tag-confidence-threshold']
         self.number_threads = options['number-threads']
-        self.delete_stale_images = options['delete-stale-images']
+        self.preserve_stale_images = options['preserve-stale-images']
         self.delete_stale_tags = options['delete-stale-tags']
         self.loglevel = options['loglevel']
 
@@ -721,10 +721,10 @@ Script executed in {6}
         longer present in Tandem Vault, and deletes ImageTags that
         are not assigned to any Images.
 
-        Uses the --delete-stale-images and --delete-stale-tags flags
+        Uses the --preserve-stale-images and --delete-stale-tags flags
         to determine whether stale objects should be deleted.
         """
-        if self.delete_stale_images:
+        if not self.preserve_stale_images:
             stale_images = Image.objects.filter(
                 last_imported__lt=self.imported,
                 source=self.source
