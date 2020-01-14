@@ -1,6 +1,14 @@
-
-<li>
-    <a href="{{program.catalog_url}}" target="_blank">
-        {{program.name}}
-    </a>
-</li>
+<a href="{{program.catalog_url}}" *ngFor="let program of programs | slice:0:5" target="_blank" class="list-group-item">
+    <h2 class="h6 mb-2 w-100">{{program.name}}</h2>
+    <div>
+        <ul class="list-unstyled mb-0">
+            <li *ngFor="let college of program.colleges" class="small">
+                {{college.full_name}} ({{college.short_name}})
+            </li>
+            <li *ngFor="let department of program.departments" class="small">
+                {{department.full_name}}
+            </li>
+            <li class="text-muted small">{{program.level}}</li>
+        </ul>
+    </div>
+</a>
