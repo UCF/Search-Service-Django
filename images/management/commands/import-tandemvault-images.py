@@ -164,10 +164,12 @@ class Command(BaseCommand):
     auto_tag_translations       = {
         'american football': 'football'
     }
+    default_start_date          = datetime.date(*settings.IMPORTED_IMAGE_LIMIT)
+    default_end_date            = timezone.now()
     tandemvault_assets_api_path = '/api/v1/assets/'
     tandemvault_asset_api_path  = '/api/v1/assets/{0}/'
     tandemvault_download_path   = '/assets/{0}/'
-    tandemvault_total_images    = 0 # total number of images in Tandem Vault API results
+    tandemvault_total_images    = 0 # total number of assets in Tandem Vault API results
     tandemvault_page_count      = 0 # total number of paged Tandem Vault API results
     photo_taken_exif_key        = 36867 # 'DateTimeOriginal' EXIF data key
     images_created              = 0
@@ -193,6 +195,22 @@ class Command(BaseCommand):
             help='The API key used to connect to Tandem Vault',
             dest='tandemvault-api-key',
             default=settings.TANDEMVAULT_API_KEY,
+            required=False
+        )
+        parser.add_argument(
+            '--start-date',
+            type=str,
+            help='Start of a date range by which images should be retrieved from Tandem Vault. Expected format: mm-dd-yyyy',
+            dest='start-date',
+            default=self.default_start_date.strftime('%m-%d-%Y'),
+            required=False
+        )
+        parser.add_argument(
+            '--end-date',
+            type=str,
+            help='End of a date range by which images should be retrieved from Tandem Vault. Expected format: mm-dd-yyyy',
+            dest='end-date',
+            default=self.default_end_date.strftime('%m-%d-%Y'),
             required=False
         )
         parser.add_argument(
@@ -233,6 +251,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.tandemvault_domain = options['tandemvault-domain'].replace('http://', '').replace('https://', '')
         self.tandemvault_api_key = options['tandemvault-api-key']
+        self.tandemvault_start_date = parse(options['start-date']) if options['start-date'] else self.default_start_date
+        self.tandemvault_end_date = parse(options['end-date']) if options['start-date'] else self.default_end_date
         self.aws_access_key = settings.AWS_ACCESS_KEY
         self.aws_secret_key = settings.AWS_SECRET_KEY
         self.aws_region = settings.AWS_REGION
@@ -277,12 +297,12 @@ class Command(BaseCommand):
         self.tandemvault_assets_params = {
             'api_key': self.tandemvault_api_key,
             'state': 'accepted',
-            'date[start(1i)]': settings.IMPORTED_IMAGE_LIMIT[0],
-            'date[start(2i)]': settings.IMPORTED_IMAGE_LIMIT[1],
-            'date[start(3i)]': settings.IMPORTED_IMAGE_LIMIT[2],
-            'date[end(1i)]': self.modified.year,
-            'date[end(2i)]': self.modified.month,
-            'date[end(3i)]': self.modified.day
+            'date[start(1i)]': self.tandemvault_start_date.year,
+            'date[start(2i)]': self.tandemvault_start_date.month,
+            'date[start(3i)]': self.tandemvault_start_date.day,
+            'date[end(1i)]': self.tandemvault_end_date.year,
+            'date[end(2i)]': self.tandemvault_end_date.month,
+            'date[end(3i)]': self.tandemvault_end_date.day,
         }
         self.tandemvault_asset_params = {
             'api_key': self.tandemvault_api_key
@@ -640,7 +660,7 @@ class Command(BaseCommand):
             except Exception:
                 # If the taken date isn't available, or we
                 # can't parse it, just move on:
-                pass
+                taken_date_tz = None
 
         return taken_date_tz
 

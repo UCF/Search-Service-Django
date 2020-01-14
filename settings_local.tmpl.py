@@ -118,8 +118,8 @@ SOC_CURRENT_VERSION = '2010'
 # Set the current employment projection report year range
 PROJ_CURRENT_REPORT = '1828'
 
-# The year + month + day limit of how old imported images can be.
-# NOTE: increasing this value will cause older images to be removed
+# The default year + month + day limit of how old imported images can be.
+# NOTE: increasing this value could cause older images to be removed
 # during a future image import!
 IMPORTED_IMAGE_LIMIT = (2017, 12, 1)
 
