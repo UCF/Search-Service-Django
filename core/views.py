@@ -20,3 +20,8 @@ class HomeView(TitleContextMixin, TemplateView):
     template_name = 'home.html'
     title = ''
     heading = 'UCF Search Service'
+
+class SearchView(TitleContextMixin, TemplateView):
+    template_name = 'search.html'
+    title = ''
+    heading = 'UCF Search Service'

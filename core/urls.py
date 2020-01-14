@@ -12,5 +12,10 @@ urlpatterns = [
         r'^$',
         HomeView.as_view(),
         name='home'
+    ),
+	url(
+        r'^search/$',
+        SearchView.as_view(template_name='search.html'),
+        name='search'
     )
 ]
