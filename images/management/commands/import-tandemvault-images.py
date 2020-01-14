@@ -36,6 +36,7 @@ class ImageData(object):
         self.rk_tags = []
         self.process_tags = process_tags
 
+
 class RekognitionWorker(Thread):
     """
     A worker thread for retrieving
@@ -145,6 +146,7 @@ class RekognitionWorker(Thread):
 
         return image_data
 
+
 class Command(BaseCommand):
     help = 'Imports image assets from UCF\'s Tandem Vault instance.'
 
@@ -169,7 +171,7 @@ class Command(BaseCommand):
     tandemvault_assets_api_path = '/api/v1/assets/'
     tandemvault_asset_api_path  = '/api/v1/assets/{0}/'
     tandemvault_download_path   = '/assets/{0}/'
-    tandemvault_total_images    = 0 # total number of assets in Tandem Vault API results
+    tandemvault_total_assets    = 0 # total number of assets in Tandem Vault API results
     tandemvault_page_count      = 0 # total number of paged Tandem Vault API results
     photo_taken_exif_key        = 36867 # 'DateTimeOriginal' EXIF data key
     images_created              = 0
@@ -420,16 +422,18 @@ class Command(BaseCommand):
         page_json = self.fetch_tandemvault_assets_page(page)
 
         if not page_json:
-            logging.warning('Failed to retrieve page %d of Tandem Vault assets. Skipping images.' % page)
+            logging.warning('Failed to retrieve page %d of Tandem Vault assets. Skipping assets.' % page)
             return
 
         image_queue = Queue()
         image_list = Queue()
 
-        for image in page_json:
-            img_data = self.process_image(image)
-            if img_data is not None:
-                image_queue.put(img_data)
+        for asset in page_json:
+            asset_type = asset.get('type', None)
+            if asset_type == 'Image':
+                img_data = self.process_image(asset)
+                if img_data is not None:
+                    image_queue.put(img_data)
 
         for x in range(self.number_threads):
             worker = RekognitionWorker(
@@ -623,9 +627,9 @@ class Command(BaseCommand):
             # Set some required importer properties if
             # this is the first page request:
             if page == 1:
-                self.tandemvault_total_images = int(response.headers['total-results'])
-                self.tandemvault_page_count = math.ceil(self.tandemvault_total_images / len(response_json))
-                self.progress_bar.max = self.tandemvault_total_images
+                self.tandemvault_total_assets = int(response.headers['total-results'])
+                self.tandemvault_page_count = math.ceil(self.tandemvault_total_assets / len(response_json))
+                self.progress_bar.max = self.tandemvault_total_assets
         except Exception, e:
             logging.warning('\nERROR retrieving assets page data: %s' % e)
 
