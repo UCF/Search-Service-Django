@@ -239,6 +239,22 @@ class Command(BaseCommand):
             required=False
         )
         parser.add_argument(
+            '--delete-stale-images',
+            type=bool,
+            help='If enabled, existing Image objects that are not present in the retrieved Tandem Vault data will be removed.',
+            dest='delete-stale-images',
+            default=True,
+            required=False
+        )
+        parser.add_argument(
+            '--delete-stale-tags',
+            type=bool,
+            help='If enabled, existing ImageTag objects that have no assigned Images or related synonyms with assigned Images will be removed.',
+            dest='delete-stale-tags',
+            default=False,
+            required=False
+        )
+        parser.add_argument(
             '--verbose',
             help='Use verbose logging',
             action='store_const',
@@ -259,6 +275,8 @@ class Command(BaseCommand):
         self.assign_tags = options['assign-tags']
         self.tag_confidence_threshold = options['tag-confidence-threshold']
         self.number_threads = options['number-threads']
+        self.delete_stale_images = options['delete-stale-images']
+        self.delete_stale_tags = options['delete-stale-tags']
         self.loglevel = options['loglevel']
 
         # Set logging level
@@ -697,33 +715,33 @@ Script executed in {6}
 
         print(stats)
 
-    '''
-    Deletes Image objects sourced from Tandem Vault that are no
-    longer present in Tandem Vault, and deletes ImageTags that
-    are not assigned to any Images.
-
-    ** NOTE: stale tag deletion is commented out for now, until
-    we can create a complete set of image + Tandem Vault tag data
-    in the search service
-    '''
     def delete_stale(self):
-        stale_images = Image.objects.filter(
-            last_imported__lt=self.imported,
-            source=self.source
-        )
-        # stale_tags = ImageTag.objects.filter(images=None)
+        """
+        Deletes Image objects sourced from Tandem Vault that are no
+        longer present in Tandem Vault, and deletes ImageTags that
+        are not assigned to any Images.
 
-        self.images_deleted = stale_images.count()
-        # self.tags_deleted = stale_tags.count()
+        Uses the --delete-stale-images and --delete-stale-tags flags
+        to determine whether stale objects should be deleted.
+        """
+        if self.delete_stale_images:
+            stale_images = Image.objects.filter(
+                last_imported__lt=self.imported,
+                source=self.source
+            )
+            self.images_deleted = stale_images.count()
+            stale_images.delete()
 
-        stale_images.delete()
-        # stale_tags.delete()
+        if self.delete_stale_tags:
+            stale_tags = ImageTag.objects.filter(synonyms__images__isnull=True).filter(images__isnull=True)
+            self.tags_deleted = stale_tags.count()
+            stale_tags.delete()
 
 
-'''
-Utility function for determining if a value is translatable into a float.
-'''
 def is_float(value):
+    """
+    Utility function for determining if a value is translatable into a float.
+    """
     try:
         float(value)
         return True
