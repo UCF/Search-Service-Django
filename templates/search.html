@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body %}
+
+<app-root></app-root>
+
+<script src="{% static 'archimedes/runtime-es2015.js' %}" type="module"></script>
+<script src="{% static 'archimedes/runtime-es5.js' %}" nomodule defer></script>
+<script src="{% static 'archimedes/polyfills-es5.js' %}" nomodule defer></script>
+<script src="{% static 'archimedes/polyfills-es2015.js' %}" type="module"></script>
+<script src="{% static 'archimedes/main-es2015.js' %}" type="module"></script>
+<script src="{% static 'archimedes/main-es5.js' %}" nomodule defer></script>
+
+{% endblock %}
