@@ -249,7 +249,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--delete-stale-tags',
             type=bool,
-            help='If enabled, existing ImageTag objects that have no assigned Images or related synonyms with assigned Images will be removed.',
+            help='If enabled, existing ImageTag objects that have no assigned Images will be removed (but respects synonym relationships, one level deep).',
             dest='delete-stale-tags',
             default=False,
             required=False
