@@ -164,10 +164,12 @@ class Command(BaseCommand):
     auto_tag_translations       = {
         'american football': 'football'
     }
+    default_start_date          = datetime.date(*settings.IMPORTED_IMAGE_LIMIT)
+    default_end_date            = timezone.now()
     tandemvault_assets_api_path = '/api/v1/assets/'
     tandemvault_asset_api_path  = '/api/v1/assets/{0}/'
     tandemvault_download_path   = '/assets/{0}/'
-    tandemvault_total_images    = 0 # total number of images in Tandem Vault API results
+    tandemvault_total_images    = 0 # total number of assets in Tandem Vault API results
     tandemvault_page_count      = 0 # total number of paged Tandem Vault API results
     photo_taken_exif_key        = 36867 # 'DateTimeOriginal' EXIF data key
     images_created              = 0
@@ -200,7 +202,7 @@ class Command(BaseCommand):
             type=str,
             help='Start of a date range by which images should be retrieved from Tandem Vault. Expected format: mm-dd-yyyy',
             dest='start-date',
-            default=datetime.date(*settings.IMPORTED_IMAGE_LIMIT).strftime('%m-%d-%Y'),
+            default=self.default_start_date.strftime('%m-%d-%Y'),
             required=False
         )
         parser.add_argument(
@@ -208,7 +210,7 @@ class Command(BaseCommand):
             type=str,
             help='End of a date range by which images should be retrieved from Tandem Vault. Expected format: mm-dd-yyyy',
             dest='end-date',
-            default=timezone.now().strftime('%m-%d-%Y'),
+            default=self.default_end_date.strftime('%m-%d-%Y'),
             required=False
         )
         parser.add_argument(
@@ -249,8 +251,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.tandemvault_domain = options['tandemvault-domain'].replace('http://', '').replace('https://', '')
         self.tandemvault_api_key = options['tandemvault-api-key']
-        self.tandemvault_start_date = parse(options['start-date'])
-        self.tandemvault_end_date = parse(options['end-date'])
+        self.tandemvault_start_date = parse(options['start-date']) if options['start-date'] else self.default_start_date
+        self.tandemvault_end_date = parse(options['end-date']) if options['start-date'] else self.default_end_date
         self.aws_access_key = settings.AWS_ACCESS_KEY
         self.aws_secret_key = settings.AWS_SECRET_KEY
         self.aws_region = settings.AWS_REGION
