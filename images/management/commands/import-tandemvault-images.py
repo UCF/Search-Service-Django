@@ -691,6 +691,10 @@ class Command(BaseCommand):
                 params=self.tandemvault_asset_params
             )
             response_json = response.json()
+
+            if response_json.get('error', None):
+                logging.warning('\nERROR returned by single asset data: %s' % response_json['error'])
+                response_json = None
         except Exception, e:
             logging.warning('\nERROR retrieving single asset data: %s' % e)
 
@@ -713,14 +717,15 @@ class Command(BaseCommand):
                     params=self.tandemvault_upload_set_params
                 )
                 response_json = response.json()
+
+                if response_json.get('error', None):
+                    logging.warning('\nERROR returned by single upload set data: %s' % response_json['error'])
+                    response_json = None
+                else:
+                    # Store retrieved data for later use
+                    self.tandemvault_upload_sets.update({upload_set_id: response_json})
             except Exception, e:
                 logging.warning('\nERROR retrieving single upload set data: %s' % e)
-
-        if response_json.get('error', None):
-            response_json = None
-        else:
-            # Store retrieved data for later use
-            self.tandemvault_upload_sets.update({upload_set_id: response_json})
 
         return response_json
 
