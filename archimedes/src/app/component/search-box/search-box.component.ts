@@ -17,16 +17,12 @@ export class SearchBoxComponent implements OnInit {
   @Output() newsError: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() newsResults: EventEmitter<any[]> = new EventEmitter<any[]>();
 
-  // TODO: Make this configurable
-  programApiUrl = 'https://searchdev.cm.ucf.edu/api/v1/programs/search/';
-  newsApiUrl = 'https://wwwqa.cc.ucf.edu/news/wp-json/wp/v2/posts/';
-
   constructor(
     private httpService: HttpService,
     private elementRef: ElementRef
   ) {}
 
-  setObservable(apiURL: string, loading, errorEmit, results) {
+  setObservable(searchType: string, loading: EventEmitter<boolean>, errorEmit: EventEmitter<boolean>, results: any) {
     // convert the `keyup` event into an observable stream
     fromEvent(this.elementRef.nativeElement, 'keyup')
       .pipe (
@@ -34,7 +30,7 @@ export class SearchBoxComponent implements OnInit {
           filter((text:string) => text.length > 2), //filter out if empty
           debounceTime(250), //only search after 250 ms
           tap(() => loading.emit(true)), // Enable loading
-          map((query:string) => this.httpService.search(apiURL, query)),
+          map((query:string) => this.httpService.search(searchType, query)),
           // discard old events if new input comes in
           switchAll()
           // act on the return of the search
@@ -57,8 +53,8 @@ export class SearchBoxComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.setObservable(this.programApiUrl, this.programLoading, this.programError, this.programResults);
-    this.setObservable(this.newsApiUrl, this.newsLoading, this.newsError, this.newsResults);
+    this.setObservable('programs', this.programLoading, this.programError, this.programResults);
+    this.setObservable('news', this.newsLoading, this.newsError, this.newsResults);
   }
 
 }
