@@ -15,13 +15,13 @@ from unidecode import unidecode
 class Command(BaseCommand):
     help = 'Imports all existing image tags from UCF\'s Tandem Vault instance.'
 
-    progress_bar      = Bar('Processing')
-    source            = 'Tandem Vault'
-    tags              = []
-    tag_count         = 0
-    tags_created      = 0
-    tags_updated      = 0
-    tags_skipped      = 0
+    progress_bar = Bar('Processing')
+    source = 'Tandem Vault'
+    tags = []
+    tag_count = 0
+    tags_created = 0
+    tags_updated = 0
+    tags_skipped = 0
     synonyms_assigned = 0
 
     def add_arguments(self, parser):
@@ -46,7 +46,9 @@ class Command(BaseCommand):
 
         # Stop timer
         self.exec_end = timeit.default_timer()
-        self.exec_time = datetime.timedelta(seconds=self.exec_end - self.exec_start)
+        self.exec_time = datetime.timedelta(
+            seconds=self.exec_end - self.exec_start
+        )
 
         # Print the results
         self.progress_bar.finish()

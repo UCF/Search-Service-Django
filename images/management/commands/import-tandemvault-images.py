@@ -63,14 +63,14 @@ class RekognitionWorker(Thread):
             try:
                 # If we're not processing tags, just return
                 # the data unchanged
-                if image_data.process_tags == False:
+                if image_data.process_tags is False:
                     self.results.put(image_data)
                 else:
                     # If we are processing tags, then let's go!
                     image_data = self.process_rekognition_tags(image_data)
                     self.results.put(image_data)
             except Exception, ex:
-                logging.warning("There was an exception while processing a rekognition request: %s", ex)
+                logging.warning('There was an exception while processing a Rekognition request: {0}'.format(ex))
             finally:
                 self.queue.task_done()
 
@@ -100,7 +100,7 @@ class RekognitionWorker(Thread):
             # Calculate mean confidence score if the
             # script's confidence threshold is set to 'mean-adjusted':
             if self.threshold == 'mean-adjusted':
-                mean_score = ( sum([label['Confidence'] for label in data['labels']]) / len(data['labels']) )
+                mean_score = (sum([label['Confidence'] for label in data['labels']]) / len(data['labels']))
                 data['labels_mean_confidence_score'] = mean_score
 
         return data
@@ -122,21 +122,19 @@ class RekognitionWorker(Thread):
         rekognition_tags = []
         rekognition_tag_score_mean = None
 
-        logging.debug("GENERATING TAGS FOR IMAGE: %s" % (image_data.image.thumbnail_url))
+        logging.debug('Generating tags for image: {0}'.format(image_data.image.thumbnail_url))
 
         if rekognition_data:
             rekognition_tags = rekognition_data['labels']
             if self.threshold == 'mean-adjusted':
                 rekognition_tag_score_mean = rekognition_data['labels_mean_confidence_score']
-                logging.debug("MEAN TAG SCORE FOR IMAGE: %s" % (
-                    rekognition_tag_score_mean
-                ))
+                logging.debug('Mean tag score for image: {0}'.format(rekognition_tag_score_mean))
 
         for rekognition_tag_data in rekognition_tags:
             rekognition_tag_name = rekognition_tag_data['Name'].lower().strip()
             rekognition_tag_score = rekognition_tag_data['Confidence']
 
-            logging.debug("GENERATED TAG: %s | CONFIDENCE: %s" % (rekognition_tag_name, rekognition_tag_score))
+            logging.debug('Generated tag: {0} | Confidence: {1}'.format(rekognition_tag_name, rekognition_tag_score))
 
             # If this tag meets our minimum confidence threshold and
             # doesn't already match the name of another tag assigned to
@@ -173,10 +171,10 @@ class Command(BaseCommand):
     tandemvault_asset_api_path = '/api/v1/assets/{0}/'
     tandemvault_download_path = '/assets/{0}/'
     tandemvault_upload_set_api_path = '/api/v1/upload_sets/{0}/'
-    tandemvault_total_assets = 0 # total number of assets in Tandem Vault API results
-    tandemvault_page_count = 0 # total number of paged Tandem Vault API results
-    tandemvault_upload_sets = {} # cached upload set information
-    photo_taken_exif_key = 36867 # 'DateTimeOriginal' EXIF data key
+    tandemvault_total_assets = 0  # total number of assets in Tandem Vault API results
+    tandemvault_page_count = 0  # total number of paged Tandem Vault API results
+    tandemvault_upload_sets = {}  # cached upload set information
+    photo_taken_exif_key = 36867  # 'DateTimeOriginal' EXIF data key
     images_created = 0
     images_updated = 0
     images_deleted = 0
@@ -297,25 +295,25 @@ class Command(BaseCommand):
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
         if not self.tandemvault_admin_api_key or not self.tandemvault_communicator_api_key or not self.tandemvault_domain:
-            print 'Tandemvault domain and API keys are required to perform an import. Update your settings_local.py or provide these values manually.'
+            print('Tandemvault domain and API keys are required to perform an import. Update your settings_local.py or provide these values manually.')
             return
 
         if self.assign_tags != 'none' and not self.aws_access_key:
-            print 'AWS access key ID required to assign tags via Rekognition. Please set an access key in your settings_local.py file and try again.'
+            print('AWS access key ID required to assign tags via Rekognition. Please set an access key in your settings_local.py file and try again.')
             return
 
         if self.assign_tags != 'none' and not self.aws_secret_key:
-            print 'AWS secret key required to assign tags via Rekognition. Please set a secret key in your settings_local.py file and try again.'
+            print('AWS secret key required to assign tags via Rekognition. Please set a secret key in your settings_local.py file and try again.')
             return
 
         if self.assign_tags != 'none':
             if is_float(self.tag_confidence_threshold):
                 self.tag_confidence_threshold = float(self.tag_confidence_threshold)
                 if self.tag_confidence_threshold > 100 or self.tag_confidence_threshold < 0:
-                    print 'Tag confidence threshold value must be either "mean-adjusted" or a value between 0 and 100'
+                    print('Tag confidence threshold value must be either "mean-adjusted" or a value between 0 and 100')
                     return
             elif self.tag_confidence_threshold != 'mean-adjusted':
-                print 'Tag confidence threshold value must be either "mean-adjusted" or a value between 0 and 100'
+                print('Tag confidence threshold value must be either "mean-adjusted" or a value between 0 and 100')
                 return
 
         self.tandemvault_assets_api_url = 'https://' + self.tandemvault_domain + self.tandemvault_assets_api_path
@@ -359,7 +357,7 @@ class Command(BaseCommand):
                     region_name=self.aws_region
                 )
             except Exception, e:
-                logging.error('ERROR establishing client: %s' % e)
+                logging.error('Error establishing client: {0}'.format(e))
                 return
 
         # Fetch + loop through all Tandem Vault API results
@@ -377,7 +375,6 @@ class Command(BaseCommand):
         self.print_stats()
 
         return
-
 
     def process_images(self):
         """
@@ -439,7 +436,7 @@ class Command(BaseCommand):
         page_json = self.fetch_tandemvault_assets_page(page)
 
         if not page_json:
-            logging.warning('Failed to retrieve page %d of Tandem Vault assets. Skipping assets.' % page)
+            logging.warning('Failed to retrieve page {0} of Tandem Vault assets. Skipping assets.'.format(page))
             return
 
         image_queue = Queue()
@@ -469,7 +466,6 @@ class Command(BaseCommand):
 
         self.process_tags(retval)
 
-
     def process_image(self, tandemvault_image):
         """
         Processes a single Tandem Vault image.
@@ -478,14 +474,16 @@ class Command(BaseCommand):
         self.progress_bar.next()
 
         download_url = self.tandemvault_download_url.format(tandemvault_image['id'])
-        thumb_url = tandemvault_image['browse_url'] # Use 'browse_url' instead of 'thumb_url' due to slightly larger size
+        # Use 'browse_url' for thumb instead of 'thumb_url'
+        # due to slightly larger size
+        thumb_url = tandemvault_image['browse_url']
         upload_set_id = self.get_tandemvault_upload_set_id(thumb_url)
         photo_taken = None
         location = None
         single_json = None
         upload_set_json = None
 
-        logging.debug("Processing image with ID %s, Download URL %s" % (tandemvault_image['id'], download_url))
+        logging.debug('Processing image with ID {0}, Download URL {1}'.format(tandemvault_image['id'], download_url))
 
         process_tags = False
         image_file = None
@@ -515,14 +513,14 @@ class Command(BaseCommand):
                 # continue if data cannot be retrieved:
                 upload_set_json = self.fetch_tandemvault_upload_set(upload_set_id)
                 if not upload_set_json:
-                    logging.warning('Failed to retrieve single upload set info with ID %d for Tandem Vault image with ID %d.' % (upload_set_id, tandemvault_image['id']))
+                    logging.warning('Failed to retrieve single upload set info with ID {0} for Tandem Vault image with ID {1}.'.format(upload_set_id, tandemvault_image['id']))
                 else:
                     location = upload_set_json['location']
 
                 # Fetch the single API result
                 single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
                 if not single_json:
-                    logging.warning('Failed to retrieve single image info for Tandem Vault image with ID %d. Skipping image.' % tandemvault_image['id'])
+                    logging.warning('Failed to retrieve single image info for Tandem Vault image with ID {0}. Skipping image.'.format(tandemvault_image['id']))
                     self.images_skipped += 1
                     return None
 
@@ -551,14 +549,14 @@ class Command(BaseCommand):
                     # Continue processing the image without single image
                     # data; allow tagging via Rekognition later:
                     self.images_updated += 1
-                    logging.info('Skipping retrieval of single image data and upload set data for image with ID %d since there are no updates, but still assigning tags via Rekognition.' % tandemvault_image['id'])
+                    logging.info('Skipping retrieval of single image data and upload set data for image with ID {0} since there are no updates, but still assigning tags via Rekognition.'.format(tandemvault_image['id']))
                 else:
                     image.last_imported = self.imported
                     image.save()
 
                     # Return here/stop processing the image completely:
                     self.images_skipped += 1
-                    logging.info('Skipping image with ID %d entirely, since there are no updates.' % tandemvault_image['id'])
+                    logging.info('Skipping image with ID {0} entirely, since there are no updates.'.format(tandemvault_image['id']))
                     return None
         except Image.DoesNotExist:
             process_tags = True
@@ -572,34 +570,34 @@ class Command(BaseCommand):
             # Retrieve upload set data
             upload_set_json = self.fetch_tandemvault_upload_set(upload_set_id)
             if not upload_set_json:
-                logging.warning('Failed to retrieve single upload set info with ID %d for Tandem Vault image with ID %d.' % (upload_set_id, tandemvault_image['id']))
+                logging.warning('Failed to retrieve single upload set info with ID {0} for Tandem Vault image with ID {1}.'.format(upload_set_id, tandemvault_image['id']))
             else:
                 location = upload_set_json['location']
 
             # Fetch the single API result
             single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
             if not single_json:
-                logging.warning('Failed to retrieve single image info for Tandem Vault image with ID %d. Skipping image.' % tandemvault_image['id'])
+                logging.warning('Failed to retrieve single image info for Tandem Vault image with ID {0}. Skipping image.'.format(tandemvault_image['id']))
                 self.images_skipped += 1
                 return None
 
             # Create new Image
             image = Image(
-                filename = single_json['filename'],
-                extension = single_json['ext'],
-                source = self.source,
-                source_id = single_json['id'],
-                source_created = parse(single_json['created_at']),
-                source_modified = parse(single_json['modified_at']),
-                photo_taken = photo_taken,
-                location = location,
-                copyright = single_json['copyright'],
-                contributor = single_json['contributor']['to_s'],
-                width_full = int(single_json['width']),
-                height_full = int(single_json['height']),
-                download_url = download_url,
-                thumbnail_url = single_json['browse_url'],
-                caption = single_json['short_caption']
+                filename=single_json['filename'],
+                extension=single_json['ext'],
+                source=self.source,
+                source_id=single_json['id'],
+                source_created=parse(single_json['created_at']),
+                source_modified=parse(single_json['modified_at']),
+                photo_taken=photo_taken,
+                location=location,
+                copyright=single_json['copyright'],
+                contributor=single_json['contributor']['to_s'],
+                width_full=int(single_json['width']),
+                height_full=int(single_json['height']),
+                download_url=download_url,
+                thumbnail_url=single_json['browse_url'],
+                caption=single_json['short_caption']
             )
 
             self.images_created += 1
@@ -675,7 +673,7 @@ class Command(BaseCommand):
                 self.tandemvault_page_count = math.ceil(self.tandemvault_total_assets / len(response_json))
                 self.progress_bar.max = self.tandemvault_total_assets
         except Exception, e:
-            logging.warning('\nERROR retrieving assets page data: %s' % e)
+            logging.warning('\nError retrieving assets page data: {0}'.format(e))
 
         return response_json
 
@@ -693,10 +691,10 @@ class Command(BaseCommand):
             response_json = response.json()
 
             if response_json.get('error', None):
-                logging.warning('\nERROR returned by single asset data: %s' % response_json['error'])
+                logging.warning('\nError returned by single asset data: {0}'.format(response_json['error']))
                 response_json = None
         except Exception, e:
-            logging.warning('\nERROR retrieving single asset data: %s' % e)
+            logging.warning('\nError retrieving single asset data: {0}'.format(e))
 
         return response_json
 
@@ -719,13 +717,13 @@ class Command(BaseCommand):
                 response_json = response.json()
 
                 if response_json.get('error', None):
-                    logging.warning('\nERROR returned by single upload set data: %s' % response_json['error'])
+                    logging.warning('\nError returned by single upload set data: {0}'.format(response_json['error']))
                     response_json = None
                 else:
                     # Store retrieved data for later use
                     self.tandemvault_upload_sets.update({upload_set_id: response_json})
             except Exception, e:
-                logging.warning('\nERROR retrieving single upload set data: %s' % e)
+                logging.warning('\nError retrieving single upload set data: {0}'.format(e))
 
         return response_json
 
@@ -740,7 +738,7 @@ class Command(BaseCommand):
             # https://x.y.z/<upload_set_id>/<image_id>/1/<browse OR grid OR thumb>/<image_catalogue_number>.ext
             upload_set_id = int(re.search('^https://[a-zA-Z0-9-.]+/([0-9]+)/', thumb_url).group(1))
         except (AttributeError, TypeError):
-            logging.warning('\nCould not determine upload set ID from Tandem Vault thumbnail URL "%s"' % thumb_url)
+            logging.warning('\nCould not determine upload set ID from Tandem Vault thumbnail URL "{0}"'.format(thumb_url))
             upload_set_id = None
 
         return upload_set_id
@@ -751,7 +749,7 @@ class Command(BaseCommand):
         try:
             image_file = requests.get(image_url).content
         except Exception, e:
-            logging.warning('\nERROR downloading image from Tandem Vault: %s' % e)
+            logging.warning('\nError downloading image from Tandem Vault: {0}'.format(e))
 
         return image_file
 
@@ -761,7 +759,7 @@ class Command(BaseCommand):
         try:
             pil_img = PILImage.open(StringIO.StringIO(image_file))
         except Exception, e:
-            logging.warning('\nERROR opening image with Pillow: %s' % e)
+            logging.warning('\nError opening image with Pillow: {0}'.format(e))
             return taken_date
 
         img_exif = pil_img.getexif()
