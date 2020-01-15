@@ -36,6 +36,6 @@ export class HttpService {
         break;
     }
 
-    return this.httpClient.get(apiUrl, { params });
+    return this.httpClient.get(apiUrl, { params, observe: 'response' });
   }
 }

@@ -20,34 +20,39 @@
                     </app-loading-icon>
                 </h2>
 
-                <div class="alert alert-danger" *ngIf="programError">
-                    Error loading programs
-                </div>
-                <div class="alert alert-info" *ngIf="programResults && programResults.results.length === 0">
-                    No Programs Found
-                </div>
-
                 <ng-container *ngIf="programResults && programResults.results">
-                    <div app-programs class="list-group" [programs]="programResults.results"></div>
+                    <div app-programs class="list-group" [programs]="programResults.results" [count]="programResults.count"></div>
+                    <div class="alert alert-info" *ngIf="programResults.results.length === 0">
+                        No programs found.
+                    </div>
                 </ng-container>
+
+                <div class="alert alert-danger" *ngIf="programError">
+                    Error loading programs.
+                </div>
             </div>
 
         </div>
         <div class="col-lg-6">
 
             <div class="news-results mt-4 mt-lg-0" *ngIf="newsResults || newsLoading || newsError">
+                <span class="badge badge-default badge-pill float-right mt-1"
+                    *ngIf="newsResults && newsResults.count && newsResults.count > 0">{{newsResults.count}}</span>
                 <h2 class="h4 text-uppercase mb-3">
                     News <app-loading-icon *ngIf="newsLoading" (newsLoading)="newsLoading = $event">
                     </app-loading-icon>
                 </h2>
 
+                <ng-container *ngIf="newsResults && newsResults.results">
+                    <div app-news class="list-group" [news]="newsResults.results" [count]="newsResults.count"></div>
+                    <div class="alert alert-info" *ngIf="newsResults.results.length === 0">
+                        No news articles found.
+                    </div>
+                </ng-container>
+
                 <div class="alert alert-danger" *ngIf="newsError">
-                    Error loading news articles
+                    Error loading news articles.
                 </div>
-                <div class="alert alert-info" *ngIf="newsResults && newsResults.length === 0">
-                    No News Articles Found
-                </div>
-                <div app-news class="list-group" [news]="newsResults"></div>
             </div>
 
         </div>

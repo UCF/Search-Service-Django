@@ -25,6 +25,4 @@ export class AppComponent {
   updateNewsResults(news: any): void {
     this.newsResults = news;
   }
-
-
 }

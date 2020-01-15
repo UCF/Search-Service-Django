@@ -22,7 +22,12 @@ export class SearchBoxComponent implements OnInit {
     private elementRef: ElementRef
   ) {}
 
-  setObservable(searchType: string, loading: EventEmitter<boolean>, errorEmit: EventEmitter<boolean>, results: any) {
+  setObservable(
+    searchType: string,
+    loading: EventEmitter<boolean>,
+    errorEmit: EventEmitter<boolean>,
+    results: EventEmitter<any>) {
+
     // convert the `keyup` event into an observable stream
     fromEvent(this.elementRef.nativeElement, 'keyup')
       .pipe (
@@ -35,10 +40,19 @@ export class SearchBoxComponent implements OnInit {
           switchAll()
           // act on the return of the search
       ).subscribe(
-        (data: any[]) => { // on success
+        (response: any) => { // on success
           loading.emit(false);
           errorEmit.emit(false);
-          results.emit(data);
+          // news
+          if(response.headers.get('X-WP-Total')) {
+            results.emit({
+              "results": response.body,
+              "count": response.headers.get('X-WP-Total')
+            });
+          // program
+          } else {
+            results.emit(response.body)
+          }
         },
         (error: any) => { // on error
           console.error(error);
