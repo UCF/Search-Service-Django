@@ -21,7 +21,6 @@ class Command(BaseCommand):
     tag_count         = 0
     tags_created      = 0
     tags_updated      = 0
-    tags_deleted      = 0
     tags_skipped      = 0
     synonyms_assigned = 0
 
@@ -32,19 +31,10 @@ class Command(BaseCommand):
             help='CSV file containing existing tag and synonym information from Tandem Vault',
             dest='file',
             required=True
-        ),
-        parser.add_argument(
-            '--delete-stale',
-            type=bool,
-            help='Whether or not stale tags (tags not assigned to any Images) should be deleted.',
-            dest='delete-stale',
-            default=False,
-            required=False
         )
 
     def handle(self, *args, **options):
         self.tandemvault_tags_csv = options['file']
-        self.do_delete_stale = options['delete-stale']
 
         # Start a timer for the bulk of the script
         self.exec_time = 0
@@ -53,10 +43,6 @@ class Command(BaseCommand):
         # Process the CSV
         self.load_tandemvault_tags()
         self.process_tandemvault_tags()
-
-        # Delete stale Tandem Vault image tags
-        if self.do_delete_stale:
-            self.delete_stale()
 
         # Stop timer
         self.exec_end = timeit.default_timer()
@@ -165,30 +151,17 @@ Finished import of {0} Tandem Vault image tags.
 
 Created: {1}
 Updated: {2}
-Deleted: {3}
-Skipped: {4}
-Synonyms assigned: {5}
+Skipped: {3}
+Synonyms assigned: {4}
 
-Script executed in {6}
+Script executed in {5}
         """.format(
             self.tag_count,
             self.tags_created,
             self.tags_updated,
-            self.tags_deleted,
             self.tags_skipped,
             self.synonyms_assigned,
             self.exec_time
         )
 
         print(stats)
-
-    '''
-    Deletes ImageTags sourced from Tandem Vault
-    that are not assigned to any Images.
-    '''
-    def delete_stale(self):
-        stale_tags = ImageTag.objects.filter(images=None, source=self.source)
-
-        self.tags_deleted = stale_tags.count()
-
-        stale_tags.delete()

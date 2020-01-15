@@ -118,16 +118,19 @@ SOC_CURRENT_VERSION = '2010'
 # Set the current employment projection report year range
 PROJ_CURRENT_REPORT = '1828'
 
-# The year + month + day limit of how old imported images can be.
-# NOTE: increasing this value will cause older images to be removed
+# The default year + month + day limit of how old imported images can be.
+# NOTE: increasing this value could cause older images to be removed
 # during a future image import!
 IMPORTED_IMAGE_LIMIT = (2017, 12, 1)
 
 # The domain name for UCF's Tandem Vault.
 UCF_TANDEMVAULT_DOMAIN = 'ucf.tandemvault.com'
 
-# An API key to use with UCF's Tandem Vault.
-TANDEMVAULT_API_KEY = ''
+# An API key to use with UCF's Tandem Vault that has admin-level user access.
+TANDEMVAULT_ADMIN_API_KEY = ''
+
+# An API key to use with UCF's Tandem Vault that has UCF Communicator-level user access.
+TANDEMVAULT_COMMUNICATOR_API_KEY = ''
 
 # An AWS Access Key ID with sufficient permissions to access Rekognition.
 AWS_ACCESS_KEY = ''
