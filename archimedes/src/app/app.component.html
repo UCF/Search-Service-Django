@@ -47,9 +47,7 @@
                 <div class="alert alert-info" *ngIf="newsResults && newsResults.length === 0">
                     No News Articles Found
                 </div>
-                <div class="container">
-                    <div app-news class="list-group" [news]="newsResults"></div>
-                </div>
+                <div app-news class="list-group" [news]="newsResults"></div>
             </div>
 
         </div>

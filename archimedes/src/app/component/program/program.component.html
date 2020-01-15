@@ -1,5 +1,5 @@
-<a href="{{program.catalog_url}}" *ngFor="let program of programs | slice:0:5" target="_blank" class="list-group-item">
-    <h2 class="h6 mb-2 w-100">{{program.name}}</h2>
+<a href="{{getUrl(program)}}" *ngFor="let program of programs" target="_blank" class="list-group-item">
+    <h3 class="h6 mb-2 w-100">{{program.name}}</h3>
     <div>
         <ul class="list-unstyled mb-0">
             <li *ngFor="let college of program.colleges" class="small">

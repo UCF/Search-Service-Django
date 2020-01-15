@@ -12,4 +12,12 @@ export class ProgramComponent implements OnInit {
 
   ngOnInit() {}
 
+  getUrl(program) {
+    if (program.catalog_url) {
+      return program.catalog_url;
+    } else {
+      return program.profiles[0].url;
+    }
+  }
+
 }

@@ -17,17 +17,22 @@ export class HttpService {
     }
 
     let params;
-    // TODO: apiUrls this configurable
+    // TODO: Make apiUrls configurable
     let apiUrl;
 
     switch (searchType) {
       case 'programs':
         apiUrl = 'https://searchdev.cm.ucf.edu/api/v1/programs/search/';
-        params = new HttpParams().set('search', query);
+        params = new HttpParams()
+          .set('format', 'json')
+          .set('search', query)
+          .set('limit', '5');
         break;
       case 'news':
         apiUrl = 'https://wwwqa.cc.ucf.edu/news/wp-json/wp/v2/posts';
-        params = new HttpParams().set('tag_slugs[]', query);
+        params = new HttpParams()
+          .set('tag_slugs[]', query)
+          .set('per_page', '5');
         break;
     }
 
