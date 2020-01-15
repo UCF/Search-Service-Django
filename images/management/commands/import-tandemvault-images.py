@@ -195,11 +195,19 @@ class Command(BaseCommand):
             required=False
         )
         parser.add_argument(
-            '--tandemvault-api-key',
+            '--tandemvault-admin-api-key',
             type=str,
-            help='The API key used to connect to Tandem Vault',
-            dest='tandemvault-api-key',
-            default=settings.TANDEMVAULT_API_KEY,
+            help='The API key used to connect to Tandem Vault with admin-level user access',
+            dest='tandemvault-admin-api-key',
+            default=settings.TANDEMVAULT_ADMIN_API_KEY,
+            required=False
+        )
+        parser.add_argument(
+            '--tandemvault-communicator-api-key',
+            type=str,
+            help='The API key used to connect to Tandem Vault with UCF Communicator-level user access',
+            dest='tandemvault-communicator-api-key',
+            default=settings.TANDEMVAULT_COMMUNICATOR_API_KEY,
             required=False
         )
         parser.add_argument(
@@ -271,7 +279,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.tandemvault_domain = options['tandemvault-domain'].replace('http://', '').replace('https://', '')
-        self.tandemvault_api_key = options['tandemvault-api-key']
+        self.tandemvault_admin_api_key = options['tandemvault-admin-api-key']
+        self.tandemvault_communicator_api_key = options['tandemvault-communicator-api-key']
         self.tandemvault_start_date = parse(options['start-date']) if options['start-date'] else self.default_start_date
         self.tandemvault_end_date = parse(options['end-date']) if options['start-date'] else self.default_end_date
         self.aws_access_key = settings.AWS_ACCESS_KEY
@@ -287,8 +296,8 @@ class Command(BaseCommand):
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
-        if not self.tandemvault_api_key or not self.tandemvault_domain:
-            print 'Tandemvault domain and API key are required to perform an import. Update your settings_local.py or provide these values manually.'
+        if not self.tandemvault_admin_api_key or not self.tandemvault_communicator_api_key or not self.tandemvault_domain:
+            print 'Tandemvault domain and API keys are required to perform an import. Update your settings_local.py or provide these values manually.'
             return
 
         if self.assign_tags != 'none' and not self.aws_access_key:
@@ -319,7 +328,7 @@ class Command(BaseCommand):
         self.imported = now
 
         self.tandemvault_assets_params = {
-            'api_key': self.tandemvault_api_key,
+            'api_key': self.tandemvault_communicator_api_key,
             'state': 'accepted',
             'date[start(1i)]': self.tandemvault_start_date.year,
             'date[start(2i)]': self.tandemvault_start_date.month,
@@ -329,10 +338,11 @@ class Command(BaseCommand):
             'date[end(3i)]': self.tandemvault_end_date.day,
         }
         self.tandemvault_asset_params = {
-            'api_key': self.tandemvault_api_key
+            'api_key': self.tandemvault_communicator_api_key
         }
         self.tandemvault_upload_set_params = {
-            'api_key': self.tandemvault_api_key
+            # upload_set API requires elevated permissions
+            'api_key': self.tandemvault_admin_api_key
         }
 
         # Start a timer for the bulk of the script
