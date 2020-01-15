@@ -42,6 +42,7 @@ class Image(models.Model):
     source_created = models.DateTimeField(auto_now=False, null=True, blank=True)
     source_modified = models.DateTimeField(auto_now=False, null=True, blank=True)
     photo_taken = models.DateTimeField(auto_now=False, null=True, blank=True)
+    location = models.CharField(max_length=500, null=True, blank=True)
     copyright = models.CharField(max_length=255, null=True, blank=True)
     contributor = models.CharField(max_length=500, null=True, blank=True)
     width_full = models.IntegerField(null=False, blank=False)

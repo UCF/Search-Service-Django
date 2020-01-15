@@ -16,6 +16,7 @@ class ImageSerializer(serializers.ModelSerializer):
             'source_created',
             'source_modified',
             'photo_taken',
+            'location',
             'copyright',
             'contributor',
             'width_full',

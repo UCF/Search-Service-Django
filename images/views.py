@@ -7,7 +7,6 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 
 from images.models import *
 from images.serializers import *
-from images.filters import *
 
 
 class ImageListView(generics.ListAPIView):
@@ -23,6 +22,6 @@ class ImageDetailView(generics.RetrieveAPIView):
 
 class ImageSearchView(ImageListView):
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['filename', 'tags__name', 'tags__synonyms__name', 'caption']
+    search_fields = ['filename', 'tags__name', 'tags__synonyms__name', 'caption', 'location']
     ordering_fields = ['source_created', 'source_modified', 'photo_taken']
     ordering = ['-photo_taken']
