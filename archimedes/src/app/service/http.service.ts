@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -12,23 +11,31 @@ export class HttpService {
     private httpClient: HttpClient
   ) { }
 
-  search(apiURL: string, query: string): Observable<any> {
+  search(searchType: string, query: string): Observable<any> {
     if (!query.trim()) {
       return of(null);
     }
-    const params = new HttpParams().set('search', query);
 
-    return this.httpClient.get(apiURL, { params }).pipe(
-      // catchError(this.handleError<any[]>('httpService', []))
-    );
-  }
+    let params;
+    // TODO: Make apiUrls configurable
+    let apiUrl;
 
-  private handleError<T>(operation = 'operation', result?: T) {
-    return (error: any): Observable<T> => {
-      // TODO: Display error message
-      console.error(`${operation} failed: ${error.message}`);
-      // Let the app keep running by returning an empty result.
-      return of(result as T);
-    };
+    switch (searchType) {
+      case 'programs':
+        apiUrl = 'https://searchdev.cm.ucf.edu/api/v1/programs/search/';
+        params = new HttpParams()
+          .set('format', 'json')
+          .set('search', query)
+          .set('limit', '5');
+        break;
+      case 'news':
+        apiUrl = 'https://wwwqa.cc.ucf.edu/news/wp-json/wp/v2/posts';
+        params = new HttpParams()
+          .set('tag_slugs[]', query)
+          .set('per_page', '5');
+        break;
+    }
+
+    return this.httpClient.get(apiUrl, { params });
   }
 }

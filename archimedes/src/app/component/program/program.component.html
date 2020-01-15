@@ -1,6 +1,12 @@
-
-<li>
-    <a href="{{program.catalog_url}}" target="_blank">
-        {{program.name}}
-    </a>
-</li>
+<ng-container *ngFor="let program of programs">
+    <ng-container  *ngIf="getUrl(program)">
+        <a href="{{getUrl(program)}}" target="_blank" class="list-group-item">
+            <app-program-item [program]="program"></app-program-item>
+        </a>
+    </ng-container>
+    <ng-container *ngIf="!getUrl(program)">
+        <div class="list-group-item">
+            <app-program-item [program]="program"></app-program-item>
+        </div>
+    </ng-container>
+</ng-container>

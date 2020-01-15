@@ -1,0 +1,12 @@
+<h3 class="h6 mb-2 w-100">{{program.name}}</h3>
+<div>
+    <ul class="list-unstyled mb-0">
+        <li *ngFor="let college of program.colleges" class="small">
+            {{college.full_name}} ({{college.short_name}})
+        </li>
+        <li *ngFor="let department of program.departments" class="small">
+            {{department.full_name}}
+        </li>
+        <li class="text-muted small">{{program.level}}</li>
+    </ul>
+</div>
