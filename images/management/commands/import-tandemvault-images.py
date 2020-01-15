@@ -5,6 +5,7 @@ from images.models import *
 import sys
 import math
 import logging
+import re
 import timeit
 import datetime
 
@@ -150,10 +151,10 @@ class RekognitionWorker(Thread):
 class Command(BaseCommand):
     help = 'Imports image assets from UCF\'s Tandem Vault instance.'
 
-    progress_bar                = Bar('Processing')
-    source                      = 'Tandem Vault'
-    auto_tag_source             = 'AWS Rekognition'
-    auto_tag_blacklist          = [
+    progress_bar = Bar('Processing')
+    source = 'Tandem Vault'
+    auto_tag_source = 'AWS Rekognition'
+    auto_tag_blacklist = [
         'human',
         'apparel',
         'clothing',
@@ -163,24 +164,26 @@ class Command(BaseCommand):
         'photography',
         'mammal'
     ]
-    auto_tag_translations       = {
+    auto_tag_translations = {
         'american football': 'football'
     }
-    default_start_date          = datetime.date(*settings.IMPORTED_IMAGE_LIMIT)
-    default_end_date            = timezone.now()
+    default_start_date = datetime.date(*settings.IMPORTED_IMAGE_LIMIT)
+    default_end_date = timezone.now()
     tandemvault_assets_api_path = '/api/v1/assets/'
-    tandemvault_asset_api_path  = '/api/v1/assets/{0}/'
-    tandemvault_download_path   = '/assets/{0}/'
-    tandemvault_total_assets    = 0 # total number of assets in Tandem Vault API results
-    tandemvault_page_count      = 0 # total number of paged Tandem Vault API results
-    photo_taken_exif_key        = 36867 # 'DateTimeOriginal' EXIF data key
-    images_created              = 0
-    images_updated              = 0
-    images_deleted              = 0
-    images_skipped              = 0
-    tags_created                = 0
-    tags_deleted                = 0
-    aws_client                  = None
+    tandemvault_asset_api_path = '/api/v1/assets/{0}/'
+    tandemvault_download_path = '/assets/{0}/'
+    tandemvault_upload_set_api_path = '/api/v1/upload_sets/{0}/'
+    tandemvault_total_assets = 0 # total number of assets in Tandem Vault API results
+    tandemvault_page_count = 0 # total number of paged Tandem Vault API results
+    tandemvault_upload_sets = {} # cached upload set information
+    photo_taken_exif_key = 36867 # 'DateTimeOriginal' EXIF data key
+    images_created = 0
+    images_updated = 0
+    images_deleted = 0
+    images_skipped = 0
+    tags_created = 0
+    tags_deleted = 0
+    aws_client = None
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -309,6 +312,7 @@ class Command(BaseCommand):
         self.tandemvault_assets_api_url = 'https://' + self.tandemvault_domain + self.tandemvault_assets_api_path
         self.tandemvault_asset_api_url = 'https://' + self.tandemvault_domain + self.tandemvault_asset_api_path
         self.tandemvault_download_url = 'https://' + self.tandemvault_domain + self.tandemvault_download_path
+        self.tandemvault_upload_set_api_url = 'https://' + self.tandemvault_domain + self.tandemvault_upload_set_api_path
 
         now = timezone.now()
         self.modified = now
@@ -325,6 +329,9 @@ class Command(BaseCommand):
             'date[end(3i)]': self.tandemvault_end_date.day,
         }
         self.tandemvault_asset_params = {
+            'api_key': self.tandemvault_api_key
+        }
+        self.tandemvault_upload_set_params = {
             'api_key': self.tandemvault_api_key
         }
 
@@ -462,8 +469,11 @@ class Command(BaseCommand):
 
         download_url = self.tandemvault_download_url.format(tandemvault_image['id'])
         thumb_url = tandemvault_image['browse_url'] # Use 'browse_url' instead of 'thumb_url' due to slightly larger size
+        upload_set_id = self.get_tandemvault_upload_set_id(thumb_url)
         photo_taken = None
+        location = None
         single_json = None
+        upload_set_json = None
 
         logging.debug("Processing image with ID %s, Download URL %s" % (tandemvault_image['id'], download_url))
 
@@ -491,6 +501,14 @@ class Command(BaseCommand):
                 # Retrieve photo taken date from EXIF data
                 photo_taken = self.get_tandemvault_image_taken_date(image_file)
 
+                # Retrieve upload set data. Allow import to
+                # continue if data cannot be retrieved:
+                upload_set_json = self.fetch_tandemvault_upload_set(upload_set_id)
+                if not upload_set_json:
+                    logging.warning('Failed to retrieve single upload set info with ID %d for Tandem Vault image with ID %d.' % (upload_set_id, tandemvault_image['id']))
+                else:
+                    location = upload_set_json['location']
+
                 # Fetch the single API result
                 single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
                 if not single_json:
@@ -503,6 +521,7 @@ class Command(BaseCommand):
                 image.source_created = parse(single_json['created_at'])
                 image.source_modified = tandemvault_image_modified
                 image.photo_taken = photo_taken
+                image.location = location
                 image.copyright = single_json['copyright']
                 image.contributor = single_json['contributor']['to_s']
                 image.width_full = int(single_json['width'])
@@ -522,7 +541,7 @@ class Command(BaseCommand):
                     # Continue processing the image without single image
                     # data; allow tagging via Rekognition later:
                     self.images_updated += 1
-                    logging.info('Skipping retrieval of single image data for image with ID %d since there are no updates, but still assigning tags via Rekognition.' % tandemvault_image['id'])
+                    logging.info('Skipping retrieval of single image data and upload set data for image with ID %d since there are no updates, but still assigning tags via Rekognition.' % tandemvault_image['id'])
                 else:
                     image.last_imported = self.imported
                     image.save()
@@ -540,6 +559,13 @@ class Command(BaseCommand):
             # Retrieve photo taken date from EXIF data
             photo_taken = self.get_tandemvault_image_taken_date(image_file)
 
+            # Retrieve upload set data
+            upload_set_json = self.fetch_tandemvault_upload_set(upload_set_id)
+            if not upload_set_json:
+                logging.warning('Failed to retrieve single upload set info with ID %d for Tandem Vault image with ID %d.' % (upload_set_id, tandemvault_image['id']))
+            else:
+                location = upload_set_json['location']
+
             # Fetch the single API result
             single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
             if not single_json:
@@ -556,6 +582,7 @@ class Command(BaseCommand):
                 source_created = parse(single_json['created_at']),
                 source_modified = parse(single_json['modified_at']),
                 photo_taken = photo_taken,
+                location = location,
                 copyright = single_json['copyright'],
                 contributor = single_json['contributor']['to_s'],
                 width_full = int(single_json['width']),
@@ -596,6 +623,13 @@ class Command(BaseCommand):
                 # and assign it to the Image
                 if tandemvault_tag_name_lower not in tag_names_unique:
                     tag_names_unique.add(tandemvault_tag_name_lower)
+
+        # Assign the upload set's name as a tag for the image,
+        # if we retrieved upload set information for the image:
+        if upload_set_json:
+            upload_set_tag_name_lower = upload_set_json['title'].lower().strip()
+            if upload_set_tag_name_lower not in tag_names_unique:
+                tag_names_unique.add(upload_set_tag_name_lower)
 
         image.save()
 
@@ -651,6 +685,50 @@ class Command(BaseCommand):
             logging.warning('\nERROR retrieving single asset data: %s' % e)
 
         return response_json
+
+    def fetch_tandemvault_upload_set(self, upload_set_id):
+        """
+        Fetches an API result for a single Tandem Vault upload set.
+        Stores data for later use to avoid subsequent API calls when possible.
+        """
+        response_json = None
+
+        # Retrieve existing data if possible
+        try:
+            response_json = self.tandemvault_upload_sets[upload_set_id]
+        except KeyError:
+            try:
+                response = requests.get(
+                    self.tandemvault_upload_set_api_url.format(upload_set_id),
+                    params=self.tandemvault_upload_set_params
+                )
+                response_json = response.json()
+            except Exception, e:
+                logging.warning('\nERROR retrieving single upload set data: %s' % e)
+
+        if response_json.get('error', None):
+            response_json = None
+        else:
+            # Store retrieved data for later use
+            self.tandemvault_upload_sets.update({upload_set_id: response_json})
+
+        return response_json
+
+    def get_tandemvault_upload_set_id(self, thumb_url):
+        """
+        Returns the extrapolated upload set ID from a provided
+        Tandem Vault thumbnail URL.
+        """
+        try:
+            # Given a thumbnail URL from Tandem Vault, the upload set ID
+            # is the first series of numbers after the domain name:
+            # https://x.y.z/<upload_set_id>/<image_id>/1/<browse OR grid OR thumb>/<image_catalogue_number>.ext
+            upload_set_id = int(re.search('^https://[a-zA-Z0-9-.]+/([0-9]+)/', thumb_url).group(1))
+        except (AttributeError, TypeError):
+            logging.warning('\nCould not determine upload set ID from Tandem Vault thumbnail URL "%s"' % thumb_url)
+            upload_set_id = None
+
+        return upload_set_id
 
     def download_tandemvault_image(self, image_url):
         image_file = None
