@@ -7,7 +7,6 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 
 from images.models import *
 from images.serializers import *
-from images.filters import *
 
 
 class ImageListView(generics.ListAPIView):
