@@ -9,6 +9,7 @@ import { SearchBoxComponent } from './component/search-box/search-box.component'
 import { NewsComponent } from './component/news/news.component';
 import { LoadingIconComponent } from './component/loading-icon/loading-icon.component';
 import { SafeHtmlPipe } from './pipe/safe-html.pipe';
+import { ProgramItemComponent } from './component/program-item/program-item.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { SafeHtmlPipe } from './pipe/safe-html.pipe';
     SearchBoxComponent,
     NewsComponent,
     LoadingIconComponent,
-    SafeHtmlPipe
+    SafeHtmlPipe,
+    ProgramItemComponent
   ],
   imports: [
     BrowserModule,

@@ -1,14 +1,12 @@
-<a href="{{getUrl(program)}}" *ngFor="let program of programs" target="_blank" class="list-group-item">
-    <h3 class="h6 mb-2 w-100">{{program.name}}</h3>
-    <div>
-        <ul class="list-unstyled mb-0">
-            <li *ngFor="let college of program.colleges" class="small">
-                {{college.full_name}} ({{college.short_name}})
-            </li>
-            <li *ngFor="let department of program.departments" class="small">
-                {{department.full_name}}
-            </li>
-            <li class="text-muted small">{{program.level}}</li>
-        </ul>
-    </div>
-</a>
+<ng-container *ngFor="let program of programs">
+    <ng-container  *ngIf="getUrl(program)">
+        <a href="{{getUrl(program)}}" target="_blank" class="list-group-item">
+            <app-program-item [program]="program"></app-program-item>
+        </a>
+    </ng-container>
+    <ng-container *ngIf="!getUrl(program)">
+        <div class="list-group-item">
+            <app-program-item [program]="program"></app-program-item>
+        </div>
+    </ng-container>
+</ng-container>

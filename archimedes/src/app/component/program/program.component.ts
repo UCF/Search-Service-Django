@@ -15,8 +15,10 @@ export class ProgramComponent implements OnInit {
   getUrl(program) {
     if (program.catalog_url) {
       return program.catalog_url;
-    } else {
+    } else if (program.profiles[0].url) {
       return program.profiles[0].url;
+    } else {
+      return null;
     }
   }
 
