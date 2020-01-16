@@ -177,14 +177,17 @@ class Command(BaseCommand):
     source = 'Tandem Vault'
     auto_tag_source = 'AWS Rekognition'
     auto_tag_blacklist = [
-        'human',
+        'accessory',
+        'accessories',
         'apparel',
         'clothing',
-        'skin',
         'dating',
+        'furniture',
+        'human',
+        'mammal'
         'photo',
         'photography',
-        'mammal'
+        'skin'
     ]
     auto_tag_translations = {
         'american football': 'football'
