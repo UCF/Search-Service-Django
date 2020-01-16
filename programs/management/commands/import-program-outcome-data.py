@@ -2,12 +2,11 @@ from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
 import decimal
-import urllib2
 import itertools
 import logging
+import mimetypes
 import sys
 import csv
-import ssl
 
 
 class Command(BaseCommand):
@@ -23,9 +22,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'path',
-            type=str,
-            help='The base url of the outcomes data CSV'
+            '--file',
+            type=file,
+            help='CSV file containing program outcome data',
+            dest='file',
+            required=True
         )
         parser.add_argument(
             '--verbose',
@@ -46,7 +47,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        self.path = options['path']
+        self.csv = options['file']
         self.loglevel = options['loglevel']
         self.cip_version = options['cip_version']
 
@@ -58,7 +59,7 @@ class Command(BaseCommand):
         self.programs_count = len(self.programs)
 
         # Fetch all outcome data:
-        self.get_outcome_data(self.path)
+        self.get_outcome_data(self.csv)
 
         # Assign outcome data to existing programs:
         self.assign_program_outcomes()
@@ -66,21 +67,32 @@ class Command(BaseCommand):
         # Print results
         self.print_results()
 
-    def get_outcome_data(self, csv_url):
+    def get_outcome_data(self, csv):
+        # The csv lib will happily process pretty much any file
+        # you throw at it; do some really rudimentary checking
+        # against the file name before continuing:
         try:
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-            response = urllib2.urlopen(csv_url, context=context)
-            http_message = response.info()
-            if http_message.type != 'text/csv':
-                raise Exception('File retrieved does not have a mimetype of "text/csv"')
+            mime = mimetypes.guess_type(self.csv.name)[0]
         except Exception, e:
-            logging.error('\n ERROR opening CSV: %s' % e)
+            logging.error(
+                '\n Error reading CSV: couldn\'t verify mimetype of file'
+            )
+            return
+
+        if mime != 'text/csv':
+            logging.error(
+                (
+                    '\n Error reading CSV: expected file with mimetype '
+                    '"text/csv"; got "{0}"'
+                )
+                .format(mime)
+            )
             return
 
         try:
-            csv_reader = csv.DictReader(response)
-        except csv.Error:
-            logging.error('\n ERROR reading CSV: CSV does not have valid headers or is malformed.')
+            csv_reader = csv.DictReader(self.csv)
+        except csv.Error, e:
+            logging.error('\n Error reading CSV: {0}'.format(e))
             return
 
         for row in csv_reader:
