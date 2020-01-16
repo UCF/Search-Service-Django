@@ -70,19 +70,27 @@ class Command(BaseCommand):
             mime = mimetypes.guess_type(self.tandemvault_tags_csv.name)[0]
         except Exception, e:
             logging.error(
-                '\n ERROR reading CSV: couldn\'t verify mimetype of file')
+                '\nError reading CSV: couldn\'t verify mimetype of file'
+            )
             return
 
         if mime != 'text/csv':
             logging.error(
-                '\n ERROR reading CSV: expected file with mimetype "text/csv"; got "%s"' % mime)
+                (
+                    '\nError reading CSV: expected file with mimetype '
+                    '"text/csv"; got "{0}"'
+                )
+                .format(mime)
+            )
             return
 
         try:
             csv_reader = csv.DictReader(self.tandemvault_tags_csv)
         except csv.Error, e:
             logging.error(
-                '\n ERROR reading CSV: %s' % e)
+                '\nError reading CSV: {0}'
+                .format(e)
+            )
             return
 
         for row in csv_reader:
@@ -151,7 +159,7 @@ class Command(BaseCommand):
     Displays information about the import.
     '''
     def print_stats(self):
-        stats = """
+        stats = '''\
 Finished import of {0} Tandem Vault image tags.
 
 Created: {1}
@@ -160,7 +168,7 @@ Skipped: {3}
 Synonyms assigned: {4}
 
 Script executed in {5}
-        """.format(
+        '''.format(
             self.tag_count,
             self.tags_created,
             self.tags_updated,
