@@ -483,9 +483,9 @@ class Command(BaseCommand):
         self.process_tandemvault_assets_page(1)
 
         # Loop through the other pages of results:
-        # if self.tandemvault_page_count > 1:
-            # for page in range(2, self.tandemvault_page_count):
-                # self.process_tandemvault_assets_page(page)
+        if self.tandemvault_page_count > 1:
+            for page in range(2, self.tandemvault_page_count):
+                self.process_tandemvault_assets_page(page)
 
     def process_tags(self, images):
         """
