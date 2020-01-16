@@ -22,11 +22,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--file',
+            'file',
             type=file,
-            help='CSV file containing program outcome data',
-            dest='file',
-            required=True
+            help='The file path of the CSV file containing outcome data'
         )
         parser.add_argument(
             '--verbose',
@@ -47,7 +45,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        self.csv = options['file']
+        self.file = options['file']
         self.loglevel = options['loglevel']
         self.cip_version = options['cip_version']
 
@@ -59,7 +57,7 @@ class Command(BaseCommand):
         self.programs_count = len(self.programs)
 
         # Fetch all outcome data:
-        self.get_outcome_data(self.csv)
+        self.get_outcome_data()
 
         # Assign outcome data to existing programs:
         self.assign_program_outcomes()
@@ -67,12 +65,12 @@ class Command(BaseCommand):
         # Print results
         self.print_results()
 
-    def get_outcome_data(self, csv):
+    def get_outcome_data(self):
         # The csv lib will happily process pretty much any file
         # you throw at it; do some really rudimentary checking
         # against the file name before continuing:
         try:
-            mime = mimetypes.guess_type(self.csv.name)[0]
+            mime = mimetypes.guess_type(self.file.name)[0]
         except Exception, e:
             logging.error(
                 '\n Error reading CSV: couldn\'t verify mimetype of file'
@@ -90,7 +88,7 @@ class Command(BaseCommand):
             return
 
         try:
-            csv_reader = csv.DictReader(self.csv)
+            csv_reader = csv.DictReader(self.file)
         except csv.Error, e:
             logging.error('\n Error reading CSV: {0}'.format(e))
             return
