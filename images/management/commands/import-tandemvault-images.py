@@ -349,7 +349,6 @@ class Command(BaseCommand):
 
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
-        logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
         if (
             not self.tandemvault_admin_api_key
