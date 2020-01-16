@@ -28,7 +28,10 @@ class Command(BaseCommand):
         parser.add_argument(
             '--file',
             type=file,
-            help='CSV file containing existing tag and synonym information from Tandem Vault',
+            help='''\
+            CSV file containing existing tag and synonym information
+            from Tandem Vault
+            ''',
             dest='file',
             required=True
         )
