@@ -7,7 +7,6 @@ import { Component, OnInit, Input } from '@angular/core';
 })
 export class ProgramComponent implements OnInit {
   @Input() programs: any;
-  @Input() count: number;
 
   constructor() {}
 

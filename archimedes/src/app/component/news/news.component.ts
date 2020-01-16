@@ -7,7 +7,6 @@ import { Component, OnInit, Input } from '@angular/core';
 })
 export class NewsComponent implements OnInit {
   @Input() news: any;
-  @Input() count: number;
 
   constructor() {}
 

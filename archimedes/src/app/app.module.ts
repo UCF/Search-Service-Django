@@ -10,6 +10,7 @@ import { NewsComponent } from './component/news/news.component';
 import { LoadingIconComponent } from './component/loading-icon/loading-icon.component';
 import { SafeHtmlPipe } from './pipe/safe-html.pipe';
 import { ProgramItemComponent } from './component/program-item/program-item.component';
+import { ShowMoreComponent } from './component/show-more/show-more.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { ProgramItemComponent } from './component/program-item/program-item.comp
     NewsComponent,
     LoadingIconComponent,
     SafeHtmlPipe,
-    ProgramItemComponent
+    ProgramItemComponent,
+    ShowMoreComponent
   ],
   imports: [
     BrowserModule,

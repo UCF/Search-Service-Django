@@ -1,12 +1,14 @@
 <div class="container mb-5">
     <div class="row">
         <div class="col mt-5">
-            <app-search-box (programResults)="updateProgramResults($event)" (programLoading)="programLoading = $event"
-                (programError)="programError = $event" (newsResults)="updateNewsResults($event)"
-                (newsLoading)="newsLoading = $event" (newsError)="newsError = $event">
+            <app-search-box (query)="query = $event"
+                (programResults)="updateProgramResults($event)"
+                (programLoading)="programLoading = $event"
+                (programError)="programError = $event"
+                (newsResults)="updateNewsResults($event)"
+                (newsLoading)="newsLoading = $event"
+                (newsError)="newsError = $event">
             </app-search-box>
-
-
         </div>
     </div>
     <div class="row mt-4">
@@ -14,14 +16,20 @@
 
             <div class="program-results" *ngIf="programResults || programLoading || programError">
                 <span class="badge badge-default badge-pill float-right mt-1"
-                    *ngIf="programResults && programResults.count">{{programResults.count}}</span>
+                    *ngIf="programResults && programResults.count">
+                    {{programResults.count}}
+                </span>
                 <h2 class="h4 text-uppercase d-line-block mb-3">
-                    Programs <app-loading-icon *ngIf="programLoading" (programLoading)="programLoading = $event">
-                    </app-loading-icon>
+                    Programs <app-loading-icon *ngIf="programLoading"></app-loading-icon>
                 </h2>
 
                 <ng-container *ngIf="programResults && programResults.results">
-                    <div app-programs class="list-group" [programs]="programResults.results" [count]="programResults.count"></div>
+                    <div app-programs class="list-group" [programs]="programResults.results"></div>
+                    <app-show-more
+                        *ngIf="programResults.count > 5"
+                        [offset]="10" [query]="query"
+                        (programResults)="updateProgramResults($event)">
+                    </app-show-more>
                     <div class="alert alert-info" *ngIf="programResults.results.length === 0">
                         No programs found.
                     </div>
@@ -37,14 +45,20 @@
 
             <div class="news-results mt-4 mt-lg-0" *ngIf="newsResults || newsLoading || newsError">
                 <span class="badge badge-default badge-pill float-right mt-1"
-                    *ngIf="newsResults && newsResults.count && newsResults.count > 0">{{newsResults.count}}</span>
+                    *ngIf="newsResults && newsResults.count && newsResults.count > 0">
+                    {{newsResults.count}}
+                </span>
                 <h2 class="h4 text-uppercase mb-3">
-                    News <app-loading-icon *ngIf="newsLoading" (newsLoading)="newsLoading = $event">
-                    </app-loading-icon>
+                    News <app-loading-icon *ngIf="newsLoading"></app-loading-icon>
                 </h2>
 
                 <ng-container *ngIf="newsResults && newsResults.results">
-                    <div app-news class="list-group" [news]="newsResults.results" [count]="newsResults.count"></div>
+                    <div app-news class="list-group" [news]="newsResults.results"></div>
+                    <app-show-more
+                        *ngIf="newsResults.count > 5"
+                        [offset]="10" [query]="query"
+                        (newsResults)="updateNewsResults($event)">
+                    </app-show-more>
                     <div class="alert alert-info" *ngIf="newsResults.results.length === 0">
                         No news articles found.
                     </div>

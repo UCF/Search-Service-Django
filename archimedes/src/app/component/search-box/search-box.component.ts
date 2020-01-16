@@ -9,13 +9,15 @@ import { Component, OnInit, Output, EventEmitter, ElementRef } from '@angular/co
   styleUrls: ['./search-box.component.scss']
 })
 export class SearchBoxComponent implements OnInit {
+  @Output() query: EventEmitter<string> = new EventEmitter<string>();
+
   @Output() programLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() programError: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() programResults: EventEmitter<any[]> = new EventEmitter<any[]>();
+  @Output() programResults: EventEmitter<any> = new EventEmitter<any>();
 
   @Output() newsLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() newsError: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() newsResults: EventEmitter<any[]> = new EventEmitter<any[]>();
+  @Output() newsResults: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(
     private httpService: HttpService,
@@ -35,7 +37,8 @@ export class SearchBoxComponent implements OnInit {
           filter((text:string) => text.length > 2), //filter out if empty
           debounceTime(250), //only search after 250 ms
           tap(() => loading.emit(true)), // Enable loading
-          map((query:string) => this.httpService.search(searchType, query)),
+          tap((query: string) => this.query.emit(query)),
+          map((query: string) => this.httpService.search(searchType, query, "0")),
           // discard old events if new input comes in
           switchAll()
           // act on the return of the search
