@@ -816,9 +816,9 @@ class Command(BaseCommand):
             # this is the first page request:
             if page == 1:
                 self.tandemvault_total_assets = int(response.headers['total-results'])
-                self.tandemvault_page_count = math.ceil(
+                self.tandemvault_page_count = int(math.ceil(
                     self.tandemvault_total_assets / len(response_json)
-                )
+                ))
                 self.progress_bar.max = self.tandemvault_total_assets
         except Exception, e:
             logging.warning(
