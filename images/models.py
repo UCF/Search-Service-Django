@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.db import models
+from django.db.models import When, Case, Q
+from django_mysql.models import QuerySetMixin
 
 import core.models
 
@@ -31,6 +33,88 @@ class ImageTag(models.Model):
         super(ImageTag, self).save(*args, **kwargs)
 
 
+class ImageManager(models.Manager, QuerySetMixin):
+    """
+    Custom manager that allows for special query scoring
+    """
+
+    def search(self, search_query):
+        tag_score = Case(
+            When(
+                (
+                    Q(tags__name=search_query)
+                    | Q(tags__synonyms__name=search_query)
+                ),
+                then=40
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        caption_score = Case(
+            When(
+                caption=search_query,
+                then=15
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        location_score = Case(
+            When(
+                location=search_query,
+                then=20
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        tag_partial_score = Case(
+            When(
+                (
+                    Q(tags__name__icontains=search_query)
+                    | Q(tags__synonyms__name__icontains=search_query)
+                ),
+                then=10
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        caption_partial_score = Case(
+            When(
+                caption__icontains=search_query,
+                then=5
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        location_partial_score = Case(
+            When(
+                location__icontains=search_query,
+                then=10
+            ),
+            default=0,
+            output_field=models.DecimalField()
+        )
+
+        queryset = self.annotate(
+            score=(
+                tag_score +
+                caption_score +
+                location_score +
+                tag_partial_score +
+                caption_partial_score +
+                location_partial_score
+            )
+        ).filter(
+            score__gt=0
+        ).distinct()
+
+        return queryset
+
+
 class Image(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=False)
     modified = models.DateTimeField(auto_now=True, null=False)
@@ -51,6 +135,7 @@ class Image(models.Model):
     thumbnail_url = models.URLField(null=True, blank=True)
     caption = models.CharField(max_length=500, null=True, blank=True)
     tags = models.ManyToManyField(ImageTag, blank=True, related_name='images')
+    objects = ImageManager()
 
     def __str__(self):
         return self.filename
