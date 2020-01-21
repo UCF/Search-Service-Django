@@ -9,7 +9,7 @@ export class AppComponent {
   title = 'UCF-Archimedes-Plugin';
 
   query: string;
-  
+
   programResults: any;
   programLoading: boolean;
   programError: boolean;
@@ -19,6 +19,10 @@ export class AppComponent {
   newsError: boolean;
 
   constructor() { }
+
+  queryUpdated(query: string): void {
+    this.query = query;
+  }
 
   updateProgramResults(programs: any): void {
     this.programResults = programs;

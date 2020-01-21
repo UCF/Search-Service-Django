@@ -36,8 +36,10 @@ export class SearchBoxComponent implements OnInit {
           map((e:any) => e.target.value), // extract the value of the input
           filter((text:string) => text.length > 2), //filter out if empty
           debounceTime(250), //only search after 250 ms
-          tap(() => loading.emit(true)), // Enable loading
-          tap((query: string) => this.query.emit(query)),
+          tap((query: string) => {
+            loading.emit(true);
+            this.query.emit(query);
+          }),
           map((query: string) => this.httpService.search(searchType, query, "0")),
           // discard old events if new input comes in
           switchAll()

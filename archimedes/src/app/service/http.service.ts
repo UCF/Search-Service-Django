@@ -35,6 +35,7 @@ export class HttpService {
         params = new HttpParams()
           .set('tag_slugs[]', query)
           .set('per_page', '5')
+          .set('orderby', 'date')
           .set('offset', offset);
         break;
     }
