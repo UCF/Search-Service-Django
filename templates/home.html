@@ -37,6 +37,17 @@
       <hr class="my-4">
 
       <strong class="d-block h6 text-uppercase letter-spacing-3 p-3">
+        <a class="text-secondary" href="#images">Images</a>
+      </strong>
+      <ul class="nav nav-pills flex-column">
+        <li class="nav-item">
+          <a class="nav-link w-100" href="#image-search">Image Search</a>
+        </li>
+      </ul>
+
+      <hr class="my-4">
+
+      <strong class="d-block h6 text-uppercase letter-spacing-3 p-3">
         <a class="text-secondary" href="#more-info">More Information</a>
       </strong>
       <ul class="nav nav-pills flex-column">
@@ -1025,6 +1036,281 @@
       <hr class="my-5 hr-3">
 
 
+      <section id="images" aria-labelledby="images-heading">
+        <h2 id="images-heading" class="h1 mt-4 mb-3">Images</h2>
+        <p>The <code>images</code> application hosts information about image assets available for use by UCF communicators.</p>
+        <p>A combined <a href="#image-search">image search view</a> allows for searching for images by tags, locations, and other information.</p>
+
+        <hr class="my-5">
+
+        <h3 id="image-search" class="h2">Image Search View</h3>
+        <p class="bg-faded py-1 px-2 rounded mb-3">
+          <a href="{% url 'api.images.search' %}" target="_blank"><code>{% url 'api.images.search' %}</code></a>
+        </p>
+        <p>The image search view is the primary view for retrieving image assets.</p>
+        <p>Queries for images will match against image <strong>filenames</strong>, <strong>tags</strong>, <strong>captions</strong>, and <strong>locations</strong>.</p>
+
+        <div class="alert alert-info p-4 mt-4 mb-5">
+          <h4 class="h6 alert-heading text-uppercase mb-3">Access to Full Size Images</h4>
+          <p>Images in the image search view are sourced from <a class="alert-link" href="https://ucf.tandemvault.com/" target="_blank">Tandem Vault</a>, UCF's primary repository for photography assets. Please note that most images sourced from Tandem Vault require a Tandem Vault account to download.</p>
+          <p><strong>Images listed in this view are intended for use only by UCF communicators</strong>; if your Tandem Vault account does not have sufficient permissions, you may still be unable to access certain photos.</p>
+          <p class="mb-0">Please review <a class="alert-link" href="https://www.ucf.edu/brand/brand-assets/photos/" target="_blank">the UCF brand website</a> for more information about using Tandem Vault.</p>
+        </div>
+
+        <h4 id="image-search-params" class="h5 text-uppercase mt-5 mb-4">Parameters</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Allowable Values</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code>search</code>
+                </td>
+                <td>The search string. This can include multiple search words with spaces in between.</td>
+                <td>Alphanumeric characters and spaces.</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ordering</code>
+                </td>
+                <td>Modifies the order in which results are returned.</td>
+                <td>
+                  <ul>
+                    <li>
+                      <div><code>source_created</code></div>
+                      <p class="small">Sort by create date, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-source_created</code></div>
+                      <p class="small">Sort by create date, descending</p>
+                    </li>
+                    <li>
+                      <div><code>source_modified</code></div>
+                      <p class="small">Sort by modified date, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-source_modified</code></div>
+                      <p class="small">Sort by modified date, descending</p>
+                    </li>
+                    <li>
+                      <div><code>photo_taken</code></div>
+                      <p class="small">Sort by the date the photo was taken, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-photo_taken</code> <em>(default)</em></div>
+                      <p class="small">Sort by the date the photo was taken, descending</p>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code>limit</code>
+                </td>
+                <td>The maximum number of records to return.</td>
+                <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>offset</code>
+                </td>
+                <td>The starting position of the query in relation to the complete set of results.</td>
+                <td>Number</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="image-search-examples" class="h5 text-uppercase my-4">Examples</h4>
+
+        <div class="card mb-4">
+          <div class="card-block">
+            <h5 id="image-search-examples-simple" class="h6">Simple Search</h5>
+            <p class="small font-italic mb-0">Returns images that match the search term "downtown"</p>
+            <pre class="mt-4 mb-0"><code>{% url 'api.images.search' %}?search=downtown</code></pre>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-block">
+            <h5 id="image-search-examples-modified-desc" class="h6">Search by <code>source_modified</code> date (descending)</h5>
+            <p class="small font-italic mb-0">Returns images that match the search term "downtown", sorted by when they were last modified in Tandem Vault, in descending order</p>
+            <pre class="mt-4 mb-0"><code>{% url 'api.images.search' %}?search=downtown&ordering=-source_modified</code></pre>
+          </div>
+        </div>
+
+        <h4 id="image-search-results" class="h5 text-uppercase mt-5 mb-4">Results</h4>
+        <p>The image search view returns the following fields with a successful response:</p>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>count</code></td>
+                <td>The <em>total</em> number of records returned by the query.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>next</code></td>
+                <td>The URL of the next page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>previous</code></td>
+                <td>The URL of the previous page of results.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>results</code></td>
+                <td>The array of results returned. The specific schema for results is described in the table below.</td>
+                <td>Array</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 id="image-search-schema" class="h5 text-uppercase mt-5 mb-4">Result Schema</h4>
+        <p>Each result returned in <code>results</code> will contain the following fields:</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-default text-uppercase small letter-spacing-3">
+              <tr>
+                <th>Field Name</th>
+                <th>Description</th>
+                <th>Field Type</th>
+                <th>Can be null?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>id</code></td>
+                <td>The primary key of the result in the search service.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>filename</code></td>
+                <td>The image filename.</td>
+                <td>String</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>extension</code></td>
+                <td>The 3-4 character extension name of the image file.</td>
+                <td>String</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>source</code></td>
+                <td>Where the image data is sourced from (and where it is available to download).</td>
+                <td>String</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>source_id</code></td>
+                <td>The ID of the image where it is sourced from.</td>
+                <td>String</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>source_created</code></td>
+                <td>Datetime when the image was originally uploaded.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>source_modified</code></td>
+                <td>Datetime when the image was last modified at its source.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>photo_taken</code></td>
+                <td>Datetime when the photograph was originally taken.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>location</code></td>
+                <td>Where the photograph was originally taken.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>copyright</code></td>
+                <td>Copyright information for the image.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>contributor</code></td>
+                <td>Name of the staff member that contributed the image at its source.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>width_full</code></td>
+                <td>The width, in pixels, of the image at its full size.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>height_full</code></td>
+                <td>The height, in pixels, of the image at its full size.</td>
+                <td>Integer</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>download_url</code></td>
+                <td>Where the image can be downloaded.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>thumbnail_url</code></td>
+                <td>URL of a scaled-down thumbnail of the image.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>caption</code></td>
+                <td>A brief caption describing the image.</td>
+                <td>String</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>tags</code></td>
+                <td>An array of tags assigned to the image.</td>
+                <td>Array (of strings)</td>
+                <td>No (But can be an empty array)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <hr class="my-5 hr-3">
+
+
       <section id="more-info" aria-labelledby="more-info-heading">
         <h2 id="more-info-heading" class="h1 mt-4 mb-3">More Information</h2>
 
@@ -1039,6 +1325,9 @@
           <dd class="col-sm-8 offset-sm-4">Tuition data is sourced from <a target="_blank" href="https://studentaccounts.ucf.edu/tf-tuitionratescurrent/">Student Account Services</a>.</dd>
           <dd class="col-sm-8 offset-sm-4">Program outcomes/statistics are sourced from IKM.</dd>
           <dd class="col-sm-8 offset-sm-4 mb-3">Classification of Instructional Programs (CIP) code lists, titles and descriptions are sourced from <a target="_blank" href="https://nces.ed.gov/ipeds/cipcode/">IPEDS (Integrated Postsecondary Education Data System)</a>.</dd>
+          <dt class="col-sm-4">Image data</dt>
+          <dd class="col-sm-8">Image information is sourced from <a target="_blank" href="https://ucf.tandemvault.com/">UCF's Tandem Vault</a>, managed by UCF Marketing.</dd>
+          <dd class="col-sm-8 offset-sm-4 mb-3">Some image tags are generated dynamically using Amazon Rekognition.</dd>
         </dl>
         <p>Data is pulled from these sources on a regular basis, depending on the type of data.  Directory data is scheduled to refresh every 12 hours; program metadata and catalog information is retrieved monthly.</p>
 
