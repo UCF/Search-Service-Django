@@ -19,6 +19,10 @@ export class SearchBoxComponent implements OnInit {
   @Output() newsError: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() newsResults: EventEmitter<any> = new EventEmitter<any>();
 
+  @Output() imageLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() imageError: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() imageResults: EventEmitter<any> = new EventEmitter<any>();
+
   constructor(
     private httpService: HttpService,
     private elementRef: ElementRef
@@ -54,8 +58,9 @@ export class SearchBoxComponent implements OnInit {
               "results": response.body,
               "count": response.headers.get('X-WP-Total')
             });
-          // program
+          // program or image
           } else {
+            console.log(response.body);
             results.emit(response.body)
           }
         },
@@ -74,6 +79,7 @@ export class SearchBoxComponent implements OnInit {
   ngOnInit(): void {
     this.setObservable('programs', this.programLoading, this.programError, this.programResults);
     this.setObservable('news', this.newsLoading, this.newsError, this.newsResults);
+    this.setObservable('images', this.imageLoading, this.imageError, this.imageResults);
   }
 
 }

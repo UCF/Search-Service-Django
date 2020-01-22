@@ -1,1 +1,56 @@
-<p>image works!</p>
+<ng-container *ngFor="let image of images">
+    <a href="{{image.download_url}}" target="_blank" class="card">
+        <img class="card-img-top" src="{{image.thumbnail_url}}" alt="{{image.location}}">
+        <div class="card-block">
+
+            <p class="card-text" *ngIf="image.tags && image.tags.length">
+                <strong>Tags:</strong>
+                <ng-container *ngFor="let tag of image.tags">
+                    {{tag}},
+                </ng-container>
+            </p>
+
+            <dl class="card-text">
+                <ng-container *ngIf="image.caption">
+                    <dt>Caption</dt>
+                    <dd>{{image.caption}}</dd>
+                </ng-container>
+                <ng-container *ngIf="image.location">
+                    <dt>Location</dt>
+                    <dd>{{image.location}}</dd>
+                </ng-container>
+                <ng-container *ngIf="image.source">
+                    <dt>Source</dt>
+                    <dd>{{image.source}}</dd>
+                </ng-container>
+                <ng-container *ngIf="image.contributor">
+                    <dt>Contributor</dt>
+                    <dd>{{image.contributor}}</dd>
+                </ng-container>
+                <ng-container *ngIf="image.copyright">
+                    <dt>Copyright</dt>
+                    <dd>{{image.copyright}}</dd>
+                </ng-container>
+            </dl>
+
+            <p class="card-text">
+                <small class="text-muted">
+                    <dl>
+                        <ng-container *ngIf="image.photo_taken">
+                            <dt>Photo Taken</dt>
+                            <dd>{{image.photo_taken | date :'MMMM d, y'}}</dd>
+                        </ng-container>
+                        <ng-container *ngIf="image.source_created">
+                            <dt>Created</dt>
+                            <dd>{{image.source_created | date :'MMMM d, y'}}</dd>
+                        </ng-container>
+                        <ng-container *ngIf="image.source_modified">
+                            <dt>Modified</dt>
+                            <dd>{{image.source_modified | date :'MMMM d, y'}}</dd>
+                        </ng-container>
+                    </dl>
+                </small>
+            </p>
+        </div>
+    </a>
+</ng-container>

@@ -8,7 +8,10 @@
                 (programError)="programError = $event"
                 (newsResults)="updateNewsResults($event)"
                 (newsLoading)="newsLoading = $event"
-                (newsError)="newsError = $event">
+                (newsError)="newsError = $event"
+                (imageResults)="updateImageResults($event)"
+                (imageLoading)="imageLoading = $event"
+                (imageError)="imageError = $event">
             </app-search-box>
         </div>
     </div>
@@ -21,28 +24,30 @@
                     {{programResults.count}}
                 </span>
                 <h2 class="h4 text-uppercase d-line-block mb-3">
-                Programs <app-loading-icon *ngIf="programLoading"></app-loading-icon>
+                    Programs <app-loading-icon *ngIf="programLoading"></app-loading-icon>
                 </h2>
 
-                <ng-container *ngIf="programResults && programResults.results">
+                <div class="alert alert-danger" *ngIf="programError">
+                    Error loading programs.
+                </div>
+
+                <ng-container *ngIf="programResults && programResults.results && !programError">
                     <div app-programs class="list-group" [programs]="programResults.results"></div>
                     <app-show-more
                         *ngIf="programResults.count > 5"
                         [count]="programResults.count"
+                        [limit]="5"
                         [query]="query"
                         [searchType]="'programs'"
                         (programLoading)="programLoading = $event"
                         (programError)="programError = $event"
                         (programResults)="updateProgramResults($event)">
                     </app-show-more>
+
                     <div class="alert alert-info" *ngIf="programResults.results.length === 0">
                         No programs found.
                     </div>
                 </ng-container>
-
-                <div class="alert alert-danger" *ngIf="programError">
-                    Error loading programs.
-                </div>
             </div>
 
         </div>
@@ -57,11 +62,16 @@
                     News <app-loading-icon *ngIf="newsLoading"></app-loading-icon>
                 </h2>
 
-                <ng-container *ngIf="newsResults && newsResults.results">
+                <div class="alert alert-danger" *ngIf="newsError">
+                    Error loading news articles.
+                </div>
+
+                <ng-container *ngIf="newsResults && newsResults.results && !newsError">
                     <div app-news class="list-group" [news]="newsResults.results"></div>
                     <app-show-more
                         *ngIf="newsResults.count > 5"
                         [count]="newsResults.count"
+                        [limit]="5"
                         [query]="query"
                         [searchType]="'news'"
                         (newsLoading)="newsLoading = $event"
@@ -72,52 +82,46 @@
                         No news articles found.
                     </div>
                 </ng-container>
-
-                <div class="alert alert-danger" *ngIf="newsError">
-                    Error loading news articles.
-                </div>
             </div>
 
         </div>
+    </div>
 
-        <div class="row mt-4">
-            <div class="col-lg-6">
-    
-                <div class="image-results" *ngIf="imageResults || imageLoading || imageError">
-                    <span class="badge badge-default badge-pill float-right mt-1"
-                        *ngIf="imageResults && imageResults.count">
-                        {{imageResults.count}}
-                    </span>
-                    <h2 class="h4 text-uppercase d-line-block mb-3">
+    <div class="row mt-4">
+        <div class="col-12">
+
+            <div class="image-results" *ngIf="imageResults || imageLoading || imageError">
+                <span class="badge badge-default badge-pill float-right mt-1"
+                    *ngIf="imageResults && imageResults.count">
+                    {{imageResults.count}}
+                </span>
+                <h2 class="h4 text-uppercase d-line-block mb-3">
                     Images <app-loading-icon *ngIf="imageLoading"></app-loading-icon>
-                    </h2>
-    
-                    <ng-container *ngIf="imageResults && imageResults.results">
-                        <div app-image class="list-group" [images]="imageResults.results"></div>
-                        <app-show-more
-                            *ngIf="imageResults.count > 5"
-                            [count]="imageResults.count"
-                            [query]="query"
-                            [searchType]="'images'"
-                            (imageLoading)="imageLoading = $event"
-                            (imageError)="imageError = $event"
-                            (imageResults)="updateImageResults($event)">
-                        </app-show-more>
-                        <div class="alert alert-info" *ngIf="imageResults.results.length === 0">
-                            No images found.
-                        </div>
-                    </ng-container>
-    
-                    <div class="alert alert-danger" *ngIf="imageError">
-                        Error loading images.
-                    </div>
+                </h2>
+
+                <div class="alert alert-danger" *ngIf="imageError">
+                    Error loading images.
                 </div>
-    
-            </div>
-            <div class="col-lg-6">
 
-    
+                <ng-container *ngIf="imageResults && imageResults.results && !imageError">
+                    <div app-image class="card-columns" [images]="imageResults.results"></div>
+                    <app-show-more
+                        *ngIf="imageResults.count > 8"
+                        [count]="imageResults.count"
+                        [limit]="8"
+                        [query]="query"
+                        [searchType]="'images'"
+                        (imageLoading)="imageLoading = $event"
+                        (imageError)="imageError = $event"
+                        (imageResults)="updateImageResults($event)">
+                    </app-show-more>
+
+                    <div class="alert alert-info" *ngIf="imageResults.results.length === 0">
+                        No images found.
+                    </div>
+                </ng-container>
             </div>
 
+        </div>
     </div>
 </div>

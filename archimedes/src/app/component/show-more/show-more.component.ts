@@ -12,6 +12,7 @@ export class ShowMoreComponent implements OnInit {
   @Input() query: string;
   @Input() count: number;
   @Input() searchType: string;
+  @Input() limit: number;
 
   @Output() programLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() programError: EventEmitter<boolean> = new EventEmitter<boolean>();
@@ -20,6 +21,10 @@ export class ShowMoreComponent implements OnInit {
   @Output() newsLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() newsError: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() newsResults: EventEmitter<any> = new EventEmitter<any>();
+
+  @Output() imageLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() imageError: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() imageResults: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(
     private httpService: HttpService
@@ -36,6 +41,10 @@ export class ShowMoreComponent implements OnInit {
     if(this.searchType === 'news') {
       this.newsLoading.emit(true);
       this.showMoreResults(this.searchType, this.newsLoading, this.newsError, this.newsResults);
+    }
+    if(this.searchType === 'images') {
+      this.imageLoading.emit(true);
+      this.showMoreResults(this.searchType, this.imageLoading, this.imageError, this.imageResults);
     }
   }
 
@@ -57,7 +66,7 @@ export class ShowMoreComponent implements OnInit {
               "results": response.body,
               "count": response.headers.get('X-WP-Total')
             });
-            // program
+            // program or images
           } else {
             results.emit(response.body)
           }
