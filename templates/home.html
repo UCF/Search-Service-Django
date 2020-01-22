@@ -1048,7 +1048,7 @@
           <a href="{% url 'api.images.search' %}" target="_blank"><code>{% url 'api.images.search' %}</code></a>
         </p>
         <p>The image search view is the primary view for retrieving image assets.</p>
-        <p>Queries for images will match against image <strong>filenames</strong>, <strong>tags</strong>, <strong>captions</strong>, and <strong>locations</strong>.</p>
+        <p>Queries for images will match against image <strong>tags</strong>, <strong>captions</strong>, and <strong>locations</strong>.</p>
 
         <div class="alert alert-info p-sm-5 mt-4 mb-5">
           <h4 class="h6 alert-heading text-uppercase mb-3">Access to Full Size Images</h4>
@@ -1079,7 +1079,7 @@
                 <td>
                   <code>ordering</code>
                 </td>
-                <td>Modifies the order in which results are returned.</td>
+                <td>Modifies the order in which results are returned. (By default, results are ordered by <code>score</code> descending, and their <code>photo_taken</code> date descending.)</td>
                 <td>
                   <ul>
                     <li>
@@ -1103,7 +1103,7 @@
                       <p class="small">Sort by the date the photo was taken, ascending</p>
                     </li>
                     <li>
-                      <div><code>-photo_taken</code> <em>(default)</em></div>
+                      <div><code>-photo_taken</code></div>
                       <p class="small">Sort by the date the photo was taken, descending</p>
                     </li>
                   </ul>
@@ -1200,6 +1200,12 @@
               </tr>
             </thead>
             <tbody>
+              <tr>
+                <td><code>score</code></td>
+                <td>The relevance score of the result.</td>
+                <td>Decimal (appears as a string in JSON)</td>
+                <td>No</td>
+              </tr>
               <tr>
                 <td><code>id</code></td>
                 <td>The primary key of the result in the search service.</td>
