@@ -1,7 +1,14 @@
-<ng-container *ngFor="let image of images">
-    <a href="{{image.download_url}}" target="_blank" class="card">
+<div *ngFor="let image of images" class="card">
+    <a href="{{image.download_url}}" target="_blank">
         <img class="card-img-top" src="{{image.thumbnail_url}}" alt="{{image.location}}">
-        <div class="card-block">
+    </a>
+    <div class="card-block">
+
+        <p class="card-text" (click)="(selectedImage == image.id) ? 0 : selectedImage = image.id">
+            Toggle
+        </p>
+
+        <ng-container *ngIf="selectedImage == image.id">
 
             <p class="card-text" *ngIf="image.tags && image.tags.length">
                 <strong>Tags:</strong>
@@ -51,6 +58,8 @@
                     </dl>
                 </small>
             </p>
-        </div>
-    </a>
-</ng-container>
+
+        </ng-container>
+
+    </div>
+</div>

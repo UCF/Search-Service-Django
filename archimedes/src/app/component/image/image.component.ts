@@ -8,9 +8,10 @@ import { Component, OnInit, Input } from '@angular/core';
 export class ImageComponent implements OnInit {
   @Input() images: any;
 
+  selectedImage: number;
+
   constructor() { }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
 }
