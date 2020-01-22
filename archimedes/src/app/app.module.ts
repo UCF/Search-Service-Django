@@ -11,6 +11,7 @@ import { LoadingIconComponent } from './component/loading-icon/loading-icon.comp
 import { SafeHtmlPipe } from './pipe/safe-html.pipe';
 import { ProgramItemComponent } from './component/program-item/program-item.component';
 import { ShowMoreComponent } from './component/show-more/show-more.component';
+import { ImageComponent } from './component/image/image.component';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { ShowMoreComponent } from './component/show-more/show-more.component';
     LoadingIconComponent,
     SafeHtmlPipe,
     ProgramItemComponent,
-    ShowMoreComponent
+    ShowMoreComponent,
+    ImageComponent
   ],
   imports: [
     BrowserModule,

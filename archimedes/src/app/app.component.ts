@@ -18,6 +18,10 @@ export class AppComponent {
   newsLoading: boolean;
   newsError: boolean;
 
+  imageResults: any;
+  imageLoading: boolean;
+  imageError: boolean;
+
   constructor() { }
 
   queryUpdated(query: string): void {
@@ -30,5 +34,9 @@ export class AppComponent {
 
   updateNewsResults(news: any): void {
     this.newsResults = news;
+  }
+
+  updateImageResults(images: any): void {
+    this.imageResults = images;
   }
 }
