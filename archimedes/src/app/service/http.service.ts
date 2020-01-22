@@ -11,8 +11,9 @@ export class HttpService {
     private httpClient: HttpClient
   ) { }
 
-  search(searchType: string, query: string): Observable<any> {
-    if (!query.trim()) {
+  search(searchType: string, query: string, offset: string): Observable<any> {
+
+    if (!query || !query.trim()) {
       return of(null);
     }
 
@@ -26,16 +27,19 @@ export class HttpService {
         params = new HttpParams()
           .set('format', 'json')
           .set('search', query)
-          .set('limit', '5');
+          .set('limit', '5')
+          .set('offset', offset);
         break;
       case 'news':
         apiUrl = 'https://wwwqa.cc.ucf.edu/news/wp-json/wp/v2/posts';
         params = new HttpParams()
           .set('tag_slugs[]', query)
-          .set('per_page', '5');
+          .set('per_page', '5')
+          .set('orderby', 'date')
+          .set('offset', offset);
         break;
     }
 
-    return this.httpClient.get(apiUrl, { params });
+    return this.httpClient.get(apiUrl, { params, observe: 'response' });
   }
 }

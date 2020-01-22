@@ -7,7 +7,9 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'UCF-Archimedes-Plugin';
-  
+
+  query: string;
+
   programResults: any;
   programLoading: boolean;
   programError: boolean;
@@ -18,6 +20,10 @@ export class AppComponent {
 
   constructor() { }
 
+  queryUpdated(query: string): void {
+    this.query = query;
+  }
+
   updateProgramResults(programs: any): void {
     this.programResults = programs;
   }
@@ -25,6 +31,4 @@ export class AppComponent {
   updateNewsResults(news: any): void {
     this.newsResults = news;
   }
-
-
 }
