@@ -5,11 +5,11 @@
         </a>
         <div class="card-block">
 
-            <p class="card-text" (click)="(selectedImage == image.id) ? selectedImage = '' : selectedImage = image.id">
+            <p class="card-text" (click)="(selectedImage === image.id) ? selectedImage = 0 : selectedImage = image.id">
                 View Image Details
             </p>
 
-            <ng-container *ngIf="selectedImage == image.id">
+            <ng-container *ngIf="selectedImage === image.id">
 
                 <p class="card-text" *ngIf="image.tags && image.tags.length">
                     <strong>Tags: </strong>
