@@ -104,7 +104,7 @@
                 </div>
 
                 <ng-container *ngIf="imageResults && imageResults.results && !imageError">
-                    <div app-image class="card-columns" [images]="imageResults.results"></div>
+                    <div app-image [images]="imageResults.results" class="row"></div>
                     <app-show-more
                         *ngIf="imageResults.count > 8"
                         [count]="imageResults.count"

@@ -60,7 +60,6 @@ export class SearchBoxComponent implements OnInit {
             });
           // program or image
           } else {
-            console.log(response.body);
             results.emit(response.body)
           }
         },
