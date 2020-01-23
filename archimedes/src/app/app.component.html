@@ -39,9 +39,9 @@
                         [limit]="5"
                         [query]="query"
                         [searchType]="'programs'"
-                        (programLoading)="programLoading = $event"
-                        (programError)="programError = $event"
-                        (programResults)="updateProgramResults($event)">
+                        (loading)="programLoading = $event"
+                        (error)="programError = $event"
+                        (results)="updateProgramResults($event)">
                     </app-show-more>
 
                     <div class="alert alert-info" *ngIf="programResults.results.length === 0">
@@ -74,9 +74,9 @@
                         [limit]="5"
                         [query]="query"
                         [searchType]="'news'"
-                        (newsLoading)="newsLoading = $event"
-                        (newsError)="newsError = $event"
-                        (newsResults)="updateNewsResults($event)">
+                        (loading)="newsLoading = $event"
+                        (error)="newsError = $event"
+                        (results)="updateNewsResults($event)">
                     </app-show-more>
                     <div class="alert alert-info" *ngIf="newsResults.results.length === 0">
                         No news articles found.
@@ -111,9 +111,9 @@
                         [limit]="8"
                         [query]="query"
                         [searchType]="'images'"
-                        (imageLoading)="imageLoading = $event"
-                        (imageError)="imageError = $event"
-                        (imageResults)="updateImageResults($event)">
+                        (loading)="imageLoading = $event"
+                        (error)="imageError = $event"
+                        (results)="updateImageResults($event)">
                     </app-show-more>
 
                     <div class="alert alert-info" *ngIf="imageResults.results.length === 0">
