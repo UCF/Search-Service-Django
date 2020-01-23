@@ -35,10 +35,12 @@
                     <div app-programs class="list-group" [programs]="programResults.results"></div>
                     <app-show-more
                         *ngIf="programResults.count > 5"
-                        [count]="programResults.count"
-                        [limit]="5"
-                        [query]="query"
-                        [searchType]="'programs'"
+                        [inputData]="{
+                            searchType: 'programs',
+                            count: programResults.count,
+                            limit: 5,
+                            query: query
+                        }"
                         (loading)="programLoading = $event"
                         (error)="programError = $event"
                         (results)="updateProgramResults($event)">
@@ -70,10 +72,12 @@
                     <div app-news class="list-group" [news]="newsResults.results"></div>
                     <app-show-more
                         *ngIf="newsResults.count > 5"
-                        [count]="newsResults.count"
-                        [limit]="5"
-                        [query]="query"
-                        [searchType]="'news'"
+                        [inputData]="{
+                            searchType: 'news',
+                            count: newsResults.count,
+                            limit: 5,
+                            query: query
+                        }"
                         (loading)="newsLoading = $event"
                         (error)="newsError = $event"
                         (results)="updateNewsResults($event)">
@@ -107,10 +111,13 @@
                     <div app-image [images]="imageResults.results" class="row"></div>
                     <app-show-more
                         *ngIf="imageResults.count > 8"
-                        [count]="imageResults.count"
-                        [limit]="8"
-                        [query]="query"
-                        [searchType]="'images'"
+                        [inputData]="{
+                            searchType: 'images',
+                            count: imageResults.count,
+                            limit: 8,
+                            query: query
+                        }"
+                        (query)="queryUpdated($event)"
                         (loading)="imageLoading = $event"
                         (error)="imageError = $event"
                         (results)="updateImageResults($event)">

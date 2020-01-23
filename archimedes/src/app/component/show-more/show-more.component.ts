@@ -9,10 +9,7 @@ import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 export class ShowMoreComponent implements OnInit {
   offset = 0;
 
-  @Input() query: string;
-  @Input() count: number;
-  @Input() searchType: string;
-  @Input() limit: number;
+  @Input() inputData: any;
 
   @Output() loading: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() error: EventEmitter<boolean> = new EventEmitter<boolean>();
@@ -24,12 +21,21 @@ export class ShowMoreComponent implements OnInit {
 
   ngOnInit() { }
 
-  showMoreResults(offset) {
-    this.offset = this.offset + offset;
+  prev() {
+    this.offset -= this.inputData.limit;
+    this.showMoreResults()
+  }
+
+  next() {
+    this.offset += this.inputData.limit;
+    this.showMoreResults()
+  }
+
+  showMoreResults() {
     this.loading.emit(true);
 
     // convert the `click` event into an observable stream
-    this.httpService.search(this.searchType, this.query, this.offset.toString())
+    this.httpService.search(this.inputData.searchType, this.inputData.query, this.offset.toString())
       .subscribe(
         (response: any) => { // on success
           this.loading.emit(false);
