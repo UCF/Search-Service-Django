@@ -153,7 +153,7 @@ PROGRAM_PROFILE = [
         'value': 'Online'
     },
     {
-        'conditionals': []
+        'conditionals': [],
         'value': 'Main Site'
     }
 ]
