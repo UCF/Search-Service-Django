@@ -341,6 +341,39 @@ class Program(models.Model):
     def careers(self):
         return self.current_occupations.filter(jobs__isnull=False).values_list('jobs__name', flat=True).distinct()
 
+    @property
+    def profile(self):
+        rules = settings.PROGRAM_PROFILE
+
+        retval = None
+
+        for rule in rules:
+            conditions_met = False
+
+            if len(rule['conditions']) < 1:
+                conditions_met = True
+
+            for condition in rule['conditions']:
+                field_obj = Program._meta.get_field(condition['field'])
+                field_val = field_obj.value_from_object(self)
+                if field_val == condition['value']:
+                    conditions_met = True
+
+            if conditions_met == True:
+                try:
+                    profile_type = ProgramProfileType.objects.get(name=rule['value'])
+                except:
+                    continue
+                profile = self.profiles.filter(profile_type=profile_type).first()
+                if profile:
+                    retval = profile.url
+                else:
+                    retval = profile_type.root_url
+
+            if retval:
+                break
+
+        return retval
 
 class ProgramProfile(models.Model):
     """
