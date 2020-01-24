@@ -9,67 +9,56 @@ import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 export class ShowMoreComponent implements OnInit {
   offset = 0;
 
-  @Input() query: string;
-  @Input() count: number;
-  @Input() searchType: string;
+  @Input() inputData: any;
 
-  @Output() programLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() programError: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() programResults: EventEmitter<any> = new EventEmitter<any>();
-
-  @Output() newsLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() newsError: EventEmitter<boolean> = new EventEmitter<boolean>();
-  @Output() newsResults: EventEmitter<any> = new EventEmitter<any>();
+  @Output() loading: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() error: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() results: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(
     private httpService: HttpService
-  ) {}
+  ) { }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
-  showMore(offset) {
-    this.offset = this.offset + offset;
-    if(this.searchType === 'programs') {
-      this.programLoading.emit(true);
-      this.showMoreResults(this.searchType, this.programLoading, this.programError, this.programResults);
-    }
-    if(this.searchType === 'news') {
-      this.newsLoading.emit(true);
-      this.showMoreResults(this.searchType, this.newsLoading, this.newsError, this.newsResults);
-    }
+  prev() {
+    this.offset -= this.inputData.limit;
+    this.showMoreResults()
   }
 
-  showMoreResults(
-    searchType: string,
-    loading: EventEmitter<boolean>,
-    error: EventEmitter<boolean>,
-    results: EventEmitter<any>) {
+  next() {
+    this.offset += this.inputData.limit;
+    this.showMoreResults()
+  }
+
+  showMoreResults() {
+    this.loading.emit(true);
 
     // convert the `click` event into an observable stream
-    this.httpService.search(searchType, this.query, this.offset.toString())
+    this.httpService.search(this.inputData.searchType, this.inputData.query, this.offset.toString())
       .subscribe(
         (response: any) => { // on success
-          loading.emit(false);
-          error.emit(false);
+          this.loading.emit(false);
+          this.error.emit(false);
           // news
           if (response.headers.get('X-WP-Total')) {
-            results.emit({
+            this.results.emit({
               "results": response.body,
               "count": response.headers.get('X-WP-Total')
             });
-            // program
+            // program or images
           } else {
-            results.emit(response.body)
+            this.results.emit(response.body)
           }
         },
         (error: any) => { // on error
           console.error(error);
-          loading.emit(false);
-          error.emit(true);
+          this.loading.emit(false);
+          this.error.emit(true);
         },
         () => { // on completion
-          loading.emit(false);
-          error.emit(false);
+          this.loading.emit(false);
+          this.error.emit(false);
         }
       );
   }

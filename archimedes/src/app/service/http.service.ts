@@ -38,6 +38,14 @@ export class HttpService {
           .set('orderby', 'date')
           .set('offset', offset);
         break;
+        case 'images':
+          apiUrl = 'https://searchdev.cm.ucf.edu/api/v1/images/search/';
+          params = new HttpParams()
+            .set('format', 'json')
+            .set('search', query)
+            .set('limit', '8')
+            .set('offset', offset);
+          break;
     }
 
     return this.httpClient.get(apiUrl, { params, observe: 'response' });
