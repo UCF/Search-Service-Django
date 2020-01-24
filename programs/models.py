@@ -346,8 +346,8 @@ class Program(models.Model):
         for rule in rules:
             conditions_met = False
 
-            # If there are no conditions, then they conditions are met
-            # This should only apply to the 'default' assignment
+            # If there are no conditions, then the conditions are met.
+            # This should only apply to the 'default' assignment.
             if len(rule['conditions']) < 1:
                 conditions_met = True
 
