@@ -291,10 +291,6 @@ class Program(models.Model):
         return self.plan_code + self.subplan_code
 
     @property
-    def primary_profile_url(self):
-        return self.program_profiles.get(primary=True)
-
-    @property
     def has_subplans(self):
         if len(self.subplans.all()) > 0:
             return True
@@ -342,7 +338,7 @@ class Program(models.Model):
         return self.current_occupations.filter(jobs__isnull=False).values_list('jobs__name', flat=True).distinct()
 
     @property
-    def profile(self):
+    def primary_profile_type(self):
         rules = settings.PROGRAM_PROFILE
 
         retval = None
@@ -362,18 +358,30 @@ class Program(models.Model):
             if conditions_met == True:
                 try:
                     profile_type = ProgramProfileType.objects.get(name=rule['value'])
+                    return profile_type
                 except:
                     continue
-                profile = self.profiles.filter(profile_type=profile_type).first()
-                if profile:
-                    retval = profile.url
+
+        return None
+
+    @property
+    def primary_profile_url(self):
+        primary_profile = self.profiles.filter(primary=True).first()
+
+        if primary_profile:
+            return primary_profile.url
+        else:
+            primary_profile_type = self.primary_profile_type
+
+            if primary_profile_type:
+                fallback_profile = self.profiles.filter(profile_type=primary_profile_type).first()
+
+                if fallback_profile:
+                    return fallback_profile.url
                 else:
-                    retval = profile_type.root_url
+                    return primary_profile_type.root_url
 
-            if retval:
-                break
-
-        return retval
+        return None
 
 class ProgramProfile(models.Model):
     """
