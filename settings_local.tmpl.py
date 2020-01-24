@@ -144,7 +144,7 @@ AWS_REGION = 'us-east-1'
 # Conditional outcomes for setting the default program profile
 PROGRAM_PROFILE = [
     {
-        'conditionals': [
+        'conditions': [
             {
                 'field': 'online',
                 'value': True
@@ -153,7 +153,7 @@ PROGRAM_PROFILE = [
         'value': 'Online'
     },
     {
-        'conditionals': [],
+        'conditions': [],
         'value': 'Main Site'
     }
 ]
