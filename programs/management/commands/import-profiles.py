@@ -14,6 +14,8 @@ Imports URLs for ProgramProfiles from a WordPress blog
     path = None
     profile_type = None
     set_primary = True
+    plan_code_field = 'degree_code'
+    subplan_code_field = 'degree_subplan_code'
 
     page  = 0
     pages = 0
@@ -49,10 +51,26 @@ Imports URLs for ProgramProfiles from a WordPress blog
             default=True
         )
 
+        parser.add_argument(
+            '--plan-code-field',
+            type=str,
+            dest='plan_code_field',
+            default='degree_code'
+        )
+
+        parser.add_argument(
+            '--subplan-code-field',
+            type=str,
+            dest='subplan_code_field',
+            default='degree_subplan_code'
+        )
+
     def handle(self, *args, **options):
         self.path = options['path']
         profile_type = options['profile_type']
         self.set_primary = options['primary']
+        self.plan_code_field = options['plan_code_field']
+        self.subplan_code_field = options['subplan_code_field']
 
         try:
             self.profile_type = ProgramProfileType.objects.get(name=profile_type)
@@ -97,8 +115,8 @@ Imports URLs for ProgramProfiles from a WordPress blog
         for program in programs:
             self.degrees_processed += 1
             self.progress_bar.next()
-            plan_code = program['degree_meta']['degree_code']
-            subplan_code = program['degree_meta']['degree_subplan_code']
+            plan_code = program['degree_meta'][self.plan_code_field]
+            subplan_code = program['degree_meta'][self.subplan_code_field]
 
             try:
                 prg_obj = Program.objects.get(plan_code=plan_code, subplan_code=subplan_code)
