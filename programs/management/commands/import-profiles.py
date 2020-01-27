@@ -3,6 +3,7 @@ from programs.models import *
 
 import urllib2
 import json
+from progress.bar import ChargingBar
 from tabulate import tabulate
 
 class Command(BaseCommand):
@@ -15,6 +16,17 @@ Imports URLs for ProgramProfiles from a WordPress blog
 
     page  = 0
     pages = 0
+
+    degrees_found = 0
+    degrees_processed = 0
+    degrees_matched = 0
+    degrees_skipped = 0
+
+    profiles_created = 0
+    profiles_updated = 0
+    profiles_skipped = 0
+
+    progress_bar = None
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -47,6 +59,10 @@ Imports URLs for ProgramProfiles from a WordPress blog
             raise CommandError("\"{0}\" is not a valid ProgramProfileType.".format(profile_type))
 
         self.import_profiles()
+
+        if self.progress_bar:
+            self.progress_bar.finish()
+
         self.print_stats()
 
     def import_profiles(self):
@@ -57,11 +73,15 @@ Imports URLs for ProgramProfiles from a WordPress blog
         if headers.has_key('x-wp-totalpages'):
             self.pages = int(headers['x-wp-totalpages'])
 
+        if headers.has_key('x-wp-total'):
+            self.degrees_found = int(headers['x-wp-total'])
+            self.progress_bar = ChargingBar('Processing', max=self.degrees_found)
+
         programs = json.loads(response.read())
         self.process_page(programs)
 
         if self.pages > 1:
-            for page in xrange(2, self.pages):
+            for page in xrange(2, self.pages + 1):
                 path = "{0}?page={1}".format(self.path, page)
                 response = urllib2.urlopen(path)
 
@@ -72,12 +92,16 @@ Imports URLs for ProgramProfiles from a WordPress blog
 
     def process_page(self, programs):
         for program in programs:
+            self.degrees_processed += 1
+            self.progress_bar.next()
             plan_code = program['degree_meta']['degree_code']
             subplan_code = program['degree_meta']['degree_subplan_code']
 
             try:
                 prg_obj = Program.objects.get(plan_code=plan_code, subplan_code=subplan_code)
+                self.degrees_matched += 1
             except:
+                self.degrees_skipped += 1
                 continue
 
             try:
@@ -86,7 +110,9 @@ Imports URLs for ProgramProfiles from a WordPress blog
                     existing.url = program['link']
                     existing.primary = self.set_primary
                     existing.save()
+                    self.profiles_updated += 1
                 else:
+                    self.profiles_skipped += 1
                     continue
             except:
                 profile = ProgramProfile(
@@ -96,8 +122,22 @@ Imports URLs for ProgramProfiles from a WordPress blog
                     url=program['link']
                 )
                 profile.save()
+                self.profiles_created += 1
 
     def print_stats(self):
-        pass
+        results = [
+            ("Degrees Found", self.degrees_found),
+            ("Degrees Processed", self.degrees_processed),
+            ("Degress Matched", self.degrees_matched),
+            ("Degrees Skipped", self.degrees_skipped),
+            ("Profiles Created", self.profiles_created),
+            ("Profiles Updated", self.profiles_updated),
+            ("Profiles Skipped (No Update Needed)", self.profiles_skipped)
+        ]
 
+        self.stdout.write('''
+Complete!
+        ''')
+
+        self.stdout.write(tabulate(results, tablefmt='grid'), ending='\n\n')
 
