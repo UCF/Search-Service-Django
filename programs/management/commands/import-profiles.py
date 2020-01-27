@@ -84,7 +84,7 @@ Imports URLs for ProgramProfiles from a WordPress blog
         self.process_page(programs)
 
         if self.pages > 1:
-            for page in xrange(2, self.pages + 1):
+            for page in range(2, self.pages + 1):
                 path = "{0}?page={1}".format(self.path, page)
                 response = urllib2.urlopen(path, context=context)
 
