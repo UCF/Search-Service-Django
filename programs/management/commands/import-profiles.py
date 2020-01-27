@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
 import urllib2
+import ssl
 import json
 from progress.bar import ChargingBar
 from tabulate import tabulate
@@ -66,7 +67,9 @@ Imports URLs for ProgramProfiles from a WordPress blog
         self.print_stats()
 
     def import_profiles(self):
-        response = urllib2.urlopen(self.path)
+        context = ssl._create_unverified_context()
+
+        response = urllib2.urlopen(self.path, context=context)
 
         headers = dict(response.info())
 
@@ -83,7 +86,7 @@ Imports URLs for ProgramProfiles from a WordPress blog
         if self.pages > 1:
             for page in xrange(2, self.pages + 1):
                 path = "{0}?page={1}".format(self.path, page)
-                response = urllib2.urlopen(path)
+                response = urllib2.urlopen(path, context=context)
 
                 programs = json.loads(response.read())
 
