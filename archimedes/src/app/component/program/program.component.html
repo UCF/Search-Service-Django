@@ -1,12 +1,3 @@
 <ng-container *ngFor="let program of programs">
-    <ng-container  *ngIf="getUrl(program)">
-        <a href="{{getUrl(program)}}" target="_blank" class="list-group-item">
-            <app-program-item [program]="program"></app-program-item>
-        </a>
-    </ng-container>
-    <ng-container *ngIf="!getUrl(program)">
-        <div class="list-group-item">
-            <app-program-item [program]="program"></app-program-item>
-        </div>
-    </ng-container>
+    <div app-program-item [program]="program" class="list-group-item"></div>
 </ng-container>
