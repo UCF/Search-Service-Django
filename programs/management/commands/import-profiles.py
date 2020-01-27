@@ -145,7 +145,7 @@ Imports URLs for ProgramProfiles from a WordPress blog
 
             try:
                 existing = ProgramProfile.objects.get(program=prg_obj, profile_type=self.profile_type)
-                self.found_profiles.append(existing)
+                self.found_profiles.append(existing.id)
                 if existing.url != program['link']:
                     existing.url = program['link']
                     existing.primary = self.set_primary
@@ -162,11 +162,11 @@ Imports URLs for ProgramProfiles from a WordPress blog
                     url=program['link']
                 )
                 profile.save()
-                self.found_profiles.append(profile)
+                self.found_profiles.append(profile.id)
                 self.profiles_created += 1
 
     def remove_stale_profiles(self):
-        not_processed = ProgramProfile.objects.filter(profile_type=self.profile_type).exclude(id__in=[x.id for x in self.found_profiles])
+        not_processed = ProgramProfile.objects.filter(profile_type=self.profile_type).exclude(id__in=self.found_profiles)
         self.profiles_removed = len(not_processed)
         if self.profiles_removed > 0:
             not_processed.delete()
