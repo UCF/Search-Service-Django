@@ -10,8 +10,8 @@
     <li class="small mt-2">
         <a href="{{program.primary_profile_url}}" target="_blank" *ngIf="program.primary_profile_url">
             View Degree Profile</a>
-        <ng-container *ngIf="program.primary_profile_url && catalogUrl"> | </ng-container>
-        <a href="{{catalogUrl}}" target="_blank" *ngIf="catalogUrl">
+        <ng-container *ngIf="program.primary_profile_url && program.catalog_url"> | </ng-container>
+        <a href="{{program.catalog_url}}" target="_blank" *ngIf="program.catalog_url">
             View Catalog</a>
     </li>
 </ul>

@@ -7,7 +7,6 @@ import { Component, OnInit, Input } from '@angular/core';
 })
 export class ProgramItemComponent implements OnInit {
   @Input() program: any;
-  @Input() catalogUrl: string;
 
   constructor() {}
 
