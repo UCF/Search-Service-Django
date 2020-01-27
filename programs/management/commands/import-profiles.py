@@ -16,9 +16,12 @@ Imports URLs for ProgramProfiles from a WordPress blog
     set_primary = True
     plan_code_field = 'degree_code'
     subplan_code_field = 'degree_subplan_code'
+    remove_stale = False
 
     page  = 0
     pages = 0
+
+    found_profiles = []
 
     degrees_found = 0
     degrees_processed = 0
@@ -65,12 +68,20 @@ Imports URLs for ProgramProfiles from a WordPress blog
             default='degree_subplan_code'
         )
 
+        parser.add_argument(
+            '--remove-stale',
+            type=bool,
+            dest='remove_stale',
+            default=False
+        )
+
     def handle(self, *args, **options):
         self.path = options['path']
         profile_type = options['profile_type']
         self.set_primary = options['primary']
         self.plan_code_field = options['plan_code_field']
         self.subplan_code_field = options['subplan_code_field']
+        self.remove_stale = options['remove_stale']
 
         try:
             self.profile_type = ProgramProfileType.objects.get(name=profile_type)
@@ -81,6 +92,9 @@ Imports URLs for ProgramProfiles from a WordPress blog
 
         if self.progress_bar:
             self.progress_bar.finish()
+
+        if self.remove_stale:
+            self.remove_stale_profiles()
 
         self.print_stats()
 
@@ -134,6 +148,7 @@ Imports URLs for ProgramProfiles from a WordPress blog
                     existing.url = program['link']
                     existing.primary = self.set_primary
                     existing.save()
+                    self.found_profiles.append(existing.pk)
                     self.profiles_updated += 1
                 else:
                     self.profiles_skipped += 1
@@ -146,7 +161,14 @@ Imports URLs for ProgramProfiles from a WordPress blog
                     url=program['link']
                 )
                 profile.save()
+                self.found_profiles.append(profile.pk)
                 self.profiles_created += 1
+
+    def remove_stale_profiles(self):
+        not_processed = ProgramProfile.objects.filter(profile_type=self.profile_type).exclude(self.found_profiles)
+        self.profiles_removed = len(not_processed)
+        if self.profiles_removed > 0:
+            not_processed.delete()
 
     def print_stats(self):
         results = [
@@ -156,7 +178,8 @@ Imports URLs for ProgramProfiles from a WordPress blog
             ("Degrees Skipped", self.degrees_skipped),
             ("Profiles Created", self.profiles_created),
             ("Profiles Updated", self.profiles_updated),
-            ("Profiles Skipped (No Update Needed)", self.profiles_skipped)
+            ("Profiles Skipped (No Update Needed)", self.profiles_skipped),
+            ("Profiles Removed (Stale)", self.profiles_removed)
         ]
 
         self.stdout.write('''
