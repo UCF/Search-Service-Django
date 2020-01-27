@@ -115,8 +115,8 @@ Imports URLs for ProgramProfiles from a WordPress blog
         for program in programs:
             self.degrees_processed += 1
             self.progress_bar.next()
-            plan_code = program['degree_meta'][self.plan_code_field] if self.plan_code_field is in program['degree_meta'] else None
-            subplan_code = program['degree_meta'][self.subplan_code_field] if self.subplan_code_field is in program['degree_meta'] else None
+            plan_code = program['degree_meta'][self.plan_code_field] if self.plan_code_field in program['degree_meta'] else None
+            subplan_code = program['degree_meta'][self.subplan_code_field] if self.subplan_code_field in program['degree_meta'] else None
 
             try:
                 if plan_code:
