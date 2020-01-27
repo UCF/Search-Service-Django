@@ -2,6 +2,11 @@
 {% load static %}
 {% block body %}
 
+<script>
+    const newsApi = "{{ newsApi }}";
+    const searchServiceApi = "{{searchServiceApi}}";
+</script>
+
 <app-root></app-root>
 
 <script src="{% static 'archimedes/runtime-es2015.js' %}" type="module"></script>
