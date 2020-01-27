@@ -31,6 +31,7 @@ Imports URLs for ProgramProfiles from a WordPress blog
     profiles_created = 0
     profiles_updated = 0
     profiles_skipped = 0
+    profiles_removed = 0
 
     progress_bar = None
 
@@ -144,11 +145,11 @@ Imports URLs for ProgramProfiles from a WordPress blog
 
             try:
                 existing = ProgramProfile.objects.get(program=prg_obj, profile_type=self.profile_type)
+                self.found_profiles.append(existing)
                 if existing.url != program['link']:
                     existing.url = program['link']
                     existing.primary = self.set_primary
                     existing.save()
-                    self.found_profiles.append(existing.pk)
                     self.profiles_updated += 1
                 else:
                     self.profiles_skipped += 1
@@ -161,11 +162,11 @@ Imports URLs for ProgramProfiles from a WordPress blog
                     url=program['link']
                 )
                 profile.save()
-                self.found_profiles.append(profile.pk)
+                self.found_profiles.append(profile)
                 self.profiles_created += 1
 
     def remove_stale_profiles(self):
-        not_processed = ProgramProfile.objects.filter(profile_type=self.profile_type).exclude(self.found_profiles)
+        not_processed = ProgramProfile.objects.filter(profile_type=self.profile_type).exclude(id__in=[x.id for x in self.found_profiles])
         self.profiles_removed = len(not_processed)
         if self.profiles_removed > 0:
             not_processed.delete()
