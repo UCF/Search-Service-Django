@@ -384,6 +384,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'online',
             'has_online',
             'profiles',
+            'primary_profile_url',
             'plan_code',
             'subplan_code',
             'catalog_url',

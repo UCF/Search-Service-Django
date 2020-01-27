@@ -140,3 +140,20 @@ AWS_SECRET_KEY = ''
 
 # The region name to use when accessing Rekognition.
 AWS_REGION = 'us-east-1'
+
+# Conditional outcomes for setting the default program profile
+PROGRAM_PROFILE = [
+    {
+        'conditions': [
+            {
+                'field': 'online',
+                'value': True
+            }
+        ],
+        'value': 'Online'
+    },
+    {
+        'conditions': [],
+        'value': 'Main Site'
+    }
+]

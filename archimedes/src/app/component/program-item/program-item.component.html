@@ -1,12 +1,17 @@
 <h3 class="h6 mb-2 w-100">{{program.name}}</h3>
-<div>
-    <ul class="list-unstyled mb-0">
-        <li *ngFor="let college of program.colleges" class="small">
-            {{college.full_name}} ({{college.short_name}})
-        </li>
-        <li *ngFor="let department of program.departments" class="text-muted small">
-            {{department.full_name}}
-        </li>
-        <li class="text-muted small">{{program.level}}</li>
-    </ul>
-</div>
+<ul class="list-unstyled mb-0">
+    <li *ngFor="let college of program.colleges" class="small">
+        {{college.full_name}} ({{college.short_name}})
+    </li>
+    <li *ngFor="let department of program.departments" class="text-muted small">
+        {{department.full_name}}
+    </li>
+    <li class="text-muted small">{{program.level}}</li>
+    <li class="small mt-2">
+        <a href="{{program.primary_profile_url}}" target="_blank" *ngIf="program.primary_profile_url">
+            View Degree Profile</a>
+        <ng-container *ngIf="program.primary_profile_url && program.catalog_url"> | </ng-container>
+        <a href="{{program.catalog_url}}" target="_blank" *ngIf="program.catalog_url">
+            View Catalog</a>
+    </li>
+</ul>
