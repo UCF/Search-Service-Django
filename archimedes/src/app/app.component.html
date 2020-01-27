@@ -15,8 +15,27 @@
             </app-search-box>
         </div>
     </div>
+    <div class="row">
+        <div class="col">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="program" [(ngModel)]="selected.program" (change)="toggleChange('program')">
+                <span class="custom-control-indicator"></span>
+                <span class="custom-control-description">Programs {{selected.program}}</span>
+            </label>
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="news" [(ngModel)]="selected.news" (change)="toggleChange('news')">
+                <span class="custom-control-indicator"></span>
+                <span class="custom-control-description">News</span>
+            </label>
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="image" [(ngModel)]="selected.image" (change)="toggleChange('image')">
+                <span class="custom-control-indicator"></span>
+                <span class="custom-control-description">Images</span>
+            </label>
+        </div>
+    </div>
     <div class="row mt-4">
-        <div class="col-lg-6">
+        <div class="col-lg-6" *ngIf="selected.program">
 
             <div class="program-results" *ngIf="programResults || programLoading || programError">
                 <span class="badge badge-default badge-pill float-right mt-1"
@@ -53,7 +72,7 @@
             </div>
 
         </div>
-        <div class="col-lg-6">
+        <div class="col-lg-6" *ngIf="selected.news">
 
             <div class="news-results mt-4 mt-lg-0" *ngIf="newsResults || newsLoading || newsError">
                 <span class="badge badge-default badge-pill float-right mt-1"
@@ -91,7 +110,7 @@
         </div>
     </div>
 
-    <div class="row mt-4">
+    <div class="row mt-4" *ngIf="selected.image">
         <div class="col-12">
 
             <div class="image-results" *ngIf="imageResults || imageLoading || imageError">

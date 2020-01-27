@@ -7,6 +7,12 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'UCF-Archimedes-Plugin';
+  searchObservableProgram: any;
+  selected = {
+    program: true,
+    news: true,
+    image: true
+  }
 
   query: string;
 
@@ -23,6 +29,10 @@ export class AppComponent {
   imageError: boolean;
 
   constructor() { }
+
+  toggleChange(): void {
+    console.log('toggle');
+  }
 
   queryUpdated(query: string): void {
     this.query = query;

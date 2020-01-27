@@ -37,8 +37,8 @@ export class SearchBoxComponent implements OnInit {
     // convert the `keyup` event into an observable stream
     fromEvent(this.elementRef.nativeElement, 'keyup')
       .pipe (
-          map((e:any) => e.target.value), // extract the value of the input
-          filter((text:string) => text.length > 2), //filter out if empty
+          map((event: any) => event.target.value), // extract the value of the input
+          filter((text: string) => text.length > 2), //filter out if empty
           debounceTime(250), //only search after 250 ms
           tap((query: string) => {
             loading.emit(true);
