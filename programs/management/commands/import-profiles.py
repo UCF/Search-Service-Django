@@ -115,12 +115,15 @@ Imports URLs for ProgramProfiles from a WordPress blog
         for program in programs:
             self.degrees_processed += 1
             self.progress_bar.next()
-            plan_code = program['degree_meta'][self.plan_code_field]
-            subplan_code = program['degree_meta'][self.subplan_code_field]
+            plan_code = program['degree_meta'][self.plan_code_field] if self.plan_code_field is in program['degree_meta'] else None
+            subplan_code = program['degree_meta'][self.subplan_code_field] if self.subplan_code_field is in program['degree_meta'] else None
 
             try:
-                prg_obj = Program.objects.get(plan_code=plan_code, subplan_code=subplan_code)
-                self.degrees_matched += 1
+                if plan_code:
+                    prg_obj = Program.objects.get(plan_code=plan_code, subplan_code=subplan_code)
+                    self.degrees_matched += 1
+                else:
+                    self.degrees_skipped += 1
             except:
                 self.degrees_skipped += 1
                 continue
