@@ -18,7 +18,7 @@ class TitleContextMixin(object):
         context = super(TitleContextMixin, self).get_context_data(**kwargs)
         context['title'] = self.title
         context['heading'] = self.heading
-        context['debug'] = self.debug
+        context['local'] = self.local
 
         return context
 
@@ -32,7 +32,7 @@ class SearchView(TitleContextMixin, TemplateView):
     template_name = 'search.html'
     title = ''
     heading = 'UCF Search Service'
-    debug = settings.DEBUG
+    local = settings.LOCAL
 
 class SettingsAPIView(APIView):
     def get(request, format=None, **kwargs):
