@@ -136,7 +136,7 @@ TANDEMVAULT_ADMIN_API_KEY = ''
 TANDEMVAULT_COMMUNICATOR_API_KEY = ''
 
 # The URL to the News API
-UCF_NEWS_API = 'https://wwwdev.cc.ucf.edu'
+UCF_NEWS_API = 'https://wwwdev.smca.ucf.edu'
 
 # The URL to the Search Service API
 UCF_SEARCH_SERVICE_API = 'https://searchdev.cm.ucf.edu'
