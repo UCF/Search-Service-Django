@@ -5,6 +5,10 @@ from django.conf import settings
 
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+import settings
 
 class TitleContextMixin(object):
     """
@@ -31,3 +35,10 @@ class SearchView(TitleContextMixin, TemplateView):
     heading = 'UCF Search Service'
     newsApi = settings.UCF_NEWS_API
     searchServiceApi = settings.UCF_SEARCH_SERVICE_API
+
+class SettingsAPIView(APIView):
+    def get(request, format=None, **kwargs):
+        return Response({
+            'ucf_news_api': settings.UCF_NEWS_API,
+            'ucf_search_service_api': settings.UCF_SEARCH_SERVICE_API
+        })
