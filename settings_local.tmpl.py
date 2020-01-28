@@ -9,6 +9,9 @@ SECRET_KEY = 'SUPERSECRETKEYHEREPLEASEANDTHANKYOU'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Set to true for local development with the Angular
+LOCAL = False
+
 ALLOWED_HOSTS = []
 
 # Database
@@ -131,6 +134,12 @@ TANDEMVAULT_ADMIN_API_KEY = ''
 
 # An API key to use with UCF's Tandem Vault that has UCF Communicator-level user access.
 TANDEMVAULT_COMMUNICATOR_API_KEY = ''
+
+# The URL to the News API
+UCF_NEWS_API = 'https://wwwdev.smca.ucf.edu'
+
+# The URL to the Search Service API
+UCF_SEARCH_SERVICE_API = 'https://searchdev.cm.ucf.edu'
 
 # An AWS Access Key ID with sufficient permissions to access Rekognition.
 AWS_ACCESS_KEY = ''

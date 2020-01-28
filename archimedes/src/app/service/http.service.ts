@@ -6,10 +6,23 @@ import { Observable, of } from 'rxjs';
   providedIn: 'root'
 })
 export class HttpService {
+  newsApi: string;
+  searchServiceApi: string
 
   constructor(
     private httpClient: HttpClient
-  ) { }
+  ) {
+    let params = new HttpParams().set('format', 'json');
+    this.httpClient.get('/settings/', { params })
+    .subscribe(
+      (response: any) => { // on success
+        this.newsApi = response.ucf_news_api;
+        this.searchServiceApi = response.ucf_search_service_api;
+      },
+      (error: any) => { // on error
+        console.error(error);
+      });
+  }
 
   search(searchType: string, query: string, offset: string): Observable<any> {
 
@@ -23,7 +36,7 @@ export class HttpService {
 
     switch (searchType) {
       case 'programs':
-        apiUrl = 'https://searchdev.cm.ucf.edu/api/v1/programs/search/';
+        apiUrl = this.searchServiceApi + '/api/v1/programs/search/';
         params = new HttpParams()
           .set('format', 'json')
           .set('search', query)
@@ -31,7 +44,7 @@ export class HttpService {
           .set('offset', offset);
         break;
       case 'news':
-        apiUrl = 'https://wwwqa.cc.ucf.edu/news/wp-json/wp/v2/posts';
+        apiUrl = this.newsApi + '/news/wp-json/wp/v2/posts';
         params = new HttpParams()
           .set('tag_slugs[]', query)
           .set('per_page', '5')
@@ -39,7 +52,7 @@ export class HttpService {
           .set('offset', offset);
         break;
         case 'images':
-          apiUrl = 'https://searchdev.cm.ucf.edu/api/v1/images/search/';
+          apiUrl = this.searchServiceApi + '/api/v1/images/search/';
           params = new HttpParams()
             .set('format', 'json')
             .set('search', query)
