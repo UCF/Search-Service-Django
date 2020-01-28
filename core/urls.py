@@ -17,5 +17,10 @@ urlpatterns = [
         r'^search/$',
         SearchView.as_view(template_name='search.html'),
         name='search'
+    ),
+    url(
+        r'^settings/$',
+        SettingsAPIView.as_view(),
+        name='settings'
     )
 ]

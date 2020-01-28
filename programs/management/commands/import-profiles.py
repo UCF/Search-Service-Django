@@ -14,9 +14,14 @@ Imports URLs for ProgramProfiles from a WordPress blog
     path = None
     profile_type = None
     set_primary = True
+    plan_code_field = 'degree_code'
+    subplan_code_field = 'degree_subplan_code'
+    remove_stale = False
 
     page  = 0
     pages = 0
+
+    found_profiles = []
 
     degrees_found = 0
     degrees_processed = 0
@@ -26,6 +31,7 @@ Imports URLs for ProgramProfiles from a WordPress blog
     profiles_created = 0
     profiles_updated = 0
     profiles_skipped = 0
+    profiles_removed = 0
 
     progress_bar = None
 
@@ -49,10 +55,34 @@ Imports URLs for ProgramProfiles from a WordPress blog
             default=True
         )
 
+        parser.add_argument(
+            '--plan-code-field',
+            type=str,
+            dest='plan_code_field',
+            default='degree_code'
+        )
+
+        parser.add_argument(
+            '--subplan-code-field',
+            type=str,
+            dest='subplan_code_field',
+            default='degree_subplan_code'
+        )
+
+        parser.add_argument(
+            '--remove-stale',
+            type=bool,
+            dest='remove_stale',
+            default=False
+        )
+
     def handle(self, *args, **options):
         self.path = options['path']
         profile_type = options['profile_type']
         self.set_primary = options['primary']
+        self.plan_code_field = options['plan_code_field']
+        self.subplan_code_field = options['subplan_code_field']
+        self.remove_stale = options['remove_stale']
 
         try:
             self.profile_type = ProgramProfileType.objects.get(name=profile_type)
@@ -63,6 +93,9 @@ Imports URLs for ProgramProfiles from a WordPress blog
 
         if self.progress_bar:
             self.progress_bar.finish()
+
+        if self.remove_stale:
+            self.remove_stale_profiles()
 
         self.print_stats()
 
@@ -97,18 +130,22 @@ Imports URLs for ProgramProfiles from a WordPress blog
         for program in programs:
             self.degrees_processed += 1
             self.progress_bar.next()
-            plan_code = program['degree_meta']['degree_code']
-            subplan_code = program['degree_meta']['degree_subplan_code']
+            plan_code = program['degree_meta'][self.plan_code_field] if self.plan_code_field in program['degree_meta'] else None
+            subplan_code = program['degree_meta'][self.subplan_code_field] if self.subplan_code_field in program['degree_meta'] else None
 
             try:
-                prg_obj = Program.objects.get(plan_code=plan_code, subplan_code=subplan_code)
-                self.degrees_matched += 1
+                if plan_code:
+                    prg_obj = Program.objects.get(plan_code=plan_code, subplan_code=subplan_code)
+                    self.degrees_matched += 1
+                else:
+                    self.degrees_skipped += 1
             except:
                 self.degrees_skipped += 1
                 continue
 
             try:
                 existing = ProgramProfile.objects.get(program=prg_obj, profile_type=self.profile_type)
+                self.found_profiles.append(existing.id)
                 if existing.url != program['link']:
                     existing.url = program['link']
                     existing.primary = self.set_primary
@@ -125,7 +162,14 @@ Imports URLs for ProgramProfiles from a WordPress blog
                     url=program['link']
                 )
                 profile.save()
+                self.found_profiles.append(profile.id)
                 self.profiles_created += 1
+
+    def remove_stale_profiles(self):
+        not_processed = ProgramProfile.objects.filter(profile_type=self.profile_type).exclude(id__in=self.found_profiles)
+        self.profiles_removed = len(not_processed)
+        if self.profiles_removed > 0:
+            not_processed.delete()
 
     def print_stats(self):
         results = [
@@ -135,7 +179,8 @@ Imports URLs for ProgramProfiles from a WordPress blog
             ("Degrees Skipped", self.degrees_skipped),
             ("Profiles Created", self.profiles_created),
             ("Profiles Updated", self.profiles_updated),
-            ("Profiles Skipped (No Update Needed)", self.profiles_skipped)
+            ("Profiles Skipped (No Update Needed)", self.profiles_skipped),
+            ("Profiles Removed (Stale)", self.profiles_removed)
         ]
 
         self.stdout.write('''

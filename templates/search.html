@@ -4,11 +4,19 @@
 
 <app-root></app-root>
 
-<script src="{% static 'archimedes/runtime-es2015.js' %}" type="module"></script>
-<script src="{% static 'archimedes/runtime-es5.js' %}" nomodule defer></script>
-<script src="{% static 'archimedes/polyfills-es5.js' %}" nomodule defer></script>
-<script src="{% static 'archimedes/polyfills-es2015.js' %}" type="module"></script>
-<script src="{% static 'archimedes/main-es2015.js' %}" type="module"></script>
-<script src="{% static 'archimedes/main-es5.js' %}" nomodule defer></script>
+{% if local %}
+    <script src="{% static 'archimedes/runtime.js' %}" type="module"></script>
+    <script src="{% static 'archimedes/polyfills.js' %}" type="module"></script>
+    <script src="{% static 'archimedes/styles.js' %}" type="module"></script>
+    <script src="{% static 'archimedes/vendor.js' %}" type="module"></script>
+    <script src="{% static 'archimedes/main.js' %}" type="module"></script>
+{% else %}
+    <script src="{% static 'archimedes/runtime-es2015.js' %}" type="module"></script>
+    <script src="{% static 'archimedes/runtime-es5.js' %}" nomodule defer></script>
+    <script src="{% static 'archimedes/polyfills-es5.js' %}" nomodule defer></script>
+    <script src="{% static 'archimedes/polyfills-es2015.js' %}" type="module"></script>
+    <script src="{% static 'archimedes/main-es2015.js' %}" type="module"></script>
+    <script src="{% static 'archimedes/main-es5.js' %}" nomodule defer></script>
+{% endif %}
 
 {% endblock %}
