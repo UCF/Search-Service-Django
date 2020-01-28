@@ -129,14 +129,14 @@ UCF_TANDEMVAULT_DOMAIN = 'ucf.tandemvault.com'
 # An API key to use with UCF's Tandem Vault that has admin-level user access.
 TANDEMVAULT_ADMIN_API_KEY = ''
 
+# An API key to use with UCF's Tandem Vault that has UCF Communicator-level user access.
+TANDEMVAULT_COMMUNICATOR_API_KEY = ''
+
 # The URL to the News API
 UCF_NEWS_API = 'https://wwwdev.cc.ucf.edu'
 
 # The URL to the Search Service API
 UCF_SEARCH_SERVICE_API = 'https://searchdev.cm.ucf.edu'
-
-# An API key to use with UCF's Tandem Vault that has UCF Communicator-level user access.
-TANDEMVAULT_COMMUNICATOR_API_KEY = ''
 
 # An AWS Access Key ID with sufficient permissions to access Rekognition.
 AWS_ACCESS_KEY = ''
