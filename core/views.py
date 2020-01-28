@@ -18,8 +18,7 @@ class TitleContextMixin(object):
         context = super(TitleContextMixin, self).get_context_data(**kwargs)
         context['title'] = self.title
         context['heading'] = self.heading
-        context['newsApi'] = self.newsApi
-        context['searchServiceApi'] = self.searchServiceApi
+        context['debug'] = self.debug
 
         return context
 
@@ -33,8 +32,7 @@ class SearchView(TitleContextMixin, TemplateView):
     template_name = 'search.html'
     title = ''
     heading = 'UCF Search Service'
-    newsApi = settings.UCF_NEWS_API
-    searchServiceApi = settings.UCF_SEARCH_SERVICE_API
+    debug = settings.DEBUG
 
 class SettingsAPIView(APIView):
     def get(request, format=None, **kwargs):

@@ -2,17 +2,27 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 
-declare let newsApi: string;
-declare let searchServiceApi: string;
-
 @Injectable({
   providedIn: 'root'
 })
 export class HttpService {
+  newsApi: string;
+  searchServiceApi: string
 
   constructor(
     private httpClient: HttpClient
-  ) { }
+  ) {
+    let params = new HttpParams().set('format', 'json');
+    this.httpClient.get('/settings/', { params })
+    .subscribe(
+      (response: any) => { // on success
+        this.newsApi = response.ucf_news_api;
+        this.searchServiceApi = response.ucf_search_service_api;
+      },
+      (error: any) => { // on error
+        console.error(error);
+      });
+  }
 
   search(searchType: string, query: string, offset: string): Observable<any> {
 
@@ -26,7 +36,7 @@ export class HttpService {
 
     switch (searchType) {
       case 'programs':
-        apiUrl = searchServiceApi + '/api/v1/programs/search/';
+        apiUrl = this.searchServiceApi + '/api/v1/programs/search/';
         params = new HttpParams()
           .set('format', 'json')
           .set('search', query)
@@ -34,7 +44,7 @@ export class HttpService {
           .set('offset', offset);
         break;
       case 'news':
-        apiUrl = newsApi + '/news/wp-json/wp/v2/posts';
+        apiUrl = this.newsApi + '/news/wp-json/wp/v2/posts';
         params = new HttpParams()
           .set('tag_slugs[]', query)
           .set('per_page', '5')
@@ -42,7 +52,7 @@ export class HttpService {
           .set('offset', offset);
         break;
         case 'images':
-          apiUrl = searchServiceApi + '/api/v1/images/search/';
+          apiUrl = this.searchServiceApi + '/api/v1/images/search/';
           params = new HttpParams()
             .set('format', 'json')
             .set('search', query)

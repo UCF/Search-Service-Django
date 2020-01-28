@@ -21,8 +21,8 @@ A Django based application that provides a REST API, as well as manual and autom
 ## Archimedes Setup
 
 1. Run `npm install` within the `archimedes` directory.
-2. Run `ng serve --open` to view app during development.
-3. Run `ng build -c production` to deploy code to the static folder for production environment.
+2. Run `ng build --watch` to view app during development.
+3. Run `ng build -c production` to compile angular js for production environment.
 
 ## Installation Notes
 The pip dependency `lxml` requires some additional libraries to be installed on the server the application is running on. You can run the following commands to install:
