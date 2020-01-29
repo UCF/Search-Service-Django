@@ -111,7 +111,7 @@
             </div>
 
         </div>
-        <div class="col">
+        <div class="col" *ngIf="selected.image">
 
             <div class="image-results" *ngIf="imageResults || imageLoading || imageError">
                 <span class="badge badge-default badge-pill float-right mt-1"
