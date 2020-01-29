@@ -1,7 +1,7 @@
 import { map, debounceTime, tap, switchAll, filter } from 'rxjs/operators';
 import { fromEvent } from 'rxjs';
 import { HttpService } from './../../service/http.service';
-import { Component, OnInit, Output, EventEmitter, ElementRef } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-search-box',
@@ -9,6 +9,8 @@ import { Component, OnInit, Output, EventEmitter, ElementRef } from '@angular/co
   styleUrls: ['./search-box.component.scss']
 })
 export class SearchBoxComponent implements OnInit {
+  @ViewChild('queryInput', {static: false}) queryInput: ElementRef;
+
   observables = {
     programs: null,
     news: null,
@@ -98,19 +100,18 @@ export class SearchBoxComponent implements OnInit {
         }
       );
 
-      this.observables[searchType] = observable;
+    this.observables[searchType] = observable;
 
   }
 
   toggle(type: string, set: boolean): void {
     if(set) {
       this.setObservable(type);
+      let event = new KeyboardEvent('keyup', {'bubbles': true});
+      this.queryInput.nativeElement.dispatchEvent(event);
     } else {
       this.observables[type].unsubscribe();
     }
-    this.programResults.emit(null);
-    this.newsResults.emit(null);
-    this.imageResults.emit(null);
   }
 
   ngOnInit(): void {
