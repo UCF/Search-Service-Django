@@ -21,7 +21,7 @@
                 <input type="checkbox" class="custom-control-input" name="program"
                     [(ngModel)]="selected.program" (change)="SearchBox.toggle('programs', selected.program)">
                 <span class="custom-control-indicator"></span>
-                <span class="custom-control-description">Programs {{selected.program}}</span>
+                <span class="custom-control-description">Programs</span>
             </label>
             <label class="custom-control custom-checkbox">
                 <input type="checkbox" class="custom-control-input" name="news"
@@ -38,7 +38,7 @@
         </div>
     </div>
     <div class="row mt-4">
-        <div class="col-lg-6" *ngIf="selected.program">
+        <div class="col-lg-6 mb-5" *ngIf="selected.program">
 
             <div class="program-results" *ngIf="programResults || programLoading || programError">
                 <span class="badge badge-default badge-pill float-right mt-1"
@@ -75,7 +75,7 @@
             </div>
 
         </div>
-        <div class="col-lg-6" *ngIf="selected.news">
+        <div class="col-lg-6 mb-5" *ngIf="selected.news">
 
             <div class="news-results mt-4 mt-lg-0" *ngIf="newsResults || newsLoading || newsError">
                 <span class="badge badge-default badge-pill float-right mt-1"
@@ -111,10 +111,7 @@
             </div>
 
         </div>
-    </div>
-
-    <div class="row mt-4" *ngIf="selected.image">
-        <div class="col-12">
+        <div class="col">
 
             <div class="image-results" *ngIf="imageResults || imageLoading || imageError">
                 <span class="badge badge-default badge-pill float-right mt-1"
@@ -132,11 +129,11 @@
                 <ng-container *ngIf="imageResults && imageResults.results && !imageError">
                     <div app-image [images]="imageResults.results" class="row"></div>
                     <app-show-more
-                        *ngIf="imageResults.count > 8"
+                        *ngIf="imageResults.count > 16"
                         [inputData]="{
                             searchType: 'images',
                             count: imageResults.count,
-                            limit: 8,
+                            limit: 16,
                             query: query
                         }"
                         (query)="queryUpdated($event)"
