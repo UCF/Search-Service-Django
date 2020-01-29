@@ -30,10 +30,6 @@ export class AppComponent {
 
   constructor() { }
 
-  toggleChange(): void {
-    console.log('toggle');
-  }
-
   queryUpdated(query: string): void {
     this.query = query;
   }
