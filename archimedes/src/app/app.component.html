@@ -134,7 +134,8 @@
                 </div>
 
                 <ng-container *ngIf="imageResults && imageResults.results && !imageError">
-                    <div app-image [images]="imageResults.results" class="row"></div>
+                    <div app-image [images]="imageResults.results" class="row"
+                        (queryEmitter)="SearchBox.updateQuery($event)"></div>
                     <app-show-more
                         *ngIf="imageResults.count > 16"
                         [inputData]="{
@@ -143,7 +144,6 @@
                             limit: 16,
                             query: query
                         }"
-                        (query)="queryUpdated($event)"
                         (loading)="imageLoading = $event"
                         (error)="imageError = $event"
                         (results)="updateImageResults($event)">

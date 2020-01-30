@@ -104,6 +104,12 @@ export class SearchBoxComponent implements OnInit {
 
   }
 
+  updateQuery(query: string) {
+    let event = new KeyboardEvent('keyup', {'bubbles': true});
+    this.queryInput.nativeElement.value = query;
+    this.queryInput.nativeElement.dispatchEvent(event);
+  }
+
   toggle(type: string, set: boolean): void {
     if(set) {
       this.setObservable(type);

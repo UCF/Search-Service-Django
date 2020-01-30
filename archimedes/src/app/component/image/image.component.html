@@ -17,7 +17,7 @@
                     <p *ngIf="image.tags && image.tags.length">
                         <strong>Tags: </strong>
                         <ng-container *ngFor="let tag of image.tags; let isLast=last">
-                            <a [href]="['https://ucf.tandemvault.com/browse?tags=' + tag]" target="_blank">{{tag}}</a>{{isLast ? '' : ', '}}
+                            <a href="#" (click)="updateQuery(tag)" data-dismiss="modal">{{tag}}</a>{{isLast ? '' : ', '}}
                         </ng-container>
                     </p>
 
