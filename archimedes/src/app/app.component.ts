@@ -7,6 +7,12 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'UCF-Archimedes-Plugin';
+  searchObservableProgram: any;
+  selected = {
+    program: true,
+    news: true,
+    image: true
+  }
 
   query: string;
 

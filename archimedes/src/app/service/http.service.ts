@@ -56,7 +56,7 @@ export class HttpService {
           params = new HttpParams()
             .set('format', 'json')
             .set('search', query)
-            .set('limit', '8')
+            .set('limit', '16')
             .set('offset', offset);
           break;
     }

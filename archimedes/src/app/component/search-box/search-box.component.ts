@@ -1,7 +1,7 @@
 import { map, debounceTime, tap, switchAll, filter } from 'rxjs/operators';
 import { fromEvent } from 'rxjs';
 import { HttpService } from './../../service/http.service';
-import { Component, OnInit, Output, EventEmitter, ElementRef } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-search-box',
@@ -9,6 +9,14 @@ import { Component, OnInit, Output, EventEmitter, ElementRef } from '@angular/co
   styleUrls: ['./search-box.component.scss']
 })
 export class SearchBoxComponent implements OnInit {
+  @ViewChild('queryInput', {static: false}) queryInput: ElementRef;
+
+  observables = {
+    programs: null,
+    news: null,
+    images: null
+  }
+
   @Output() query: EventEmitter<string> = new EventEmitter<string>();
 
   @Output() programLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
@@ -28,17 +36,35 @@ export class SearchBoxComponent implements OnInit {
     private elementRef: ElementRef
   ) {}
 
-  setObservable(
-    searchType: string,
-    loading: EventEmitter<boolean>,
-    errorEmit: EventEmitter<boolean>,
-    results: EventEmitter<any>) {
+  setObservable(searchType: string) {
+
+    let loading: EventEmitter<boolean>;
+    let error: EventEmitter<boolean>;
+    let results: EventEmitter<any>;
+
+    if(searchType === 'programs') {
+      loading = this.programLoading;
+      error = this.programError;
+      results = this.programResults;
+    }
+
+    if(searchType === 'news') {
+      loading = this.newsLoading;
+      error = this.newsError;
+      results = this.newsResults;
+    }
+
+    if(searchType === 'images') {
+      loading = this.imageLoading;
+      error = this.imageError;
+      results = this.imageResults;
+    }
 
     // convert the `keyup` event into an observable stream
-    fromEvent(this.elementRef.nativeElement, 'keyup')
+    const observable = fromEvent(this.elementRef.nativeElement, 'keyup')
       .pipe (
-          map((e:any) => e.target.value), // extract the value of the input
-          filter((text:string) => text.length > 2), //filter out if empty
+          map((event: any) => event.target.value), // extract the value of the input
+          filter((text: string) => text.length > 2), //filter out if empty
           debounceTime(250), //only search after 250 ms
           tap((query: string) => {
             loading.emit(true);
@@ -51,7 +77,7 @@ export class SearchBoxComponent implements OnInit {
       ).subscribe(
         (response: any) => { // on success
           loading.emit(false);
-          errorEmit.emit(false);
+          error.emit(false);
           // news
           if(response.headers.get('X-WP-Total')) {
             results.emit({
@@ -66,19 +92,32 @@ export class SearchBoxComponent implements OnInit {
         (error: any) => { // on error
           console.error(error);
           loading.emit(false);
-          errorEmit.emit(true);
+          error.emit(true);
         },
         () => { // on completion
           loading.emit(false);
-          errorEmit.emit(true);
+          error.emit(true);
         }
       );
+
+    this.observables[searchType] = observable;
+
+  }
+
+  toggle(type: string, set: boolean): void {
+    if(set) {
+      this.setObservable(type);
+      let event = new KeyboardEvent('keyup', {'bubbles': true});
+      this.queryInput.nativeElement.dispatchEvent(event);
+    } else {
+      this.observables[type].unsubscribe();
+    }
   }
 
   ngOnInit(): void {
-    this.setObservable('programs', this.programLoading, this.programError, this.programResults);
-    this.setObservable('news', this.newsLoading, this.newsError, this.newsResults);
-    this.setObservable('images', this.imageLoading, this.imageError, this.imageResults);
+    this.setObservable('programs');
+    this.setObservable('news');
+    this.setObservable('images');
   }
 
 }
