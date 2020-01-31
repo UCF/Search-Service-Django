@@ -27,6 +27,7 @@ class HomeView(TitleContextMixin, TemplateView):
     template_name = 'home.html'
     title = ''
     heading = 'UCF Search Service'
+    local = settings.LOCAL
 
 class SearchView(TitleContextMixin, TemplateView):
     template_name = 'search.html'
