@@ -15,6 +15,13 @@
             </app-search-box>
         </div>
     </div>
+    <div class="row" *ngIf="(selected.program || selected.news || selected.image) && query && query.length < 3">
+        <div class="col">
+            <div class="alert alert-info px-3 py-2" role="alert">
+                Enter 3 or more characters to view results.
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col">
             <label class="custom-control custom-checkbox">
@@ -37,17 +44,10 @@
             </label>
         </div>
     </div>
-    <div class="row" *ngIf="(selected.program || selected.news || selected.image) && query && query.length < 3">
-        <div class="col">
-            <div class="alert alert-info" role="alert">
-                Enter 3 or more characters to view results.
-            </div>
-        </div>
-    </div>
     <div class="row" *ngIf="!selected.program && !selected.news && !selected.image">
         <div class="col">
-            <div class="alert alert-info" role="alert">
-                Select at least one filter above to view results.
+            <div class="alert alert-info px-3 py-2" role="alert">
+                <span class="fa fa-exclamation-triangle" aria-hidden="true"></span> Select at least one filter above to view results.
             </div>
         </div>
     </div>
