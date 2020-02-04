@@ -11,13 +11,15 @@
                 <div class="modal-body small">
 
                     <div class="text-center">
-                        <img src="{{image.thumbnail_url}}" alt="{{image.location}}" class="img-fluid mb-3">
+                        <a [attr.href]="[image.download_url]" target="_blank">
+                            <img src="{{image.thumbnail_url}}" alt="{{image.location}}" class="img-fluid mb-3">
+                        </a>
                     </div>
 
                     <p *ngIf="image.tags && image.tags.length">
                         <strong>Tags: </strong>
                         <ng-container *ngFor="let tag of image.tags; let isLast=last">
-                            <a [href]="['https://ucf.tandemvault.com/browse?tags=' + tag]" target="_blank">{{tag}}</a>{{isLast ? '' : ', '}}
+                            <a href="#" (click)="updateQuery(tag)" data-dismiss="modal">{{tag}}</a>{{isLast ? '' : ', '}}
                         </ng-container>
                     </p>
 

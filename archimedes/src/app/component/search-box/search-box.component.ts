@@ -1,4 +1,4 @@
-import { map, debounceTime, tap, switchAll, filter } from 'rxjs/operators';
+import { map, debounceTime, tap, switchAll, filter, distinctUntilChanged } from 'rxjs/operators';
 import { fromEvent } from 'rxjs';
 import { HttpService } from './../../service/http.service';
 import { Component, OnInit, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
@@ -64,8 +64,8 @@ export class SearchBoxComponent implements OnInit {
     const observable = fromEvent(this.elementRef.nativeElement, 'keyup')
       .pipe (
           map((event: any) => event.target.value), // extract the value of the input
-          filter((text: string) => text.length > 2), //filter out if empty
-          debounceTime(250), //only search after 250 ms
+          debounceTime(400), //only search after 400 ms
+          distinctUntilChanged(),
           tap((query: string) => {
             loading.emit(true);
             this.query.emit(query);
@@ -78,15 +78,20 @@ export class SearchBoxComponent implements OnInit {
         (response: any) => { // on success
           loading.emit(false);
           error.emit(false);
+          if(!response) {
+            results.emit(null);
+          }
           // news
-          if(response.headers.get('X-WP-Total')) {
+          if(response && response.headers.get('X-WP-Total')) {
             results.emit({
               "results": response.body,
               "count": response.headers.get('X-WP-Total')
             });
           // program or image
           } else {
-            results.emit(response.body)
+            if(response) {
+              results.emit(response.body);
+            }
           }
         },
         (error: any) => { // on error
@@ -104,12 +109,25 @@ export class SearchBoxComponent implements OnInit {
 
   }
 
+  updateQuery(query: string) {
+    let event = new KeyboardEvent('keyup', {'bubbles': true});
+    this.queryInput.nativeElement.value = query;
+    this.queryInput.nativeElement.dispatchEvent(event);
+  }
+
   toggle(type: string, set: boolean): void {
     if(set) {
       this.setObservable(type);
       let event = new KeyboardEvent('keyup', {'bubbles': true});
       this.queryInput.nativeElement.dispatchEvent(event);
     } else {
+      if(type === 'programs') {
+        this.programResults.emit(null);
+      } else if(type === 'news') {
+        this.newsResults.emit(null);
+      } else if(type === 'images') {
+        this.imageResults.emit(null);
+      }
       this.observables[type].unsubscribe();
     }
   }
