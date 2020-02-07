@@ -75,6 +75,7 @@
                             searchType: 'programs',
                             count: programResults.count,
                             limit: 5,
+                            offset: 0,
                             query: query
                         }"
                         (loading)="programLoading = $event"
@@ -112,6 +113,7 @@
                             searchType: 'news',
                             count: newsResults.count,
                             limit: 5,
+                            offset: 0,
                             query: query
                         }"
                         (loading)="newsLoading = $event"
@@ -149,6 +151,7 @@
                             searchType: 'images',
                             count: imageResults.count,
                             limit: 16,
+                            offset: 0,
                             query: query
                         }"
                         (loading)="imageLoading = $event"

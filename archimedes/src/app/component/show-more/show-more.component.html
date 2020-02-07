@@ -1,4 +1,6 @@
 <div class="list-group-item d-flex">
-    <a href="#prev" *ngIf="offset > 0" (click)="prev()" class="mr-auto">&lt; Previous</a>
-    <a href="#next" *ngIf="(offset + inputData.limit) < inputData.count" (click)="next()" class="ml-auto">Next &gt;</a>
+    <a href="#prev" *ngIf="inputData.offset > 0" (click)="prev()"
+        class="mr-auto">&lt; Previous</a>
+    <a href="#next" *ngIf="(inputData.offset + inputData.limit) < inputData.count"
+        (click)="next()" class="ml-auto">Next &gt;</a>
 </div>
