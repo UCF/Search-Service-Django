@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'drf_dynamic_fields',
     'django_mysql',
     'corsheaders',
+    'widget_tweaks',
 
     # Local
     'programs',
@@ -98,6 +99,10 @@ WSGI_APPLICATION = 'wsgi.application'
 SILENCED_SYSTEM_CHECKS = [
     'django_mysql.W002',
 ]
+
+LOGIN_REDIRECT_URL = 'home'
+
+LOGIN_URL = '/login/'
 
 try:
     from settings_local import *
