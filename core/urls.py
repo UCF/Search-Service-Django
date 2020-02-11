@@ -16,7 +16,7 @@ urlpatterns = [
     ),
     url(
         r'^search/$',
-        login_required(SearchView.as_view(template_name='search.html')),
+        SearchView.as_view(template_name='search.html'),
         name='search'
     ),
     url(
