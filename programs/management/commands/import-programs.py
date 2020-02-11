@@ -240,10 +240,9 @@ class Command(BaseCommand):
         # Remove any existing relationship to a current-version CIP
         # if it exists (in case the CIP changed in this import
         # for some reason).
-        existing_cips = program.cip
+        existing_cips = program.cip.filter(version=self.cip_version)
         if existing_cips.exists():
-            existing_cip = CIP.objects.get(version=self.cip_version, code=data['CIP'], program=program.pk)
-            program.cip.remove(existing_cip)
+            program.cip.remove(existing_cips)
 
         # Add an existing, current-version CIP object to the program.
         if data['CIP']:
