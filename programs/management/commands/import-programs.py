@@ -242,7 +242,7 @@ class Command(BaseCommand):
         # for some reason).
         existing_cips = program.cip.filter(version=self.cip_version)
         if existing_cips.exists():
-            program.cip.remove(existing_cips)
+            program.cip.remove(*existing_cips)
 
         # Add an existing, current-version CIP object to the program.
         if data['CIP']:
