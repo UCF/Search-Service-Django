@@ -40,11 +40,11 @@ urlpatterns = [
         name='favicon'
         ),
     url(
-        r'^login/$',
+        r'^manager/login/$',
         LoginView.as_view(template_name='login.html'), name='login'
     ),
     url(
-        r'^logout/$',
+        r'^manager/logout/$',
         LogoutView.as_view(template_name='logout.html'), name='logout'
     ),
     url(r'^',

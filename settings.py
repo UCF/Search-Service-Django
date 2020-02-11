@@ -102,7 +102,7 @@ SILENCED_SYSTEM_CHECKS = [
 
 LOGIN_REDIRECT_URL = 'home'
 
-LOGIN_URL = '/login/'
+LOGIN_URL = '/manager/login/'
 
 try:
     from settings_local import *

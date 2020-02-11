@@ -15,7 +15,7 @@ urlpatterns = [
         name='home'
     ),
     url(
-        r'^search/$',
+        r'^manager/search/$',
         SearchView.as_view(template_name='search.html'),
         name='search'
     ),
