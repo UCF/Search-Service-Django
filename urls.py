@@ -40,6 +40,10 @@ urlpatterns = [
         name='favicon'
         ),
     url(
+        r'^manager/$',
+        RedirectView.as_view(pattern_name='login'), name='manager'
+    ),
+    url(
         r'^manager/login/$',
         LoginView.as_view(template_name='login.html'), name='login'
     ),
@@ -49,5 +53,5 @@ urlpatterns = [
     ),
     url(r'^',
         include('core.urls')
-        )
+    )
 ]
