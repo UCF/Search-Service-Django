@@ -6,7 +6,7 @@ certifi==2019.11.28
 chardet==3.0.4
 contextlib2==0.6.0.post1
 coreschema==0.0.4
-Django==1.11.23
+Django==1.11.28
 django-cors-headers==3.0.2
 django-filter==1.1.0
 django-mysql==2.5.0
