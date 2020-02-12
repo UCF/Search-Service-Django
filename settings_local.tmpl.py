@@ -9,7 +9,7 @@ SECRET_KEY = 'SUPERSECRETKEYHEREPLEASEANDTHANKYOU'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# Set to true for local development with the Angular
+# Set to true for local development with the Angular app
 LOCAL = False
 
 ALLOWED_HOSTS = []

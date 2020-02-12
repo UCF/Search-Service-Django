@@ -10,6 +10,7 @@ Django==1.11.23
 django-cors-headers==3.0.2
 django-filter==1.1.0
 django-mysql==2.5.0
+django-widget-tweaks==1.4.5
 djangorestframework==3.9.1
 docutils==0.15.2
 drf-dynamic-fields==0.3.0

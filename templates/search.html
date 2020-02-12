@@ -1,5 +1,21 @@
 {% extends 'base.html' %}
+
 {% load static %}
+
+{% block header_content %}
+<div class="row">
+  <div class="col">
+    <h1 class="display-4 text-inverse">
+      <span class="d-block h6 font-weight-normal mb-3">UCF Search Service</span>
+      Archimedes
+    </h1>
+  </div>
+  <div class="col-auto">
+    <a href="{% url 'logout' %}" class="btn btn-outline-inverse">Sign Out</a>
+  </div>
+</div>
+{% endblock %}
+
 {% block body %}
 
 <app-root></app-root>

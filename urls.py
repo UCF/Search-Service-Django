@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import RedirectView
 
 urlpatterns = [
@@ -38,7 +39,19 @@ urlpatterns = [
         RedirectView.as_view(url='/static/favicon.ico'),
         name='favicon'
         ),
+    url(
+        r'^manager/$',
+        RedirectView.as_view(pattern_name='login'), name='manager'
+    ),
+    url(
+        r'^manager/login/$',
+        LoginView.as_view(template_name='login.html'), name='login'
+    ),
+    url(
+        r'^manager/logout/$',
+        LogoutView.as_view(template_name='logout.html'), name='logout'
+    ),
     url(r'^',
         include('core.urls')
-        )
+    )
 ]
