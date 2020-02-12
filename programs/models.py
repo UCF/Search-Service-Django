@@ -291,10 +291,6 @@ class Program(models.Model):
         return self.plan_code + self.subplan_code
 
     @property
-    def primary_profile_url(self):
-        return self.program_profiles.get(primary=True)
-
-    @property
     def has_subplans(self):
         if len(self.subplans.all()) > 0:
             return True
@@ -341,6 +337,53 @@ class Program(models.Model):
     def careers(self):
         return self.current_occupations.filter(jobs__isnull=False).values_list('jobs__name', flat=True).distinct()
 
+    @property
+    def primary_profile_type(self):
+        rules = settings.PROGRAM_PROFILE
+
+        retval = None
+
+        for rule in rules:
+            conditions_met = False
+
+            # If there are no conditions, then the conditions are met.
+            # This should only apply to the 'default' assignment.
+            if len(rule['conditions']) < 1:
+                conditions_met = True
+
+            for condition in rule['conditions']:
+                field_obj = Program._meta.get_field(condition['field'])
+                field_val = field_obj.value_from_object(self)
+                if field_val == condition['value']:
+                    conditions_met = True
+
+            if conditions_met == True:
+                try:
+                    profile_type = ProgramProfileType.objects.get(name=rule['value'])
+                    return profile_type
+                except:
+                    continue
+
+        return None
+
+    @property
+    def primary_profile_url(self):
+        primary_profile = self.profiles.filter(primary=True).first()
+
+        if primary_profile:
+            return primary_profile.url
+        else:
+            primary_profile_type = self.primary_profile_type
+
+            if primary_profile_type:
+                fallback_profile = self.profiles.filter(profile_type=primary_profile_type).first()
+
+                if fallback_profile:
+                    return fallback_profile.url
+                else:
+                    return primary_profile_type.root_url
+
+        return None
 
 class ProgramProfile(models.Model):
     """
