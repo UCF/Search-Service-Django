@@ -350,9 +350,18 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
     descriptions = ProgramDescriptionLinkedSerializer(many=True, read_only=False)
     profiles = ProgramProfileLinkedSerializer(many=True, read_only=False)
-    outcomes = serializers.SerializerMethodField()
-    projection_totals = serializers.SerializerMethodField()
-    careers = serializers.SerializerMethodField()
+    outcomes = serializers.HyperlinkedIdentityField(
+        view_name='api.programs.outcomes',
+        lookup_field='id'
+    )
+    projection_totals = serializers.HyperlinkedIdentityField(
+        view_name='api.programs.projections',
+        lookup_field='id'
+    )
+    careers = serializers.HyperlinkedIdentityField(
+        view_name='api.programs.careers',
+        lookup_field='id'
+    )
 
     colleges = CollegeLinkSerializer(
         many=True,
@@ -367,44 +376,6 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     parent_program = RelatedProgramSerializer(many=False, read_only=True)
     subplans = RelatedProgramSerializer(many=True, read_only=True)
 
-    def get_outcomes(self, program):
-        all_outcome_data = program.outcomes.all()
-        latest_outcome_data = program.outcomes.order_by('-academic_year__code').first()
-        by_year_serializer = ProgramOutcomeStatSerializer(instance=all_outcome_data, many=True)
-        latest_serializer = ProgramOutcomeStatSerializer(instance=latest_outcome_data, many=False)
-
-        retval = {
-            'by_year': by_year_serializer.data,
-            'latest': latest_serializer.data
-        }
-
-        return retval
-
-    def get_projections(self, program):
-        projection_serializer = EmploymentProjectionSerializer(instance=program.current_projections, many=True)
-        return projection_serializer.data
-
-    def get_careers(self, program):
-        return program.careers
-
-    def get_projection_totals(self, program):
-        obj = program.current_projections.aggregate(
-            begin_employment=Sum('begin_employment'),
-            end_employment=Sum('end_employment'),
-            change=Sum('change'),
-            change_percentage=Avg('change_percentage'),
-            openings=Sum('openings')
-        )
-
-        first_projection = program.current_projections.first()
-
-        obj['begin_year'] = first_projection.report_year_begin if first_projection is not None else None
-        obj['end_year'] = first_projection.report_year_end if first_projection is not None else None
-
-        serializer = EmploymentProjectionTotalsSerializer(obj, many=False)
-        return serializer.data
-
-
     class Meta:
         fields = (
             'id',
@@ -413,6 +384,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'online',
             'has_online',
             'profiles',
+            'primary_profile_url',
             'plan_code',
             'subplan_code',
             'catalog_url',

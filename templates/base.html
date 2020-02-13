@@ -19,7 +19,11 @@
           <img class="media-background object-fit-cover" src="{% static 'img/dark-lines.jpg' %}" alt="" data-object-fit="cover">
         </picture>
         <div class="container my-5">
-          <h1 class="display-4 text-inverse">{{ heading }}</h1>
+          {% block header_content %}
+          <h1 class="display-4 text-inverse">
+            {% block heading_text %}{{ heading }}{% endblock %}
+          </h1>
+          {% endblock %}
         </div>
       </div>
     </header>

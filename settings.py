@@ -35,22 +35,25 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'drf_dynamic_fields',
     'django_mysql',
+    'corsheaders',
+    'widget_tweaks',
 
     # Local
     'programs',
     'teledata',
+    'images',
     'core'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'urls'
@@ -96,6 +99,10 @@ WSGI_APPLICATION = 'wsgi.application'
 SILENCED_SYSTEM_CHECKS = [
     'django_mysql.W002',
 ]
+
+LOGIN_REDIRECT_URL = 'home'
+
+LOGIN_URL = '/manager/login/'
 
 try:
     from settings_local import *

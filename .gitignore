@@ -28,3 +28,6 @@ gulp-config.json
 # Static Files
 static/admin/*
 static/rest_framework/*
+static/archimedes/index.html
+static/archimedes/3rdpartylicenses.txt
+node_modules

@@ -1,0 +1,12 @@
+<a href="{{article.link}}" target="_blank" class="list-group-item" *ngFor="let article of news">
+    <div class="row">
+        <div class="col-4">
+            <img src="{{article.thumbnail}}" alt="" class="img-fluid" *ngIf="article.thumbnail">
+            <img src="/static/archimedes/assets/news-default.jpg" alt="" class="img-fluid" *ngIf="!article.thumbnail">
+        </div>
+        <div class="col-8">
+            <h3 [innerHTML]="article.title.rendered | safeHtml" class="h6 w-100"></h3>
+            <small class="text-muted d-block mt-2">{{article.date | date :'MMMM d, y' }}</small>
+        </div>
+    </div>
+</a>

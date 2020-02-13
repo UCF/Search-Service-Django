@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block heading_text %}
+<span class="d-block h6 font-weight-normal mb-3">UCF Search Service</span>
+Sign Out
+{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+  You have been successfully signed out.  <a href="{% url 'home' %}">Return to home page</a>
+</div>
+{% endblock %}
