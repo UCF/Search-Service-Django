@@ -9,13 +9,16 @@
                 (newsResults)="updateNewsResults($event)"
                 (newsLoading)="newsLoading = $event"
                 (newsError)="newsError = $event"
+                (eventsResults)="updateEventsResults($event)"
+                (eventsLoading)="eventsLoading = $event"
+                (eventsError)="eventsError = $event"
                 (imageResults)="updateImageResults($event)"
                 (imageLoading)="imageLoading = $event"
                 (imageError)="imageError = $event">
             </app-search-box>
         </div>
     </div>
-    <div class="row" *ngIf="(selected.program || selected.news || selected.image) && query && query.length < 3">
+    <div class="row" *ngIf="(selected.program || selected.news || selected.events || selected.image) && query && query.length < 3">
         <div class="col">
             <div class="alert alert-info px-3 py-2" role="alert">
                 Enter 3 or more characters to view results.
@@ -37,6 +40,12 @@
                 <span class="custom-control-description">News</span>
             </label>
             <label class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="events"
+                    [(ngModel)]="selected.events" (change)="SearchBox.toggle('events', selected.events)">
+                <span class="custom-control-indicator"></span>
+                <span class="custom-control-description">Events</span>
+            </label>
+            <label class="custom-control custom-checkbox">
                 <input type="checkbox" class="custom-control-input" name="image"
                     [(ngModel)]="selected.image" (change)="SearchBox.toggle('images', selected.image)">
                 <span class="custom-control-indicator"></span>
@@ -44,7 +53,7 @@
             </label>
         </div>
     </div>
-    <div class="row" *ngIf="!selected.program && !selected.news && !selected.image">
+    <div class="row" *ngIf="!selected.program && !selected.news && !selected.events && !selected.image">
         <div class="col">
             <div class="alert alert-info px-3 py-2" role="alert">
                 <span class="fa fa-exclamation-triangle" aria-hidden="true"></span> Select at least one filter above to view results.
@@ -149,8 +158,6 @@
                         [inputData]="{
                             searchType: 'events',
                             count: eventsResults.count,
-                            limit: 5,
-                            offset: 0,
                             query: query
                         }"
                         (loading)="eventsLoading = $event"
