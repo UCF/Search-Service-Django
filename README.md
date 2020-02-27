@@ -26,6 +26,8 @@ A Django based application that provides a REST API, as well as manual and autom
 
 ## Archimedes Setup
 
+NOTE: to build/test Archimedes, you must set `LOCAL = True` in your settings_local.py.
+
 1. Run `npm install` within the `archimedes` directory.
 2. Run `ng build --watch` to view app during development.
 3. Run `ng build -c production` to compile angular js for production environment.
