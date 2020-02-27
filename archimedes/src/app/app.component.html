@@ -127,7 +127,44 @@
             </div>
 
         </div>
-        <div class="col" *ngIf="selected.image">
+        <div class="col mb-5" *ngIf="selected.events">
+
+            <div class="events-results mt-4 mt-lg-0" *ngIf="eventsResults || eventsLoading || eventsError">
+                <span class="badge badge-default badge-pill float-right mt-1"
+                    *ngIf="eventsResults && eventsResults.count && eventsResults.count > 0">
+                    {{eventsResults.count}}
+                </span>
+                <h2 class="h4 text-uppercase mb-3">
+                    Events &amp; Calendars <app-loading-icon *ngIf="eventsLoading"></app-loading-icon>
+                </h2>
+
+                <div class="alert alert-danger" *ngIf="eventsError">
+                    Error loading events/calendars.
+                </div>
+
+                <ng-container *ngIf="eventsResults && eventsResults.results && !eventsError">
+                    <div app-events class="list-group" [events]="eventsResults.results"></div>
+                    <app-show-more
+                        *ngIf="eventsResults.count > 5"
+                        [inputData]="{
+                            searchType: 'events',
+                            count: eventsResults.count,
+                            limit: 5,
+                            offset: 0,
+                            query: query
+                        }"
+                        (loading)="eventsLoading = $event"
+                        (error)="eventsError = $event"
+                        (results)="updateEventsResults($event)">
+                    </app-show-more>
+                    <div class="alert alert-info" *ngIf="eventsResults.results.length === 0">
+                        No events/calendars found.
+                    </div>
+                </ng-container>
+            </div>
+
+        </div>
+        <div class="col mb-5" *ngIf="selected.image">
 
             <div class="image-results" *ngIf="imageResults || imageLoading || imageError">
                 <span class="badge badge-default badge-pill float-right mt-1"

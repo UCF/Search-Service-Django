@@ -7,6 +7,7 @@ import { Observable, of } from 'rxjs';
 })
 export class HttpService {
   newsApi: string;
+  eventsApi: string;
   searchServiceApi: string
 
   constructor(
@@ -17,6 +18,7 @@ export class HttpService {
     .subscribe(
       (response: any) => { // on success
         this.newsApi = response.ucf_news_api;
+        this.eventsApi = response.ucf_events_api;
         this.searchServiceApi = response.ucf_search_service_api;
       },
       (error: any) => { // on error
@@ -51,7 +53,12 @@ export class HttpService {
           .set('orderby', 'date')
           .set('offset', offset);
         break;
-        case 'images':
+      case 'events':
+        apiUrl = this.eventsApi + '/search/feed.json';
+        params = new HttpParams()
+          .set('q', query);
+        break;
+      case 'images':
           apiUrl = this.searchServiceApi + '/api/v1/images/search/';
           params = new HttpParams()
             .set('format', 'json')

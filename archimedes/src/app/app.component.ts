@@ -11,6 +11,7 @@ export class AppComponent {
   selected = {
     program: true,
     news: true,
+    events: true,
     image: true
   }
 
@@ -23,6 +24,10 @@ export class AppComponent {
   newsResults: any;
   newsLoading: boolean;
   newsError: boolean;
+
+  eventsResults: any;
+  eventsLoading: boolean;
+  eventsError: boolean;
 
   imageResults: any;
   imageLoading: boolean;
@@ -40,6 +45,10 @@ export class AppComponent {
 
   updateNewsResults(news: any): void {
     this.newsResults = news;
+  }
+
+  updateEventsResults(events: any): void {
+    this.eventsResults = events;
   }
 
   updateImageResults(images: any): void {
