@@ -2,6 +2,12 @@
 
 A Django based application that provides a REST API, as well as manual and automated tools for search service data.
 
+## Requirements
+- pip
+- node
+- gulp-cli
+- angular-cli
+
 ## Installation and Setup
 
 1. Install virtual environment: `pip install virtualenv`
