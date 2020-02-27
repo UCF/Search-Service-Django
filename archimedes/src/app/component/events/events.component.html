@@ -1,4 +1,4 @@
-<!-- TODO add calendar/event content; styles -->
-<a href="#TODO" target="_blank" class="list-group-item" *ngFor="let result of events">
+<!-- TODO add event start/end; styles; move limit handling to events search feed -->
+<a href="{{ result.url }}" target="_blank" class="list-group-item" *ngFor="let result of events | slice:0:5; let i=index">
   {{ result.title }}
 </a>

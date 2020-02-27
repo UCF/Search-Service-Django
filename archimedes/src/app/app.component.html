@@ -144,28 +144,20 @@
                     {{eventsResults.count}}
                 </span>
                 <h2 class="h4 text-uppercase mb-3">
-                    Events &amp; Calendars <app-loading-icon *ngIf="eventsLoading"></app-loading-icon>
+                    Events<app-loading-icon *ngIf="eventsLoading"></app-loading-icon>
                 </h2>
 
                 <div class="alert alert-danger" *ngIf="eventsError">
-                    Error loading events/calendars.
+                    Error loading events.
                 </div>
 
                 <ng-container *ngIf="eventsResults && eventsResults.results && !eventsError">
                     <div app-events class="list-group" [events]="eventsResults.results"></div>
-                    <app-show-more
-                        *ngIf="eventsResults.count > 5"
-                        [inputData]="{
-                            searchType: 'events',
-                            count: eventsResults.count,
-                            query: query
-                        }"
-                        (loading)="eventsLoading = $event"
-                        (error)="eventsError = $event"
-                        (results)="updateEventsResults($event)">
-                    </app-show-more>
+
+                    <div class="text-right" *ngIf="eventsResults.count > 5"><a href="#TODO" target="_blank">View more results</a></div>
+
                     <div class="alert alert-info" *ngIf="eventsResults.results.length === 0">
-                        No events/calendars found.
+                        No events found.
                     </div>
                 </ng-container>
             </div>
