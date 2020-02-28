@@ -1,1 +1,17 @@
-<p>{{result.title}}</p>
+<div class="row">
+  <div class="col-lg-9 push-lg-3">
+    <h3 [innerHTML]="eventDetails.title | safeHtml" class="h6"></h3>
+    <small class="text-muted d-block mt-2">
+      {{ eventDetails.starts | date: 'MMMM d, y' }} at {{ eventDetails.starts | date: 'h:mm a' }}
+    </small>
+    <small class="text-muted d-block">
+      until {{ eventDetails.ends | date: 'MMMM d, y' }}, {{ eventDetails.ends | date: 'h:mm a' }}
+    </small>
+  </div>
+  <div class="col-lg-3 pull-lg-9 hidden-md-down">
+    <div class="d-flex flex-column text-center">
+      <span class="small text-uppercase">{{ eventDetails.starts | date: 'MMMM' }}</span>
+      <span class="h1">{{ eventDetails.starts | date: 'd' }}</span>
+    </div>
+  </div>
+</div>

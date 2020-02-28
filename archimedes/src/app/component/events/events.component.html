@@ -1,5 +1,3 @@
-<!-- TODO add event start/end; styles; move limit handling to events search feed -->
-<a href="{{ result.url }}" target="_blank" class="list-group-item" *ngFor="let result of events | slice:0:5; let i=index">
-  {{ result.title }}
-  <app-event-details [result]="result"></app-event-details>
+<a href="{{ eventResult.url }}" target="_blank" class="list-group-item" *ngFor="let eventResult of events | slice:0:5; let i=index">
+  <div app-event-details [eventResult]="eventResult" class="w-100"></div>
 </a>
