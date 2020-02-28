@@ -14,6 +14,7 @@ export class SearchBoxComponent implements OnInit {
   observables = {
     programs: null,
     news: null,
+    events: null,
     images: null
   }
 

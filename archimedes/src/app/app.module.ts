@@ -13,6 +13,7 @@ import { SafeHtmlPipe } from './pipe/safe-html.pipe';
 import { ProgramItemComponent } from './component/program-item/program-item.component';
 import { ShowMoreComponent } from './component/show-more/show-more.component';
 import { ImageComponent } from './component/image/image.component';
+import { EventDetailsComponent } from './component/event-details/event-details.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { ImageComponent } from './component/image/image.component';
     SafeHtmlPipe,
     ProgramItemComponent,
     ShowMoreComponent,
-    ImageComponent
+    ImageComponent,
+    EventDetailsComponent
   ],
   imports: [
     BrowserModule,
