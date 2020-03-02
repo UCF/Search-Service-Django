@@ -8,8 +8,6 @@ from bs4 import BeautifulSoup
 
 class Command(BaseCommand):
     help = 'Scrapes Google Scholars for data related to UCF researchers.'
-    sc_index = 0
-    pg_index = 0
     base_url = ''
     org_id = ''
 
