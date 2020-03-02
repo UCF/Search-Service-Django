@@ -1,0 +1,3 @@
+<a href="{{ eventResult.url }}" target="_blank" class="list-group-item" *ngFor="let eventResult of events | slice:0:5; let i=index">
+  <div app-event-details [eventResult]="eventResult" class="w-100"></div>
+</a>

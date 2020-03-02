@@ -2,6 +2,12 @@
 
 A Django based application that provides a REST API, as well as manual and automated tools for search service data.
 
+## Requirements
+- pip
+- node
+- gulp-cli
+- angular-cli
+
 ## Installation and Setup
 
 1. Install virtual environment: `pip install virtualenv`
@@ -19,6 +25,8 @@ A Django based application that provides a REST API, as well as manual and autom
 11. Run the local server to debug and test: `python manage.py runserver`
 
 ## Archimedes Setup
+
+NOTE: to build/test Archimedes, you must set `LOCAL = True` in your settings_local.py.
 
 1. Run `npm install` within the `archimedes` directory.
 2. Run `ng build --watch` to view app during development.

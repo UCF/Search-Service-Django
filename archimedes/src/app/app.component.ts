@@ -1,3 +1,4 @@
+import { HttpService } from './service/http.service';
 import { Component } from '@angular/core';
 
 @Component({
@@ -11,6 +12,7 @@ export class AppComponent {
   selected = {
     program: true,
     news: true,
+    events: true,
     image: true
   }
 
@@ -24,11 +26,22 @@ export class AppComponent {
   newsLoading: boolean;
   newsError: boolean;
 
+  eventsApi: string;
+  eventsResults: any;
+  eventsLoading: boolean;
+  eventsError: boolean;
+
   imageResults: any;
   imageLoading: boolean;
   imageError: boolean;
 
-  constructor() { }
+  constructor(
+    private httpService: HttpService
+  ) {
+    this.httpService.eventsApi.subscribe((data: any) => {
+      this.eventsApi = data;
+    });
+  }
 
   queryUpdated(query: string): void {
     this.query = query;
@@ -40,6 +53,10 @@ export class AppComponent {
 
   updateNewsResults(news: any): void {
     this.newsResults = news;
+  }
+
+  updateEventsResults(events: any): void {
+    this.eventsResults = events;
   }
 
   updateImageResults(images: any): void {

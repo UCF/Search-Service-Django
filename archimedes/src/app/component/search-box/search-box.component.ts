@@ -14,6 +14,7 @@ export class SearchBoxComponent implements OnInit {
   observables = {
     programs: null,
     news: null,
+    events: null,
     images: null
   }
 
@@ -26,6 +27,10 @@ export class SearchBoxComponent implements OnInit {
   @Output() newsLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() newsError: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() newsResults: EventEmitter<any> = new EventEmitter<any>();
+
+  @Output() eventsLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() eventsError: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() eventsResults: EventEmitter<any> = new EventEmitter<any>();
 
   @Output() imageLoading: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() imageError: EventEmitter<boolean> = new EventEmitter<boolean>();
@@ -52,6 +57,12 @@ export class SearchBoxComponent implements OnInit {
       loading = this.newsLoading;
       error = this.newsError;
       results = this.newsResults;
+    }
+
+    if(searchType === 'events') {
+      loading = this.eventsLoading;
+      error = this.eventsError;
+      results = this.eventsResults;
     }
 
     if(searchType === 'images') {
@@ -125,6 +136,8 @@ export class SearchBoxComponent implements OnInit {
         this.programResults.emit(null);
       } else if(type === 'news') {
         this.newsResults.emit(null);
+      } else if (type === 'events') {
+        this.eventsResults.emit(null);
       } else if(type === 'images') {
         this.imageResults.emit(null);
       }
@@ -135,6 +148,7 @@ export class SearchBoxComponent implements OnInit {
   ngOnInit(): void {
     this.setObservable('programs');
     this.setObservable('news');
+    this.setObservable('events');
     this.setObservable('images');
   }
 
