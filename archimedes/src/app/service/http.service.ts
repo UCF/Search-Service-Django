@@ -1,33 +1,31 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HttpService {
   newsApi: string;
-  eventsApi: string;
-  searchServiceApi: string
+  searchServiceApi: string;
+
+  public eventsApi: BehaviorSubject<string> = new BehaviorSubject<string>('');
 
   constructor(
     private httpClient: HttpClient
   ) {
     let params = new HttpParams().set('format', 'json');
     this.httpClient.get('/settings/', { params })
-    .subscribe(
-      (response: any) => { // on success
-        this.newsApi = response.ucf_news_api;
-        this.eventsApi = response.ucf_events_api;
-        this.searchServiceApi = response.ucf_search_service_api;
-      },
-      (error: any) => { // on error
-        console.error(error);
-      });
-  }
-
-  getEventsApi(){
-    return this.eventsApi;
+      .subscribe(
+        (response: any) => { // on success
+          this.newsApi = response.ucf_news_api;
+          this.eventsApi.next(response.ucf_events_api);
+          this.searchServiceApi = response.ucf_search_service_api;
+        },
+        (error: any) => { // on error
+          console.error(error);
+        });
   }
 
   search(searchType: string, query: string, offset: string): Observable<any> {
@@ -37,7 +35,6 @@ export class HttpService {
     }
 
     let params;
-    // TODO: Make apiUrls configurable
     let apiUrl;
 
     switch (searchType) {
@@ -58,7 +55,7 @@ export class HttpService {
           .set('offset', offset);
         break;
       case 'events':
-        apiUrl = this.eventsApi + '/search/feed.json';
+        apiUrl = this.eventsApi.value + '/search/feed.json';
         params = new HttpParams()
           .set('q', query)
           .set('models', 'events.event');

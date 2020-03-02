@@ -38,7 +38,9 @@ export class AppComponent {
   constructor(
     private httpService: HttpService
   ) {
-    this.eventsApi = httpService.getEventsApi();
+    this.httpService.eventsApi.subscribe((data: any) => {
+      this.eventsApi = data;
+    });
   }
 
   queryUpdated(query: string): void {
