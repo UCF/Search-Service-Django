@@ -77,9 +77,9 @@ class Command(BaseCommand):
             link = self.base_url + name_anchor['href']
             link_parts = urlparse(link)
             link_params = parse_qs(link_parts.query)
-            affiliantion = sc.find('div', {'class': 'gs_ai_aff'}).text
+            affiliation = sc.find('div', {'class': 'gs_ai_aff'}).text
 
-            self.process_researcher(name, affiliantion, link)
+            self.process_researcher(name, affiliation, link)
 
         next_button = soup.find('button', {'class': 'gs_btnPR'})
 
