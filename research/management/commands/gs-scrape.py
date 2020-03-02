@@ -121,7 +121,7 @@ class Command(BaseCommand):
 
         try:
             existing = Researcher.objects.get(name=name)
-            existing.affiliantion = affiliation
+            existing.affiliation = affiliation
             existing.teledata_record = ref
             existing.save()
             self.researchers_updated += 1
