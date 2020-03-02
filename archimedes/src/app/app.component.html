@@ -154,7 +154,10 @@
                 <ng-container *ngIf="eventsResults && eventsResults.results && !eventsError">
                     <div app-events class="list-group" [events]="eventsResults.results"></div>
 
-                    <div class="text-right" *ngIf="eventsResults.count > 5"><a href="#TODO" target="_blank">View more results</a></div>
+                    <div class="list-group-item flex-column align-items-end" *ngIf="eventsResults.count > 5">
+                      <!-- TODO eventsApi not set correctly? -->
+                      <a href="{{ eventsApi }}/search/?q={{ query }}" target="_blank">View more results ></a>
+                    </div>
 
                     <div class="alert alert-info" *ngIf="eventsResults.results.length === 0">
                         No events found.

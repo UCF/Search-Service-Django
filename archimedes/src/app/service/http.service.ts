@@ -26,6 +26,10 @@ export class HttpService {
       });
   }
 
+  getEventsApi(){
+    return this.eventsApi;
+  }
+
   search(searchType: string, query: string, offset: string): Observable<any> {
 
     if (!query || !query.trim() || query.length < 3) {

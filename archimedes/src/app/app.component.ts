@@ -1,3 +1,4 @@
+import { HttpService } from './service/http.service';
 import { Component } from '@angular/core';
 
 @Component({
@@ -25,6 +26,7 @@ export class AppComponent {
   newsLoading: boolean;
   newsError: boolean;
 
+  eventsApi: string;
   eventsResults: any;
   eventsLoading: boolean;
   eventsError: boolean;
@@ -33,7 +35,11 @@ export class AppComponent {
   imageLoading: boolean;
   imageError: boolean;
 
-  constructor() { }
+  constructor(
+    private httpService: HttpService
+  ) {
+    this.eventsApi = httpService.getEventsApi();
+  }
 
   queryUpdated(query: string): void {
     this.query = query;
