@@ -166,3 +166,9 @@ PROGRAM_PROFILE = [
         'value': 'Main Site'
     }
 ]
+
+# The base URL for Google Scholars
+GOOGLE_SCHOLARS_BASE = 'https://scholar.google.com'
+
+# The ORG ID to parse through
+GOOGLE_SCHOLARS_ORG = ''

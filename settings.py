@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'programs',
     'teledata',
     'images',
+    'research',
     'core'
 ]
 
