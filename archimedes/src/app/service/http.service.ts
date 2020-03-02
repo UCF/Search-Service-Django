@@ -26,7 +26,7 @@ export class HttpService {
 
   search(searchType: string, query: string, offset: string): Observable<any> {
 
-    if (!query || !query.trim() || query.length < 3) {
+    if (!query || !query.trim() || query.length < 2) {
       return of(null);
     }
 
