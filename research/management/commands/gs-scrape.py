@@ -6,6 +6,8 @@ from urlparse import urlparse, parse_qs, unquote
 import requests
 from bs4 import BeautifulSoup
 
+from research.models import *
+
 class Command(BaseCommand):
     help = 'Scrapes Google Scholars for data related to UCF researchers.'
     base_url = ''
@@ -13,6 +15,39 @@ class Command(BaseCommand):
 
     parsing_pages = True
     next_url = None
+
+    researchers_processed = 0
+    researchers_added = 0
+    researchers_updated = 0
+
+    def handle(self, *args, **options):
+        """
+        Sets up the command and kicks it off.
+        """
+        self.base_url = settings.GOOGLE_SCHOLARS_BASE
+        self.org_id = settings.GOOGLE_SCHOLARS_ORG
+
+        self.import_authors()
+        self.print_stats()
+
+    def import_authors(self):
+        """
+        Controls the while loopingness of hopefully not breaking.
+        Continues to parse through pages until a "next_url" cannot
+        be parsed and then exits.
+        """
+        params = self.build_params()
+
+        while (self.parsing_pages):
+            if self.next_url:
+                resp = requests.get(self.next_url)
+            else:
+                resp = requests.get(self.base_url + '/citations', params=params)
+
+            if resp.status_code == 200:
+                self.parse_page(resp.content)
+            else:
+                self.parsing_pages = False
 
     def build_params(self):
         """
@@ -25,6 +60,34 @@ class Command(BaseCommand):
         }
 
         return params
+
+    def parse_page(self, content):
+        """
+        Parses a single webpage of authors. Usually,
+        this will be 10 authors and a next button.
+        """
+        soup = BeautifulSoup(content, 'html.parser')
+
+        scholars = soup.find_all('div', {'class': 'gsc_1usr'})
+
+        for idx, sc in enumerate(scholars, start=0):
+            self.researchers_processed += 1
+            name_anchor = sc.find('h3', {'class': 'gs_ai_name'}).find('a')
+            name = name_anchor.text
+            link = self.base_url + name_anchor['href']
+            link_parts = urlparse(link)
+            link_params = parse_qs(link_parts.query)
+            affiliantion = sc.find('div', {'class': 'gs_ai_aff'}).text
+
+            self.process_researcher(name, affiliantion, link)
+
+        next_button = soup.find('button', {'class': 'gs_btnPR'})
+
+        if next_button:
+            self.next_url = self.get_next_url(next_button)
+        else:
+            self.next_url = None
+            self.parsing_pages = False
 
     def get_next_url(self, next_button):
         """
@@ -48,55 +111,39 @@ class Command(BaseCommand):
 
         return onclick
 
-    def parse_page(self, content):
-        """
-        Parses a single webpage of authors. Usually,
-        this will be 10 authors and a next button.
-        """
-        soup = BeautifulSoup(content, 'html.parser')
+    def process_researcher(self, name, affiliation, link):
+        name_stripped = name.replace(',', '').replace('.', '').replace('PhD', '').replace('Dr', '').strip()
+        name_parts = name_stripped.split(' ')
+        first_name = name_parts[0]
+        last_name = name_parts[-1]
 
-        scholars = soup.find_all('div', {'class': 'gsc_1usr'})
+        ref = Staff.objects.filter(first_name=first_name, last_name=last_name).first()
 
-        for idx, sc in enumerate(scholars, start=0):
-            name_anchor = sc.find('h3', {'class': 'gs_ai_name'}).find('a')
-            name = name_anchor.text
-            link = self.base_url + name_anchor['href']
-            link_parts = urlparse(link)
-            link_params = parse_qs(link_parts.query)
-            affiliantion = sc.find('div', {'class': 'gs_ai_aff'}).text
+        try:
+            existing = Researcher.objects.get(name=name)
+            existing.affiliantion = affiliation
+            existing.teledata_record = ref
+            existing.save()
+            self.researchers_updated += 1
+        except Researcher.DoesNotExist:
+            researcher = Researcher(
+                name=name,
+                affiliation=affiliation,
+                teledata_record=ref
+            )
+            researcher.save()
+            self.researchers_added += 1
 
-        next_button = soup.find('button', {'class': 'gs_btnPR'})
+    def print_stats(self):
+        stats = """
+Researchers Processed: {0}
+Researchers Added:     {1}
+Researchers Updated:   {2}
+        """.format(
+            self.researchers_processed,
+            self.researchers_added,
+            self.researchers_updated
+        )
 
-        if next_button:
-            self.next_url = self.get_next_url(next_button)
-        else:
-            self.next_url = None
-            self.parsing_pages = False
+        print(stats)
 
-    def import_authors(self):
-        """
-        Controls the while loopingness of hopefully not breaking.
-        Continues to parse through pages until a "next_url" cannot
-        be parsed and then exits.
-        """
-        params = self.build_params()
-
-        while (self.parsing_pages):
-            if self.next_url:
-                resp = requests.get(self.next_url)
-            else:
-                resp = requests.get(self.base_url + '/citations', params=params)
-
-            if resp.status_code == 200:
-                self.parse_page(resp.content)
-            else:
-                self.parsing_pages = False
-
-    def handle(self, *args, **options):
-        """
-        Sets up the command and kicks it off.
-        """
-        self.base_url = settings.GOOGLE_SCHOLARS_BASE
-        self.org_id = settings.GOOGLE_SCHOLARS_ORG
-
-        self.import_authors()
