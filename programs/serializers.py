@@ -400,7 +400,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'tuition_type',
             'outcomes',
             'projection_totals',
-            'careers'
+            'careers',
+            'active'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,cip_code,parent_program",
