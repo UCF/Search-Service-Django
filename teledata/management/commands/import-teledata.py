@@ -363,7 +363,6 @@ FROM
                     email_machine=email_machine,
                     postal=item[15],
                     last_updated=self.last_updated,
-                    listed=True,
                     cellphone=item[17],
                     import_id=item[0]
                 )
