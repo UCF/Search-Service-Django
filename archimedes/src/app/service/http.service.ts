@@ -1,37 +1,40 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HttpService {
   newsApi: string;
-  searchServiceApi: string
+  searchServiceApi: string;
+
+  public eventsApi: BehaviorSubject<string> = new BehaviorSubject<string>('');
 
   constructor(
     private httpClient: HttpClient
   ) {
     let params = new HttpParams().set('format', 'json');
     this.httpClient.get('/settings/', { params })
-    .subscribe(
-      (response: any) => { // on success
-        this.newsApi = response.ucf_news_api;
-        this.searchServiceApi = response.ucf_search_service_api;
-      },
-      (error: any) => { // on error
-        console.error(error);
-      });
+      .subscribe(
+        (response: any) => { // on success
+          this.newsApi = response.ucf_news_api;
+          this.eventsApi.next(response.ucf_events_api);
+          this.searchServiceApi = response.ucf_search_service_api;
+        },
+        (error: any) => { // on error
+          console.error(error);
+        });
   }
 
   search(searchType: string, query: string, offset: string): Observable<any> {
 
-    if (!query || !query.trim() || query.length < 3) {
+    if (!query || !query.trim() || query.length < 2) {
       return of(null);
     }
 
     let params;
-    // TODO: Make apiUrls configurable
     let apiUrl;
 
     switch (searchType) {
@@ -51,7 +54,13 @@ export class HttpService {
           .set('orderby', 'date')
           .set('offset', offset);
         break;
-        case 'images':
+      case 'events':
+        apiUrl = this.eventsApi.value + '/search/feed.json';
+        params = new HttpParams()
+          .set('q', query)
+          .set('models', 'events.event');
+        break;
+      case 'images':
           apiUrl = this.searchServiceApi + '/api/v1/images/search/';
           params = new HttpParams()
             .set('format', 'json')

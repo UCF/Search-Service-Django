@@ -41,5 +41,6 @@ class SettingsAPIView(APIView):
     def get(request, format=None, **kwargs):
         return Response({
             'ucf_news_api': settings.UCF_NEWS_API,
+            'ucf_events_api': settings.UCF_EVENTS_API,
             'ucf_search_service_api': settings.UCF_SEARCH_SERVICE_API
         })

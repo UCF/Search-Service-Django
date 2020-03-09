@@ -136,10 +136,13 @@ TANDEMVAULT_ADMIN_API_KEY = ''
 TANDEMVAULT_COMMUNICATOR_API_KEY = ''
 
 # The URL to the News API
-UCF_NEWS_API = 'https://wwwdev.smca.ucf.edu'
+UCF_NEWS_API = 'https://www.ucf.edu'
+
+# The URL to the Events System API
+UCF_EVENTS_API = 'https://events.ucf.edu'
 
 # The URL to the Search Service API
-UCF_SEARCH_SERVICE_API = 'https://searchdev.cm.ucf.edu'
+UCF_SEARCH_SERVICE_API = 'https://search.cm.ucf.edu'
 
 # An AWS Access Key ID with sufficient permissions to access Rekognition.
 AWS_ACCESS_KEY = ''
