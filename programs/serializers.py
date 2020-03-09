@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.db.models import Max, Avg, Sum
 from drf_dynamic_fields import DynamicFieldsMixin
 
+
 class DynamicFieldSetMixin(DynamicFieldsMixin):
     """
     Expands the functionality of the Dynamic Fields Mixin
@@ -59,6 +60,7 @@ class DynamicFieldSetMixin(DynamicFieldsMixin):
 
 
 # Custom Serializers
+
 class LevelSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
@@ -149,6 +151,7 @@ class ProgramProfileLinkedSerializer(serializers.ModelSerializer):
         )
         model = ProgramProfile
 
+
 class ProgramProfileSerializer(serializers.ModelSerializer):
     profile_type = ProgramProfileTypeSerializer(
         many=False,
@@ -165,6 +168,7 @@ class ProgramProfileWriteSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = ProgramProfile
+
 
 class ProgramDescriptionTypeSerializer(serializers.ModelSerializer):
 
@@ -211,6 +215,7 @@ class ProgramDescriptionWriteSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = ProgramDescription
 
+
 class RelatedProgramSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='api.programs.detail',
@@ -226,10 +231,12 @@ class RelatedProgramSerializer(serializers.ModelSerializer):
         )
         model = Program
 
+
 class AcademicYearSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('__all__')
         model = AcademicYear
+
 
 class CIPSimpleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -243,6 +250,7 @@ class CIPSimpleSerializer(serializers.ModelSerializer):
             'precise'
         )
         model = CIP
+
 
 class CIPSerializer(serializers.ModelSerializer):
     area_detail = serializers.SerializerMethodField()
@@ -300,6 +308,7 @@ class CIPSerializer(serializers.ModelSerializer):
         ser = CIPSimpleSerializer(cip)
         return ser.data
 
+
 class ProgramOutcomeStatSerializer(serializers.ModelSerializer):
     academic_year_code = serializers.ReadOnlyField(source='academic_year.code', read_only=True)
     academic_year_display = serializers.ReadOnlyField(source='academic_year.display', read_only=True)
@@ -313,6 +322,7 @@ class ProgramOutcomeStatSerializer(serializers.ModelSerializer):
             'avg_annual_earnings'
         )
         model = ProgramOutcomeStat
+
 
 class EmploymentProjectionSerializer(serializers.ModelSerializer):
     soc_name = serializers.SerializerMethodField()
@@ -334,6 +344,7 @@ class EmploymentProjectionSerializer(serializers.ModelSerializer):
     def get_soc_name(self, projection):
         return projection.soc.name
 
+
 class EmploymentProjectionTotalsSerializer(serializers.Serializer):
     begin_year = serializers.IntegerField()
     end_year = serializers.IntegerField()
@@ -342,6 +353,7 @@ class EmploymentProjectionTotalsSerializer(serializers.Serializer):
     change = serializers.IntegerField()
     change_percentage = serializers.DecimalField(max_digits=12, decimal_places=2)
     openings = serializers.IntegerField()
+
 
 class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
@@ -408,10 +420,12 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
         }
         model = Program
 
+
 class CollegeOverrideSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = CollegeOverride
+
 
 class TuitionOverrideSerializer(serializers.ModelSerializer):
     class Meta:
