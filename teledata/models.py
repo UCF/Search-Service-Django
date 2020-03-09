@@ -586,6 +586,11 @@ class CombinedTeledata(models.Model):
 @receiver(post_save, sender=Department)
 @receiver(post_save, sender=Staff)
 def maybe_update_combined_teledata(sender, instance=None, created=False, **kwargs):
+    """
+    Updates a corresponding CombinedTeledata object when
+    an Organization, Department or Staff object's
+    'active' flag is modified.
+    """
     if not created:
         from_table = ''
         if sender == Organization:
