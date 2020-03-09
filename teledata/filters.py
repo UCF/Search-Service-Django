@@ -14,5 +14,6 @@ class CombinedTeledataFilter(django_filters.FilterSet):
             'id',
             'alpha',
             'name',
-            'use'
+            'use',
+            'active'
         )

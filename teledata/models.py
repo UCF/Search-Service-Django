@@ -8,11 +8,14 @@ import re
 from django.db import models
 from django.db.models import F, When, Case, Value, Expression
 from django_mysql.models import QuerySet, QuerySetMixin
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import fields
 
 logger = logging.getLogger(__name__)
+
 
 class MatchAgainst(Expression):
     """
@@ -66,6 +69,7 @@ class MatchAgainst(Expression):
 
     def set_source_expressions(self, expressions):
         self.expressions = expressions
+
 
 # Table Models
 
@@ -123,6 +127,7 @@ class Keyword(models.Model):
     def __str__(self):
         return self.phrase
 
+
 class Building(models.Model):
     objects = QuerySet.as_manager()
 
@@ -136,6 +141,7 @@ class Building(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Organization(models.Model):
     objects = QuerySet.as_manager()
@@ -152,12 +158,14 @@ class Organization(models.Model):
     last_updated = models.DateTimeField(null=True, blank=True)
     import_id = models.IntegerField(null=True, blank=True)
     keywords = fields.GenericRelation(Keyword)
+    active = models.BooleanField(default=True)
 
     def __unicode__(self):
         return self.name
 
     def __str__(self):
         return self.name
+
 
 class Department(models.Model):
     objects = QuerySet.as_manager()
@@ -174,6 +182,7 @@ class Department(models.Model):
     last_updated = models.DateTimeField(null=True, blank=True)
     import_id = models.IntegerField(null=True, blank=True)
     keywords = fields.GenericRelation(Keyword)
+    active = models.BooleanField(default=True)
 
     def __unicode__(self):
         return self.name
@@ -181,7 +190,7 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
-# Create your models here.
+
 class Staff(models.Model):
     objects = QuerySet.as_manager()
 
@@ -200,10 +209,10 @@ class Staff(models.Model):
     email_machine = models.CharField(max_length=255, null=True, blank=True)
     postal = models.CharField(max_length=10, null=True, blank=True)
     last_updated = models.DateTimeField(null=True, blank=True)
-    listed = models.BooleanField(default=True, null=False, blank=False)
     cellphone = models.CharField(max_length=50, null=True, blank=True)
     keywords = fields.GenericRelation(Keyword)
     import_id = models.IntegerField(null=True, blank=True)
+    active = models.BooleanField(default=True)
 
     @property
     def full_name_formatted(self):
@@ -237,6 +246,7 @@ class Staff(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class CombinedTeledataManager(models.Manager, QuerySetMixin):
     """
@@ -407,7 +417,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             output_field=models.DecimalField()
         )
 
-        organization_like_score=Case(
+        organization_like_score = Case(
             When(
                 organization__icontains=search_query,
                 then=3
@@ -439,7 +449,6 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
         ).distinct()
 
         return queryset
-
 
     def update_data(self):
         """
@@ -520,6 +529,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             except Exception, e:
                 logger.error(str(e))
 
+
 class CombinedTeledata(models.Model):
     pkid = models.AutoField(primary_key=True)
     id = models.IntegerField(auto_created=False, null=True, blank=True)
@@ -542,6 +552,7 @@ class CombinedTeledata(models.Model):
     room = models.CharField(max_length=255, null=True, blank=True)
     from_table = models.CharField(max_length=255, null=False, blank=False)
     keywords_combined = models.ManyToManyField(Keyword, related_name='combined', db_constraint=False)
+    active = models.BooleanField(default=True)
     objects = CombinedTeledataManager()
 
     def __unicode__(self):
@@ -570,3 +581,35 @@ class CombinedTeledata(models.Model):
         else:
             raise NotImplementedError(message="Deleting is not possible on this method unless importing.")
 
+
+@receiver(post_save, sender=Organization)
+@receiver(post_save, sender=Department)
+@receiver(post_save, sender=Staff)
+def maybe_update_combined_teledata(sender, instance=None, created=False, **kwargs):
+    """
+    Updates a corresponding CombinedTeledata object when
+    an Organization, Department or Staff object's
+    'active' flag is modified.
+    """
+    if not created:
+        from_table = ''
+        if sender == Organization:
+            from_table = 'organizations'
+        elif sender == Department:
+            from_table = 'departments'
+        elif sender == Staff:
+            from_table = 'staff'
+
+        try:
+            combined = CombinedTeledata.objects.get(
+                id=instance.pk,
+                from_table=from_table
+            )
+            if combined.active != instance.active:
+                combined.active = instance.active
+                combined.save(doing_import=True)
+        except (
+            CombinedTeledata.MultipleObjectsReturned,
+            CombinedTeledata.DoesNotExist
+        ):
+            pass

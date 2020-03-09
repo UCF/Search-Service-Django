@@ -107,6 +107,7 @@ class CombinedTeledataSerializer(serializers.ModelSerializer):
             'building',
             'bldg_id',
             'room',
-            'from_table'
+            'from_table',
+            'active'
         )
         model = CombinedTeledata
