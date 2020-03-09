@@ -328,7 +328,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
         email_score = Case(
             When(
-                phone=search_query,
+                email=search_query,
                 then=15
             ),
             default=0,
