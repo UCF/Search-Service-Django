@@ -26,6 +26,7 @@ class BuildingListView(generics.ListAPIView):
 
 
 class DepartmentListView(generics.ListAPIView):
+    filter_class = DepartmentFilter
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
