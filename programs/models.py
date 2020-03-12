@@ -136,6 +136,7 @@ class CIP(models.Model):
             self.version
         )
 
+
 class JobPosition(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
 
@@ -144,6 +145,7 @@ class JobPosition(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class SOC(models.Model):
     versions = [
@@ -190,6 +192,7 @@ class EmploymentProjection(models.Model):
     def report_year_end(self):
         return '20{0}'.format(self.report[2:4])
 
+
 class ProgramProfileType(models.Model):
     """
     Types of program profiles, e.g. Main Site, UCF Online
@@ -216,6 +219,7 @@ class ProgramDescriptionType(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class AcademicYear(models.Model):
     code = models.CharField(max_length=4, null=False, blank=False)
     display = models.CharField(max_length=9, null=False, blank=False)
@@ -239,6 +243,7 @@ class ProgramOutcomeStat(models.Model):
 
     def __str__(self):
         return "{0} Outcomes {1}".format(self.cip.code, self.academic_year.display)
+
 
 class Program(models.Model):
     """
@@ -271,7 +276,11 @@ class Program(models.Model):
         ('ANN', 'Annual')
     ]
     tuition_type = models.CharField(max_length=3, null=True, blank=True, choices=tuition_types)
-    outcomes = models.ManyToManyField(ProgramOutcomeStat, related_name='programs')
+    outcomes = models.ManyToManyField(
+        ProgramOutcomeStat,
+        related_name='programs',
+        blank=True
+    )
     active = models.BooleanField(default=True)
 
     class Meta:
@@ -384,6 +393,7 @@ class Program(models.Model):
                     return primary_profile_type.root_url
 
         return None
+
 
 class ProgramProfile(models.Model):
     """

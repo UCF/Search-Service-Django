@@ -108,6 +108,40 @@
               </tr>
               <tr>
                 <td>
+                  <code>ordering</code>
+                </td>
+                <td>Modifies how results are ordered. (By default, results are ordered by <code>score</code> descending.)</td>
+                <td>
+                  <ul>
+                    <li>
+                      <div><code>id</code></div>
+                      <p class="small">Sort by record ID, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-id</code></div>
+                      <p class="small">Sort by record ID, descending</p>
+                    </li>
+                    <li>
+                      <div><code>score</code></div>
+                      <p class="small">Sort by relevance score, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-score</code></div>
+                      <p class="small">Sort by relevance score, descending</p>
+                    </li>
+                    <li>
+                      <div><code>sort_name</code></div>
+                      <p class="small">Sort by the record's sort-friendly name, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-sort_name</code></div>
+                      <p class="small">Sort by the record's sort-friendly name, descending</p>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>
                   <code>limit</code>
                 </td>
                 <td>The maximum number of records to return.</td>
@@ -120,6 +154,16 @@
                 <td>The starting position of the query in relation to the complete set of results.</td>
                 <td>Number</td>
               </tr>
+              <tr>
+                <td>
+                  <code>active</code>
+                </td>
+                <td>
+                  Limit results to only "active" records (<code>True</code>) or "inactive" records (<code>False</code>).
+                  Users should set this to <code>True</code> for the most accurate results.
+                </td>
+                <td><code>True</code>/<code>False</code></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -129,8 +173,8 @@
         <div class="card mb-4">
           <div class="card-block">
             <h5 id="directory-search-examples-simple" class="h6">Simple Search</h5>
-            <p class="small font-italic mb-0">Returns staff, departments and organizations that match the search term "Smith"</p>
-            <pre class="mt-4 mb-0"><code>{% url 'api.teledata.search' %}?search=Smith</code></pre>
+            <p class="small font-italic mb-0">Returns active staff, departments and organizations that match the search term "Smith"</p>
+            <pre class="mt-4 mb-0"><code>{% url 'api.teledata.search' %}?search=Smith&active=True</code></pre>
           </div>
         </div>
 
@@ -331,6 +375,12 @@
                 <td>String</td>
                 <td>No</td>
               </tr>
+              <tr>
+                <td><code>active</code></td>
+                <td>Designates the record as "active" or valid in the search service.</td>
+                <td>Boolean</td>
+                <td>No</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -369,6 +419,32 @@
                 </td>
                 <td>The starting position of the query in relation to the complete set of results.</td>
                 <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ordering</code>
+                </td>
+                <td>Modifies how results are ordered. (By default, results are ordered by <code>id</code> descending.)</td>
+                <td>
+                  <ul>
+                    <li>
+                      <div><code>id</code></div>
+                      <p class="small">Sort by record ID, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-id</code></div>
+                      <p class="small">Sort by record ID, descending</p>
+                    </li>
+                    <li>
+                      <div><code>name</code></div>
+                      <p class="small">Sort by the record's name, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-name</code></div>
+                      <p class="small">Sort by the record's name, descending</p>
+                    </li>
+                  </ul>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -498,6 +574,32 @@
                 </td>
                 <td>The starting position of the query in relation to the complete set of results.</td>
                 <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ordering</code>
+                </td>
+                <td>Modifies how results are ordered. (By default, results are ordered by <code>id</code> descending.)</td>
+                <td>
+                  <ul>
+                    <li>
+                      <div><code>id</code></div>
+                      <p class="small">Sort by record ID, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-id</code></div>
+                      <p class="small">Sort by record ID, descending</p>
+                    </li>
+                    <li>
+                      <div><code>name</code></div>
+                      <p class="small">Sort by the record's name, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-name</code></div>
+                      <p class="small">Sort by the record's name, descending</p>
+                    </li>
+                  </ul>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -630,6 +732,12 @@
                 <td>String</td>
                 <td>Yes</td>
               </tr>
+              <tr>
+                <td><code>active</code></td>
+                <td>Designates the record as "active" or valid in the search service.</td>
+                <td>Boolean</td>
+                <td>No</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -669,6 +777,32 @@
                 </td>
                 <td>The starting position of the query in relation to the complete set of results.</td>
                 <td>Number</td>
+              </tr>
+              <tr>
+                <td>
+                  <code>ordering</code>
+                </td>
+                <td>Modifies how results are ordered. (By default, results are ordered by <code>id</code> descending.)</td>
+                <td>
+                  <ul>
+                    <li>
+                      <div><code>id</code></div>
+                      <p class="small">Sort by record ID, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-id</code></div>
+                      <p class="small">Sort by record ID, descending</p>
+                    </li>
+                    <li>
+                      <div><code>name</code></div>
+                      <p class="small">Sort by the record's name, ascending</p>
+                    </li>
+                    <li>
+                      <div><code>-name</code></div>
+                      <p class="small">Sort by the record's name, descending</p>
+                    </li>
+                  </ul>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -802,6 +936,12 @@
                 <td>The department's official ID number.</td>
                 <td>String</td>
                 <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>active</code></td>
+                <td>Designates the record as "active" or valid in the search service.</td>
+                <td>Boolean</td>
+                <td>No</td>
               </tr>
             </tbody>
           </table>
@@ -1000,12 +1140,6 @@
                 <td>No</td>
               </tr>
               <tr>
-                <td><code>listed</code></td>
-                <td></td>
-                <td>Boolean</td>
-                <td>No</td>
-              </tr>
-              <tr>
                 <td><code>cellphone</code></td>
                 <td></td>
                 <td>String</td>
@@ -1016,6 +1150,12 @@
                 <td>The staff member's imported ID number.</td>
                 <td>String</td>
                 <td>Yes</td>
+              </tr>
+              <tr>
+                <td><code>active</code></td>
+                <td>Designates the record as "active" or valid in the search service.</td>
+                <td>Boolean</td>
+                <td>No</td>
               </tr>
             </tbody>
           </table>

@@ -15,15 +15,22 @@ from teledata.pagination import BackwardsCompatiblePagination
 
 from rest_framework.filters import OrderingFilter
 
+
 # Create your views here.
+
 class BuildingListView(generics.ListAPIView):
     queryset = Building.objects.all()
     serializer_class = BuildingSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ['id', 'name']
 
 
 class DepartmentListView(generics.ListAPIView):
+    filter_class = DepartmentFilter
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ['id', 'name']
 
 
 class DepartmentDetailView(generics.RetrieveAPIView):
@@ -35,21 +42,25 @@ class DepartmentDetailView(generics.RetrieveAPIView):
 class OrganizationListView(generics.ListAPIView):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ['id', 'name']
 
 
 class StaffListView(generics.ListAPIView):
     queryset = Staff.objects.all()
     serializer_class = StaffSerializer
 
+
 class CombinedTeledataListView(generics.ListAPIView):
     queryset = CombinedTeledata.objects.all()
     serializer_class = CombinedTeledataSerializer
 
+
 class CombinedTeledataSearchView(CombinedTeledataListView):
     filter_class = CombinedTeledataFilter
-    filter_backends = [DjangoFilterBackend,OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     pagination_class = BackwardsCompatiblePagination
-    ordering_fields = ['id', 'score']
+    ordering_fields = ['id', 'score', 'sort_name']
 
     def get_queryset(self):
         if self.request.GET.get('search') is not None:
