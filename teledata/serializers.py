@@ -4,6 +4,7 @@ import warnings
 
 from django.db import IntegrityError
 
+
 class BuildingSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
@@ -13,11 +14,13 @@ class BuildingSerializer(serializers.ModelSerializer):
 class OrganizationBriefSerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
+            'id',
             'name',
             'phone',
             'fax',
             'url',
-            'room'
+            'room',
+            'import_id'
         )
         model = Organization
 

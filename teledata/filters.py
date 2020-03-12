@@ -1,7 +1,15 @@
 import django_filters
 from django_filters import rest_framework as filters
 
-from teledata.models import CombinedTeledata
+from teledata.models import Department, CombinedTeledata
+
+
+class DepartmentFilter(django_filters.FilterSet):
+    class Meta:
+        model = Department
+        fields = (
+            'org__import_id',
+        )
 
 
 class CombinedTeledataFilter(django_filters.FilterSet):
