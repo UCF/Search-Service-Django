@@ -63,8 +63,9 @@ class CombinedTeledataSearchView(CombinedTeledataListView):
     ordering_fields = ['id', 'score', 'sort_name']
 
     def get_queryset(self):
-        if self.request.GET.get('search') is not None:
-            return CombinedTeledata.objects.search(self.request.GET.get('search')).order_by('-score')
+        search_query = self.request.GET.get('search')
+        if search_query:
+            return CombinedTeledata.objects.search(search_query).order_by('-score')
         else:
             # There is no score because the query isn't run. Order by id
             return CombinedTeledata.objects.none().order_by('id')
