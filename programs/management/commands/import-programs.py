@@ -4,6 +4,7 @@ from programs.models import *
 
 import urllib2
 import json
+import re
 from tabulate import tabulate
 
 from unidecode import unidecode
@@ -165,7 +166,7 @@ class Command(BaseCommand):
 
         program.level = level
 
-        if data['Meta Data'][0]['UCFOnline'] == "1":
+        if self.program_is_online(data):
             program.online = True
 
         program.save()
@@ -294,7 +295,7 @@ class Command(BaseCommand):
 
         program.degree = degree
 
-        if data['Meta Data'][0]['UCFOnline'] == "1" or data['Subplan'].startswith('Z'):
+        if self.program_is_online(data):
             program.online = True
 
         program.save()
@@ -336,6 +337,29 @@ class Command(BaseCommand):
         program.modified = self.new_modified_date
 
         program.save()
+
+    def program_is_online(self, data):
+        """
+        Determines whether a program from APIM should
+        be flagged as an online program.
+        """
+        # Check the actual "is online" flag from APIM
+        if data['Meta Data'][0]['UCFOnline'] == "1":
+            return True
+        # Check subplan code for Z-code
+        if 'Subplan' in data and data['Subplan'].startswith('Z'):
+            return True
+
+        online_regex = r"(\s)online(\s)?"
+
+        # Check plan name for "online"
+        if 'PlanName' in data and re.search(online_regex, data['PlanName'], re.IGNORECASE) is not None:
+            return True
+        # Check subplan name for "online"
+        if 'Subplan_Name' in data and re.search(online_regex, data['Subplan_Name'], re.IGNORECASE) is not None:
+            return True
+
+        return False
 
     def common_replace(self, input):
         return input.replace('&', 'and')
