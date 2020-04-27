@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
+from django_mysql.models import ListCharField
 
 from .models import *
 
@@ -59,35 +60,53 @@ class ProgramAdmin(admin.ModelAdmin):
     search_fields = ('name', )
     list_filter = ('level__name', 'colleges__full_name', )
 
+
 @admin.register(Fee)
 class FeeAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(TuitionOverride)
 class TuitionOverrideAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(CollegeOverride)
 class CollegeOverrideAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(AcademicYear)
 class AcademicYearAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(CIP)
 class CIPAdmin(admin.ModelAdmin):
     search_fields = ('name', 'code')
     list_filter = ('version',)
 
+
 @admin.register(SOC)
 class SOCAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(EmploymentProjection)
 class EmploymentProjectionAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(ProgramOutcomeStat)
-class ProgramOutcomeStatAdmin(admin.ModelAdmin):
+
+@admin.register(AdmissionTerm)
+class AdmissionTermAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(AdmissionDeadlineType)
+class AdmissionDeadlineTypeAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ApplicationDeadline)
+class ApplicationDeadlineAdmin(admin.ModelAdmin):
     pass

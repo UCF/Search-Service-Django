@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django_mysql.models import ListTextField
 import re
 
 from django.conf import settings
@@ -245,6 +246,23 @@ class ProgramOutcomeStat(models.Model):
         return "{0} Outcomes {1}".format(self.cip.code, self.academic_year.display)
 
 
+class AdmissionTerm(models.Model):
+    name = models.CharField(max_length=100, null=False, blank=False)
+
+
+class AdmissionDeadlineType(models.Model):
+    name = models.CharField(max_length=100, null=False, blank=False)
+
+
+class ApplicationDeadline(models.Model):
+    admission_term = models.ManyToManyField(AdmissionTerm, blank=False)
+    career = models.ForeignKey(Career, blank=False, on_delete=models.CASCADE, related_name='application_deadlines')
+    deadline_type = models.ForeignKey(AdmissionDeadlineType, on_delete=models.CASCADE, related_name='application_deadlines')
+    display = models.CharField(max_length=100, null=False, blank=False)
+    month = models.IntegerField(null=False, blank=False)
+    day = models.IntegerField(null=False, blank=False)
+
+
 class Program(models.Model):
     """
     A program of study and related meta fields
@@ -279,6 +297,14 @@ class Program(models.Model):
     outcomes = models.ManyToManyField(
         ProgramOutcomeStat,
         related_name='programs',
+        blank=True
+    )
+    application_deadlines = models.ManyToManyField(ApplicationDeadline, blank=True)
+    application_deadline_details = models.TextField(null=True, blank=True)
+    application_requirements = ListTextField(
+        base_field=models.CharField(max_length=255),
+        size=20,  # max number of list items to store
+        null=True,
         blank=True
     )
     active = models.BooleanField(default=True)
