@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ('display', models.CharField(max_length=100)),
                 ('month', models.IntegerField()),
                 ('day', models.IntegerField()),
-                ('admission_term', models.ManyToManyField(to='programs.AdmissionTerm')),
+                ('admission_term', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='application_deadlines', to='programs.AdmissionTerm')),
                 ('career', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='application_deadlines', to='programs.Career')),
                 ('deadline_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='application_deadlines', to='programs.AdmissionDeadlineType')),
             ],

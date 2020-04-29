@@ -249,18 +249,46 @@ class ProgramOutcomeStat(models.Model):
 class AdmissionTerm(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
 
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
 
 class AdmissionDeadlineType(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
 
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
 
 class ApplicationDeadline(models.Model):
-    admission_term = models.ManyToManyField(AdmissionTerm, blank=False)
-    career = models.ForeignKey(Career, blank=False, on_delete=models.CASCADE, related_name='application_deadlines')
+    admission_term = models.ForeignKey(AdmissionTerm, on_delete=models.CASCADE, related_name='application_deadlines')
+    career = models.ForeignKey(Career, on_delete=models.CASCADE, related_name='application_deadlines')
     deadline_type = models.ForeignKey(AdmissionDeadlineType, on_delete=models.CASCADE, related_name='application_deadlines')
     display = models.CharField(max_length=100, null=False, blank=False)
     month = models.IntegerField(null=False, blank=False)
     day = models.IntegerField(null=False, blank=False)
+
+    def __str__(self):
+        return '{0} {1} {2} application deadline: {3}'.format(
+            self.career.name,
+            self.deadline_type.name,
+            self.admission_term.name,
+            self.display
+        )
+
+    def __unicode__(self):
+        return '{0} {1} {2} application deadline: {3}'.format(
+            self.career.name,
+            self.deadline_type.name,
+            self.admission_term.name,
+            self.display
+        )
 
 
 class Program(models.Model):
