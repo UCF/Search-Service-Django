@@ -247,7 +247,10 @@ class ProgramOutcomeStat(models.Model):
 
 
 class AdmissionTerm(models.Model):
-    name = models.CharField(max_length=100, null=False, blank=False)
+    """
+    Describes a term of admission, e.g. Fall, Spring, Summer
+    """
+    name = models.CharField(max_length=255, null=False, blank=False)
 
     def __str__(self):
         return self.name
@@ -257,7 +260,11 @@ class AdmissionTerm(models.Model):
 
 
 class AdmissionDeadlineType(models.Model):
-    name = models.CharField(max_length=100, null=False, blank=False)
+    """
+    Describes a type of program admission deadline,
+    e.g. Domestic, International, Transfer
+    """
+    name = models.CharField(max_length=255, null=False, blank=False)
 
     def __str__(self):
         return self.name
@@ -270,7 +277,7 @@ class ApplicationDeadline(models.Model):
     admission_term = models.ForeignKey(AdmissionTerm, on_delete=models.CASCADE, related_name='application_deadlines')
     career = models.ForeignKey(Career, on_delete=models.CASCADE, related_name='application_deadlines')
     deadline_type = models.ForeignKey(AdmissionDeadlineType, on_delete=models.CASCADE, related_name='application_deadlines')
-    display = models.CharField(max_length=100, null=False, blank=False)
+    display = models.CharField(max_length=255, null=False, blank=False)
     month = models.IntegerField(null=False, blank=False)
     day = models.IntegerField(null=False, blank=False)
 
