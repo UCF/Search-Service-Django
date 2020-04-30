@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
+from dateutil.parser import *
 import decimal
 import itertools
 import logging
@@ -25,11 +26,6 @@ class Command(BaseCommand):
     deadlines_skipped_count = 0
 
     def add_arguments(self, parser):
-        # parser.add_argument(
-        #     'file',
-        #     type=file,
-        #     help='The file path of the CSV file containing application deadline data'
-        # )
         parser.add_argument(
             '--graduate',
             type=bool,
@@ -60,7 +56,7 @@ class Command(BaseCommand):
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
         # Fetch all programs, by career:
-        self.programs = Program.objects.all(career__name=self.career)
+        self.programs = Program.objects.filter(career__name=self.career)
         self.programs_count = len(self.programs)
 
         # Fetch all application deadline data:
@@ -77,7 +73,7 @@ class Command(BaseCommand):
         # Print results
         self.print_results()
 
-    def get_default_deadline_data(self, career):
+    def get_default_deadline_data(self):
         """
         Retrieves default application deadline data from
         local settings.
@@ -111,9 +107,12 @@ class Command(BaseCommand):
                     self.career
                 )
             )
-            # TODO delete all ApplicationDeadlines by self.career
-            # TODO clear application_deadline_details on all programs (maybe do this in a later step?)
-            # TODO clear application_requirements on all programs (maybe do this in a later step?)
+
+            # Delete all ApplicationDeadlines by self.career
+            ApplicationDeadline.objects.filter(career__name=self.career).delete()
+
+            # TODO clear application_deadline_details on all programs in self.programs (maybe do this in a later step?)
+            # TODO clear application_requirements on all programs in self.programs (maybe do this in a later step?)
         else:
             print (
                 'No deadline data to process. Creation and assignment of new '
@@ -136,9 +135,79 @@ class Command(BaseCommand):
         Handles creation and assignment of deadline data
         objects/field values from `self.default_deadline_data`.
         """
-        # TODO
-        # TODO Remember to add matched programs to self.programs_matched!
-        return
+        for deadline_data in self.default_deadline_data:
+            try:
+                # Fetch career, levels:
+                career = Career.objects.get(
+                    name=deadline_data['career']
+                )
+
+                levels = []
+                if deadline_data['level']:
+                    levels = Level.objects.filter(
+                        name__in=deadline_data['level']
+                    )
+            except Career.DoesNotExist:
+                logging.warning(
+                    (
+                        'Cannot find existing Career {0}. '
+                        'Skipping default deadline data row'
+                    ).format(deadline_data['career'])
+                )
+                self.deadlines_skipped_count += 1
+            except Career.MultipleObjectsReturned:
+                logging.warning(
+                    (
+                        'Career {0} returned multiple objects. '
+                        'Skipping default deadline data row'
+                    ).format(deadline_data['career'])
+                )
+                self.deadlines_skipped_count += 1
+            except Level.DoesNotExist:
+                logging.warning(
+                    (
+                        'Cannot find existing Level {0}. '
+                        'Skipping default deadline data row'
+                    ).format(deadline_data['level'])
+                )
+                self.deadlines_skipped_count += 1
+            else:
+                # Fetch term and deadline type:
+                term, term_created = AdmissionTerm.objects.get_or_create(
+                    name=deadline_data['admission_term']
+                )
+                deadline_type, deadline_type_created = AdmissionDeadlineType.objects.get_or_create(
+                    name=deadline_data['deadline_type']
+                )
+
+                try:
+                    # Determine month + day from string
+                    deadline_date = parse(deadline_data['display'])
+                except ValueError:
+                    logging.warning(
+                        (
+                            'Cannot determine month and day from '
+                            'display string {0} in default deadline data. '
+                            'Skipping default deadline data row'
+                        ).format(deadline_data['display'])
+                    )
+                    self.deadlines_skipped_count += 1
+                else:
+                    # Create or retrieve an existing deadline
+                    deadline, deadline_created = ApplicationDeadline.objects.get_or_create(
+                        admission_term=term,
+                        career=career,
+                        deadline_type=deadline_type,
+                        month=deadline_date.month,
+                        day=deadline_date.day
+                    )
+
+                    # Assign deadline to programs by level(s)
+                    programs = self.programs.filter(level=levels)
+                    deadline.programs.add(*programs)
+
+                    self.deadlines_matched_count += 1
+                    self.programs_matched.update(programs)
 
     def assign_undergraduate_deadline_data(self):
         """
@@ -180,7 +249,7 @@ class Command(BaseCommand):
                 )).encode('ascii', 'xmlcharrefreplace')
         return
 
-    def delete_stale_deadlines():
+    def delete_stale_deadlines(self):
         """
         Deletes any deadlines not assigned to at least one program.
         """

@@ -176,91 +176,64 @@ PROGRAM_APPLICATION_DEADLINES = [
     {
         'career': 'Undergraduate',
         'level': ['Bachelors'],
-        'programs': '*',
         'deadline_type': 'Domestic',
         'admission_term': 'Fall',
-        'display': 'May 1',
-        'deadline_details': '',
-        'application_requirements': []
+        'display': 'May 1'
     },
     {
         'career': 'Undergraduate',
         'level': ['Bachelors'],
-        'programs': '*',
         'deadline_type': 'Domestic',
         'admission_term': 'Spring',
-        'display': 'November 1',
-        'deadline_details': '',
-        'application_requirements': []
+        'display': 'November 1'
     },
     {
         'career': 'Undergraduate',
         'level': ['Bachelors'],
-        'programs': '*',
         'deadline_type': 'Domestic',
         'admission_term': 'Summer',
-        'display': 'March 1',
-        'deadline_details': '',
-        'application_requirements': []
+        'display': 'March 1'
     },
     {
         'career': 'Undergraduate',
         'level': ['Bachelors'],
-        'programs': '*',
         'deadline_type': 'Transfer',
         'admission_term': 'Fall',
         'display': 'July 1',
-        'deadline_details': '',
-        'application_requirements': []
     },
     {
         'career': 'Undergraduate',
         'level': ['Bachelors'],
-        'programs': '*',
         'deadline_type': 'Transfer',
         'admission_term': 'Spring',
-        'display': 'November 1',
-        'deadline_details': '',
-        'application_requirements': []
+        'display': 'November 1'
     },
     {
         'career': 'Undergraduate',
         'level': ['Bachelors'],
-        'programs': '*',
         'deadline_type': 'Transfer',
         'admission_term': 'Summer',
-        'display': 'March 1',
-        'deadline_details': '',
-        'application_requirements': []
+        'display': 'March 1'
     },
     {
         'career': 'Undergraduate',
         'level': ['Bachelors'],
-        'programs': '*',
         'deadline_type': 'International',
         'admission_term': 'Fall',
-        'display': 'March 1',
-        'deadline_details': '',
-        'application_requirements': []
+        'display': 'March 1'
     },
     {
         'career': 'Undergraduate',
         'level': ['Bachelors'],
-        'programs': '*',
         'deadline_type': 'International',
         'admission_term': 'Spring',
-        'display': 'September 1',
-        'deadline_details': '',
-        'application_requirements': []
+        'display': 'September 1'
     },
     {
         'career': 'Undergraduate',
         'level': ['Bachelors'],
-        'programs': '*',
         'deadline_type': 'International',
         'admission_term': 'Summer',
-        'display': 'January 1',
-        'deadline_details': '',
-        'application_requirements': []
+        'display': 'January 1'
     }
 ]
