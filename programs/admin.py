@@ -112,6 +112,7 @@ class AdmissionDeadlineTypeAdmin(admin.ModelAdmin):
 @admin.register(ApplicationDeadline)
 class ApplicationDeadlineAdmin(admin.ModelAdmin):
     readonly_fields = ['programs_list']
+    list_filter = ('admission_term', 'career', 'deadline_type', 'month',)
 
     def programs_list(self, obj):
         programs = Program.objects.filter(application_deadlines=obj)
