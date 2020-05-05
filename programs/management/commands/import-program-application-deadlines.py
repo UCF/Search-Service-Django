@@ -13,7 +13,7 @@ import csv
 class Command(BaseCommand):
     help = (
         'Imports program application deadlines and admission '
-        'information from TODO'
+        'information from a Slate instance.'
     )
 
     programs = []
@@ -24,6 +24,7 @@ class Command(BaseCommand):
     deadlines_count = 0
     deadlines_matched_count = 0
     deadlines_skipped_count = 0
+    deadlines_deleted_count = 0
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -48,7 +49,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # self.file = options['file']
         self.career = 'Graduate' if options['graduate'] is True else 'Undergraduate'
         self.loglevel = options['loglevel']
 
@@ -111,8 +111,14 @@ class Command(BaseCommand):
             # Delete all ApplicationDeadlines by self.career
             ApplicationDeadline.objects.filter(career__name=self.career).delete()
 
-            # TODO clear application_deadline_details on all programs in self.programs (maybe do this in a later step?)
-            # TODO clear application_requirements on all programs in self.programs (maybe do this in a later step?)
+            # Clear application_deadline_details and application_requirements
+            # on all programs in self.programs:
+            # TODO do we need to force a save on Program objects here?
+            if self.programs.count():
+                self.programs.update(
+                    application_deadline_details=None,
+                    application_requirements=None
+                )
         else:
             print (
                 'No deadline data to process. Creation and assignment of new '
@@ -226,8 +232,10 @@ class Command(BaseCommand):
         for row in self.deadline_data:
             # TODO process and create/assign existing data
 
-            if True:  # TODO
+            # TODO implement an actual condition here
+            if True:
                 # TODO Remember to add matched programs to self.programs_matched!
+
                 self.deadlines_matched_count += 1
                 logging.info(unicode(
                     (
@@ -251,10 +259,14 @@ class Command(BaseCommand):
 
     def delete_stale_deadlines(self):
         """
-        Deletes any deadlines not assigned to at least one program.
+        Deletes any deadlines (by career) not assigned to at least one program.
         """
-        # TODO
-        return
+        deadlines = ApplicationDeadline.objects.filter(
+            career__name=self.career,
+            programs=None
+        )
+        self.deadlines_deleted_count = deadlines.count()
+        deadlines.delete()
 
     def print_results(self):
         print (
@@ -287,4 +299,10 @@ class Command(BaseCommand):
                 'Skipped {0} rows of Deadline data.'
             ).format(
                 self.deadlines_skipped_count
+            )
+
+            print (
+                'Deleted {0} Deadlines with no assigned Programs.'
+            ).format(
+                self.deadlines_deleted_count
             )
