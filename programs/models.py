@@ -282,19 +282,17 @@ class ApplicationDeadline(models.Model):
     day = models.IntegerField(null=False, blank=False, choices=[(i, i) for i in range(1, 32)])
 
     def __str__(self):
-        return '{0} {1} {2} application deadline: {3}'.format(
+        return '{0} {1} {2}'.format(
             self.career.name,
             self.deadline_type.name,
-            self.admission_term.name,
-            self.display
+            self.admission_term.name
         )
 
     def __unicode__(self):
-        return '{0} {1} {2} application deadline: {3}'.format(
+        return '{0} {1} {2}'.format(
             self.career.name,
             self.deadline_type.name,
-            self.admission_term.name,
-            self.display
+            self.admission_term.name
         )
 
     @property
