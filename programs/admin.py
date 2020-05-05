@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html_join
 from django_mysql.models import ListCharField
 
 from .models import *
@@ -109,4 +111,32 @@ class AdmissionDeadlineTypeAdmin(admin.ModelAdmin):
 
 @admin.register(ApplicationDeadline)
 class ApplicationDeadlineAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields = ['programs_list']
+
+    def programs_list(self, obj):
+        programs = Program.objects.filter(application_deadlines=obj)
+        if programs.count() == 0:
+            return '(None)'
+
+        program_list_items = format_html_join(
+            '\n',
+            '<li><a href="{0}">{1}</a></li>',
+            (
+                (
+                    reverse(
+                        'admin:programs_program_change',
+                        args=(program.pk,)
+                    ),
+                    program.name
+                )
+                for program in programs
+            )
+        )
+
+        return '{0} Programs:\n<ul style="margin-left: 0; margin-top: 1rem; padding-left: 0;">{1}</ul>'.format(
+            programs.count(),
+            program_list_items
+        )
+
+    programs_list.allow_tags = True
+    programs_list.short_description = 'Program(s)'
