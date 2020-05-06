@@ -117,8 +117,8 @@ class Command(BaseCommand):
                 '\nError retrieving Graduate deadline data: {0}'
                 .format(e)
             )
-
-        self.deadline_data = response_json['row']
+        else:
+            self.deadline_data = response_json['row']
 
     def assign_deadline_data(self):
         """
