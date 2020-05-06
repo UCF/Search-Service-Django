@@ -96,8 +96,8 @@ class Command(BaseCommand):
         Retrieves and sets undergraduate deadline data.
         """
         # We don't have unique undergraduate deadline data
-        # right now--just make this an empty list and move on
-        self.deadline_data = []
+        # right now--add logic later if we get any.
+        return
 
     def get_graduate_deadline_data(self):
         """
@@ -142,7 +142,6 @@ class Command(BaseCommand):
 
             # Clear application_deadline_details and application_requirements
             # on all programs in self.programs:
-            # TODO do we need to force a save on Program objects here?
             if self.programs_count:
                 self.programs.update(
                     application_deadline_details=None,
