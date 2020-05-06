@@ -8,7 +8,6 @@ import logging
 import mimetypes
 import requests
 import sys
-import csv
 
 
 class Command(BaseCommand):
