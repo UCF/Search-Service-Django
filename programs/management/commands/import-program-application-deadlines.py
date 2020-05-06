@@ -21,7 +21,6 @@ class Command(BaseCommand):
     programs_matched = set()
     default_deadline_data = []
     deadline_data = []
-    deadlines_count = 0
     deadlines_matched_count = 0
     deadlines_skipped_count = 0
     deadlines_deleted_count = 0
@@ -62,7 +61,6 @@ class Command(BaseCommand):
         # Fetch all application deadline data:
         self.get_default_deadline_data()
         self.get_deadline_data()
-        self.deadlines_count = len(self.default_deadline_data) + len(self.deadline_data)
 
         # Assign deadline data to existing programs:
         self.assign_deadline_data()
@@ -129,7 +127,7 @@ class Command(BaseCommand):
         """
         # If we have new deadline data to process, delete any existing data.
         # Otherwise, abort this process:
-        if self.deadlines_count:
+        if len(self.default_deadline_data) or len(self.deadline_data):
             print (
                 (
                     'Deleting all existing application deadline data '
@@ -145,7 +143,7 @@ class Command(BaseCommand):
             # Clear application_deadline_details and application_requirements
             # on all programs in self.programs:
             # TODO do we need to force a save on Program objects here?
-            if self.programs.count():
+            if self.programs_count:
                 self.programs.update(
                     application_deadline_details=None,
                     application_requirements=None
@@ -266,8 +264,8 @@ class Command(BaseCommand):
             plan_code = row['Plan'] if 'Plan' in row else None
             subplan_code = row['SubPlan'] if 'SubPlan' in row else None
             program = None
-            admission_terms_names = row['AdmissionTerms'].split(',') if 'AdmissionTerms' in row else []
-            application_requirements = row['ProgramApplicationRequirements'].split('|') if 'ProgramApplicationRequirements' in row else []
+            admission_terms_names = [t.strip() for t in row['AdmissionTerms'].split(',')] if 'AdmissionTerms' in row else []
+            application_requirements = [r.strip() for r in row['ProgramApplicationRequirements'].split('|')] if 'ProgramApplicationRequirements' in row else []
             deadlines = []
 
             # Make sure the program specified in this row of data
@@ -291,6 +289,12 @@ class Command(BaseCommand):
                 )
                 self.deadlines_skipped_count += 1
             else:
+                # Ensure existing deadline data is removed from the program
+                # (e.g. that were added from default deadline data).
+                # Deadline data being imported during this step takes
+                # priority over default deadline data.
+                program.application_deadlines.clear()
+
                 # Determine which keys in the row of data contain
                 # application deadline information by sniffing key names.
                 # Assume that a key whose name contains "ApplicationDeadline"
@@ -308,7 +312,7 @@ class Command(BaseCommand):
                             term_type_combo_split = term_type_combo.split(
                                 name
                             )
-                            if term_type_combo_split.count():
+                            if len(term_type_combo_split) > 1:
                                 admission_term_name = name
                                 deadline_type_name = term_type_combo_split[1]
                                 break
@@ -345,12 +349,13 @@ class Command(BaseCommand):
                                 program.save()
 
                                 self.deadlines_matched_count += 1
+                                self.programs_matched.add(program)
                                 logging.info(
                                     (
                                         'Assigned deadline "{0}" to program "{1}" '
                                         '(plan code "{2}", subplan code "{3}")'
                                     ).format(
-                                        deadline.display,
+                                        deadline,
                                         program.name,
                                         program.plan_code,
                                         program.subplan_code
@@ -373,36 +378,24 @@ class Command(BaseCommand):
             'Finished import of {0} Program deadline data.'
         ).format(self.career)
 
-        if self.programs_count:
-            print (
-                'Created one or more ApplicationDeadlines for {0}/{1} '
-                'existing {2} Programs: {3: .0f} %'
-            ).format(
-                len(self.programs_matched),
-                self.programs_count,
-                self.career,
-                float(len(self.programs_matched)) / float(self.programs_count) * 100
-            )
+        print (
+            'Created one or more ApplicationDeadlines for {0}/{1} '
+            'existing {2} Programs: {3: .0f} %'
+        ).format(
+            len(self.programs_matched),
+            self.programs_count,
+            self.career,
+            float(len(self.programs_matched)) / float(self.programs_count) * 100
+        )
 
-        if self.deadlines_count:
-            print (
-                'Matched {0}/{1} of fetched Deadline data rows to at least '
-                'one existing {2} Program: {3:.0f}%'
-            ).format(
-                self.deadlines_matched_count,
-                self.deadlines_count,
-                self.career,
-                float(self.deadlines_matched_count) / float(self.deadlines_count) * 100
-            )
+        print (
+            'Skipped {0} rows of Deadline data.'
+        ).format(
+            self.deadlines_skipped_count
+        )
 
-            print (
-                'Skipped {0} rows of Deadline data.'
-            ).format(
-                self.deadlines_skipped_count
-            )
-
-            print (
-                'Deleted {0} Deadlines with no assigned Programs.'
-            ).format(
-                self.deadlines_deleted_count
-            )
+        print (
+            'Deleted {0} Deadlines with no assigned Programs.'
+        ).format(
+            self.deadlines_deleted_count
+        )
