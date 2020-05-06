@@ -7,7 +7,6 @@ import itertools
 import logging
 import mimetypes
 import sys
-import csv
 
 
 class Command(BaseCommand):
