@@ -6,6 +6,7 @@ import decimal
 import itertools
 import logging
 import mimetypes
+import requests
 import sys
 import csv
 
@@ -88,8 +89,39 @@ class Command(BaseCommand):
         """
         Retrieves deadline data from an external Slate instance.
         """
-        # TODO actually retrieve something
+        if self.career == 'Undergraduate':
+            self.get_undergraduate_deadline_data()
+        else:
+            self.get_graduate_deadline_data()
+
+    def get_undergraduate_deadline_data(self):
+        """
+        Retrieves and sets undergraduate deadline data.
+        """
+        # We don't have unique undergraduate deadline data
+        # right now--just make this an empty list and move on
         self.deadline_data = []
+
+    def get_graduate_deadline_data(self):
+        """
+        Retrieves and sets graduate deadline data from
+        Graduate Studies' Slate instance.
+        """
+        credentials = settings.GRADUATE_SLATE_ENDPOINTS['deadlines']
+
+        try:
+            response = requests.get(
+                credentials['endpoint'],
+                auth=(credentials['username'], credentials['password'])
+            )
+            response_json = response.json()
+        except Exception, e:
+            logging.warning(
+                '\nError retrieving Graduate deadline data: {0}'
+                .format(e)
+            )
+
+        self.deadline_data = response_json['row']
 
     def assign_deadline_data(self):
         """
@@ -229,33 +261,102 @@ class Command(BaseCommand):
         objects/field values from `self.deadline_data` for
         Graduate Programs.
         """
+        career = Career.objects.get(name=self.career)
+
         for row in self.deadline_data:
-            # TODO process and create/assign existing data
+            plan_code = row['Plan'] if 'Plan' in row else None
+            subplan_code = row['SubPlan'] if 'SubPlan' in row else None
+            program = None
+            admission_terms_names = row['AdmissionTerms'].split(',') if 'AdmissionTerms' in row else []
+            application_requirements = row['ProgramApplicationRequirements'].split('|') if 'ProgramApplicationRequirements' in row else []
+            deadlines = []
 
-            # TODO implement an actual condition here
-            if True:
-                # TODO Remember to add matched programs to self.programs_matched!
-
-                self.deadlines_matched_count += 1
-                logging.info(unicode(
+            # Make sure the program specified in this row of data
+            # is valid before proceeding any further:
+            try:
+                program = Program.objects.get(
+                    plan_code=plan_code,
+                    subplan_code=subplan_code
+                )
+            except Program.DoesNotExist:
+                logging.warning(
                     (
-                        '\n MATCH Deadline data with TODO to {0} '
-                        'existing programs'
+                        'Cannot find existing Program with plan '
+                        'code "{0}" and subplan code "{1}" to '
+                        'assign deadline data to. '
+                        'Skipping deadline data row'
                     ).format(
-                        '0'  # TODO
+                        plan_code,
+                        subplan_code
                     )
-                )).encode('ascii', 'xmlcharrefreplace')
-            else:
+                )
                 self.deadlines_skipped_count += 1
-                logging.info(unicode(
-                    (
-                        '\n FAILURE Deadline data with TODO '
-                        '- no program matches found'
-                    ).format(
-                        # TODO
-                    )
-                )).encode('ascii', 'xmlcharrefreplace')
-        return
+            else:
+                # Determine which keys in the row of data contain
+                # application deadline information by sniffing key names.
+                # Assume that a key whose name contains "ApplicationDeadline"
+                # has a value representing a single deadline.
+                for key, val in row.items():
+                    if 'ApplicationDeadline' in key and val:
+                        term_type_combo = key.split('ApplicationDeadline')[0]
+                        admission_term_name = ''
+                        deadline_type_name = ''
+
+                        # Determine the term name and deadline type name by
+                        # extracting info from the current key name in the
+                        # loop:
+                        for name in admission_terms_names:
+                            term_type_combo_split = term_type_combo.split(
+                                name
+                            )
+                            if term_type_combo_split.count():
+                                admission_term_name = name
+                                deadline_type_name = term_type_combo_split[1]
+                                break
+
+                        if admission_term_name and deadline_type_name:
+                            try:
+                                # Determine month + day from string
+                                deadline_date = parse(val)
+                            except ValueError:
+                                logging.warning(
+                                    (
+                                        'Cannot determine month and day from '
+                                        'display string {0} in deadline data. '
+                                        'Skipping deadline data row'
+                                    ).format(val)
+                                )
+                                self.deadlines_skipped_count += 1
+                            else:
+                                deadline_type, deadline_type_created = AdmissionDeadlineType.objects.get_or_create(
+                                    name=deadline_type_name
+                                )
+                                admission_term, admission_term_created = AdmissionTerm.objects.get_or_create(
+                                    name=admission_term_name
+                                )
+                                deadline, deadline_created = ApplicationDeadline.objects.get_or_create(
+                                    admission_term=admission_term,
+                                    career=career,
+                                    deadline_type=deadline_type,
+                                    month=deadline_date.month,
+                                    day=deadline_date.day
+                                )
+
+                                program.application_deadlines.add(deadline)
+                                program.save()
+
+                                self.deadlines_matched_count += 1
+                                logging.info(
+                                    (
+                                        'Assigned deadline "{0}" to program "{1}" '
+                                        '(plan code "{2}", subplan code "{3}")'
+                                    ).format(
+                                        deadline.display,
+                                        program.name,
+                                        program.plan_code,
+                                        program.subplan_code
+                                    )
+                                )
 
     def delete_stale_deadlines(self):
         """

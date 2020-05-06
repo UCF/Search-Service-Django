@@ -237,3 +237,11 @@ PROGRAM_APPLICATION_DEADLINES = [
         'display': 'January 1'
     }
 ]
+
+GRADUATE_SLATE_ENDPOINTS = {
+    'deadlines': {
+        'endpoint': '',
+        'username': '',
+        'password': ''
+    }
+}
