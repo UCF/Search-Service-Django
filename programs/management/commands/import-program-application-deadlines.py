@@ -4,6 +4,7 @@ from programs.models import *
 from dateutil.parser import *
 import decimal
 import itertools
+import json
 import logging
 import mimetypes
 import requests
@@ -21,6 +22,7 @@ class Command(BaseCommand):
     programs_matched = set()
     default_deadline_data = []
     deadline_data = []
+    rows_skipped_count = 0
     deadlines_matched_count = 0
     deadlines_skipped_count = 0
     deadlines_deleted_count = 0
@@ -111,7 +113,10 @@ class Command(BaseCommand):
                 credentials['endpoint'],
                 auth=(credentials['username'], credentials['password'])
             )
-            response_json = response.json()
+            response_str = response.text
+            # Make their null values actually parse to `null` and not "NULL":
+            response_str_cleaned = response_str.replace('"NULL"', 'null')
+            response_json = json.loads(response_str_cleaned)
         except Exception, e:
             logging.warning(
                 '\nError retrieving Graduate deadline data: {0}'
@@ -188,7 +193,7 @@ class Command(BaseCommand):
                         'Skipping default deadline data row'
                     ).format(deadline_data['career'])
                 )
-                self.deadlines_skipped_count += 1
+                self.rows_skipped_count += 1
             except Career.MultipleObjectsReturned:
                 logging.warning(
                     (
@@ -196,7 +201,7 @@ class Command(BaseCommand):
                         'Skipping default deadline data row'
                     ).format(deadline_data['career'])
                 )
-                self.deadlines_skipped_count += 1
+                self.rows_skipped_count += 1
             except Level.DoesNotExist:
                 logging.warning(
                     (
@@ -204,7 +209,7 @@ class Command(BaseCommand):
                         'Skipping default deadline data row'
                     ).format(deadline_data['level'])
                 )
-                self.deadlines_skipped_count += 1
+                self.rows_skipped_count += 1
             else:
                 # Fetch term and deadline type:
                 term, term_created = AdmissionTerm.objects.get_or_create(
@@ -225,7 +230,7 @@ class Command(BaseCommand):
                             'Skipping default deadline data row'
                         ).format(deadline_data['display'])
                     )
-                    self.deadlines_skipped_count += 1
+                    self.rows_skipped_count += 1
                 else:
                     # Create or retrieve an existing deadline
                     deadline, deadline_created = ApplicationDeadline.objects.get_or_create(
@@ -258,13 +263,27 @@ class Command(BaseCommand):
         Graduate Programs.
         """
         career = Career.objects.get(name=self.career)
+        term_spring, term_spring_created = AdmissionTerm.objects.get_or_create(
+            name='Spring'
+        )
+        term_summer, term_summer_created = AdmissionTerm.objects.get_or_create(
+            name='Summer'
+        )
+        term_fall, term_fall_created = AdmissionTerm.objects.get_or_create(
+            name='Fall'
+        )
+        type_domestic, type_domestic_created = AdmissionDeadlineType.objects.get_or_create(
+            name='Domestic'
+        )
+        type_international, type_international_created = AdmissionDeadlineType.objects.get_or_create(
+            name='International'
+        )
 
         for row in self.deadline_data:
-            plan_code = row['Plan'] if 'Plan' in row else None
-            subplan_code = row['SubPlan'] if 'SubPlan' in row else None
+            plan_code = row['Plan']
+            subplan_code = row['SubPlan']
             program = None
-            admission_terms_names = [t.strip() for t in row['AdmissionTerms'].split(',')] if 'AdmissionTerms' in row else []
-            application_requirements = [r.strip() for r in row['ProgramApplicationRequirements'].split('|')] if 'ProgramApplicationRequirements' in row else []
+            application_requirements = [r.strip() for r in row['ProgramApplicationRequirements'].split('|')] if row['ProgramApplicationRequirements'] else []
             deadlines = []
 
             # Make sure the program specified in this row of data
@@ -286,7 +305,7 @@ class Command(BaseCommand):
                         subplan_code
                     )
                 )
-                self.deadlines_skipped_count += 1
+                self.rows_skipped_count += 1
             else:
                 # Ensure existing deadline data is removed from the program
                 # (e.g. that were added from default deadline data).
@@ -300,23 +319,29 @@ class Command(BaseCommand):
                 # has a value representing a single deadline.
                 for key, val in row.items():
                     if 'ApplicationDeadline' in key and val:
-                        term_type_combo = key.split('ApplicationDeadline')[0]
-                        admission_term_name = ''
-                        deadline_type_name = ''
+                        admission_term = None
+                        deadline_type = None
 
-                        # Determine the term name and deadline type name by
-                        # extracting info from the current key name in the
-                        # loop:
-                        for name in admission_terms_names:
-                            term_type_combo_split = term_type_combo.split(
-                                name
-                            )
-                            if len(term_type_combo_split) > 1:
-                                admission_term_name = name
-                                deadline_type_name = term_type_combo_split[1]
-                                break
+                        if key == 'SpringDomesticApplicationDeadline':
+                            admission_term = term_spring
+                            deadline_type = type_domestic
+                        elif key == 'SummerDomesticApplicationDeadline':
+                            admission_term = term_summer
+                            deadline_type = type_domestic
+                        elif key == 'FallDomesticApplicationDeadline':
+                            admission_term = term_fall
+                            deadline_type = type_domestic
+                        elif key == 'SpringInternationalApplicationDeadline':
+                            admission_term = term_spring
+                            deadline_type = type_international
+                        elif key == 'SummerInternationalApplicationDeadline':
+                            admission_term = term_summer
+                            deadline_type = type_international
+                        elif key == 'FallInternationalApplicationDeadline':
+                            admission_term = term_fall
+                            deadline_type = type_international
 
-                        if admission_term_name and deadline_type_name:
+                        if admission_term and deadline_type:
                             try:
                                 # Determine month + day from string
                                 deadline_date = parse(val)
@@ -325,17 +350,11 @@ class Command(BaseCommand):
                                     (
                                         'Cannot determine month and day from '
                                         'display string {0} in deadline data. '
-                                        'Skipping deadline data row'
+                                        'Skipping deadline.'
                                     ).format(val)
                                 )
                                 self.deadlines_skipped_count += 1
                             else:
-                                deadline_type, deadline_type_created = AdmissionDeadlineType.objects.get_or_create(
-                                    name=deadline_type_name
-                                )
-                                admission_term, admission_term_created = AdmissionTerm.objects.get_or_create(
-                                    name=admission_term_name
-                                )
                                 deadline, deadline_created = ApplicationDeadline.objects.get_or_create(
                                     admission_term=admission_term,
                                     career=career,
@@ -345,6 +364,9 @@ class Command(BaseCommand):
                                 )
 
                                 program.application_deadlines.add(deadline)
+                                program.application_requirements = application_requirements
+                                # TODO assign program.application_deadline_details
+                                # here once available
                                 program.save()
 
                                 self.deadlines_matched_count += 1
@@ -360,6 +382,14 @@ class Command(BaseCommand):
                                         program.subplan_code
                                     )
                                 )
+                        else:
+                            logging.warning(
+                                (
+                                    'Unknown deadline field {0}. '
+                                    'Skipping deadline.'
+                                ).format(key)
+                            )
+                            self.deadlines_skipped_count += 1
 
     def delete_stale_deadlines(self):
         """
@@ -388,7 +418,13 @@ class Command(BaseCommand):
         )
 
         print (
-            'Skipped {0} rows of Deadline data.'
+            'Skipped {0} rows of deadline data.'
+        ).format(
+            self.rows_skipped_count
+        )
+
+        print (
+            'Skipped {0} individual deadlines.'
         ).format(
             self.deadlines_skipped_count
         )
