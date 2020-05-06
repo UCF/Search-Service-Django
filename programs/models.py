@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django_mysql.models import ListTextField
+import calendar
 import re
 
 from django.conf import settings
@@ -277,12 +278,11 @@ class ApplicationDeadline(models.Model):
     admission_term = models.ForeignKey(AdmissionTerm, on_delete=models.CASCADE, related_name='application_deadlines')
     career = models.ForeignKey(Career, on_delete=models.CASCADE, related_name='application_deadlines')
     deadline_type = models.ForeignKey(AdmissionDeadlineType, on_delete=models.CASCADE, related_name='application_deadlines')
-    display = models.CharField(max_length=255, null=False, blank=False)
-    month = models.IntegerField(null=False, blank=False)
-    day = models.IntegerField(null=False, blank=False)
+    month = models.IntegerField(null=False, blank=False, choices=[(i, i) for i in range(1, 13)])
+    day = models.IntegerField(null=False, blank=False, choices=[(i, i) for i in range(1, 32)])
 
     def __str__(self):
-        return '{0} {1} {2} application deadline: {3}'.format(
+        return '{0} {1} {2}: {3}'.format(
             self.career.name,
             self.deadline_type.name,
             self.admission_term.name,
@@ -290,11 +290,21 @@ class ApplicationDeadline(models.Model):
         )
 
     def __unicode__(self):
-        return '{0} {1} {2} application deadline: {3}'.format(
+        return '{0} {1} {2}: {3}'.format(
             self.career.name,
             self.deadline_type.name,
             self.admission_term.name,
             self.display
+        )
+
+    @property
+    def display(self):
+        """
+        Returns a human friendly formatted version of the deadline date
+        """
+        return '{0} {1}'.format(
+            calendar.month_name[self.month],
+            self.day
         )
 
 
@@ -334,7 +344,7 @@ class Program(models.Model):
         related_name='programs',
         blank=True
     )
-    application_deadlines = models.ManyToManyField(ApplicationDeadline, blank=True)
+    application_deadlines = models.ManyToManyField(ApplicationDeadline, blank=True, related_name='programs')
     application_deadline_details = models.TextField(null=True, blank=True)
     application_requirements = ListTextField(
         base_field=models.CharField(max_length=255),
