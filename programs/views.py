@@ -219,7 +219,7 @@ class ProgramCareerView(APIView):
         return Response(program.careers.all())
 
 
-class ApplicationDeadlineView(APIView):
+class ApplicationDeadlinesView(APIView):
     def get(request, format=None, **kwargs):
         program = Program.objects.get(id=kwargs['id'])
         deadlines = program.application_deadlines.all()

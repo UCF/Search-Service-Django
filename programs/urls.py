@@ -32,7 +32,7 @@ urlpatterns = [
         ),
     url(
         r'^programs/(?P<id>\d+)/deadlines/$',
-        ApplicationDeadlineView.as_view(),
+        ApplicationDeadlinesView.as_view(),
         name='api.programs.deadlines'
     ),
     url(r'^programs/search/$',
