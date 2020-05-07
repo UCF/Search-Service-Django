@@ -4,8 +4,10 @@ from programs.models import *
 from dateutil.parser import *
 import decimal
 import itertools
+import json
 import logging
 import mimetypes
+import requests
 import sys
 
 
@@ -20,7 +22,7 @@ class Command(BaseCommand):
     programs_matched = set()
     default_deadline_data = []
     deadline_data = []
-    deadlines_count = 0
+    rows_skipped_count = 0
     deadlines_matched_count = 0
     deadlines_skipped_count = 0
     deadlines_deleted_count = 0
@@ -61,7 +63,6 @@ class Command(BaseCommand):
         # Fetch all application deadline data:
         self.get_default_deadline_data()
         self.get_deadline_data()
-        self.deadlines_count = len(self.default_deadline_data) + len(self.deadline_data)
 
         # Assign deadline data to existing programs:
         self.assign_deadline_data()
@@ -87,8 +88,42 @@ class Command(BaseCommand):
         """
         Retrieves deadline data from an external Slate instance.
         """
-        # TODO actually retrieve something
-        self.deadline_data = []
+        if self.career == 'Undergraduate':
+            self.get_undergraduate_deadline_data()
+        else:
+            self.get_graduate_deadline_data()
+
+    def get_undergraduate_deadline_data(self):
+        """
+        Retrieves and sets undergraduate deadline data.
+        """
+        # We don't have unique undergraduate deadline data
+        # right now--add logic later if we get any.
+        return
+
+    def get_graduate_deadline_data(self):
+        """
+        Retrieves and sets graduate deadline data from
+        Graduate Studies' Slate instance.
+        """
+        credentials = settings.GRADUATE_SLATE_ENDPOINTS['deadlines']
+
+        try:
+            response = requests.get(
+                credentials['endpoint'],
+                auth=(credentials['username'], credentials['password'])
+            )
+            response_str = response.text
+            # Make their null values actually parse to `null` and not "NULL":
+            response_str_cleaned = response_str.replace('"NULL"', 'null')
+            response_json = json.loads(response_str_cleaned)
+        except Exception, e:
+            logging.warning(
+                '\nError retrieving Graduate deadline data: {0}'
+                .format(e)
+            )
+        else:
+            self.deadline_data = response_json['row']
 
     def assign_deadline_data(self):
         """
@@ -97,7 +132,7 @@ class Command(BaseCommand):
         """
         # If we have new deadline data to process, delete any existing data.
         # Otherwise, abort this process:
-        if self.deadlines_count:
+        if len(self.default_deadline_data) or len(self.deadline_data):
             print (
                 (
                     'Deleting all existing application deadline data '
@@ -112,8 +147,7 @@ class Command(BaseCommand):
 
             # Clear application_deadline_details and application_requirements
             # on all programs in self.programs:
-            # TODO do we need to force a save on Program objects here?
-            if self.programs.count():
+            if self.programs_count:
                 self.programs.update(
                     application_deadline_details=None,
                     application_requirements=None
@@ -159,7 +193,7 @@ class Command(BaseCommand):
                         'Skipping default deadline data row'
                     ).format(deadline_data['career'])
                 )
-                self.deadlines_skipped_count += 1
+                self.rows_skipped_count += 1
             except Career.MultipleObjectsReturned:
                 logging.warning(
                     (
@@ -167,7 +201,7 @@ class Command(BaseCommand):
                         'Skipping default deadline data row'
                     ).format(deadline_data['career'])
                 )
-                self.deadlines_skipped_count += 1
+                self.rows_skipped_count += 1
             except Level.DoesNotExist:
                 logging.warning(
                     (
@@ -175,7 +209,7 @@ class Command(BaseCommand):
                         'Skipping default deadline data row'
                     ).format(deadline_data['level'])
                 )
-                self.deadlines_skipped_count += 1
+                self.rows_skipped_count += 1
             else:
                 # Fetch term and deadline type:
                 term, term_created = AdmissionTerm.objects.get_or_create(
@@ -196,7 +230,7 @@ class Command(BaseCommand):
                             'Skipping default deadline data row'
                         ).format(deadline_data['display'])
                     )
-                    self.deadlines_skipped_count += 1
+                    self.rows_skipped_count += 1
                 else:
                     # Create or retrieve an existing deadline
                     deadline, deadline_created = ApplicationDeadline.objects.get_or_create(
@@ -228,33 +262,134 @@ class Command(BaseCommand):
         objects/field values from `self.deadline_data` for
         Graduate Programs.
         """
+        career = Career.objects.get(name=self.career)
+        term_spring, term_spring_created = AdmissionTerm.objects.get_or_create(
+            name='Spring'
+        )
+        term_summer, term_summer_created = AdmissionTerm.objects.get_or_create(
+            name='Summer'
+        )
+        term_fall, term_fall_created = AdmissionTerm.objects.get_or_create(
+            name='Fall'
+        )
+        type_domestic, type_domestic_created = AdmissionDeadlineType.objects.get_or_create(
+            name='Domestic'
+        )
+        type_international, type_international_created = AdmissionDeadlineType.objects.get_or_create(
+            name='International'
+        )
+
         for row in self.deadline_data:
-            # TODO process and create/assign existing data
+            plan_code = row['Plan']
+            subplan_code = row['SubPlan']
+            program = None
+            application_requirements = [r.strip() for r in row['ProgramApplicationRequirements'].split('|')] if row['ProgramApplicationRequirements'] else []
+            deadlines = []
 
-            # TODO implement an actual condition here
-            if True:
-                # TODO Remember to add matched programs to self.programs_matched!
-
-                self.deadlines_matched_count += 1
-                logging.info(unicode(
+            # Make sure the program specified in this row of data
+            # is valid before proceeding any further:
+            try:
+                program = Program.objects.get(
+                    plan_code=plan_code,
+                    subplan_code=subplan_code
+                )
+            except Program.DoesNotExist:
+                logging.warning(
                     (
-                        '\n MATCH Deadline data with TODO to {0} '
-                        'existing programs'
+                        'Cannot find existing Program with plan '
+                        'code "{0}" and subplan code "{1}" to '
+                        'assign deadline data to. '
+                        'Skipping deadline data row'
                     ).format(
-                        '0'  # TODO
+                        plan_code,
+                        subplan_code
                     )
-                )).encode('ascii', 'xmlcharrefreplace')
+                )
+                self.rows_skipped_count += 1
             else:
-                self.deadlines_skipped_count += 1
-                logging.info(unicode(
-                    (
-                        '\n FAILURE Deadline data with TODO '
-                        '- no program matches found'
-                    ).format(
-                        # TODO
-                    )
-                )).encode('ascii', 'xmlcharrefreplace')
-        return
+                # Ensure existing deadline data is removed from the program
+                # (e.g. that were added from default deadline data).
+                # Deadline data being imported during this step takes
+                # priority over default deadline data.
+                program.application_deadlines.clear()
+
+                # Determine which keys in the row of data contain
+                # application deadline information by sniffing key names.
+                # Assume that a key whose name contains "ApplicationDeadline"
+                # has a value representing a single deadline.
+                for key, val in row.items():
+                    if 'ApplicationDeadline' in key and val:
+                        admission_term = None
+                        deadline_type = None
+
+                        if key == 'SpringDomesticApplicationDeadline':
+                            admission_term = term_spring
+                            deadline_type = type_domestic
+                        elif key == 'SummerDomesticApplicationDeadline':
+                            admission_term = term_summer
+                            deadline_type = type_domestic
+                        elif key == 'FallDomesticApplicationDeadline':
+                            admission_term = term_fall
+                            deadline_type = type_domestic
+                        elif key == 'SpringInternationalApplicationDeadline':
+                            admission_term = term_spring
+                            deadline_type = type_international
+                        elif key == 'SummerInternationalApplicationDeadline':
+                            admission_term = term_summer
+                            deadline_type = type_international
+                        elif key == 'FallInternationalApplicationDeadline':
+                            admission_term = term_fall
+                            deadline_type = type_international
+
+                        if admission_term and deadline_type:
+                            try:
+                                # Determine month + day from string
+                                deadline_date = parse(val)
+                            except ValueError:
+                                logging.warning(
+                                    (
+                                        'Cannot determine month and day from '
+                                        'display string {0} in deadline data. '
+                                        'Skipping deadline.'
+                                    ).format(val)
+                                )
+                                self.deadlines_skipped_count += 1
+                            else:
+                                deadline, deadline_created = ApplicationDeadline.objects.get_or_create(
+                                    admission_term=admission_term,
+                                    career=career,
+                                    deadline_type=deadline_type,
+                                    month=deadline_date.month,
+                                    day=deadline_date.day
+                                )
+
+                                program.application_deadlines.add(deadline)
+                                program.application_requirements = application_requirements
+                                # TODO assign program.application_deadline_details
+                                # here once available
+                                program.save()
+
+                                self.deadlines_matched_count += 1
+                                self.programs_matched.add(program)
+                                logging.info(
+                                    (
+                                        'Assigned deadline "{0}" to program "{1}" '
+                                        '(plan code "{2}", subplan code "{3}")'
+                                    ).format(
+                                        deadline,
+                                        program.name,
+                                        program.plan_code,
+                                        program.subplan_code
+                                    )
+                                )
+                        else:
+                            logging.warning(
+                                (
+                                    'Unknown deadline field {0}. '
+                                    'Skipping deadline.'
+                                ).format(key)
+                            )
+                            self.deadlines_skipped_count += 1
 
     def delete_stale_deadlines(self):
         """
@@ -272,36 +407,30 @@ class Command(BaseCommand):
             'Finished import of {0} Program deadline data.'
         ).format(self.career)
 
-        if self.programs_count:
-            print (
-                'Created one or more ApplicationDeadlines for {0}/{1} '
-                'existing {2} Programs: {3: .0f} %'
-            ).format(
-                len(self.programs_matched),
-                self.programs_count,
-                self.career,
-                float(len(self.programs_matched)) / float(self.programs_count) * 100
-            )
+        print (
+            'Created one or more ApplicationDeadlines for {0}/{1} '
+            'existing {2} Programs: {3: .0f} %'
+        ).format(
+            len(self.programs_matched),
+            self.programs_count,
+            self.career,
+            float(len(self.programs_matched)) / float(self.programs_count) * 100
+        )
 
-        if self.deadlines_count:
-            print (
-                'Matched {0}/{1} of fetched Deadline data rows to at least '
-                'one existing {2} Program: {3:.0f}%'
-            ).format(
-                self.deadlines_matched_count,
-                self.deadlines_count,
-                self.career,
-                float(self.deadlines_matched_count) / float(self.deadlines_count) * 100
-            )
+        print (
+            'Skipped {0} rows of deadline data.'
+        ).format(
+            self.rows_skipped_count
+        )
 
-            print (
-                'Skipped {0} rows of Deadline data.'
-            ).format(
-                self.deadlines_skipped_count
-            )
+        print (
+            'Skipped {0} individual deadlines.'
+        ).format(
+            self.deadlines_skipped_count
+        )
 
-            print (
-                'Deleted {0} Deadlines with no assigned Programs.'
-            ).format(
-                self.deadlines_deleted_count
-            )
+        print (
+            'Deleted {0} Deadlines with no assigned Programs.'
+        ).format(
+            self.deadlines_deleted_count
+        )
