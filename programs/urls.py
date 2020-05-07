@@ -30,6 +30,11 @@ urlpatterns = [
         ProgramCareerView.as_view(),
         name='api.programs.careers'
         ),
+    url(
+        r'^programs/(?P<id>\d+)/deadlines/$',
+        ApplicationDeadlineView.as_view(),
+        name='api.programs.deadlines'
+    ),
     url(r'^programs/search/$',
         ProgramSearchView.as_view(),
         name='api.programs.search'

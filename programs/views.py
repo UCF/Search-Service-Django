@@ -15,9 +15,11 @@ from programs.filters import *
 
 
 # Mixins
+
 class MultipleFieldLookupMixin(object):
     """
-    Multiple field lookups. Set multiple fields by providing `lookup_fields` tuple
+    Multiple field lookups. Set multiple fields by
+    providing `lookup_fields` tuple
     """
     def get_object(self):
         queryset = self.get_queryset()
@@ -31,9 +33,11 @@ class MultipleFieldLookupMixin(object):
         self.check_object_permissions(self.request, obj)
         return obj
 
+
 class LimitedPaginationMixin(LimitOffsetPagination):
     default_limit = 25
     max_limit = 50
+
 
 class CoreAPI(APIView):
 
@@ -55,7 +59,9 @@ class CoreAPI(APIView):
             'images-search': reverse('api.images.search', request=request),
         })
 
+
 # Create your views here.
+
 class CollegeListView(generics.ListAPIView):
     queryset = College.objects.all()
     serializer_class = CollegeSerializer
@@ -132,27 +138,33 @@ class ProgramDescriptionTypeListView(generics.ListAPIView):
     queryset = ProgramDescriptionType.objects.all()
     serializer_class = ProgramDescriptionTypeSerializer
 
+
 class CollegeOverrideListView(generics.ListAPIView):
     queryset = CollegeOverride.objects.all()
     serializer_class = CollegeOverrideSerializer
+
 
 class TuitionOverrideListView(generics.ListAPIView):
     queryset = TuitionOverride.objects.all()
     serializer_class = TuitionOverrideSerializer
     filter_class = TuitionOverrideFilter
 
+
 class TuitionOverrideCreateView(generics.CreateAPIView):
     serializer_class = TuitionOverrideSerializer
+
 
 class TuitionOverrideDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = TuitionOverride.objects.all()
     lookup_field = 'id'
     serializer_class = TuitionOverrideSerializer
 
+
 class CIPListView(generics.ListAPIView):
     queryset = CIP.objects.all()
     serializer_class = CIPSerializer
     pagination_class = LimitedPaginationMixin
+
 
 class CIPDetailView(generics.RetrieveAPIView):
     queryset = CIP.objects.all()
@@ -163,6 +175,7 @@ class CIPDetailView(generics.RetrieveAPIView):
         version = self.kwargs['version'] if 'version' in self.kwargs.keys() else settings.CIP_CURRENT_VERSION
         code = str(self.kwargs['code'])
         return CIP.objects.get(version=version, code=code)
+
 
 class ProgramOutcomeView(APIView):
     def get(self, request, format=None, **kwargs):
@@ -176,6 +189,7 @@ class ProgramOutcomeView(APIView):
         }
 
         return Response(retval)
+
 
 class ProgramProjectionTotalsView(APIView):
     def get(request, format=None, **kwargs):
@@ -197,8 +211,23 @@ class ProgramProjectionTotalsView(APIView):
         serializer = EmploymentProjectionTotalsSerializer(obj, many=False)
         return Response(serializer.data)
 
+
 class ProgramCareerView(APIView):
     def get(request, format=None, **kwargs):
         program = Program.objects.get(id=kwargs['id'])
 
         return Response(program.careers.all())
+
+
+class ApplicationDeadlineView(APIView):
+    def get(request, format=None, **kwargs):
+        program = Program.objects.get(id=kwargs['id'])
+        deadlines = program.application_deadlines.all()
+        requirements = program.application_requirements if program.application_requirements else []
+        details = program.application_deadline_details
+
+        return Response({
+            'application_deadlines': ApplicationDeadlineSerializer(instance=deadlines, many=True, read_only=True).data,
+            'application_requirements': requirements,
+            'application_deadline_details': details
+        })

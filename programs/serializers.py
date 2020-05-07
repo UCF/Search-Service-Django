@@ -232,21 +232,6 @@ class RelatedProgramSerializer(serializers.ModelSerializer):
         model = Program
 
 
-class ApplicationDeadlineSerializer(serializers.ModelSerializer):
-    admission_term = serializers.StringRelatedField(many=False)
-    deadline_type = serializers.StringRelatedField(many=False)
-
-    class Meta:
-        fields = (
-            'admission_term',
-            'deadline_type',
-            'display',
-            'month',
-            'day',
-        )
-        model = ApplicationDeadline
-
-
 class AcademicYearSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('__all__')
@@ -370,6 +355,21 @@ class EmploymentProjectionTotalsSerializer(serializers.Serializer):
     openings = serializers.IntegerField()
 
 
+class ApplicationDeadlineSerializer(serializers.ModelSerializer):
+    admission_term = serializers.StringRelatedField(many=False)
+    deadline_type = serializers.StringRelatedField(many=False)
+
+    class Meta:
+        fields = (
+            'admission_term',
+            'deadline_type',
+            'display',
+            'month',
+            'day',
+        )
+        model = ApplicationDeadline
+
+
 class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
     career = serializers.StringRelatedField(many=False)
@@ -403,13 +403,9 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     parent_program = RelatedProgramSerializer(many=False, read_only=True)
     subplans = RelatedProgramSerializer(many=True, read_only=True)
 
-    application_deadlines = ApplicationDeadlineSerializer(many=True, read_only=True)
-    # TODO fix default to use [] instead of null
-    application_requirements = serializers.ListField(
-        child=serializers.CharField(),
-        default=[],
-        allow_empty=True,
-        read_only=True
+    application_deadlines = serializers.HyperlinkedIdentityField(
+        view_name='api.programs.deadlines',
+        lookup_field='id'
     )
 
     class Meta:
@@ -434,12 +430,10 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'resident_tuition',
             'nonresident_tuition',
             'tuition_type',
-            'application_deadlines',
-            'application_deadline_details',
-            'application_requirements',
             'outcomes',
             'projection_totals',
             'careers',
+            'application_deadlines',
             'active'
         )
         fieldsets = {
