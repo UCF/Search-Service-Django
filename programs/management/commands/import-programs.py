@@ -21,6 +21,7 @@ class Command(BaseCommand):
     use_internal_mapping = False
     new_modified_date = None
     list_inactive = True
+    programs_skipped = 0
     programs_processed = 0
     programs_added = 0
     programs_deactivated = 0
@@ -33,7 +34,7 @@ class Command(BaseCommand):
     departments_changed = 0
     # A collection of program ids added or updated
     programs = []
-    # A list of programs deactived
+    # A list of programs deactivated
     deactivated_programs = []
     # A list of inactive programs found in APIM data
     inactive_programs = []
@@ -96,20 +97,72 @@ class Command(BaseCommand):
 
         # Create/update programs from feed data
         for d in data:
-            # Ignore pending and non-degree programs
-            if d['Meta Data'][0]['Degree'] in ['PND', 'PRP']:
-                continue
+            if self.program_is_valid(d):
+                program = self.add_program(d)
 
-            program = self.add_program(d)
-
-            if len(d['SubPlans']) > 0:
-                for sp in d['SubPlans']:
-                    self.add_subplan(sp, program)
+                if len(d['SubPlans']) > 0:
+                    for sp in d['SubPlans']:
+                        if self.subplan_is_valid(sp):
+                            self.add_subplan(sp, program)
+                        else:
+                            self.programs_skipped += 1
+            else:
+                self.programs_skipped += 1
 
         self.deactivate_stale_programs()
         self.print_results()
 
         return 0
+
+    def program_is_valid(self, data):
+        """
+        Returns whether or not APIM data representing a
+        top-level program plan is considered valid.
+        """
+        # Ignore pending and non-degree programs
+        if data['Meta Data'][0]['Degree'] in ['PND', 'PRP']:
+            return False
+
+        # Is this program offered at at least one location?
+        if len(data['Active Locations']) == 0:
+            return False
+
+        # Ensure other required values are not empty
+        required = [
+            data['College_Full'],
+            data['Plan'],
+            data['PlanName'],
+            data['Career'],
+            data['Meta Data'][0]['Degree'],
+            data['CollegeShort'],
+            data['Dept_Full']
+        ]
+        for val in required:
+            if not val:
+                return False
+
+        return True
+
+    def subplan_is_valid(self, data):
+        """
+        Returns whether or not APIM data representing a
+        subplan is considered valid.
+        """
+        # Is this program offered at at least one location?
+        if len(data['Active Locations']) == 0:
+            return False
+
+        # Ensure other required values are not empty
+        required = [
+            data['Subplan'],
+            data['Subplan_Name'],
+            data['Meta Data'][0]['Degree']
+        ]
+        for val in required:
+            if not val:
+                return False
+
+        return True
 
     def add_program(self, data):
         program = None
@@ -368,21 +421,24 @@ class Command(BaseCommand):
         """
         Deactivate all programs not processed during the import
         """
-        all_programs = Program.objects.all().values_list('id', flat=True)
+        stale_programs = Program.objects.filter(
+            active=True,
+            modified__lt=self.new_modified_date
+        )
 
-        for program in self.programs:
-            if program not in all_programs:
-                p = Program.objects.get(id=program)
-                p.active = False
-                p.save()
-                self.deactivated_programs.append(p.pk)
-                self.programs_deactivated += 1
+        for program in stale_programs:
+            program.active = False
+            program.save()
+            self.deactivated_programs.append(program.pk)
+
+        self.programs_deactivated += stale_programs.count()
 
     def print_results(self):
         """
         Prints the results of the import to the stdout
         """
         results = [
+            ('Programs Skipped', self.programs_skipped),
             ('Programs Processed', self.programs_processed),
             ('Programs Created', self.programs_added),
             ('Programs Updated', self.programs_updated),
@@ -407,6 +463,10 @@ Import Complete!
         self.stdout.write(tabulate(taxonomies, tablefmt='grid'), ending='\n\n')
 
         if len(self.deactivated_programs) > 0:
+            self.stdout.write(
+                "The following programs were deactivated during this import:",
+                ending='\n\n'
+            )
             row_headers = ["Name", "Level", "Degree", "Career"]
             programs = Program.objects.filter(pk__in=self.deactivated_programs).values_list('name', 'level__name', 'degree__name', 'career__name')
             self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
