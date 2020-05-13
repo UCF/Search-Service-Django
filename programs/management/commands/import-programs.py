@@ -415,7 +415,13 @@ class Command(BaseCommand):
         return False
 
     def common_replace(self, input):
-        return input.replace('&', 'and')
+        """
+        Performs a general set of string replacements
+        against a given input string.
+        """
+        input = input.replace('College of Business Administration', 'College of Business')
+        input = input.replace('&', 'and')
+        return input
 
     def deactivate_stale_programs(self):
         """
