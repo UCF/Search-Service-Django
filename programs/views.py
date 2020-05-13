@@ -87,7 +87,7 @@ class DepartmentSearchView(DepartmentListView):
 
 
 class ProgramListView(generics.ListAPIView):
-    queryset = Program.objects.all()
+    queryset = Program.objects.filter(valid=True)
     serializer_class = ProgramSerializer
     pagination_class = LimitedPaginationMixin
 
