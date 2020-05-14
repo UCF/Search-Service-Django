@@ -24,6 +24,7 @@ class Command(BaseCommand):
     programs_skipped = 0
     programs_processed = 0
     programs_added = 0
+    programs_revalidated = 0
     programs_invalidated = 0
     programs_updated = 0
     colleges_added = 0
@@ -34,6 +35,8 @@ class Command(BaseCommand):
     departments_changed = 0
     # A collection of program ids added or updated
     programs = []
+    # A list of programs that were re-validated after previously being invalid
+    revalidated_programs = []
     # A list of programs invalidated
     invalidated_programs = []
     # A list of inactive programs found in APIM data
@@ -183,7 +186,10 @@ class Command(BaseCommand):
             self.programs_added += 1
 
         # Ensure the program is marked as valid
-        program.valid = True
+        if not program.valid:
+            program.valid = True
+            self.revalidated_programs.append(program.pk)
+            self.programs_revalidated += 1
 
         # If the program is inactive in our data,
         # note the inactive program for output
@@ -334,7 +340,10 @@ class Command(BaseCommand):
             self.programs_added += 1
 
         # Ensure the program is marked as valid
-        program.valid = True
+        if not program.valid:
+            program.valid = True
+            self.revalidated_programs.append(program.pk)
+            self.programs_revalidated += 1
 
         # If the program is inactive in our data,
         # note the inactive program for output
@@ -472,16 +481,32 @@ Import Complete!
         self.stdout.write(tabulate(relationships, tablefmt='grid'), ending='\n\n')
         self.stdout.write(tabulate(taxonomies, tablefmt='grid'), ending='\n\n')
 
-        if len(self.invalidated_programs) > 0:
+        if self.programs_invalidated > 0:
             self.stdout.write(
-                "The following programs were marked as invalid during this import:",
+                (
+                    '{0} programs were marked as invalid during this import:'
+                ).format(self.programs_invalidated),
                 ending='\n\n'
             )
             row_headers = ["Name", "Level", "Degree", "Career"]
             programs = Program.objects.filter(pk__in=self.invalidated_programs).values_list('name', 'level__name', 'degree__name', 'career__name')
             self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
         else:
-            self.stdout.write("All processed programs were valid.", ending='\n\n')
+            self.stdout.write("No programs were marked as invalid during this import.", ending='\n\n')
+
+        if self.programs_revalidated > 0:
+            self.stdout.write(
+                (
+                    '{0} programs previously marked as invalid were made '
+                    'valid during this import:',
+                ).format(self.programs_revalidated),
+                ending='\n\n'
+            )
+            row_headers = ["Name", "Level", "Degree", "Career"]
+            programs = Program.objects.filter(pk__in=self.revalidated_programs).values_list('name', 'level__name', 'degree__name', 'career__name')
+            self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
+        else:
+            self.stdout.write("No existing invalid programs were marked as valid during this import.", ending='\n\n')
 
         if len(self.inactive_programs) > 0 and self.list_inactive:
             self.stdout.write("Inactive Programs Present in Source Data (" + str(len(self.inactive_programs)) + "):", ending='\n\n')
