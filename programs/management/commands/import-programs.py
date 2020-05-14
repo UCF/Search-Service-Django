@@ -24,7 +24,7 @@ class Command(BaseCommand):
     programs_skipped = 0
     programs_processed = 0
     programs_added = 0
-    programs_deactivated = 0
+    programs_invalidated = 0
     programs_updated = 0
     colleges_added = 0
     departments_added = 0
@@ -34,8 +34,8 @@ class Command(BaseCommand):
     departments_changed = 0
     # A collection of program ids added or updated
     programs = []
-    # A list of programs deactivated
-    deactivated_programs = []
+    # A list of programs invalidated
+    invalidated_programs = []
     # A list of inactive programs found in APIM data
     inactive_programs = []
 
@@ -109,7 +109,7 @@ class Command(BaseCommand):
             else:
                 self.programs_skipped += 1
 
-        self.deactivate_stale_programs()
+        self.invalidate_stale_programs()
         self.print_results()
 
         return 0
@@ -182,13 +182,13 @@ class Command(BaseCommand):
             )
             self.programs_added += 1
 
+        # Ensure the program is marked as valid
+        program.valid = True
+
         # If the program is inactive in our data,
-        # skip the rest of the process but note
-        # the inactive program for output
+        # note the inactive program for output
         if program.active == False and data['Meta Data'][0]['Status'] == 'A':
             self.inactive_programs.append(program.pk)
-            self.programs_updated -= 1
-            return program
 
         # Handle Career
         career = self.career_mappings[data['Career']]
@@ -319,7 +319,8 @@ class Command(BaseCommand):
         try:
             program = Program.objects.get(
                 plan_code=parent.plan_code,
-                subplan_code=data['Subplan'])
+                subplan_code=data['Subplan']
+            )
 
             program.name = unidecode(data['Subplan_Name'])
             self.programs_updated += 1
@@ -332,10 +333,13 @@ class Command(BaseCommand):
             )
             self.programs_added += 1
 
+        # Ensure the program is marked as valid
+        program.valid = True
+
+        # If the program is inactive in our data,
+        # note the inactive program for output
         if program.active == False and data['Meta Data'][0]['Status'] == 'A':
             self.inactive_programs.append(program.pk)
-            self.programs_updated -= 1
-            return
 
         # Handle Career and Level
         program.career = parent.career
@@ -423,21 +427,21 @@ class Command(BaseCommand):
         input = input.replace('&', 'and')
         return input
 
-    def deactivate_stale_programs(self):
+    def invalidate_stale_programs(self):
         """
-        Deactivate all programs not processed during the import
+        Invalidate all programs not processed during the import
         """
         stale_programs = Program.objects.filter(
-            active=True,
+            valid=True,
             modified__lt=self.new_modified_date
         )
 
         for program in stale_programs:
-            program.active = False
+            program.valid = False
             program.save()
-            self.deactivated_programs.append(program.pk)
+            self.invalidated_programs.append(program.pk)
 
-        self.programs_deactivated += stale_programs.count()
+        self.programs_invalidated += stale_programs.count()
 
     def print_results(self):
         """
@@ -448,7 +452,7 @@ class Command(BaseCommand):
             ('Programs Processed', self.programs_processed),
             ('Programs Created', self.programs_added),
             ('Programs Updated', self.programs_updated),
-            ('Programs Deactivated', self.programs_deactivated)
+            ('Programs Invalidated', self.programs_invalidated)
         ]
         relationships = [
             ('Programs with college change', self.colleges_changed),
@@ -468,16 +472,16 @@ Import Complete!
         self.stdout.write(tabulate(relationships, tablefmt='grid'), ending='\n\n')
         self.stdout.write(tabulate(taxonomies, tablefmt='grid'), ending='\n\n')
 
-        if len(self.deactivated_programs) > 0:
+        if len(self.invalidated_programs) > 0:
             self.stdout.write(
-                "The following programs were deactivated during this import:",
+                "The following programs were marked as invalid during this import:",
                 ending='\n\n'
             )
             row_headers = ["Name", "Level", "Degree", "Career"]
-            programs = Program.objects.filter(pk__in=self.deactivated_programs).values_list('name', 'level__name', 'degree__name', 'career__name')
+            programs = Program.objects.filter(pk__in=self.invalidated_programs).values_list('name', 'level__name', 'degree__name', 'career__name')
             self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
         else:
-            self.stdout.write("There were no programs deactivated.", ending='\n\n')
+            self.stdout.write("All processed programs were valid.", ending='\n\n')
 
         if len(self.inactive_programs) > 0 and self.list_inactive:
             self.stdout.write("Inactive Programs Present in Source Data (" + str(len(self.inactive_programs)) + "):", ending='\n\n')
