@@ -56,9 +56,9 @@ class ProgramDescriptionAdmin(admin.ModelAdmin):
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
     readonly_fields = ('created', 'modified', 'valid')
-    search_fields = ('name', )
+    search_fields = ('name', 'plan_code', 'subplan_code')
     list_filter = ('level__name', 'colleges__full_name', 'valid', 'active')
-    list_display = ('name', 'created', 'valid', 'active')
+    list_display = ('name', 'plan_code', 'subplan_code', 'created', 'valid', 'active')
 
 @admin.register(Fee)
 class FeeAdmin(admin.ModelAdmin):
