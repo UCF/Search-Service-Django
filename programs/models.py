@@ -282,6 +282,7 @@ class Program(models.Model):
         blank=True
     )
     active = models.BooleanField(default=True)
+    valid = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ('plan_code', 'subplan_code')
