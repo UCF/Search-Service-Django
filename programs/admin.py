@@ -55,9 +55,46 @@ class ProgramDescriptionAdmin(admin.ModelAdmin):
 
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
-    readonly_fields = ('created', 'modified')
-    search_fields = ('name', )
-    list_filter = ('level__name', 'colleges__full_name', )
+    actions = ['make_active', 'make_inactive']
+    readonly_fields = ('created', 'modified', 'valid', 'active_comments_author')
+    search_fields = ('name', 'plan_code', 'subplan_code')
+    list_filter = ('level__name', 'colleges__full_name', 'valid', 'active')
+    list_display = ('name', 'plan_code', 'subplan_code', 'created', 'valid', 'active')
+
+    def make_active(self, request, queryset):
+        rows_updated = queryset.update(active=True)
+        if rows_updated == 1:
+            message_bit = '1 program was'
+        else:
+            message_bit = '{0} programs were'.format(rows_updated)
+        self.message_user(
+            request,
+            '{0} successfully marked as active.'.format(message_bit)
+        )
+    make_active.short_description = 'Mark selected programs as active'
+
+    def make_inactive(self, request, queryset):
+        rows_updated = queryset.update(active=False)
+        if rows_updated == 1:
+            message_bit = '1 program was'
+        else:
+            message_bit = '{0} programs were'.format(rows_updated)
+        self.message_user(
+            request,
+            '{0} successfully marked as inactive.'.format(message_bit)
+        )
+    make_inactive.short_description = 'Mark selected programs as inactive'
+
+    def save_model(self, request, obj, form, change):
+        if change and 'active_comments' in form.changed_data:
+            new_active_comments = obj.active_comments
+            if new_active_comments:
+                obj.active_comments_author = request.user
+            else:
+                obj.active_comments_author = None
+
+        super(ProgramAdmin, self).save_model(request, obj, form, change)
+
 
 @admin.register(Fee)
 class FeeAdmin(admin.ModelAdmin):

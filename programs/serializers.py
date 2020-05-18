@@ -413,6 +413,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'outcomes',
             'projection_totals',
             'careers',
+            'valid',
             'active'
         )
         fieldsets = {
