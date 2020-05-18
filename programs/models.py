@@ -282,6 +282,13 @@ class Program(models.Model):
         blank=True
     )
     active = models.BooleanField(default=True)
+    active_comments = models.CharField(max_length=500, null=True, blank=True)
+    active_comments_author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
     valid = models.BooleanField(default=True)
 
     class Meta:
