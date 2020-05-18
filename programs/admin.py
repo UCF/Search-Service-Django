@@ -56,7 +56,7 @@ class ProgramDescriptionAdmin(admin.ModelAdmin):
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
     actions = ['make_active', 'make_inactive']
-    readonly_fields = ('created', 'modified', 'valid')
+    readonly_fields = ('created', 'modified', 'valid', 'active_comments_author')
     search_fields = ('name', 'plan_code', 'subplan_code')
     list_filter = ('level__name', 'colleges__full_name', 'valid', 'active')
     list_display = ('name', 'plan_code', 'subplan_code', 'created', 'valid', 'active')
@@ -84,6 +84,16 @@ class ProgramAdmin(admin.ModelAdmin):
             '{0} successfully marked as inactive.'.format(message_bit)
         )
     make_inactive.short_description = 'Mark selected programs as inactive'
+
+    def save_model(self, request, obj, form, change):
+        if change and 'active_comments' in form.changed_data:
+            new_active_comments = obj.active_comments
+            if new_active_comments:
+                obj.active_comments_author = request.user
+            else:
+                obj.active_comments_author = None
+
+        super(ProgramAdmin, self).save_model(request, obj, form, change)
 
 
 @admin.register(Fee)
