@@ -217,26 +217,32 @@ class Command(BaseCommand):
             'Finished import of {0} Program GUID data.'
         ).format(self.career)
 
-        print (
-            'Assigned a GUID to {0}/{1} '
-            'existing {2} Programs: {3: .0f} %'
-        ).format(
-            len(self.programs_matched),
-            self.programs_count,
-            self.career,
-            float(len(self.programs_matched)) /
-            float(self.programs_count) * 100
-        )
+        if self.programs_count:
+            print (
+                'Assigned a GUID to {0}/{1} '
+                'existing {2} Programs: {3: .0f} %'
+            ).format(
+                len(self.programs_matched),
+                self.programs_count,
+                self.career,
+                float(len(self.programs_matched)) /
+                float(self.programs_count) * 100
+            )
+        else:
+            print 'No programs were assigned a GUID.'
 
-        print (
-            'Matched {0}/{1} rows of {2} GUID data: {3: .0f} %'
-        ).format(
-            self.rows_matched_count,
-            len(self.guid_data),
-            self.career,
-            float(self.rows_matched_count) /
-            float(len(self.guid_data)) * 100
-        )
+        if len(self.guid_data):
+            print (
+                'Matched {0}/{1} rows of {2} GUID data: {3: .0f} %'
+            ).format(
+                self.rows_matched_count,
+                len(self.guid_data),
+                self.career,
+                float(self.rows_matched_count) /
+                float(len(self.guid_data)) * 100
+            )
+        else:
+            print 'No GUID data was processed.'
 
         print (
             'Skipped {0} rows of {1} GUID data.'
