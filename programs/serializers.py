@@ -413,6 +413,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'outcomes',
             'projection_totals',
             'careers',
+            'graduate_slate_id',
             'valid',
             'active'
         )

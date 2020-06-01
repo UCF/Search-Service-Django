@@ -169,3 +169,13 @@ PROGRAM_PROFILE = [
         'value': 'Main Site'
     }
 ]
+
+# Endpoints and credentials for accessing data from
+# Graduate Studies' Slate instance
+GRADUATE_SLATE_ENDPOINTS = {
+    'guids': {
+        'endpoint': '',
+        'username': '',
+        'password': ''
+    }
+}
