@@ -360,6 +360,7 @@ class Program(models.Model):
         blank=True,
         on_delete=models.SET_NULL
     )
+    graduate_slate_id = models.CharField(max_length=255, null=True, blank=True)
     valid = models.BooleanField(default=True)
 
     class Meta:

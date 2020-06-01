@@ -238,8 +238,15 @@ PROGRAM_APPLICATION_DEADLINES = [
     }
 ]
 
+# Endpoints and credentials for accessing data from
+# Graduate Studies' Slate instance
 GRADUATE_SLATE_ENDPOINTS = {
     'deadlines': {
+        'endpoint': '',
+        'username': '',
+        'password': ''
+    },
+    'guids': {
         'endpoint': '',
         'username': '',
         'password': ''

@@ -10,7 +10,7 @@ import django_mysql.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('programs', '0038_auto_20200518_1625'),
+        ('programs', '0039_program_graduate_slate_id'),
     ]
 
     operations = [
