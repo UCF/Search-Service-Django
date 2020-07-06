@@ -105,7 +105,7 @@ class Command(BaseCommand):
 
                 if len(d['SubPlans']) > 0:
                     for sp in d['SubPlans']:
-                        if self.subplan_is_valid(sp):
+                        if self.subplan_is_valid(sp, d):
                             self.add_subplan(sp, program)
                         else:
                             self.programs_skipped += 1
@@ -126,8 +126,13 @@ class Command(BaseCommand):
         if data['Meta Data'][0]['Degree'] in ['PND', 'PRP']:
             return False
 
-        # Is this program offered at at least one location?
-        if len(data['Active Locations']) == 0:
+        # Is this program an undergraduate program
+        # (not a minor or certificate) offered at at least one location?
+        if (
+            self.career_mappings[data['Career']] == 'Undergraduate'
+            and data['Meta Data'][0]['Degree'] not in ['CER', 'CRT', 'MIN']
+            and len(data['Active Locations']) == 0
+        ):
             return False
 
         # Ensure other required values are not empty
@@ -146,13 +151,14 @@ class Command(BaseCommand):
 
         return True
 
-    def subplan_is_valid(self, data):
+    def subplan_is_valid(self, data, parent_data):
         """
         Returns whether or not APIM data representing a
         subplan is considered valid.
         """
-        # Is this program offered at at least one location?
-        if len(data['Active Locations']) == 0:
+        # Is this program an undergraduate subplan
+        # offered at at least one location?
+        if self.career_mappings[parent_data['Career']] == 'Undergraduate' and len(data['Active Locations']) == 0:
             return False
 
         # Ensure other required values are not empty
@@ -498,7 +504,7 @@ Import Complete!
             self.stdout.write(
                 (
                     '{0} programs previously marked as invalid were made '
-                    'valid during this import:',
+                    'valid during this import:'
                 ).format(self.programs_revalidated),
                 ending='\n\n'
             )
