@@ -105,7 +105,7 @@ class Command(BaseCommand):
 
                 if len(d['SubPlans']) > 0:
                     for sp in d['SubPlans']:
-                        if self.subplan_is_valid(sp):
+                        if self.subplan_is_valid(sp, d):
                             self.add_subplan(sp, program)
                         else:
                             self.programs_skipped += 1
@@ -147,14 +147,14 @@ class Command(BaseCommand):
 
         return True
 
-    def subplan_is_valid(self, data):
+    def subplan_is_valid(self, data, parent_data):
         """
         Returns whether or not APIM data representing a
         subplan is considered valid.
         """
         # Is this program an undergraduate program
         # offered at at least one location?
-        if self.career_mappings[data['Career']] == 'Undergraduate' and len(data['Active Locations']) == 0:
+        if self.career_mappings[parent_data['Career']] == 'Undergraduate' and len(data['Active Locations']) == 0:
             return False
 
         # Ensure other required values are not empty
