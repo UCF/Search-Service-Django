@@ -498,7 +498,7 @@ Import Complete!
             self.stdout.write(
                 (
                     '{0} programs previously marked as invalid were made '
-                    'valid during this import:',
+                    'valid during this import:'
                 ).format(self.programs_revalidated),
                 ending='\n\n'
             )
