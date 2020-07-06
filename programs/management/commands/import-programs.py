@@ -127,8 +127,12 @@ class Command(BaseCommand):
             return False
 
         # Is this program an undergraduate program
-        # offered at at least one location?
-        if self.career_mappings[data['Career']] == 'Undergraduate' and len(data['Active Locations']) == 0:
+        # (not a minor or certificate) offered at at least one location?
+        if (
+            self.career_mappings[data['Career']] == 'Undergraduate'
+            and data['Meta Data'][0]['Degree'] not in ['CER', 'CRT', 'MIN']
+            and len(data['Active Locations']) == 0
+        ):
             return False
 
         # Ensure other required values are not empty
@@ -152,7 +156,7 @@ class Command(BaseCommand):
         Returns whether or not APIM data representing a
         subplan is considered valid.
         """
-        # Is this program an undergraduate program
+        # Is this program an undergraduate subplan
         # offered at at least one location?
         if self.career_mappings[parent_data['Career']] == 'Undergraduate' and len(data['Active Locations']) == 0:
             return False
