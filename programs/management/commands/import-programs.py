@@ -126,10 +126,6 @@ class Command(BaseCommand):
         if data['Meta Data'][0]['Degree'] in ['PND', 'PRP']:
             return False
 
-        # Is this program offered at at least one location?
-        if len(data['Active Locations']) == 0:
-            return False
-
         # Ensure other required values are not empty
         required = [
             data['College_Full'],
@@ -151,10 +147,6 @@ class Command(BaseCommand):
         Returns whether or not APIM data representing a
         subplan is considered valid.
         """
-        # Is this program offered at at least one location?
-        if len(data['Active Locations']) == 0:
-            return False
-
         # Ensure other required values are not empty
         required = [
             data['Subplan'],
