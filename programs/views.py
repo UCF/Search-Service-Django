@@ -224,10 +224,8 @@ class ApplicationDeadlinesView(APIView):
         program = Program.objects.get(id=kwargs['id'])
         deadlines = program.application_deadlines.all()
         requirements = program.application_requirements if program.application_requirements else []
-        details = program.application_deadline_details
 
         return Response({
             'application_deadlines': ApplicationDeadlineSerializer(instance=deadlines, many=True, read_only=True).data,
-            'application_requirements': requirements,
-            'application_deadline_details': details
+            'application_requirements': requirements
         })
