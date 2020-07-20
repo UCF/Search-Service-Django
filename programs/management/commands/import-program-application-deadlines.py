@@ -145,11 +145,9 @@ class Command(BaseCommand):
             # Delete all ApplicationDeadlines by self.career
             ApplicationDeadline.objects.filter(career__name=self.career).delete()
 
-            # Clear application_deadline_details and application_requirements
-            # on all programs in self.programs:
+            # Clear application_requirements on all programs in self.programs:
             if self.programs_count:
                 self.programs.update(
-                    application_deadline_details=None,
                     application_requirements=None
                 )
         else:
@@ -281,7 +279,7 @@ class Command(BaseCommand):
 
         for row in self.deadline_data:
             plan_code = row['Plan']
-            subplan_code = row['SubPlan']
+            subplan_code = row['SubPlan'] if 'SubPlan' in row and row['SubPlan'] else None
             program = None
             application_requirements = [r.strip() for r in row['ProgramApplicationRequirements'].split('|')] if row['ProgramApplicationRequirements'] else []
             deadlines = []
@@ -365,8 +363,6 @@ class Command(BaseCommand):
 
                                 program.application_deadlines.add(deadline)
                                 program.application_requirements = application_requirements
-                                # TODO assign program.application_deadline_details
-                                # here once available
                                 program.save()
 
                                 self.deadlines_matched_count += 1

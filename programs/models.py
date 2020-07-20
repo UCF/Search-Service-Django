@@ -345,7 +345,6 @@ class Program(models.Model):
         blank=True
     )
     application_deadlines = models.ManyToManyField(ApplicationDeadline, blank=True, related_name='programs')
-    application_deadline_details = models.TextField(null=True, blank=True)
     application_requirements = ListTextField(
         base_field=models.CharField(max_length=255),
         size=20,  # max number of list items to store
