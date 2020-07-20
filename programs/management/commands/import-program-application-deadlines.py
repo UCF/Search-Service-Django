@@ -279,7 +279,7 @@ class Command(BaseCommand):
 
         for row in self.deadline_data:
             plan_code = row['Plan']
-            subplan_code = row['SubPlan']
+            subplan_code = row['SubPlan'] if 'SubPlan' in row and row['SubPlan'] else None
             program = None
             application_requirements = [r.strip() for r in row['ProgramApplicationRequirements'].split('|')] if row['ProgramApplicationRequirements'] else []
             deadlines = []
