@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from programs.models import *
 
-import urllib2
+import requests
 import json
 import re
 from tabulate import tabulate
@@ -86,17 +86,17 @@ class Command(BaseCommand):
         self.use_internal_mapping = options['use_internal_mapping']
         self.list_inactive = options['list_inactive']
         self.cip_version = options['cip_version']
-        response = urllib2.urlopen(path)
+        response = requests.get(path)
 
         if mapping_path and not self.use_internal_mapping:
-            mapping_resp = urllib2.urlopen(mapping_path)
-            self.mappings = json.loads(mapping_resp.read())
+            mapping_resp = requests.get(mapping_path)
+            self.mappings = mapping_resp.json()
         elif self.use_internal_mapping:
             self.mappings = CollegeOverride.objects.all()
         else:
             self.mappings = None
 
-        data = json.loads(response.read())
+        data = response.json()
 
         # Create/update programs from feed data
         for d in data:
