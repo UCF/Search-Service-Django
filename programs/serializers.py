@@ -415,6 +415,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'careers',
             'graduate_slate_id',
             'valid',
+            'offered',
             'active'
         )
         fieldsets = {

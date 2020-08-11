@@ -56,10 +56,10 @@ class ProgramDescriptionAdmin(admin.ModelAdmin):
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
     actions = ['make_active', 'make_inactive']
-    readonly_fields = ('created', 'modified', 'valid', 'active_comments_author')
+    readonly_fields = ('created', 'modified', 'valid', 'offered', 'active_comments_author')
     search_fields = ('name', 'plan_code', 'subplan_code')
-    list_filter = ('level__name', 'colleges__full_name', 'valid', 'active')
-    list_display = ('name', 'plan_code', 'subplan_code', 'created', 'valid', 'active')
+    list_filter = ('level__name', 'colleges__full_name', 'valid', 'offered', 'active')
+    list_display = ('name', 'plan_code', 'subplan_code', 'created', 'valid', 'offered', 'active')
 
     def make_active(self, request, queryset):
         rows_updated = queryset.update(active=True)
