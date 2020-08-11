@@ -26,8 +26,8 @@ class Command(BaseCommand):
     programs_added = 0
     programs_revalidated = 0
     programs_invalidated = 0
-    programs_reoffered = 0
-    programs_unoffered = 0
+    programs_gained_locations = 0
+    programs_lost_locations = 0
     programs_updated = 0
     colleges_added = 0
     departments_added = 0
@@ -41,10 +41,10 @@ class Command(BaseCommand):
     revalidated_programs = []
     # A list of programs invalidated
     invalidated_programs = []
-    # A list of programs that were marked as offered after previously having no active locations
-    reoffered_programs = []
-    # A list of programs whose offered flag was set to False after previously having active locations
-    unoffered_programs = []
+    # A list of programs that gained locations after previously having no active locations
+    gained_locations_programs = []
+    # A list of programs that had active locations set previously, but lost them
+    lost_locations_programs = []
     # A list of inactive programs found in APIM data
     inactive_programs = []
 
@@ -164,7 +164,7 @@ class Command(BaseCommand):
 
         return True
 
-    def program_is_offered(self, data):
+    def program_has_locations(self, data):
         """
         Returns whether or not the program is offered at
         at least one active location/campus.
@@ -182,7 +182,7 @@ class Command(BaseCommand):
 
         return True
 
-    def subplan_is_offered(self, data, parent_program):
+    def subplan_has_locations(self, data, parent_program):
         """
         Returns whether or not the subplan is offered at
         at least one active location/campus.
@@ -228,15 +228,15 @@ class Command(BaseCommand):
         if program.active == False and data['Meta Data'][0]['Status'] == 'A':
             self.inactive_programs.append(program.pk)
 
-        # Handle "Offered" flag
-        offered = self.program_is_offered(data)
-        if program_exists and program.offered == False and offered == True:
-            self.reoffered_programs.append(program.pk)
-            self.programs_reoffered += 1
-        elif program_exists and program.offered == True and offered == False:
-            self.unoffered_programs.append(program.pk)
-            self.programs_unoffered += 1
-        program.offered = offered
+        # Handle "has_locations" flag
+        has_locations = self.program_has_locations(data)
+        if program_exists and program.has_locations == False and has_locations == True:
+            self.gained_locations_programs.append(program.pk)
+            self.programs_gained_locations += 1
+        elif program_exists and program.has_locations == True and has_locations == False:
+            self.lost_locations_programs.append(program.pk)
+            self.programs_lost_locations += 1
+        program.has_locations = has_locations
 
         # Handle Career
         career = self.career_mappings[data['Career']]
@@ -394,15 +394,14 @@ class Command(BaseCommand):
         if program.active == False and data['Meta Data'][0]['Status'] == 'A':
             self.inactive_programs.append(program.pk)
 
-        # Handle "Offered" flag
-        offered = self.subplan_is_offered(data, parent)
-        if program_exists and program.offered == False and offered == True:
-            self.reoffered_programs.append(program.pk)
-            self.programs_reoffered += 1
-        elif program_exists and program.offered == True and offered == False:
-            self.unoffered_programs.append(program.pk)
-            self.programs_unoffered += 1
-        program.offered = offered
+        has_locations = self.subplan_has_locations(data, parent)
+        if program_exists and program.has_locations == False and has_locations == True:
+            self.gained_locations_programs.append(program.pk)
+            self.programs_gained_locations += 1
+        elif program_exists and program.has_locations == True and has_locations == False:
+            self.lost_locations_programs.append(program.pk)
+            self.programs_lost_locations += 1
+        program.has_locations = has_locations
 
         # Handle Career and Level
         program.career = parent.career
@@ -517,8 +516,8 @@ class Command(BaseCommand):
             ('Programs Updated', self.programs_updated),
             ('Programs Invalidated', self.programs_invalidated),
             ('Programs Revalidated', self.programs_revalidated),
-            ('Programs Re-Offered', self.programs_reoffered),
-            ('Programs Un-Offered', self.programs_unoffered)
+            ('Programs that Gained Active Locations', self.programs_gained_locations),
+            ('Programs that Lost Active Locations', self.programs_lost_locations)
         ]
         relationships = [
             ('Programs with college change', self.colleges_changed),
@@ -565,16 +564,16 @@ Import Complete!
         else:
             self.stdout.write("No existing invalid programs were marked as valid during this import.", ending='\n\n')
 
-        if self.programs_reoffered > 0:
+        if self.programs_gained_locations > 0:
             self.stdout.write(
                 (
                     '{0} programs that previously had no active locations '
-                    'were marked as "offered" during this import:'
-                ).format(self.programs_reoffered),
+                    'gained locations during this import:'
+                ).format(self.programs_gained_locations),
                 ending='\n\n'
             )
             row_headers = ["Name", "Level", "Degree", "Career"]
-            programs = Program.objects.filter(pk__in=self.reoffered_programs).values_list(
+            programs = Program.objects.filter(pk__in=self.gained_locations_programs).values_list(
                 'name', 'level__name', 'degree__name', 'career__name')
             self.stdout.write(
                 tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
@@ -583,16 +582,16 @@ Import Complete!
                 "No existing programs with zero active locations gained active locations during this import.", ending='\n\n')
 
 
-        if self.programs_unoffered > 0:
+        if self.programs_lost_locations > 0:
             self.stdout.write(
                 (
                     '{0} programs that previously had active locations '
-                    'had their "offered" flag set to False during this import:'
-                ).format(self.programs_unoffered),
+                    'lost their active locations during this import:'
+                ).format(self.programs_lost_locations),
                 ending='\n\n'
             )
             row_headers = ["Name", "Level", "Degree", "Career"]
-            programs = Program.objects.filter(pk__in=self.unoffered_programs).values_list(
+            programs = Program.objects.filter(pk__in=self.lost_locations_programs).values_list(
                 'name', 'level__name', 'degree__name', 'career__name')
             self.stdout.write(
                 tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
