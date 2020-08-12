@@ -103,12 +103,17 @@ Imports URLs for ProgramProfiles from a WordPress blog
         response = requests.get(self.path)
         headers = response.headers
 
-        if headers.has_key('x-wp-totalpages'):
-            self.pages = int(headers['x-wp-totalpages'])
+        total_pages = headers.get('x-wp-totalpages')
+        if total_pages is not None:
+            self.pages = int(total_pages)
 
-        if headers.has_key('x-wp-total'):
-            self.degrees_found = int(headers['x-wp-total'])
-            self.progress_bar = ChargingBar('Processing', max=self.degrees_found)
+        total_results = headers.get('x-wp-total')
+        if total_results is not None:
+            self.degrees_found = int(total_results)
+            self.progress_bar = ChargingBar(
+                'Processing',
+                max=self.degrees_found
+            )
 
         programs = response.json()
         self.process_page(programs)
