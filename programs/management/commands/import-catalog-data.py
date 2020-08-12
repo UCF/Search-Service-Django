@@ -190,7 +190,8 @@ class Command(BaseCommand):
 
     def get_catalog_programs(self, program_url):
         response = requests.get(program_url)
-        raw_data = response.text
+        encoding = response.encoding
+        raw_data = response.text.encode(encoding)
         program_root = ET.fromstring(raw_data)
 
         for result in program_root.iter('result'):
@@ -275,7 +276,8 @@ class Command(BaseCommand):
         )
 
         response = requests.get(url)
-        raw_data = response.text
+        encoding = response.encoding
+        raw_data = response.text.encode(encoding)
 
         # Strip xmlns attributes to parse string to xml without namespaces
         data = re.sub(' xmlns(?:\:[a-z]*)?="[^"]+"', '', raw_data)
