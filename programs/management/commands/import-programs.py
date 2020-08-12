@@ -26,6 +26,8 @@ class Command(BaseCommand):
     programs_added = 0
     programs_revalidated = 0
     programs_invalidated = 0
+    programs_gained_locations = 0
+    programs_lost_locations = 0
     programs_updated = 0
     colleges_added = 0
     departments_added = 0
@@ -39,6 +41,10 @@ class Command(BaseCommand):
     revalidated_programs = []
     # A list of programs invalidated
     invalidated_programs = []
+    # A list of programs that gained locations after previously having no active locations
+    gained_locations_programs = []
+    # A list of programs that had active locations set previously, but lost them
+    lost_locations_programs = []
     # A list of inactive programs found in APIM data
     inactive_programs = []
 
@@ -105,7 +111,7 @@ class Command(BaseCommand):
 
                 if len(d['SubPlans']) > 0:
                     for sp in d['SubPlans']:
-                        if self.subplan_is_valid(sp, d):
+                        if self.subplan_is_valid(sp):
                             self.add_subplan(sp, program)
                         else:
                             self.programs_skipped += 1
@@ -126,15 +132,6 @@ class Command(BaseCommand):
         if data['Meta Data'][0]['Degree'] in ['PND', 'PRP']:
             return False
 
-        # Is this program an undergraduate program
-        # (not a minor or certificate) offered at at least one location?
-        if (
-            self.career_mappings[data['Career']] == 'Undergraduate'
-            and data['Meta Data'][0]['Degree'] not in ['CER', 'CRT', 'MIN']
-            and len(data['Active Locations']) == 0
-        ):
-            return False
-
         # Ensure other required values are not empty
         required = [
             data['College_Full'],
@@ -151,17 +148,11 @@ class Command(BaseCommand):
 
         return True
 
-    def subplan_is_valid(self, data, parent_data):
+    def subplan_is_valid(self, data):
         """
         Returns whether or not APIM data representing a
         subplan is considered valid.
         """
-        # Is this program an undergraduate subplan
-        # offered at at least one location?
-        if self.career_mappings[parent_data['Career']] == 'Undergraduate' and len(data['Active Locations']) == 0:
-            return False
-
-        # Ensure other required values are not empty
         required = [
             data['Subplan'],
             data['Subplan_Name'],
@@ -173,9 +164,43 @@ class Command(BaseCommand):
 
         return True
 
+    def program_has_locations(self, data):
+        """
+        Returns whether or not the program is offered at
+        at least one active location/campus.
+
+        Only Bachelors programs utilize the Active Locations
+        value in APIM--so just return True for all other
+        program types.
+        """
+        if (
+            self.career_mappings[data['Career']] == 'Undergraduate'
+            and data['Meta Data'][0]['Degree'] not in ['CER', 'CRT', 'MIN']
+            and len(data['Active Locations']) == 0
+        ):
+            return False
+
+        return True
+
+    def subplan_has_locations(self, data, parent_program):
+        """
+        Returns whether or not the subplan is offered at
+        at least one active location/campus.
+
+        Only Bachelors programs utilize the Active Locations
+        value in APIM--so just return True for all other
+        program types.
+        """
+        parent_career = parent_program.career.name
+        if parent_program.career.name == 'Undergraduate' and len(data['Active Locations']) == 0:
+            return False
+
+        return True
+
     def add_program(self, data):
         program = None
         self.programs_processed += 1
+        program_exists = False
 
         # Correct college name issue
         data['College_Full'] = self.common_replace(data['College_Full'])
@@ -184,6 +209,7 @@ class Command(BaseCommand):
             program = Program.objects.get(plan_code=data['Plan'], subplan_code__isnull=True)
             program.name = unidecode(data['PlanName'])
             self.programs_updated += 1
+            program_exists = True
         except Program.DoesNotExist:
             program = Program(
                 name=unidecode(data['PlanName']),
@@ -201,6 +227,16 @@ class Command(BaseCommand):
         # note the inactive program for output
         if program.active == False and data['Meta Data'][0]['Status'] == 'A':
             self.inactive_programs.append(program.pk)
+
+        # Handle "has_locations" flag
+        has_locations = self.program_has_locations(data)
+        if program_exists and program.has_locations == False and has_locations == True:
+            self.gained_locations_programs.append(program.pk)
+            self.programs_gained_locations += 1
+        elif program_exists and program.has_locations == True and has_locations == False:
+            self.lost_locations_programs.append(program.pk)
+            self.programs_lost_locations += 1
+        program.has_locations = has_locations
 
         # Handle Career
         career = self.career_mappings[data['Career']]
@@ -327,6 +363,7 @@ class Command(BaseCommand):
     def add_subplan(self, data, parent):
         program = None
         self.programs_processed += 1
+        program_exists = False
 
         try:
             program = Program.objects.get(
@@ -336,6 +373,7 @@ class Command(BaseCommand):
 
             program.name = unidecode(data['Subplan_Name'])
             self.programs_updated += 1
+            program_exists = True
         except Program.DoesNotExist:
             program = Program(
                 name=unidecode(data['Subplan_Name']),
@@ -355,6 +393,15 @@ class Command(BaseCommand):
         # note the inactive program for output
         if program.active == False and data['Meta Data'][0]['Status'] == 'A':
             self.inactive_programs.append(program.pk)
+
+        has_locations = self.subplan_has_locations(data, parent)
+        if program_exists and program.has_locations == False and has_locations == True:
+            self.gained_locations_programs.append(program.pk)
+            self.programs_gained_locations += 1
+        elif program_exists and program.has_locations == True and has_locations == False:
+            self.lost_locations_programs.append(program.pk)
+            self.programs_lost_locations += 1
+        program.has_locations = has_locations
 
         # Handle Career and Level
         program.career = parent.career
@@ -467,7 +514,10 @@ class Command(BaseCommand):
             ('Programs Processed', self.programs_processed),
             ('Programs Created', self.programs_added),
             ('Programs Updated', self.programs_updated),
-            ('Programs Invalidated', self.programs_invalidated)
+            ('Programs Invalidated', self.programs_invalidated),
+            ('Programs Revalidated', self.programs_revalidated),
+            ('Programs that Gained Active Locations', self.programs_gained_locations),
+            ('Programs that Lost Active Locations', self.programs_lost_locations)
         ]
         relationships = [
             ('Programs with college change', self.colleges_changed),
@@ -513,6 +563,41 @@ Import Complete!
             self.stdout.write(tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
         else:
             self.stdout.write("No existing invalid programs were marked as valid during this import.", ending='\n\n')
+
+        if self.programs_gained_locations > 0:
+            self.stdout.write(
+                (
+                    '{0} programs that previously had no active locations '
+                    'gained locations during this import:'
+                ).format(self.programs_gained_locations),
+                ending='\n\n'
+            )
+            row_headers = ["Name", "Level", "Degree", "Career"]
+            programs = Program.objects.filter(pk__in=self.gained_locations_programs).values_list(
+                'name', 'level__name', 'degree__name', 'career__name')
+            self.stdout.write(
+                tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
+        else:
+            self.stdout.write(
+                "No existing programs with zero active locations gained active locations during this import.", ending='\n\n')
+
+
+        if self.programs_lost_locations > 0:
+            self.stdout.write(
+                (
+                    '{0} programs that previously had active locations '
+                    'lost their active locations during this import:'
+                ).format(self.programs_lost_locations),
+                ending='\n\n'
+            )
+            row_headers = ["Name", "Level", "Degree", "Career"]
+            programs = Program.objects.filter(pk__in=self.lost_locations_programs).values_list(
+                'name', 'level__name', 'degree__name', 'career__name')
+            self.stdout.write(
+                tabulate(programs, headers=row_headers, tablefmt='grid'), ending='\n\n')
+        else:
+            self.stdout.write(
+                "No existing programs with active locations lost their active locations during this import.", ending='\n\n')
 
         if len(self.inactive_programs) > 0 and self.list_inactive:
             self.stdout.write("Inactive Programs Present in Source Data (" + str(len(self.inactive_programs)) + "):", ending='\n\n')
