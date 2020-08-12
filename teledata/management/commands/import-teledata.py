@@ -3,7 +3,6 @@ from teledata.models import *
 import settings
 import logging
 
-import urllib2
 import logging
 from django.utils import timezone
 from collections import namedtuple
