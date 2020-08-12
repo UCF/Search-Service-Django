@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
-import urllib2
+import requests
 import re
 import itertools
 import logging
@@ -171,7 +171,6 @@ class Command(BaseCommand):
         self.path = options['path']
         self.key = options['api-key']
         self.catalog_id = options['catalog-id']
-        # TODO: Update to production url or parameterize!!!
         self.catalog_url = options['catalog-url'] + '/preview_program.php?catoid={0}&poid={1}'
         self.graduate = options['graduate']
         self.loglevel = options['loglevel']
@@ -190,8 +189,8 @@ class Command(BaseCommand):
         return 0
 
     def get_catalog_programs(self, program_url):
-        response = urllib2.urlopen(program_url)
-        raw_data = response.read()
+        response = requests.get(program_url)
+        raw_data = response.text
         program_root = ET.fromstring(raw_data)
 
         for result in program_root.iter('result'):
@@ -275,8 +274,8 @@ class Command(BaseCommand):
             self.catalog_id
         )
 
-        response = urllib2.urlopen(url)
-        raw_data = response.read()
+        response = requests.get(url)
+        raw_data = response.text
 
         # Strip xmlns attributes to parse string to xml without namespaces
         data = re.sub(' xmlns(?:\:[a-z]*)?="[^"]+"', '', raw_data)
