@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
-import urllib2
+import requests
 import ssl
 import json
 from progress.bar import ChargingBar
@@ -100,29 +100,29 @@ Imports URLs for ProgramProfiles from a WordPress blog
         self.print_stats()
 
     def import_profiles(self):
-        context = ssl._create_unverified_context()
+        response = requests.get(self.path)
+        headers = response.headers
 
-        response = urllib2.urlopen(self.path, context=context)
+        total_pages = headers.get('x-wp-totalpages')
+        if total_pages is not None:
+            self.pages = int(total_pages)
 
-        headers = dict(response.info())
+        total_results = headers.get('x-wp-total')
+        if total_results is not None:
+            self.degrees_found = int(total_results)
+            self.progress_bar = ChargingBar(
+                'Processing',
+                max=self.degrees_found
+            )
 
-        if headers.has_key('x-wp-totalpages'):
-            self.pages = int(headers['x-wp-totalpages'])
-
-        if headers.has_key('x-wp-total'):
-            self.degrees_found = int(headers['x-wp-total'])
-            self.progress_bar = ChargingBar('Processing', max=self.degrees_found)
-
-        programs = json.loads(response.read())
+        programs = response.json()
         self.process_page(programs)
 
         if self.pages > 1:
             for page in range(2, self.pages + 1):
                 path = "{0}?page={1}".format(self.path, page)
-                response = urllib2.urlopen(path, context=context)
-
-                programs = json.loads(response.read())
-
+                response = requests.get(path)
+                programs = response.json()
                 self.process_page(programs)
 
 
