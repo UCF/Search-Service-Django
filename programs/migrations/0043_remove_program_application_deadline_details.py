@@ -12,8 +12,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # migrations.RemoveField(
-        #     model_name='program',
-        #     name='application_deadline_details',
-        # ),
+        migrations.RemoveField(
+            model_name='program',
+            name='application_deadline_details',
+        ),
     ]
