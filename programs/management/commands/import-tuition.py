@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
-import urllib
-import urllib2
+from urllib import urlencode
+import requests
 import json
 import re
 
@@ -22,7 +22,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         path = options['path']
-        response = urllib2.urlopen(path)
 
         self.mappings = TuitionOverride.objects.all()
 
@@ -39,16 +38,16 @@ class Command(BaseCommand):
         self.print_results()
 
     def set_fee_schedules(self, path):
-        query = urllib.urlencode({
+        query = urlencode({
             'schoolYear': 'current',
             'feeName': 'Tuition'
         })
 
         request_url = '{0}?{1}'.format(path, query)
 
-        response = urllib2.urlopen(request_url)
+        response = requests.get(request_url)
 
-        schedules = json.loads(response.read())
+        schedules = response.json()
 
         for schedule in schedules:
             if schedule['Program'] not in self.fee_schedules.keys():
@@ -63,7 +62,7 @@ class Command(BaseCommand):
         for schedule in self.fee_schedules:
             values = self.fee_schedules[schedule]
 
-            query = urllib.urlencode({
+            query = urlencode({
                 'schoolYear': 'current',
                 'program'   : schedule,
                 'feeType'   : values['type']
@@ -71,9 +70,9 @@ class Command(BaseCommand):
 
             request_url = '{0}?{1}'.format(path, query)
 
-            response = urllib2.urlopen(request_url)
+            response = requests.get(request_url)
 
-            data = json.loads(response.read())
+            data = response.json()
 
             if len(data) == 0:
                 continue
