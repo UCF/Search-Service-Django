@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django_mysql.models import ListTextField
+import calendar
 import re
 
 from django.conf import settings
@@ -245,6 +247,67 @@ class ProgramOutcomeStat(models.Model):
         return "{0} Outcomes {1}".format(self.cip.code, self.academic_year.display)
 
 
+class AdmissionTerm(models.Model):
+    """
+    Describes a term of admission, e.g. Fall, Spring, Summer
+    """
+    name = models.CharField(max_length=255, null=False, blank=False)
+
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
+
+class AdmissionDeadlineType(models.Model):
+    """
+    Describes a type of program admission deadline,
+    e.g. Domestic, International, Transfer
+    """
+    name = models.CharField(max_length=255, null=False, blank=False)
+
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
+
+class ApplicationDeadline(models.Model):
+    admission_term = models.ForeignKey(AdmissionTerm, on_delete=models.CASCADE, related_name='application_deadlines')
+    career = models.ForeignKey(Career, on_delete=models.CASCADE, related_name='application_deadlines')
+    deadline_type = models.ForeignKey(AdmissionDeadlineType, on_delete=models.CASCADE, related_name='application_deadlines')
+    month = models.IntegerField(null=False, blank=False, choices=[(i, i) for i in range(1, 13)])
+    day = models.IntegerField(null=False, blank=False, choices=[(i, i) for i in range(1, 32)])
+
+    def __str__(self):
+        return '{0} {1} {2}: {3}'.format(
+            self.career.name,
+            self.deadline_type.name,
+            self.admission_term.name,
+            self.display
+        )
+
+    def __unicode__(self):
+        return '{0} {1} {2}: {3}'.format(
+            self.career.name,
+            self.deadline_type.name,
+            self.admission_term.name,
+            self.display
+        )
+
+    @property
+    def display(self):
+        """
+        Returns a human friendly formatted version of the deadline date
+        """
+        return '{0} {1}'.format(
+            calendar.month_name[self.month],
+            self.day
+        )
+
+
 class Program(models.Model):
     """
     A program of study and related meta fields
@@ -279,6 +342,13 @@ class Program(models.Model):
     outcomes = models.ManyToManyField(
         ProgramOutcomeStat,
         related_name='programs',
+        blank=True
+    )
+    application_deadlines = models.ManyToManyField(ApplicationDeadline, blank=True, related_name='programs')
+    application_requirements = ListTextField(
+        base_field=models.CharField(max_length=255),
+        size=20,  # max number of list items to store
+        null=True,
         blank=True
     )
     active = models.BooleanField(default=True)

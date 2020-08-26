@@ -170,9 +170,82 @@ PROGRAM_PROFILE = [
     }
 ]
 
+# Default program application deadline data to load during the
+# application deadline importer against all programs (by career, level):
+PROGRAM_APPLICATION_DEADLINES = [
+    {
+        'career': 'Undergraduate',
+        'level': ['Bachelors'],
+        'deadline_type': 'Domestic',
+        'admission_term': 'Fall',
+        'display': 'May 1'
+    },
+    {
+        'career': 'Undergraduate',
+        'level': ['Bachelors'],
+        'deadline_type': 'Domestic',
+        'admission_term': 'Spring',
+        'display': 'November 1'
+    },
+    {
+        'career': 'Undergraduate',
+        'level': ['Bachelors'],
+        'deadline_type': 'Domestic',
+        'admission_term': 'Summer',
+        'display': 'March 1'
+    },
+    {
+        'career': 'Undergraduate',
+        'level': ['Bachelors'],
+        'deadline_type': 'Transfer',
+        'admission_term': 'Fall',
+        'display': 'July 1',
+    },
+    {
+        'career': 'Undergraduate',
+        'level': ['Bachelors'],
+        'deadline_type': 'Transfer',
+        'admission_term': 'Spring',
+        'display': 'November 1'
+    },
+    {
+        'career': 'Undergraduate',
+        'level': ['Bachelors'],
+        'deadline_type': 'Transfer',
+        'admission_term': 'Summer',
+        'display': 'March 1'
+    },
+    {
+        'career': 'Undergraduate',
+        'level': ['Bachelors'],
+        'deadline_type': 'International',
+        'admission_term': 'Fall',
+        'display': 'March 1'
+    },
+    {
+        'career': 'Undergraduate',
+        'level': ['Bachelors'],
+        'deadline_type': 'International',
+        'admission_term': 'Spring',
+        'display': 'September 1'
+    },
+    {
+        'career': 'Undergraduate',
+        'level': ['Bachelors'],
+        'deadline_type': 'International',
+        'admission_term': 'Summer',
+        'display': 'January 1'
+    }
+]
+
 # Endpoints and credentials for accessing data from
 # Graduate Studies' Slate instance
 GRADUATE_SLATE_ENDPOINTS = {
+    'deadlines': {
+        'endpoint': '',
+        'username': '',
+        'password': ''
+    },
     'guids': {
         'endpoint': '',
         'username': '',

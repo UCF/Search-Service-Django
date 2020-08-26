@@ -2,6 +2,9 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html_join
+from django_mysql.models import ListCharField
 
 from .models import *
 
@@ -96,35 +99,82 @@ class ProgramAdmin(admin.ModelAdmin):
         super(ProgramAdmin, self).save_model(request, obj, form, change)
 
 
+
 @admin.register(Fee)
 class FeeAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(TuitionOverride)
 class TuitionOverrideAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(CollegeOverride)
 class CollegeOverrideAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(AcademicYear)
 class AcademicYearAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(CIP)
 class CIPAdmin(admin.ModelAdmin):
     search_fields = ('name', 'code')
     list_filter = ('version',)
 
+
 @admin.register(SOC)
 class SOCAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(EmploymentProjection)
 class EmploymentProjectionAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(ProgramOutcomeStat)
-class ProgramOutcomeStatAdmin(admin.ModelAdmin):
+
+@admin.register(AdmissionTerm)
+class AdmissionTermAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(AdmissionDeadlineType)
+class AdmissionDeadlineTypeAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ApplicationDeadline)
+class ApplicationDeadlineAdmin(admin.ModelAdmin):
+    readonly_fields = ['programs_list']
+    list_filter = ('admission_term', 'career', 'deadline_type', 'month',)
+
+    def programs_list(self, obj):
+        programs = Program.objects.filter(application_deadlines=obj)
+        if programs.count() == 0:
+            return '(None)'
+
+        program_list_items = format_html_join(
+            '\n',
+            '<li><a href="{0}">{1}</a></li>',
+            (
+                (
+                    reverse(
+                        'admin:programs_program_change',
+                        args=(program.pk,)
+                    ),
+                    program.name
+                )
+                for program in programs
+            )
+        )
+
+        return '{0} Programs:\n<ul style="margin-left: 0; margin-top: 1rem; padding-left: 0;">{1}</ul>'.format(
+            programs.count(),
+            program_list_items
+        )
+
+    programs_list.allow_tags = True
+    programs_list.short_description = 'Program(s)'
