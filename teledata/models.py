@@ -478,7 +478,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
                 organization=s.dept.org.name,
                 org_id=s.dept.org.id,
                 building=s.bldg.name,
-                bldg_id=s.bldg.id,
+                bldg_id=s.bldg.import_id,
                 room=s.room,
                 from_table='staff'
             )
@@ -497,7 +497,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
                 phone=o.phone,
                 fax=o.fax,
                 building=o.bldg.name,
-                bldg_id=o.bldg.id,
+                bldg_id=o.bldg.import_id,
                 room=o.room,
                 from_table='organizations'
             )
@@ -518,7 +518,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
                 organization=d.org.name,
                 org_id=d.org.id,
                 building=d.bldg.name,
-                bldg_id=d.bldg.id,
+                bldg_id=d.bldg.import_id,
                 room=d.room,
                 from_table='departments'
             )
