@@ -158,7 +158,7 @@ class Command(BaseCommand):
     def parse_title(self, value):
         parts = value.split('*')
         title = parts.pop(0)
-        jobs = map(str.strip, parts)
+        jobs = list(map(str.strip, parts))
 
         return (title, jobs)
 

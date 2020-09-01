@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 import logging
 
@@ -486,7 +486,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             try:
                 record.save(doing_import=True)
                 record.keywords_combined = s.keywords.all()
-            except Exception, e:
+            except Exception as e:
                 logger.error(str(e))
 
         for o in orgs:
@@ -505,7 +505,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             try:
                 record.save(doing_import=True)
                 record.keywords_combined = o.keywords.all()
-            except Exception, e:
+            except Exception as e:
                 logger.error(str(e))
 
         for d in depts:
@@ -526,7 +526,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
             try:
                 record.save(doing_import=True)
                 record.keywords_combined = d.keywords.all()
-            except Exception, e:
+            except Exception as e:
                 logger.error(str(e))
 
 

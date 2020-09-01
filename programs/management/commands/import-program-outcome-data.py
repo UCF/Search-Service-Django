@@ -71,7 +71,7 @@ class Command(BaseCommand):
         # against the file name before continuing:
         try:
             mime = mimetypes.guess_type(self.file.name)[0]
-        except Exception, e:
+        except Exception as e:
             logging.error(
                 '\n Error reading CSV: couldn\'t verify mimetype of file'
             )
@@ -89,7 +89,7 @@ class Command(BaseCommand):
 
         try:
             csv_reader = csv.DictReader(self.file)
-        except csv.Error, e:
+        except csv.Error as e:
             logging.error('\n Error reading CSV: {0}'.format(e))
             return
 
@@ -102,10 +102,10 @@ class Command(BaseCommand):
         # If we have new outcome data to process, delete any existing data.
         # Otherwise, abort this process:
         if self.outcomes_count:
-            print 'Deleting all existing outcome data.'
+            print('Deleting all existing outcome data.')
             ProgramOutcomeStat.objects.all().delete()
         else:
-            print 'No outcome data to process. Assignment of new program outcome data aborted.'
+            print('No outcome data to process. Assignment of new program outcome data aborted.')
             return
 
         for row in self.outcome_data:
@@ -115,7 +115,7 @@ class Command(BaseCommand):
             year_code = self.get_outcome_year_code(row['Year'])
             if not cip or not year_code:
                 self.outcomes_skipped_count += 1
-                logging.info(unicode('\n SKIPPED Outcome Data with Year "%s", CIP "%s", and Level "%s"' % (row['Year'], row['CIP'], row['Level'])).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(str('\n SKIPPED Outcome Data with Year "%s", CIP "%s", and Level "%s"' % (row['Year'], row['CIP'], row['Level'])).encode('ascii', 'xmlcharrefreplace'))
                 continue
 
             # Get or create an AcademicYear object
@@ -150,10 +150,10 @@ class Command(BaseCommand):
                 # Update import stats
                 self.programs_matched.update(outcome_programs)
                 self.outcomes_matched_count += 1
-                logging.info(unicode('\n MATCH Outcome Data with Year "%s", CIP "%s", and Level "%s" to %d existing programs' % (year.display, cip.code, level.name, len(outcome_programs))).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(str('\n MATCH Outcome Data with Year "%s", CIP "%s", and Level "%s" to %d existing programs' % (year.display, cip.code, level.name, len(outcome_programs))).encode('ascii', 'xmlcharrefreplace'))
             else:
                 self.outcomes_skipped_count += 1
-                logging.info(unicode('\n FAILURE Outcome Data with Year "%s", CIP "%s", and Level "%s" - no program matches found' % (year.display, cip.code, level.name)).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(str('\n FAILURE Outcome Data with Year "%s", CIP "%s", and Level "%s" - no program matches found' % (year.display, cip.code, level.name)).encode('ascii', 'xmlcharrefreplace'))
 
 
     '''
@@ -232,9 +232,9 @@ class Command(BaseCommand):
         return None
 
     def print_results(self):
-        print 'Finished import of Program Outcome data.'
+        print('Finished import of Program Outcome data.')
         if self.programs_count:
-            print 'Created one or more ProgramOutcomeStats for {0}/{1} existing Programs with a CIP: {2:.0f}%'.format(len(self.programs_matched), self.programs_count, float(len(self.programs_matched)) / float(self.programs_count) * 100)
+            print('Created one or more ProgramOutcomeStats for {0}/{1} existing Programs with a CIP: {2:.0f}%'.format(len(self.programs_matched), self.programs_count, float(len(self.programs_matched)) / float(self.programs_count) * 100))
         if self.outcomes_count:
-            print 'Matched {0}/{1} of fetched Outcome data rows to at least one existing Program: {2:.0f}%'.format(self.outcomes_matched_count, self.outcomes_count, float(self.outcomes_matched_count) / float(self.outcomes_count) * 100)
-            print 'Skipped {0} rows of Outcome data.'.format(self.outcomes_skipped_count)
+            print('Matched {0}/{1} of fetched Outcome data rows to at least one existing Program: {2:.0f}%'.format(self.outcomes_matched_count, self.outcomes_count, float(self.outcomes_matched_count) / float(self.outcomes_count) * 100))
+            print('Skipped {0} rows of Outcome data.'.format(self.outcomes_skipped_count))

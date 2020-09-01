@@ -117,7 +117,7 @@ class Command(BaseCommand):
             # Make their null values actually parse to `null` and not "NULL":
             response_str_cleaned = response_str.replace('"NULL"', 'null')
             response_json = json.loads(response_str_cleaned)
-        except Exception, e:
+        except Exception as e:
             logging.warning(
                 '\nError retrieving Graduate deadline data: {0}'
                 .format(e)
@@ -133,14 +133,14 @@ class Command(BaseCommand):
         # If we have new deadline data to process, delete any existing data.
         # Otherwise, abort this process:
         if len(self.default_deadline_data) or len(self.deadline_data):
-            print (
+            print((
                 (
                     'Deleting all existing application deadline data '
                     'for {0} Programs.'
                 ).format(
                     self.career
                 )
-            )
+            ))
 
             # Delete all ApplicationDeadlines by self.career
             ApplicationDeadline.objects.filter(career__name=self.career).delete()
@@ -315,7 +315,7 @@ class Command(BaseCommand):
                 # application deadline information by sniffing key names.
                 # Assume that a key whose name contains "ApplicationDeadline"
                 # has a value representing a single deadline.
-                for key, val in row.items():
+                for key, val in list(row.items()):
                     if 'ApplicationDeadline' in key and val:
                         admission_term = None
                         deadline_type = None
@@ -399,11 +399,11 @@ class Command(BaseCommand):
         deadlines.delete()
 
     def print_results(self):
-        print (
+        print((
             'Finished import of {0} Program deadline data.'
-        ).format(self.career)
+        ).format(self.career))
 
-        print (
+        print((
             'Created one or more ApplicationDeadlines for {0}/{1} '
             'existing {2} Programs: {3: .0f} %'
         ).format(
@@ -411,22 +411,22 @@ class Command(BaseCommand):
             self.programs_count,
             self.career,
             float(len(self.programs_matched)) / float(self.programs_count) * 100
-        )
+        ))
 
-        print (
+        print((
             'Skipped {0} rows of deadline data.'
         ).format(
             self.rows_skipped_count
-        )
+        ))
 
-        print (
+        print((
             'Skipped {0} individual deadlines.'
         ).format(
             self.deadlines_skipped_count
-        )
+        ))
 
-        print (
+        print((
             'Deleted {0} Deadlines with no assigned Programs.'
         ).format(
             self.deadlines_deleted_count
-        )
+        ))
