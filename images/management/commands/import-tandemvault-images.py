@@ -692,6 +692,16 @@ class Command(BaseCommand):
                         .format(tandemvault_image['id'])
                     )
                     return None
+        except Image.MultipleObjectsReturned:
+            self.images_skipped += 1
+            logging.warning(
+                (
+                    'Multiple results for image with ID {0} found! '
+                    'Skipping this image.'
+                )
+                .format(tandemvault_image['id'])
+            )
+            return None
         except Image.DoesNotExist:
             process_tags = True
 
