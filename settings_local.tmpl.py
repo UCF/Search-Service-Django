@@ -1,6 +1,6 @@
 import os
 
-from .settings import BASE_DIR
+from settings import BASE_DIR
 from django.utils.log import DEFAULT_LOGGING
 
 # SECURITY WARNING: keep the secret key used in production secret!
