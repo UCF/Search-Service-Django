@@ -58,7 +58,6 @@ export class HttpService {
         apiUrl = this.eventsApi.value + '/search/feed.json';
         params = new HttpParams()
           .set('q', query)
-          .set('models', 'events.event');
         break;
       case 'images':
           apiUrl = this.searchServiceApi + '/api/v1/images/search/';
