@@ -485,7 +485,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
             try:
                 record.save(doing_import=True)
-                record.keywords_combined = s.keywords.all()
+                record.keywords_combined.set(s.keywords.all())
             except Exception as e:
                 logger.error(str(e))
 
@@ -504,7 +504,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
             try:
                 record.save(doing_import=True)
-                record.keywords_combined = o.keywords.all()
+                record.keywords_combined.set(o.keywords.all())
             except Exception as e:
                 logger.error(str(e))
 
@@ -525,7 +525,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
             try:
                 record.save(doing_import=True)
-                record.keywords_combined = d.keywords.all()
+                record.keywords_combined.set(d.keywords.all())
             except Exception as e:
                 logger.error(str(e))
 
