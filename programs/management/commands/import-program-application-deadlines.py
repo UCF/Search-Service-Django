@@ -9,6 +9,7 @@ import logging
 import mimetypes
 import requests
 import sys
+import re
 
 
 class Command(BaseCommand):
@@ -240,7 +241,7 @@ class Command(BaseCommand):
                     )
 
                     # Assign deadline to programs by level(s)
-                    programs = self.programs.filter(level=levels)
+                    programs = self.programs.filter(level__in=levels)
                     deadline.programs.add(*programs)
 
                     self.deadlines_matched_count += 1
@@ -342,7 +343,7 @@ class Command(BaseCommand):
                         if admission_term and deadline_type:
                             try:
                                 # Determine month + day from string
-                                deadline_date = parse(val)
+                                deadline_date = parse(re.sub(r'[^a-zA-Z0-9 ]', '', val))
                             except ValueError:
                                 logging.warning(
                                     (
