@@ -15,6 +15,10 @@ from bs4 import BeautifulSoup, NavigableString
 def clean_name(program_name):
     name = program_name
 
+    # Ensure we're working with a str object, not bytes:
+    if type(name) is bytes:
+        name = name.decode()
+
     # Strip out punctuation
     name = name.replace('.', '')
 
@@ -280,7 +284,7 @@ class Command(BaseCommand):
         raw_data = response.text.encode(encoding)
 
         # Strip xmlns attributes to parse string to xml without namespaces
-        data = re.sub(' xmlns(?:\:[a-z]*)?="[^"]+"', '', raw_data)
+        data = re.sub(b' xmlns(?:\:[a-z]*)?="[^"]+"', b'', raw_data)
         root = BeautifulSoup(data, 'xml')
         if self.graduate:
             cores = root.find('cores')
@@ -351,7 +355,7 @@ class Command(BaseCommand):
         # Reduce the threshold for accelerated undergraduate programs, since
         # their names tend to vary more greatly between the catalog and
         # our data
-        if 'Accelerated' in matchable_program.name_clean and 'Undergraduate' in matchable_program.program.career.name and 'Accelerated' in entry.type:
+        if 'Accelerated' in matchable_program.name_clean and 'Undergraduate' in matchable_program.program.career.name and 'Accelerated' in entry.type.decode():
             threshold = 70
 
         return threshold
