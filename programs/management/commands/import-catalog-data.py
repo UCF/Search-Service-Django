@@ -53,8 +53,8 @@ class CatalogEntry(object):
 
     def __init__(self, id, name, program_type):
         self.id = id
-        self.name = name
-        self.type = program_type
+        self.name = name.decode()
+        self.type = program_type.decode()
         self.match_count = 0
 
     @property
@@ -355,7 +355,7 @@ class Command(BaseCommand):
         # Reduce the threshold for accelerated undergraduate programs, since
         # their names tend to vary more greatly between the catalog and
         # our data
-        if 'Accelerated' in matchable_program.name_clean and 'Undergraduate' in matchable_program.program.career.name and 'Accelerated' in entry.type.decode():
+        if 'Accelerated' in matchable_program.name_clean and 'Undergraduate' in matchable_program.program.career.name and 'Accelerated' in entry.type:
             threshold = 70
 
         return threshold
