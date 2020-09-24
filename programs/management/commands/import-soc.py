@@ -6,6 +6,8 @@ import sys
 import csv
 import mimetypes
 
+from argparse import FileType
+
 
 class Command(BaseCommand):
     help = 'Imports Occupational codes (SOC) and associates them with Instructional Program codes (CIP)'
@@ -19,7 +21,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             'file',
-            type=file,
+            type=FileType('r'),
             help='The file path of the csv file'
         )
         parser.add_argument(
