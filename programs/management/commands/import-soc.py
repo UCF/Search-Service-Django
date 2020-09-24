@@ -6,6 +6,8 @@ import sys
 import csv
 import mimetypes
 
+from argparse import FileType
+
 
 class Command(BaseCommand):
     help = 'Imports Occupational codes (SOC) and associates them with Instructional Program codes (CIP)'
@@ -19,7 +21,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             'file',
-            type=file,
+            type=FileType('r', encoding='utf-8'),
             help='The file path of the csv file'
         )
         parser.add_argument(
@@ -54,7 +56,7 @@ class Command(BaseCommand):
         self.cip_version = options['cip_version']
         self.soc_version = options['soc_version']
 
-        mime_type, encoding = mimetypes.guess_type(self.file)
+        mime_type, encoding = mimetypes.guess_type(self.file.name)
 
         if mime_type != 'text/csv':
             raise Exception('File provided does not have a mimetype of "text/csv"')
