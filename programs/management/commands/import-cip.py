@@ -70,6 +70,7 @@ Updated:   {2}
             if existing_cip.name != title or existing_cip.description != definition:
                 existing_cip.name = title
                 existing_cip.description = definition
+                existing_cip.save()
                 self.updated += 1
         except CIP.DoesNotExist:
             new_cip = CIP(
@@ -78,6 +79,8 @@ Updated:   {2}
                 code=cip_code,
                 version=self.cip_version
             )
+
+            new_cip.save()
 
             self.created += 1
 
