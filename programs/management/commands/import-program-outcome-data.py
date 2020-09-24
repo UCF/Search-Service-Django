@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
+from argparse import FileType
 import decimal
 import itertools
 import logging
@@ -23,7 +24,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             'file',
-            type=file,
+            type=FileType('r'),
             help='The file path of the CSV file containing outcome data'
         )
         parser.add_argument(
