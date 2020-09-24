@@ -17,166 +17,239 @@ from progress.bar import Bar
 from dateutil.parser import *
 import boto3
 
-from queue import Queue
-from threading import Thread
 
-
-class ImageData(object):
+class TandemVault(object):
     """
-    Temporary data class for image data
+    Handles requests to Tandem Vault's API and stores responses
     """
-    def __init__(self, image, image_file, tv_tags, process_tags=True):
-        """
-        Initializes a new instance of ImageData
-        :param image: An Image model object
-        :param tv_tags: A list of Tandemvault tags
-        """
-        self.image = image
-        self.image_file = image_file
-        self.tv_tags = tv_tags
-        self.rk_tags = []
-        self.process_tags = process_tags
+    domain = ''
+    admin_api_key = ''
+    communicator_api_key = ''
 
+    per_page_max = 0  # Max number of expected results per page
+    total_page_count = 0  # total number of paged Tandem Vault API results
+    total_assets = 0  # total number of assets in Tandem Vault API results
+    pages = []
+    uploadsets = {}
+    start_date = None
+    end_date = None
 
-class RekognitionWorker(Thread):
-    """
-    A worker thread for retrieving
-    Rekognition tags
-    """
-    def __init__(
-        self, queue, aws_client, threshold, translations,
-        blacklist, results
-    ):
-        """
-        Initializes a new instance of the
-        RekognitionWorker object
-        :param image: An ImageData object
-        """
-        Thread.__init__(self)
-        self.queue = queue
-        self.aws_client = aws_client
-        self.threshold = threshold
-        self.translations = translations
-        self.blacklist = blacklist
-        self.results = results
+    api_base_assets_path = '/api/v1/assets/'
+    api_base_asset_path = '/api/v1/assets/{0}/'
+    api_base_download_path = '/assets/{0}/'
+    api_base_uploadset_path = '/api/v1/upload_sets/{0}/'
+    api_assets_url = ''
+    api_asset_url = ''
+    api_download_url = ''
+    api_uploadset_url = ''
+    api_assets_params = {}
+    api_asset_params = {}
+    api_uploadset_params = {}
 
-    def run(self):
-        while True:
-            image_data = self.queue.get()
-            try:
-                # If we're not processing tags, just return
-                # the data unchanged
-                if image_data.process_tags is False:
-                    self.results.put(image_data)
-                else:
-                    # If we are processing tags, then let's go!
-                    image_data = self.process_rekognition_tags(image_data)
-                    self.results.put(image_data)
-            except Exception as ex:
-                logging.warning(
-                    (
-                        'There was an exception while processing a '
-                        'Rekognition request: {0}'
-                    )
-                    .format(ex)
-                )
-            finally:
-                self.queue.task_done()
+    def __init__(self, domain, admin_api_key, communicator_api_key, start_date, end_date):
+        self.domain = domain
+        self.admin_api_key = admin_api_key
+        self.communicator_api_key = communicator_api_key
+        self.start_date = start_date
+        self.end_date = end_date
 
-    def get_rekognition_data(self, image_file):
-        """
-        Sends an image to AWS Rekognition and returns data about that image.
-        """
-        data = {
-            'labels': []
-        }
-
-        if image_file is not None:
-            # Object and scene detection labels (tags)
-            response = self.aws_client.detect_labels(
-                Image={'Bytes': image_file}
-            )
-
-            for label in response['Labels']:
-                # Perform translations for individual labels
-                if label['Name'].lower() in self.translations:
-                    label['Name'] = self.translations[label['Name'].lower()]
-
-                # Perform blacklisting for individual labels
-                if label['Name'].lower() not in self.blacklist:
-                    data['labels'].append(label)
-
-            # Calculate mean confidence score if the
-            # script's confidence threshold is set to 'mean-adjusted':
-            if self.threshold == 'mean-adjusted':
-                mean_score = (sum([label['Confidence'] for label in data['labels']]) / len(data['labels']))
-                data['labels_mean_confidence_score'] = mean_score
-
-        return data
-
-    def confidence_threshold_met(self, confidence_score, mean=80):
-        """
-        Determines if a tag confidence score meets the required threshold.
-        """
-        if self.threshold == 'mean-adjusted':
-            if mean < 80:
-                mean = 80
-            return confidence_score >= mean
-        else:
-            return confidence_score >= self.threshold
-
-    def process_rekognition_tags(self, image_data):
-        image_file = image_data.image_file
-        rekognition_data = self.get_rekognition_data(image_file)
-        rekognition_tags = []
-        rekognition_tag_score_mean = None
-
-        logging.debug(
-            'Generating tags for image: {0}'
-            .format(image_data.image.thumbnail_url)
+        self.api_assets_url = 'https://{0}{1}'.format(
+            self.domain,
+            self.api_base_assets_path
+        )
+        self.api_asset_url = 'https://{0}{1}'.format(
+            self.domain,
+            self.api_base_asset_path
+        )
+        self.api_download_url = 'https://{0}{1}'.format(
+            self.domain,
+            self.api_base_download_path
+        )
+        self.api_uploadset_url = 'https://{0}{1}'.format(
+            self.domain,
+            self.api_base_uploadset_path
         )
 
-        if rekognition_data:
-            rekognition_tags = rekognition_data['labels']
-            if self.threshold == 'mean-adjusted':
-                rekognition_tag_score_mean = rekognition_data['labels_mean_confidence_score']
-                logging.debug(
-                    'Mean tag score for image: {0}'
-                    .format(rekognition_tag_score_mean)
+        self.api_assets_params = {
+            'api_key': self.communicator_api_key,
+            'state': 'accepted',
+            'date[start(1i)]': self.start_date.year,
+            'date[start(2i)]': self.start_date.month,
+            'date[start(3i)]': self.start_date.day,
+            'date[end(1i)]': self.end_date.year,
+            'date[end(2i)]': self.end_date.month,
+            'date[end(3i)]': self.end_date.day,
+        }
+        self.api_asset_params = {
+            'api_key': self.communicator_api_key
+        }
+        self.api_uploadset_params = {
+            # upload_set API requires elevated permissions
+            'api_key': self.admin_api_key
+        }
+
+        # Fetch the first page of results, which will set the total number
+        # of results and total page count:
+        self.pages.append(self.fetch_assets_page(1))
+
+    def fetch_assets_page(self, page):
+        """
+        Fetches a single page of results on the Tandem Vault assets API
+        and returns the corresponding JSON data.
+        """
+        params = self.api_assets_params.copy()
+        params.update({
+            'page': page
+        })
+
+        response_json = None
+
+        try:
+            response = requests.get(
+                self.api_assets_url,
+                params=params
+            )
+            response.raise_for_status()  # Raise exception if 4xx/5xx server error
+            response_json = response.json()
+
+            # Set some required properties if
+            # this is the first page request:
+            if page == 1 and len(response_json) > 0:
+                # Assume the number of results on the first page
+                # represents the max number of expected results
+                # on all subsequent page requests:
+                self.per_page_max = len(response_json)
+                self.total_assets = int(
+                    response.headers['total-results']
                 )
+                self.total_page_count = int(math.ceil(
+                    self.total_assets / self.per_page_max
+                ))
 
-        for rekognition_tag_data in rekognition_tags:
-            rekognition_tag_name = rekognition_tag_data['Name'].lower().strip()
-            rekognition_tag_score = rekognition_tag_data['Confidence']
-
-            logging.debug(
-                'Generated tag: {0} | Confidence: {1}'
-                .format(rekognition_tag_name, rekognition_tag_score)
+            # Strip non-image results from response
+            # response_json = [asset for asset in response_json if asset.get('type', None) == 'Image']
+        except Exception as e:
+            logging.warning(
+                '\nError retrieving assets page data: {0}'
+                .format(e)
             )
 
-            # If this tag meets our minimum confidence threshold and
-            # doesn't already match the name of another tag assigned to
-            # the image, get or create an ImageTag object and assign it
-            # to the Image:
-            if (
-                self.confidence_threshold_met(
-                    rekognition_tag_score,
-                    rekognition_tag_score_mean
+        return response_json
+
+    def fetch_asset(self, asset_id):
+        """
+        Fetches an API result for a single Tandem Vault image.
+        """
+        response_json = None
+
+        try:
+            response = requests.get(
+                self.api_asset_url.format(asset_id),
+                params=self.api_asset_params
+            )
+            response_json = response.json()
+
+            if response_json.get('error', None):
+                logging.warning(
+                    '\nError returned by single asset data: {0}'
+                    .format(response_json['error'])
                 )
-                and rekognition_tag_name not in image_data.tv_tags
-            ):
-                image_data.rk_tags.append(rekognition_tag_name)
+                response_json = None
+        except Exception as e:
+            logging.warning(
+                '\nError retrieving single asset data: {0}'
+                .format(e)
+            )
 
-        return image_data
+        return response_json
+
+    def fetch_uploadset(self, uploadset_id):
+        """
+        Fetches an API result for a single Tandem Vault upload set.
+        Stores data for later use to avoid subsequent API calls when possible.
+        """
+        response_json = None
+
+        # Retrieve existing data if possible
+        try:
+            response_json = self.uploadsets[uploadset_id]
+        except KeyError:
+            try:
+                response = requests.get(
+                    self.api_uploadset_url.format(uploadset_id),
+                    params=self.api_uploadset_params
+                )
+                response_json = response.json()
+
+                if response_json.get('error', None):
+                    logging.warning(
+                        '\nError returned by single upload set data: {0}'
+                        .format(response_json['error'])
+                    )
+                    response_json = None
+                else:
+                    # Store retrieved data for later use
+                    self.uploadsets.update(
+                        {uploadset_id: response_json}
+                    )
+            except Exception as e:
+                logging.warning(
+                    '\nError retrieving single upload set data: {0}'
+                    .format(e)
+                )
+
+        return response_json
+
+    def fetch_image_data(self, progress):
+        """
+        Retrieves all pages of image data, starting from
+        page 2.
+        """
+        if self.total_page_count > 1:
+            for page in range(2, 6):  # TODO for debugging only
+                # for page in range(2, self.total_page_count + 1):
+                self.pages.append(self.fetch_assets_page(page))
+
+                if progress:
+                    progress.next()
+
+    def get_uploadset_id(self, thumb_url):
+        """
+        Returns the extrapolated upload set ID from a provided
+        Tandem Vault thumbnail URL.
+        """
+        try:
+            # Given a thumbnail URL from Tandem Vault, the upload set ID
+            # is the first series of numbers after the domain name:
+            # https://x.y.z/<upload_set_id>/<image_id>/1/<browse OR grid OR thumb>/<image_catalogue_number>.ext
+            upload_set_id = int(
+                re.search(
+                    '^https://[a-zA-Z0-9-.]+/([0-9]+)/',
+                    thumb_url
+                )
+                .group(1)
+            )
+        except (AttributeError, TypeError):
+            logging.warning(
+                (
+                    'Could not determine upload set ID from Tandem Vault '
+                    'thumbnail URL "{0}"'
+                )
+                .format(thumb_url)
+            )
+            upload_set_id = None
+
+        return upload_set_id
 
 
-class Command(BaseCommand):
-    help = 'Imports image assets from UCF\'s Tandem Vault instance.'
-
-    progress_bar = Bar('Processing')
-    source = 'Tandem Vault'
-    auto_tag_source = 'AWS Rekognition'
-    auto_tag_blacklist = [
+class Rekognition(object):
+    """
+    Handles connecting to AWS and processing of
+    image data using Rekognition
+    """
+    aws_client = None
+    confidence_threshold = 'mean-adjusted'
+    tag_blacklist = [
         'accessory',
         'accessories',
         'apparel',
@@ -189,26 +262,268 @@ class Command(BaseCommand):
         'photography',
         'skin'
     ]
-    auto_tag_translations = {
+    tag_translations = {
         'american football': 'football'
     }
+
+    def __init__(self, aws_access_key, aws_secret_key, aws_region, confidence_threshold):
+        self.aws_client = boto3.client(
+            'rekognition',
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key,
+            region_name=aws_region
+        )
+        self.confidence_threshold = confidence_threshold
+
+    def get_image_data(self, image_file):
+        """
+        Sends an image to AWS Rekognition and returns data about that image.
+        """
+        data = {
+            'labels': [],
+            'mean_confidence_score': None
+        }
+
+        if image_file is not None:
+            # Object and scene detection labels (tags)
+            response = self.aws_client.detect_labels(
+                Image={'Bytes': image_file}
+            )
+
+            for label in response['Labels']:
+                # Perform translations for individual labels
+                if label['Name'].lower() in self.tag_translations:
+                    label['Name'] = self.tag_translations[label['Name'].lower()]
+
+                # Perform blacklisting for individual labels
+                if label['Name'].lower() not in self.tag_blacklist:
+                    data['labels'].append(label)
+
+            # Calculate mean confidence score if the
+            # script's confidence threshold is set to 'mean-adjusted':
+            if self.confidence_threshold == 'mean-adjusted':
+                mean_score = (
+                    sum([label['Confidence']
+                         for label in data['labels']]) / len(data['labels'])
+                )
+                data['labels_mean_confidence_score'] = mean_score
+
+                logging.debug(
+                    'Mean tag score for image: {0}'
+                    .format(mean_score)
+                )
+
+        return data
+
+    def get_image_tags(self, image_file):
+        """
+        Returns a list of viable tags for the given image_file.
+        """
+        tags = []
+        data = self.get_image_data(image_file)
+
+        if data:
+            mean_confidence_score = data['labels_mean_confidence_score']
+
+            for single_tag in data['labels']:
+                tag_name = single_tag['Name'].lower().strip()
+                tag_score = single_tag['Confidence']
+
+                logging.debug(
+                    'Generated tag: {0} | Confidence: {1}'
+                    .format(tag_name, tag_score)
+                )
+
+                if (
+                    self.confidence_threshold_met(
+                        tag_score,
+                        mean_confidence_score
+                    )
+                ):
+                    tags.append(tag_name)
+
+        return tags
+
+    def confidence_threshold_met(self, confidence_score, mean=80):
+        """
+        Determines if a tag confidence score meets the required threshold.
+        """
+        if mean is None:
+            mean = 80
+        if self.confidence_threshold == 'mean-adjusted':
+            if mean < 80:
+                mean = 80
+            return confidence_score >= mean
+        else:
+            return confidence_score >= self.confidence_threshold
+
+
+class ImageData(object):
+    """
+    Manages information about a Tandem Vault image's data,
+    its corresponding Image object, and its tags
+    """
+    image = None
+    image_file = None
+    image_json = None
+    single_json = None
+    uploadset_json = None
+    generate_tags = False
+    unique_tag_names = []
+    tv_tags = []
+    rk_tags = []
+    tags_created = 0
+
+    def __init__(self, image, image_file, image_json, single_json, uploadset_json, generate_tags):
+        self.image = image
+        self.image_file = image_file
+        self.image_json = image_json
+        self.single_json = single_json
+        self.uploadset_json = uploadset_json
+        self.generate_tags = generate_tags
+
+        # Initialize a unique list of existing tag names to avoid
+        # generating duplicates.  Prioritizes tags from any other
+        # source besides Tandem Vault and Rekognition (e.g. from
+        # the Django admin).
+        self.unique_tag_names = set(
+            [tag.name.lower() for tag in self.image.tags.exclude(
+                source__in=['Tandem Vault', 'AWS Rekognition'])]
+        )
+
+    def get_tags(self, rk):
+        """
+        Assigns tag names to self.tv_tags based on retrieved
+        Tandem Vault data.
+
+        Also fetches and assigns generated tags to self.rk_tags
+        if tag generation is enabled for this image.
+        """
+        # Clear existing set tags imported from Tandem Vault if
+        # we retrieved single image data/didn't skip it:
+        if self.single_json:
+            self.image.tags.remove(
+                *self.image.tags.filter(source='Tandem Vault'))
+
+        # If Rekognition tagging is enabled,
+        # clear existing tag relationships retrieved from Rekognition:
+        if self.generate_tags:
+            self.image.tags.remove(
+                *self.image.tags.filter(source='AWS Rekognition')
+            )
+
+        # Get or create fresh tags based on Tandem Vault's
+        # tag list for the image, if we retrieved single
+        # image data for the image/didn't skip it:
+        if self.single_json:
+            for tandemvault_tag_name in self.single_json['tag_list']:
+                tandemvault_tag_name_lower = tandemvault_tag_name.lower().strip()
+                # If this tag doesn't already match the name of another tag
+                # assigned to the image, get or create an ImageTag object
+                # and assign it to the Image
+                if tandemvault_tag_name_lower not in self.unique_tag_names:
+                    self.unique_tag_names.append(tandemvault_tag_name_lower)
+                    self.tv_tags.append(tandemvault_tag_name)
+
+        # Assign the upload set's name as a tag for the image,
+        # if we retrieved upload set information for the image:
+        if self.uploadset_json:
+            uploadset_tag_name_lower = uploadset_json['title'].lower().strip()
+            if uploadset_tag_name_lower not in self.unique_tag_names:
+                self.unique_tag_names.append(uploadset_tag_name_lower)
+                self.tv_tags.append(uploadset_tag_name)
+
+        # Generate and assign tags from Rekognition:
+        if rk and self.generate_tags:
+            logging.debug(
+                'Generating tags via Rekognition for image: {0}'
+                .format(self.image.thumbnail_url)
+            )
+
+            rekognition_tags = rk.get_image_tags(self.image_file)
+            for rekognition_tag_name in rekognition_tags:
+                if rekognition_tag_name not in self.unique_tag_names:
+                    self.unique_tag_names.append(rekognition_tag_name)
+                    self.rk_tags.append(rekognition_tag_name)
+
+    def assign_tags(self, rk):
+        """
+        Assigns tags to self.image.
+        """
+        self.get_tags(rk)
+
+        # Handle Tandem Vault tags:
+        for tag in self.tv_tags:
+            try:
+                tandemvault_tag = ImageTag.objects.get(
+                    name=tag
+                )
+            except ImageTag.DoesNotExist:
+                tandemvault_tag = ImageTag(
+                    name=tag,
+                    source='Tandem Vault'
+                )
+                tandemvault_tag.save()
+                self.tags_created += 1
+
+            self.image.tags.add(tandemvault_tag)
+
+        # Handle Rekognition-generated tags:
+        for tag in self.rk_tags:
+            try:
+                rekognition_tag = ImageTag.objects.get(
+                    name=tag
+                )
+            except ImageTag.DoesNotExist:
+                rekognition_tag = ImageTag(
+                    name=tag,
+                    source='AWS Rekognition'
+                )
+                rekognition_tag.save()
+                self.tags_created += 1
+
+            self.image.tags.add(rekognition_tag)
+
+
+class Command(BaseCommand):
+    help = 'Imports image assets from UCF\'s Tandem Vault instance.'
+
+    tv_page_progress_bar = None
+    single_image_progress_bar = None
+    aws_access_key = settings.AWS_ACCESS_KEY
+    aws_secret_key = settings.AWS_SECRET_KEY
+    aws_region = settings.AWS_REGION
+    tandemvault_domain = ''
+    tandemvault_admin_api_key = ''
+    tandemvault_communicator_api_key = ''
+    tandemvault_start_date = ''
+    tandemvault_end_date = ''
     default_start_date = datetime.date(*settings.IMPORTED_IMAGE_LIMIT)
     default_end_date = timezone.now()
-    tandemvault_assets_api_path = '/api/v1/assets/'
-    tandemvault_asset_api_path = '/api/v1/assets/{0}/'
-    tandemvault_download_path = '/assets/{0}/'
-    tandemvault_upload_set_api_path = '/api/v1/upload_sets/{0}/'
-    tandemvault_total_assets = 0  # total number of assets in Tandem Vault API results
-    tandemvault_page_count = 0  # total number of paged Tandem Vault API results
-    tandemvault_upload_sets = {}  # cached upload set information
+    generate_tags = ''
+    tag_confidence_threshold = ''
+    preserve_stale_images = False
+    delete_stale_tags = False
+    loglevel = ''
+
     photo_taken_exif_key = 36867  # 'DateTimeOriginal' EXIF data key
+
+    modified = None
+    imported = None
+    exec_time = 0
+    exec_start = 0
+    exec_end = 0
+
     images_created = 0
     images_updated = 0
     images_deleted = 0
     images_skipped = 0
     tags_created = 0
     tags_deleted = 0
-    aws_client = None
+
+    rk = None  # Rekognition object
+    tv = None  # TandemVault object
+    image_data = []  # List of ImageData objects
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -264,13 +579,13 @@ class Command(BaseCommand):
             required=False
         )
         parser.add_argument(
-            '--assign-tags',
+            '--assign-tags', '--generate-tags',
             type=str,
             help='''\
             Specify what images, if any, should be processed with AWS\'s
             Rekognition services to generate image tags.
             ''',
-            dest='assign-tags',
+            dest='generate-tags',
             default='none',
             choices=['all', 'new_modified', 'none'],
             required=False
@@ -332,17 +647,16 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        self.tandemvault_domain = options['tandemvault-domain'].replace('http://', '').replace('https://', '')
+        self.tandemvault_domain = options['tandemvault-domain'].replace(
+            'http://', '').replace('https://', '')
         self.tandemvault_admin_api_key = options['tandemvault-admin-api-key']
         self.tandemvault_communicator_api_key = options['tandemvault-communicator-api-key']
-        self.tandemvault_start_date = parse(options['start-date']) if options['start-date'] else self.default_start_date
-        self.tandemvault_end_date = parse(options['end-date']) if options['start-date'] else self.default_end_date
-        self.aws_access_key = settings.AWS_ACCESS_KEY
-        self.aws_secret_key = settings.AWS_SECRET_KEY
-        self.aws_region = settings.AWS_REGION
-        self.assign_tags = options['assign-tags']
+        self.tandemvault_start_date = parse(
+            options['start-date']) if options['start-date'] else self.default_start_date
+        self.tandemvault_end_date = parse(
+            options['end-date']) if options['start-date'] else self.default_end_date
+        self.generate_tags = options['generate-tags']
         self.tag_confidence_threshold = options['tag-confidence-threshold']
-        self.number_threads = options['number-threads']
         self.preserve_stale_images = options['preserve-stale-images']
         self.delete_stale_tags = options['delete-stale-tags']
         self.loglevel = options['loglevel']
@@ -362,7 +676,7 @@ class Command(BaseCommand):
             ))
             return
 
-        if self.assign_tags != 'none' and not self.aws_access_key:
+        if self.generate_tags != 'none' and not self.aws_access_key:
             print((
                 'AWS access key ID required to assign tags via Rekognition. '
                 'Please set an access key in your settings_local.py file and '
@@ -370,7 +684,7 @@ class Command(BaseCommand):
             ))
             return
 
-        if self.assign_tags != 'none' and not self.aws_secret_key:
+        if self.generate_tags != 'none' and not self.aws_secret_key:
             print((
                 'AWS secret key required to assign tags via Rekognition. '
                 'Please set a secret key in your settings_local.py file '
@@ -378,9 +692,10 @@ class Command(BaseCommand):
             ))
             return
 
-        if self.assign_tags != 'none':
+        if self.generate_tags != 'none':
             if is_float(self.tag_confidence_threshold):
-                self.tag_confidence_threshold = float(self.tag_confidence_threshold)
+                self.tag_confidence_threshold = float(
+                    self.tag_confidence_threshold)
                 if (
                     self.tag_confidence_threshold > 100
                     or self.tag_confidence_threshold < 0
@@ -397,68 +712,54 @@ class Command(BaseCommand):
                 ))
                 return
 
-        self.tandemvault_assets_api_url = (
-            'https://'
-            + self.tandemvault_domain
-            + self.tandemvault_assets_api_path
-        )
-        self.tandemvault_asset_api_url = (
-            'https://'
-            + self.tandemvault_domain
-            + self.tandemvault_asset_api_path
-        )
-        self.tandemvault_download_url = (
-            'https://'
-            + self.tandemvault_domain
-            + self.tandemvault_download_path
-        )
-        self.tandemvault_upload_set_api_url = (
-            'https://'
-            + self.tandemvault_domain
-            + self.tandemvault_upload_set_api_path
-        )
-
         now = timezone.now()
         self.modified = now
         self.imported = now
 
-        self.tandemvault_assets_params = {
-            'api_key': self.tandemvault_communicator_api_key,
-            'state': 'accepted',
-            'date[start(1i)]': self.tandemvault_start_date.year,
-            'date[start(2i)]': self.tandemvault_start_date.month,
-            'date[start(3i)]': self.tandemvault_start_date.day,
-            'date[end(1i)]': self.tandemvault_end_date.year,
-            'date[end(2i)]': self.tandemvault_end_date.month,
-            'date[end(3i)]': self.tandemvault_end_date.day,
-        }
-        self.tandemvault_asset_params = {
-            'api_key': self.tandemvault_communicator_api_key
-        }
-        self.tandemvault_upload_set_params = {
-            # upload_set API requires elevated permissions
-            'api_key': self.tandemvault_admin_api_key
-        }
-
         # Start a timer for the bulk of the script
-        self.exec_time = 0
         self.exec_start = timeit.default_timer()
 
         # If enabled, set up a client for interfacing with AWS:
-        if self.assign_tags != 'none':
+        if self.generate_tags != 'none':
             try:
-                self.aws_client = boto3.client(
-                    'rekognition',
-                    aws_access_key_id=self.aws_access_key,
-                    aws_secret_access_key=self.aws_secret_key,
-                    region_name=self.aws_region
+                self.rk = Rekognition(
+                    aws_access_key=self.aws_access_key,
+                    aws_secret_key=self.aws_secret_key,
+                    aws_region=self.aws_region,
+                    confidence_threshold=self.tag_confidence_threshold
                 )
             except Exception as e:
                 logging.error('Error establishing client: {0}'.format(e))
                 return
 
         # Fetch + loop through all Tandem Vault API results
+        try:
+            self.tv = TandemVault(
+                domain=self.tandemvault_domain,
+                admin_api_key=self.tandemvault_admin_api_key,
+                communicator_api_key=self.tandemvault_communicator_api_key,
+                start_date=self.tandemvault_start_date,
+                end_date=self.tandemvault_end_date
+            )
+        except Exception as e:
+            logging.error(
+                'Error connecting to Tandem Vault API: {0}'.format(e))
+
+        # Retrieve all image data from Tandem Vault
+        self.tv_page_progress_bar = Bar(
+            'Retrieving image data...',
+            max=self.tv.total_page_count
+        )
+        self.tv.fetch_image_data(self.tv_page_progress_bar)
+        self.tv_page_progress_bar.finish()
+
+        # Process all the images retrieved from Tandem Vault
+        self.single_image_progress_bar = Bar(
+            'Processing images...',
+            max=self.tv.total_assets
+        )
         self.process_images()
+        self.single_image_progress_bar.finish()
 
         # Delete stale images and image tags
         self.delete_stale()
@@ -470,7 +771,6 @@ class Command(BaseCommand):
         )
 
         # Print the results
-        self.progress_bar.finish()
         self.print_stats()
 
         return
@@ -480,126 +780,63 @@ class Command(BaseCommand):
         The main image processing function that executes all API
         requests and Image + ImageTag object creation.
         """
-        # Fetch the first page of results, which will set the total number
-        # of results and total page count:
-        self.process_tandemvault_assets_page(1)
+        # Loop through all retrieved pages, and create/update
+        # Image objects (sans tag information)
+        for pagenum in range(0, len(self.tv.pages) - 1):
+            page_json = self.tv.pages[pagenum]
 
-        # Loop through the other pages of results:
-        if self.tandemvault_page_count > 1:
-            for page in range(2, self.tandemvault_page_count):
-                self.process_tandemvault_assets_page(page)
-
-    def process_tags(self, images):
-        """
-        Processes the tags assigned to the image
-        """
-
-        # Let's do the tandemvault tags first
-        for image_data in images:
-            for tag in image_data.tv_tags:
-                try:
-                    tandemvault_tag = ImageTag.objects.get(
-                        name=tag
+            if not page_json:
+                logging.warning(
+                    (
+                        'Page {0} of Tandem Vault assets is not set. '
+                        'Skipping page.'
                     )
-                except ImageTag.DoesNotExist:
-                    tandemvault_tag = ImageTag(
-                        name=tag,
-                        source=self.source
-                    )
-                    tandemvault_tag.save()
-                    self.tags_created += 1
-
-                image_data.image.tags.add(tandemvault_tag)
-
-            for tag in image_data.rk_tags:
-                try:
-                    rekognition_tag = ImageTag.objects.get(
-                        name=tag
-                    )
-                except ImageTag.DoesNotExist:
-                    rekognition_tag = ImageTag(
-                        name=tag,
-                        source=self.auto_tag_source
-                    )
-                    rekognition_tag.save()
-                    self.tags_created += 1
-
-                image_data.image.tags.add(rekognition_tag)
-
-    def process_tandemvault_assets_page(self, page):
-        """
-        Fetches and loops through a single page of assets
-        from the Tandem Vault API.
-        """
-        # Fetch the page:
-        page_json = self.fetch_tandemvault_assets_page(page)
-
-        if not page_json:
-            logging.warning(
-                (
-                    'Failed to retrieve page {0} of '
-                    'Tandem Vault assets. Skipping assets.'
+                    .format(pagenum)
                 )
-                .format(page)
-            )
-            return
+                return
 
-        image_queue = Queue()
-        image_list = Queue()
+            for asset in page_json:
+                asset_type = asset.get('type', None)
+                if asset_type == 'Image':
+                    single_image_data = self.process_image(asset)
+                    if single_image_data is not None:
+                        self.image_data.append(single_image_data)
 
-        for asset in page_json:
-            asset_type = asset.get('type', None)
-            if asset_type == 'Image':
-                img_data = self.process_image(asset)
-                if img_data is not None:
-                    image_queue.put(img_data)
-
-        for x in range(self.number_threads):
-            worker = RekognitionWorker(
-                image_queue,
-                self.aws_client,
-                self.tag_confidence_threshold,
-                self.auto_tag_translations,
-                self.auto_tag_blacklist,
-                image_list)
-            worker.daemon = True
-            worker.start()
-
-        image_queue.join()
-
-        retval = list(image_list.queue)
-
-        self.process_tags(retval)
+        # Process tag information for each image
+        for single_image_data in self.image_data:
+            single_image_data.assign_tags(self.rk)
+            self.tags_created += single_image_data.tags_created
 
     def process_image(self, tandemvault_image):
         """
         Processes a single Tandem Vault image.
         Returns an ImageData object
         """
-        next(self.progress_bar)
+        self.single_image_progress_bar.next()
 
-        download_url = self.tandemvault_download_url.format(tandemvault_image['id'])
+        download_url = self.tv.api_download_url.format(
+            tandemvault_image['id']
+        )
         # Use 'browse_url' for thumb instead of 'thumb_url'
         # due to slightly larger size
         thumb_url = tandemvault_image['browse_url']
-        upload_set_id = self.get_tandemvault_upload_set_id(thumb_url)
+        uploadset_id = self.tv.get_uploadset_id(thumb_url)
         photo_taken = None
         location = None
         single_json = None
-        upload_set_json = None
+        uploadset_json = None
 
         logging.debug(
             'Processing image with ID {0}, Download URL {1}'
             .format(tandemvault_image['id'], download_url)
         )
 
-        process_tags = False
         image_file = None
 
         # Set up the initial Image object.
         try:
             image = Image.objects.get(
-                source=self.source,
+                source='Tandem Vault',
                 source_id=tandemvault_image['id']
             )
 
@@ -607,32 +844,36 @@ class Command(BaseCommand):
             # the last time the image was imported into the Search Service.
             # Only retrieve single image details if changes have been
             # made since the last time the Search Service image was imported:
-            tandemvault_image_modified = parse(tandemvault_image['modified_at'])
+            tandemvault_image_modified = parse(
+                tandemvault_image['modified_at']
+            )
             if image.last_imported < tandemvault_image_modified:
-                process_tags = True
-
                 # Download thumbnail of image
-                image_file = self.download_tandemvault_image(thumb_url)
+                image_file = self.download_image(thumb_url)
 
                 # Retrieve photo taken date from EXIF data
-                photo_taken = self.get_tandemvault_image_taken_date(image_file)
+                photo_taken = self.get_image_taken_date(image_file)
 
                 # Retrieve upload set data. Allow import to
                 # continue if data cannot be retrieved:
-                upload_set_json = self.fetch_tandemvault_upload_set(upload_set_id)
-                if not upload_set_json:
+                uploadset_json = self.tv.fetch_uploadset(
+                    uploadset_id
+                )
+                if not uploadset_json:
                     logging.warning(
                         (
                             'Failed to retrieve single upload set info with '
                             'ID {0} for Tandem Vault image with ID {1}.'
                         )
-                        .format(upload_set_id, tandemvault_image['id'])
+                        .format(uploadset_id, tandemvault_image['id'])
                     )
                 else:
-                    location = upload_set_json['location']
+                    location = uploadset_json['location']
 
                 # Fetch the single API result
-                single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
+                single_json = self.tv.fetch_asset(
+                    tandemvault_image['id']
+                )
                 if not single_json:
                     logging.warning(
                         (
@@ -660,11 +901,9 @@ class Command(BaseCommand):
 
                 self.images_updated += 1
             else:
-                if self.assign_tags == 'all':
-                    process_tags = True
-
+                if self.generate_tags == 'all':
                     # Download thumbnail of image for Rekognition later
-                    image_file = self.download_tandemvault_image(thumb_url)
+                    image_file = self.download_image(thumb_url)
 
                     # Continue processing the image without single image
                     # data; allow tagging via Rekognition later:
@@ -693,29 +932,27 @@ class Command(BaseCommand):
                     )
                     return None
         except Image.DoesNotExist:
-            process_tags = True
-
             # Download thumbnail of image
-            image_file = self.download_tandemvault_image(thumb_url)
+            image_file = self.download_image(thumb_url)
 
             # Retrieve photo taken date from EXIF data
-            photo_taken = self.get_tandemvault_image_taken_date(image_file)
+            photo_taken = self.get_image_taken_date(image_file)
 
             # Retrieve upload set data
-            upload_set_json = self.fetch_tandemvault_upload_set(upload_set_id)
-            if not upload_set_json:
+            uploadset_json = self.tv.fetch_uploadset(uploadset_id)
+            if not uploadset_json:
                 logging.warning(
                     (
                         'Failed to retrieve single upload set info with '
                         'ID {0} for Tandem Vault image with ID {1}.'
                     )
-                    .format(upload_set_id, tandemvault_image['id'])
+                    .format(uploadset_id, tandemvault_image['id'])
                 )
             else:
-                location = upload_set_json['location']
+                location = uploadset_json['location']
 
             # Fetch the single API result
-            single_json = self.fetch_tandemvault_asset(tandemvault_image['id'])
+            single_json = self.tv.fetch_asset(tandemvault_image['id'])
             if not single_json:
                 logging.warning(
                     (
@@ -731,7 +968,7 @@ class Command(BaseCommand):
             image = Image(
                 filename=single_json['filename'],
                 extension=single_json['ext'],
-                source=self.source,
+                source='Tandem Vault',
                 source_id=single_json['id'],
                 source_created=parse(single_json['created_at']),
                 source_modified=parse(single_json['modified_at']),
@@ -751,193 +988,33 @@ class Command(BaseCommand):
         image.last_imported = self.imported
         image.save()
 
-        # Clear existing set tags imported from Tandem Vault if
-        # we retrieved single image data/didn't skip it:
-        if single_json:
-            image.tags.remove(*image.tags.filter(source=self.source))
-
-        # If Rekognition tagging is enabled,
-        # clear existing tag relationships retrieved from Rekognition:
-        if self.assign_tags != 'none':
-            image.tags.remove(*image.tags.filter(source=self.auto_tag_source))
-
-        # Create a unique list of existing tag names to avoid
-        # generating duplicates.  Prioritize tags from any other
-        # source besides Tandem Vault and Rekognition.
-        tag_names_unique = set([tag.name.lower() for tag in image.tags.all()])
-
-        # Get or create fresh ImageTags based on Tandem Vault's
-        # tag list for the image, if we retrieved single
-        # image data for the image/didn't skip it:
-        if single_json:
-            for tandemvault_tag_name in single_json['tag_list']:
-                tandemvault_tag_name_lower = tandemvault_tag_name.lower().strip()
-                # If this tag doesn't already match the name of another tag
-                # assigned to the image, get or create an ImageTag object
-                # and assign it to the Image
-                if tandemvault_tag_name_lower not in tag_names_unique:
-                    tag_names_unique.add(tandemvault_tag_name_lower)
-
-        # Assign the upload set's name as a tag for the image,
-        # if we retrieved upload set information for the image:
-        if upload_set_json:
-            upload_set_tag_name_lower = upload_set_json['title'].lower().strip()
-            if upload_set_tag_name_lower not in tag_names_unique:
-                tag_names_unique.add(upload_set_tag_name_lower)
-
-        image.save()
-
         return ImageData(
-            image,
-            image_file,
-            tag_names_unique,
-            process_tags
+            image=image,
+            image_file=image_file,
+            image_json=tandemvault_image,
+            single_json=single_json,
+            uploadset_json=uploadset_json,
+            generate_tags=self.generate_tags != 'none'
         )
 
-    def fetch_tandemvault_assets_page(self, page):
-        """
-        Fetches a single page of results on the Tandem Vault assets API.
-        """
-        params = self.tandemvault_assets_params.copy()
-        params.update({
-            'page': page
-        })
-
-        response_json = None
-
-        try:
-            response = requests.get(
-                self.tandemvault_assets_api_url,
-                params=params
-            )
-            response_json = response.json()
-
-            # Set some required importer properties if
-            # this is the first page request:
-            if page == 1:
-                self.tandemvault_total_assets = int(response.headers['total-results'])
-                self.tandemvault_page_count = int(math.ceil(
-                    self.tandemvault_total_assets / len(response_json)
-                ))
-                self.progress_bar.max = self.tandemvault_total_assets
-        except Exception as e:
-            logging.warning(
-                '\nError retrieving assets page data: {0}'
-                .format(e)
-            )
-
-        return response_json
-
-    def fetch_tandemvault_asset(self, tandemvault_image_id):
-        """
-        Fetches an API result for a single Tandem Vault image.
-        """
-        response_json = None
-
-        try:
-            response = requests.get(
-                self.tandemvault_asset_api_url.format(tandemvault_image_id),
-                params=self.tandemvault_asset_params
-            )
-            response_json = response.json()
-
-            if response_json.get('error', None):
-                logging.warning(
-                    '\nError returned by single asset data: {0}'
-                    .format(response_json['error'])
-                )
-                response_json = None
-        except Exception as e:
-            logging.warning(
-                '\nError retrieving single asset data: {0}'
-                .format(e)
-            )
-
-        return response_json
-
-    def fetch_tandemvault_upload_set(self, upload_set_id):
-        """
-        Fetches an API result for a single Tandem Vault upload set.
-        Stores data for later use to avoid subsequent API calls when possible.
-        """
-        response_json = None
-
-        # Retrieve existing data if possible
-        try:
-            response_json = self.tandemvault_upload_sets[upload_set_id]
-        except KeyError:
-            try:
-                response = requests.get(
-                    self.tandemvault_upload_set_api_url.format(upload_set_id),
-                    params=self.tandemvault_upload_set_params
-                )
-                response_json = response.json()
-
-                if response_json.get('error', None):
-                    logging.warning(
-                        '\nError returned by single upload set data: {0}'
-                        .format(response_json['error'])
-                    )
-                    response_json = None
-                else:
-                    # Store retrieved data for later use
-                    self.tandemvault_upload_sets.update(
-                        {upload_set_id: response_json}
-                    )
-            except Exception as e:
-                logging.warning(
-                    '\nError retrieving single upload set data: {0}'
-                    .format(e)
-                )
-
-        return response_json
-
-    def get_tandemvault_upload_set_id(self, thumb_url):
-        """
-        Returns the extrapolated upload set ID from a provided
-        Tandem Vault thumbnail URL.
-        """
-        try:
-            # Given a thumbnail URL from Tandem Vault, the upload set ID
-            # is the first series of numbers after the domain name:
-            # https://x.y.z/<upload_set_id>/<image_id>/1/<browse OR grid OR thumb>/<image_catalogue_number>.ext
-            upload_set_id = int(
-                re.search(
-                    '^https://[a-zA-Z0-9-.]+/([0-9]+)/',
-                    thumb_url
-                )
-                .group(1)
-            )
-        except (AttributeError, TypeError):
-            logging.warning(
-                (
-                    'Could not determine upload set ID from Tandem Vault '
-                    'thumbnail URL "{0}"'
-                )
-                .format(thumb_url)
-            )
-            upload_set_id = None
-
-        return upload_set_id
-
-    def download_tandemvault_image(self, image_url):
+    def download_image(self, image_url):
         image_file = None
 
         try:
             image_file = requests.get(image_url).content
         except Exception as e:
             logging.warning(
-                '\nError downloading image from Tandem Vault: {0}'
+                '\nError downloading image: {0}'
                 .format(e)
             )
 
         return image_file
 
-    def get_tandemvault_image_taken_date(self, image_file):
+    def get_image_taken_date(self, image_file):
         taken_date = None
 
         try:
-            pil_img = PILImage.open(io.StringIO(image_file))
+            pil_img = PILImage.open(io.BytesIO(image_file))
         except Exception as e:
             logging.warning(
                 '\nError opening image with Pillow: {0}'
@@ -992,7 +1069,7 @@ Script executed in {6}
                 self.tags_created,
                 self.tags_deleted,
                 self.exec_time
-            )
+        )
 
         print(stats)
 
@@ -1008,13 +1085,14 @@ Script executed in {6}
         if not self.preserve_stale_images:
             stale_images = Image.objects.filter(
                 last_imported__lt=self.imported,
-                source=self.source
+                source='Tandem Vault'
             )
             self.images_deleted = stale_images.count()
             stale_images.delete()
 
         if self.delete_stale_tags:
-            stale_tags = ImageTag.objects.filter(synonyms__images__isnull=True).filter(images__isnull=True)
+            stale_tags = ImageTag.objects.filter(
+                synonyms__images__isnull=True).filter(images__isnull=True)
             self.tags_deleted = stale_tags.count()
             stale_tags.delete()
 
