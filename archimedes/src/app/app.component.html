@@ -155,7 +155,7 @@
                     <div app-events class="list-group" [events]="eventsResults.results"></div>
 
                     <div class="list-group-item flex-column align-items-end" *ngIf="eventsResults.count > 5">
-                      <a href="{{ eventsApi }}/search/?q={{ query }}&models=events.event" target="_blank">View more results ></a>
+                      <a href="{{ eventsApi }}/search/?q={{ query }}" target="_blank">View more results ></a>
                     </div>
 
                     <div class="alert alert-info" *ngIf="eventsResults.results.length === 0">
