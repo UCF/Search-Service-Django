@@ -15,6 +15,10 @@ from bs4 import BeautifulSoup, NavigableString
 def clean_name(program_name):
     name = program_name
 
+    # Ensure we're working with a str object, not bytes:
+    if type(name) is bytes:
+        name = name.decode()
+
     # Strip out punctuation
     name = name.replace('.', '')
 
@@ -49,8 +53,8 @@ class CatalogEntry(object):
 
     def __init__(self, id, name, program_type):
         self.id = id
-        self.name = name
-        self.type = program_type
+        self.name = name.decode()
+        self.type = program_type.decode()
         self.match_count = 0
 
     @property
@@ -280,7 +284,7 @@ class Command(BaseCommand):
         raw_data = response.text.encode(encoding)
 
         # Strip xmlns attributes to parse string to xml without namespaces
-        data = re.sub(' xmlns(?:\:[a-z]*)?="[^"]+"', '', raw_data)
+        data = re.sub(b' xmlns(?:\:[a-z]*)?="[^"]+"', b'', raw_data)
         root = BeautifulSoup(data, 'xml')
         if self.graduate:
             cores = root.find('cores')

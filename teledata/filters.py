@@ -13,7 +13,7 @@ class DepartmentFilter(django_filters.FilterSet):
 
 
 class CombinedTeledataFilter(django_filters.FilterSet):
-    use = filters.CharFilter(name='from_table')
+    use = filters.CharFilter(field_name='from_table')
 
     class Meta:
         model = CombinedTeledata
