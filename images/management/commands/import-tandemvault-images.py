@@ -428,7 +428,7 @@ class ImageData(object):
         # Assign the upload set's name as a tag for the image,
         # if we retrieved upload set information for the image:
         if self.uploadset_json:
-            uploadset_tag_name_lower = uploadset_json['title'].lower().strip()
+            uploadset_tag_name_lower = self.uploadset_json['title'].lower().strip()
             if uploadset_tag_name_lower not in self.unique_tag_names:
                 self.unique_tag_names.add(uploadset_tag_name_lower)
                 self.tv_tags.append(uploadset_tag_name)
