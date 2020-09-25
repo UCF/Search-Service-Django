@@ -369,7 +369,7 @@ class ImageData(object):
     single_json = None
     uploadset_json = None
     generate_tags = False
-    unique_tag_names = []
+    unique_tag_names = set()
     tv_tags = []
     rk_tags = []
     tags_created = 0
@@ -422,7 +422,7 @@ class ImageData(object):
                 # assigned to the image, get or create an ImageTag object
                 # and assign it to the Image
                 if tandemvault_tag_name_lower not in self.unique_tag_names:
-                    self.unique_tag_names.append(tandemvault_tag_name_lower)
+                    self.unique_tag_names.add(tandemvault_tag_name_lower)
                     self.tv_tags.append(tandemvault_tag_name)
 
         # Assign the upload set's name as a tag for the image,
@@ -430,7 +430,7 @@ class ImageData(object):
         if self.uploadset_json:
             uploadset_tag_name_lower = uploadset_json['title'].lower().strip()
             if uploadset_tag_name_lower not in self.unique_tag_names:
-                self.unique_tag_names.append(uploadset_tag_name_lower)
+                self.unique_tag_names.add(uploadset_tag_name_lower)
                 self.tv_tags.append(uploadset_tag_name)
 
         # Generate and assign tags from Rekognition:
@@ -443,7 +443,7 @@ class ImageData(object):
             rekognition_tags = rk.get_image_tags(self.image_file)
             for rekognition_tag_name in rekognition_tags:
                 if rekognition_tag_name not in self.unique_tag_names:
-                    self.unique_tag_names.append(rekognition_tag_name)
+                    self.unique_tag_names.add(rekognition_tag_name)
                     self.rk_tags.append(rekognition_tag_name)
 
     def assign_tags(self, rk):
