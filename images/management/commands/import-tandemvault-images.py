@@ -207,7 +207,7 @@ class TandemVault(object):
         """
         if self.total_page_count > 1:
             # for page in range(2, 6):  # TODO for debugging only
-            for page in range(2, self.total_page_count):
+            for page in range(2, self.total_page_count + 1):
                 self.pages.append(self.fetch_assets_page(page))
 
                 if progress:
@@ -782,7 +782,7 @@ class Command(BaseCommand):
         """
         # Loop through all retrieved pages, and create/update
         # Image objects (sans tag information)
-        for pagenum in range(0, len(self.tv.pages) - 1):
+        for pagenum in range(0, len(self.tv.pages)):
             page_json = self.tv.pages[pagenum]
 
             if not page_json:
