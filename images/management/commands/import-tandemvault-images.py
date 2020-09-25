@@ -125,9 +125,6 @@ class TandemVault(object):
                 self.total_page_count = int(math.ceil(
                     self.total_assets / self.per_page_max
                 ))
-
-            # Strip non-image results from response
-            # response_json = [asset for asset in response_json if asset.get('type', None) == 'Image']
         except Exception as e:
             logging.warning(
                 '\nError retrieving assets page data: {0}'
