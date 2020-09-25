@@ -68,7 +68,7 @@ class Command(BaseCommand):
         # against the file name before continuing:
         try:
             mime = mimetypes.guess_type(self.tandemvault_tags_csv.name)[0]
-        except Exception, e:
+        except Exception as e:
             logging.error(
                 '\nError reading CSV: couldn\'t verify mimetype of file'
             )
@@ -86,7 +86,7 @@ class Command(BaseCommand):
 
         try:
             csv_reader = csv.DictReader(self.tandemvault_tags_csv)
-        except csv.Error, e:
+        except csv.Error as e:
             logging.error(
                 '\nError reading CSV: {0}'
                 .format(e)
@@ -110,7 +110,7 @@ class Command(BaseCommand):
                 self.tags_skipped += 1
                 continue
 
-            synonyms = filter(None, [self.clean_tag_name(synonym) for synonym in json.loads(tandemvault_tag['synonym_names'])])
+            synonyms = [_f for _f in [self.clean_tag_name(synonym) for synonym in json.loads(tandemvault_tag['synonym_names'])] if _f]
 
             try:
                 tag = ImageTag.objects.get(name=name)

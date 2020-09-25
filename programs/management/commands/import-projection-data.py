@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
+import argparse
 import decimal
 import logging
 import sys
@@ -20,7 +21,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             'file',
-            type=file,
+            type=argparse.FileType('r'),
             help='The file path of the csv file'
         )
         parser.add_argument(
@@ -158,7 +159,7 @@ class Command(BaseCommand):
     def parse_title(self, value):
         parts = value.split('*')
         title = parts.pop(0)
-        jobs = map(str.strip, parts)
+        jobs = list(map(str.strip, parts))
 
         return (title, jobs)
 

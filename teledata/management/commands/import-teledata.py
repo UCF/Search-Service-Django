@@ -149,7 +149,7 @@ FROM
 
                 try:
                     existing.save()
-                except Exception, e:
+                except Exception as e:
                     self.logger.error(str(e))
                     self.bldg_error += 1
 
@@ -165,7 +165,7 @@ FROM
 
                 try:
                     new.save()
-                except Exception, e:
+                except Exception as e:
                     self.logger.error(str(e))
                     self.bldg_error += 1
 
@@ -193,7 +193,7 @@ FROM
 
                 try:
                     existing.save()
-                except Exception, e:
+                except Exception as e:
                     self.logger.error(str(e))
                     self.org_error += 1
 
@@ -222,7 +222,7 @@ FROM
 
                 try:
                     new.save()
-                except Exception, e:
+                except Exception as e:
                     self.logger.error(str(e))
                     self.org_error += 1
 
@@ -260,7 +260,7 @@ FROM
 
                 try:
                     existing.save()
-                except Exception, e:
+                except Exception as e:
                     self.logger.error(str(e))
                     self.dept_error += 1
 
@@ -285,7 +285,7 @@ FROM
 
                 try:
                     new.save()
-                except Exception, e:
+                except Exception as e:
                     self.logger.error(str(e))
                     self.dept_error += 1
 
@@ -339,7 +339,7 @@ FROM
 
                 try:
                     existing.save()
-                except Exception, e:
+                except Exception as e:
                     self.logger.error(str(e))
                     self.staff_error += 1
 
@@ -368,7 +368,7 @@ FROM
 
                 try:
                     new.save()
-                except Exception, e:
+                except Exception as e:
                     self.logger.error(str(e))
                     self.staff_error += 1
 
@@ -481,6 +481,6 @@ Deleted: {18}
 
         self.print_stats()
 
-        print "All done!"
+        print("All done!")
 
         self.connection.close()

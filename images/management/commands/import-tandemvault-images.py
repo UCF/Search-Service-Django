@@ -12,12 +12,12 @@ import datetime
 import requests
 from PIL import Image as PILImage
 from PIL import ExifTags
-import StringIO
+import io
 from progress.bar import Bar
 from dateutil.parser import *
 import boto3
 
-from Queue import Queue
+from queue import Queue
 from threading import Thread
 
 
@@ -72,7 +72,7 @@ class RekognitionWorker(Thread):
                     # If we are processing tags, then let's go!
                     image_data = self.process_rekognition_tags(image_data)
                     self.results.put(image_data)
-            except Exception, ex:
+            except Exception as ex:
                 logging.warning(
                     (
                         'There was an exception while processing a '
@@ -453,7 +453,7 @@ class Command(BaseCommand):
                     aws_secret_access_key=self.aws_secret_key,
                     region_name=self.aws_region
                 )
-            except Exception, e:
+            except Exception as e:
                 logging.error('Error establishing client: {0}'.format(e))
                 return
 
@@ -576,7 +576,7 @@ class Command(BaseCommand):
         Processes a single Tandem Vault image.
         Returns an ImageData object
         """
-        self.progress_bar.next()
+        next(self.progress_bar)
 
         download_url = self.tandemvault_download_url.format(tandemvault_image['id'])
         # Use 'browse_url' for thumb instead of 'thumb_url'
@@ -830,7 +830,7 @@ class Command(BaseCommand):
                     self.tandemvault_total_assets / len(response_json)
                 ))
                 self.progress_bar.max = self.tandemvault_total_assets
-        except Exception, e:
+        except Exception as e:
             logging.warning(
                 '\nError retrieving assets page data: {0}'
                 .format(e)
@@ -857,7 +857,7 @@ class Command(BaseCommand):
                     .format(response_json['error'])
                 )
                 response_json = None
-        except Exception, e:
+        except Exception as e:
             logging.warning(
                 '\nError retrieving single asset data: {0}'
                 .format(e)
@@ -894,7 +894,7 @@ class Command(BaseCommand):
                     self.tandemvault_upload_sets.update(
                         {upload_set_id: response_json}
                     )
-            except Exception, e:
+            except Exception as e:
                 logging.warning(
                     '\nError retrieving single upload set data: {0}'
                     .format(e)
@@ -935,7 +935,7 @@ class Command(BaseCommand):
 
         try:
             image_file = requests.get(image_url).content
-        except Exception, e:
+        except Exception as e:
             logging.warning(
                 '\nError downloading image from Tandem Vault: {0}'
                 .format(e)
@@ -947,8 +947,8 @@ class Command(BaseCommand):
         taken_date = None
 
         try:
-            pil_img = PILImage.open(StringIO.StringIO(image_file))
-        except Exception, e:
+            pil_img = PILImage.open(io.StringIO(image_file))
+        except Exception as e:
             logging.warning(
                 '\nError opening image with Pillow: {0}'
                 .format(e)
