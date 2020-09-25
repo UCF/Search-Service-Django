@@ -793,7 +793,7 @@ class Command(BaseCommand):
                     )
                     .format(pagenum)
                 )
-                return
+                continue
 
             for asset in page_json:
                 asset_type = asset.get('type', None)
