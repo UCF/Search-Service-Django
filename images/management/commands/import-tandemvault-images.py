@@ -207,7 +207,7 @@ class TandemVault(object):
         """
         if self.total_page_count > 1:
             # for page in range(2, 6):  # TODO for debugging only
-                for page in range(2, self.total_page_count):
+            for page in range(2, self.total_page_count):
                 self.pages.append(self.fetch_assets_page(page))
 
                 if progress:
