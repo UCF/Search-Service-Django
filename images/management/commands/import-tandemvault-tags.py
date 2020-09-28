@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from images.models import *
 
+import argparse
 import csv
 import datetime
 import json
@@ -27,7 +28,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--file',
-            type=file,
+            type=argparse.FileType('r'),
             help='''\
             CSV file containing existing tag and synonym information
             from Tandem Vault
