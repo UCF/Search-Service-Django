@@ -277,7 +277,7 @@ class Rekognition(object):
         """
         data = {
             'labels': [],
-            'mean_confidence_score': None
+            'labels_mean_confidence_score': None
         }
 
         if image_file is not None:
