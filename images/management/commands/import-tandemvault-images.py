@@ -277,7 +277,7 @@ class Rekognition(object):
         """
         data = {
             'labels': [],
-            'mean_confidence_score': None
+            'labels_mean_confidence_score': None
         }
 
         if image_file is not None:
@@ -427,7 +427,7 @@ class ImageData(object):
             uploadset_tag_name_lower = self.uploadset_json['title'].lower().strip()
             if uploadset_tag_name_lower not in self.unique_tag_names:
                 self.unique_tag_names.add(uploadset_tag_name_lower)
-                self.tv_tags.append(uploadset_tag_name)
+                self.tv_tags.append(uploadset_tag_name_lower)
 
         # Generate and assign tags from Rekognition:
         if rk and self.generate_tags:

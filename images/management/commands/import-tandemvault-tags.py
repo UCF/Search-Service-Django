@@ -149,7 +149,7 @@ class Command(BaseCommand):
     '''
     def clean_tag_name(self, name):
         try:
-            name = name.decode('utf-8')
+            name = name.encode('utf-8').decode('utf-8')
         except (UnicodeDecodeError, UnicodeEncodeError):
             # we tried; make it behave
             name = unidecode(name)
