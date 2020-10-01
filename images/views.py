@@ -28,9 +28,15 @@ class ImageSearchView(generics.ListAPIView):
     ordering_fields = ['score', 'source_created', 'source_modified', 'photo_taken']
     ordering = ['-score', '-photo_taken']
 
+    def get_ordering(self):
+        if self.request.GET.get('search') is None:
+            # There is no score because the query isn't run;
+            # remove ordering by score
+            return ['-photo_taken']
+        return self.ordering
+
     def get_queryset(self):
         if self.request.GET.get('search') is not None:
             return Image.objects.search(self.request.GET.get('search'))
         else:
-            # There is no score because the query isn't run
             return Image.objects.none()
