@@ -22,37 +22,23 @@ class TandemVault(object):
     """
     Handles requests to Tandem Vault's API and stores responses
     """
-    domain = ''
-    admin_api_key = ''
-    communicator_api_key = ''
-
-    per_page_max = 0  # Max number of expected results per page
-    total_page_count = 0  # total number of paged Tandem Vault API results
-    total_assets = 0  # total number of assets in Tandem Vault API results
-    pages = []
-    uploadsets = {}
-    start_date = None
-    end_date = None
-
-    api_base_assets_path = '/api/v1/assets/'
-    api_base_asset_path = '/api/v1/assets/{0}/'
-    api_base_download_path = '/assets/{0}/'
-    api_base_uploadset_path = '/api/v1/upload_sets/{0}/'
-    api_assets_url = ''
-    api_asset_url = ''
-    api_download_url = ''
-    api_uploadset_url = ''
-    api_assets_params = {}
-    api_asset_params = {}
-    api_uploadset_params = {}
-
-    def __init__(self, domain, admin_api_key, communicator_api_key, start_date, end_date):
+    def __init__(self, domain=None, admin_api_key=None, communicator_api_key=None, start_date=None, end_date=None):
         self.domain = domain
         self.admin_api_key = admin_api_key
         self.communicator_api_key = communicator_api_key
         self.start_date = start_date
         self.end_date = end_date
 
+        self.per_page_max = 0  # Max number of expected results per page
+        self.total_page_count = 0  # total number of paged Tandem Vault API results
+        self.total_assets = 0  # total number of assets in Tandem Vault API results
+        self.pages = []
+        self.uploadsets = {}
+
+        self.api_base_assets_path = '/api/v1/assets/'
+        self.api_base_asset_path = '/api/v1/assets/{0}/'
+        self.api_base_download_path = '/assets/{0}/'
+        self.api_base_uploadset_path = '/api/v1/upload_sets/{0}/'
         self.api_assets_url = 'https://{0}{1}'.format(
             self.domain,
             self.api_base_assets_path
@@ -243,26 +229,7 @@ class Rekognition(object):
     Handles connecting to AWS and processing of
     image data using Rekognition
     """
-    aws_client = None
-    confidence_threshold = 'mean-adjusted'
-    tag_blacklist = [
-        'accessory',
-        'accessories',
-        'apparel',
-        'clothing',
-        'dating',
-        'furniture',
-        'human',
-        'mammal'
-        'photo',
-        'photography',
-        'skin'
-    ]
-    tag_translations = {
-        'american football': 'football'
-    }
-
-    def __init__(self, aws_access_key, aws_secret_key, aws_region, confidence_threshold):
+    def __init__(self, aws_access_key=None, aws_secret_key=None, aws_region=None, confidence_threshold='mean-adjusted'):
         self.aws_client = boto3.client(
             'rekognition',
             aws_access_key_id=aws_access_key,
@@ -270,6 +237,22 @@ class Rekognition(object):
             region_name=aws_region
         )
         self.confidence_threshold = confidence_threshold
+        self.tag_blacklist = [
+            'accessory',
+            'accessories',
+            'apparel',
+            'clothing',
+            'dating',
+            'furniture',
+            'human',
+            'mammal'
+            'photo',
+            'photography',
+            'skin'
+        ]
+        self.tag_translations = {
+            'american football': 'football'
+        }
 
     def get_image_data(self, image_file):
         """
@@ -359,24 +342,16 @@ class ImageData(object):
     Manages information about a Tandem Vault image's data,
     its corresponding Image object, and its tags
     """
-    image = None
-    image_file = None
-    image_json = None
-    single_json = None
-    uploadset_json = None
-    generate_tags = False
-    unique_tag_names = set()
-    tv_tags = []
-    rk_tags = []
-    tags_created = 0
-
-    def __init__(self, image, image_file, image_json, single_json, uploadset_json, generate_tags):
+    def __init__(self, image=None, image_file=None, image_json=None, single_json=None, uploadset_json=None, generate_tags=False):
         self.image = image
         self.image_file = image_file
         self.image_json = image_json
         self.single_json = single_json
         self.uploadset_json = uploadset_json
         self.generate_tags = generate_tags
+        self.tv_tags = []
+        self.rk_tags = []
+        self.tags_created = 0
 
         # Initialize a unique list of existing tag names to avoid
         # generating duplicates.  Prioritizes tags from any other
@@ -384,7 +359,8 @@ class ImageData(object):
         # the Django admin).
         self.unique_tag_names = set(
             [tag.name.lower() for tag in self.image.tags.exclude(
-                source__in=['Tandem Vault', 'AWS Rekognition'])]
+                source__in=['Tandem Vault', 'AWS Rekognition']
+            )]
         )
 
     def get_tags(self, rk):
@@ -399,7 +375,8 @@ class ImageData(object):
         # we retrieved single image data/didn't skip it:
         if self.single_json:
             self.image.tags.remove(
-                *self.image.tags.filter(source='Tandem Vault'))
+                *self.image.tags.filter(source='Tandem Vault')
+            )
 
         # If Rekognition tagging is enabled,
         # clear existing tag relationships retrieved from Rekognition:
@@ -794,9 +771,7 @@ class Command(BaseCommand):
             for asset in page_json:
                 asset_type = asset.get('type', None)
                 if asset_type == 'Image':
-                    single_image_data = self.process_image(asset)
-                    if single_image_data is not None:
-                        self.image_data.append(single_image_data)
+                    self.process_image(asset)
 
         # Process tag information for each image
         for single_image_data in self.image_data:
@@ -994,7 +969,7 @@ class Command(BaseCommand):
         image.last_imported = self.imported
         image.save()
 
-        return ImageData(
+        single_image_data = ImageData(
             image=image,
             image_file=image_file,
             image_json=tandemvault_image,
@@ -1002,6 +977,7 @@ class Command(BaseCommand):
             uploadset_json=uploadset_json,
             generate_tags=self.generate_tags != 'none'
         )
+        self.image_data.append(single_image_data)
 
     def download_image(self, image_url):
         image_file = None
