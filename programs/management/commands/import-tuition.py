@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
 
-from urllib import urlencode
+from urllib.parse import urlencode
 import requests
 import json
 import re
@@ -50,7 +50,7 @@ class Command(BaseCommand):
         schedules = response.json()
 
         for schedule in schedules:
-            if schedule['Program'] not in self.fee_schedules.keys():
+            if schedule['Program'] not in list(self.fee_schedules.keys()):
                 self.fee_schedules[schedule['Program']] = {
                     'code': schedule['Program'],
                     'type': schedule['FeeType'],
@@ -135,7 +135,7 @@ class Command(BaseCommand):
                 self.program_skipped += 1
                 continue
 
-            if self.fee_schedules.has_key(schedule_code):
+            if schedule_code in self.fee_schedules:
                 values = self.fee_schedules[schedule_code]
                 program.resident_tuition = values['res']
                 program.nonresident_tuition = values['nonres']
@@ -165,7 +165,7 @@ class Command(BaseCommand):
         success_perc_number = float(self.update_count) / float(self.program_count) * 100
         success_perc_str = str(round(success_perc_number, 2))
 
-        print """
+        print("""
 Successfully update tuition data.
 Updated    : {0}
 Exceptions : {1}
@@ -176,4 +176,4 @@ Success %  : {3}%
             self.mapping_found,
             self.program_skipped,
             success_perc_str
-        )
+        ))

@@ -98,7 +98,7 @@ class Command(BaseCommand):
             # Make their null values actually parse to `null` and not "NULL":
             response_str_cleaned = response_str.replace('"NULL"', 'null')
             response_json = json.loads(response_str_cleaned)
-        except Exception, e:
+        except Exception as e:
             logging.warning(
                 '\nError retrieving Graduate GUID data: {0}'
                 .format(e)
@@ -113,14 +113,14 @@ class Command(BaseCommand):
         # If we have new GUID data to process, delete any existing data.
         # Otherwise, abort this process:
         if len(self.guid_data):
-            print (
+            print((
                 (
                     'Deleting all existing GUID values '
                     'for {0} Programs.'
                 ).format(
                     self.career
                 )
-            )
+            ))
 
             # Clear existing GUIDs on all programs in self.programs:
             if self.programs_count:
@@ -213,12 +213,12 @@ class Command(BaseCommand):
                 )
 
     def print_results(self):
-        print (
+        print((
             'Finished import of {0} Program GUID data.'
-        ).format(self.career)
+        ).format(self.career))
 
         if self.programs_count:
-            print (
+            print((
                 'Assigned a GUID to {0}/{1} '
                 'existing {2} Programs: {3: .0f} %'
             ).format(
@@ -227,12 +227,12 @@ class Command(BaseCommand):
                 self.career,
                 float(len(self.programs_matched)) /
                 float(self.programs_count) * 100
-            )
+            ))
         else:
-            print 'No programs were assigned a GUID.'
+            print('No programs were assigned a GUID.')
 
         if len(self.guid_data):
-            print (
+            print((
                 'Matched {0}/{1} rows of {2} GUID data: {3: .0f} %'
             ).format(
                 self.rows_matched_count,
@@ -240,13 +240,13 @@ class Command(BaseCommand):
                 self.career,
                 float(self.rows_matched_count) /
                 float(len(self.guid_data)) * 100
-            )
+            ))
         else:
-            print 'No GUID data was processed.'
+            print('No GUID data was processed.')
 
-        print (
+        print((
             'Skipped {0} rows of {1} GUID data.'
         ).format(
             self.rows_skipped_count,
             self.career
-        )
+        ))

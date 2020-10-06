@@ -5,8 +5,8 @@ from programs.models import *
 
 
 class ProgramFilter(django_filters.FilterSet):
-    search = filters.CharFilter(name='name', lookup_expr='icontains')
-    subplan_code__isnull = filters.BooleanFilter(name='subplan_code', lookup_expr='isnull')
+    search = filters.CharFilter(field_name='name', lookup_expr='icontains')
+    subplan_code__isnull = filters.BooleanFilter(field_name='subplan_code', lookup_expr='isnull')
 
     class Meta:
         model = Program
@@ -28,7 +28,7 @@ class ProgramFilter(django_filters.FilterSet):
 
 
 class CollegeFilter(django_filters.FilterSet):
-    search = filters.CharFilter(name='full_name', lookup_expr='icontains')
+    search = filters.CharFilter(field_name='full_name', lookup_expr='icontains')
 
     class Meta:
         model = College
@@ -39,7 +39,7 @@ class CollegeFilter(django_filters.FilterSet):
 
 
 class DepartmentFilter(django_filters.FilterSet):
-    search = filters.CharFilter(name='full_name', lookup_expr='icontains')
+    search = filters.CharFilter(field_name='full_name', lookup_expr='icontains')
 
     class Meta:
         model = Department

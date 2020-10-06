@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models
 from django_mysql.models import ListTextField
@@ -113,7 +113,7 @@ class CIP(models.Model):
 
     objects = models.Manager()
     current_version = CIPVersionManager()
-    next_version = models.OneToOneField('self', null=True, blank=True, related_name='previous_version')
+    next_version = models.OneToOneField('self', null=True, blank=True, related_name='previous_version', on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         if self.code is not None:
@@ -172,7 +172,7 @@ class EmploymentProjection(models.Model):
         ('1828', '2018-2028'),
     ]
 
-    soc = models.ForeignKey(SOC, on_delete=models.CASCADE, related_name='projections')
+    soc = models.ForeignKey(SOC, related_name='projections', on_delete=models.CASCADE)
     report = models.CharField(max_length=4, default=settings.PROJ_CURRENT_REPORT, choices=report_years, null=False, blank=False)
     begin_employment = models.IntegerField(null=False, blank=False)
     end_employment = models.IntegerField(null=False, blank=False)
@@ -234,8 +234,8 @@ class AcademicYear(models.Model):
 
 
 class ProgramOutcomeStat(models.Model):
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='outcomes')
-    cip = models.ForeignKey(CIP, on_delete=models.CASCADE, related_name='outcomes')
+    academic_year = models.ForeignKey(AcademicYear, related_name='outcomes', on_delete=models.CASCADE)
+    cip = models.ForeignKey(CIP, related_name='outcomes', on_delete=models.CASCADE)
     employed_full_time = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
     continuing_education = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
     avg_annual_earnings = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
@@ -275,9 +275,9 @@ class AdmissionDeadlineType(models.Model):
 
 
 class ApplicationDeadline(models.Model):
-    admission_term = models.ForeignKey(AdmissionTerm, on_delete=models.CASCADE, related_name='application_deadlines')
-    career = models.ForeignKey(Career, on_delete=models.CASCADE, related_name='application_deadlines')
-    deadline_type = models.ForeignKey(AdmissionDeadlineType, on_delete=models.CASCADE, related_name='application_deadlines')
+    admission_term = models.ForeignKey(AdmissionTerm, related_name='application_deadlines', on_delete=models.CASCADE)
+    career = models.ForeignKey(Career, related_name='application_deadlines', on_delete=models.CASCADE)
+    deadline_type = models.ForeignKey(AdmissionDeadlineType, related_name='application_deadlines', on_delete=models.CASCADE)
     month = models.IntegerField(null=False, blank=False, choices=[(i, i) for i in range(1, 13)])
     day = models.IntegerField(null=False, blank=False, choices=[(i, i) for i in range(1, 32)])
 
@@ -320,14 +320,15 @@ class Program(models.Model):
     catalog_url = models.URLField(null=True, blank=True)
     colleges = models.ManyToManyField(College, blank=True)
     departments = models.ManyToManyField(Department, blank=True)
-    level = models.ForeignKey(Level)
-    career = models.ForeignKey(Career)
-    degree = models.ForeignKey(Degree)
+    level = models.ForeignKey(Level, on_delete=models.CASCADE)
+    career = models.ForeignKey(Career, on_delete=models.CASCADE)
+    degree = models.ForeignKey(Degree, on_delete=models.CASCADE)
     online = models.BooleanField(null=False, blank=False, default=False)
     parent_program = models.ForeignKey('self',
                                        null=True,
                                        blank=True,
-                                       related_name='subplans')
+                                       related_name='subplans',
+                                       on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True, null=False)
     modified = models.DateTimeField(auto_now=True, null=False)
     resident_tuition = models.DecimalField(null=True, blank=True, max_digits=7, decimal_places=2)
@@ -479,14 +480,15 @@ class ProgramProfile(models.Model):
     """
     URLs to specific profile pages for programs
     """
-    profile_type = models.ForeignKey(ProgramProfileType)
+    profile_type = models.ForeignKey(ProgramProfileType, on_delete=models.CASCADE)
     url = models.URLField(null=False, blank=False)
     primary = models.BooleanField(default=False, null=False, blank=False)
     program = models.ForeignKey(
         Program,
         null=False,
         blank=False,
-        related_name='profiles'
+        related_name='profiles',
+        on_delete=models.CASCADE
     )
 
     class Meta:
@@ -503,14 +505,15 @@ class ProgramDescription(models.Model):
     """
     Program descriptions to be used on various sites
     """
-    description_type = models.ForeignKey(ProgramDescriptionType)
+    description_type = models.ForeignKey(ProgramDescriptionType, on_delete=models.CASCADE)
     description = models.TextField(null=False, blank=False)
     primary = models.BooleanField(default=False, null=False, blank=False)
     program = models.ForeignKey(
         Program,
         null=False,
         blank=False,
-        related_name='descriptions'
+        related_name='descriptions',
+        on_delete=models.CASCADE
     )
 
     class Meta:
@@ -575,7 +578,7 @@ class TuitionOverride(models.Model):
 class CollegeOverride(models.Model):
     plan_code = models.CharField(max_length=10, null=False, blank=False)
     subplan_code = models.CharField(max_length=10, null=True, blank=True)
-    college = models.ForeignKey(College, null=False, blank=False)
+    college = models.ForeignKey(College, null=False, blank=False, on_delete=models.CASCADE)
 
     @property
     def program(self):

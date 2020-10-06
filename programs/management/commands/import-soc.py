@@ -6,6 +6,8 @@ import sys
 import csv
 import mimetypes
 
+from argparse import FileType
+
 
 class Command(BaseCommand):
     help = 'Imports Occupational codes (SOC) and associates them with Instructional Program codes (CIP)'
@@ -19,7 +21,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             'file',
-            type=file,
+            type=FileType('r', encoding='utf-8'),
             help='The file path of the csv file'
         )
         parser.add_argument(
@@ -54,7 +56,7 @@ class Command(BaseCommand):
         self.cip_version = options['cip_version']
         self.soc_version = options['soc_version']
 
-        mime_type, encoding = mimetypes.guess_type(self.file)
+        mime_type, encoding = mimetypes.guess_type(self.file.name)
 
         if mime_type != 'text/csv':
             raise Exception('File provided does not have a mimetype of "text/csv"')
@@ -94,7 +96,7 @@ class Command(BaseCommand):
             # Get the CIP
             try:
                 cip = CIP.objects.get(code=cip_code, version=self.cip_version)
-            except Exception, e:
+            except Exception as e:
                 cip = None
 
             if cip is not None and soc_code != 'NO MATCH':
@@ -124,9 +126,9 @@ class Command(BaseCommand):
         updated_percent = (float(self.socs_updated) / float(self.socs_count)) * 100 if self.socs_updated > 0 else 0
         skipped_percent = (float(self.socs_skipped) / float(self.socs_count)) * 100 if self.socs_skipped > 0 else 0
 
-        print '\nFinished import of SOC (Occupational) data.\n'
+        print('\nFinished import of SOC (Occupational) data.\n')
 
-        print 'Processed: {0}'.format(self.socs_count)
-        print 'Created:   {0} ({1}%)'.format(self.socs_added, round(created_percent))
-        print 'Updated:   {0} ({1}%)'.format(self.socs_updated, round(updated_percent))
-        print 'Skipped:   {0} ({1}%)'.format(self.socs_skipped, round(skipped_percent))
+        print('Processed: {0}'.format(self.socs_count))
+        print('Created:   {0} ({1}%)'.format(self.socs_added, round(created_percent)))
+        print('Updated:   {0} ({1}%)'.format(self.socs_updated, round(updated_percent)))
+        print('Skipped:   {0} ({1}%)'.format(self.socs_skipped, round(skipped_percent)))

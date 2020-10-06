@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 import logging
 
@@ -485,8 +485,8 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
             try:
                 record.save(doing_import=True)
-                record.keywords_combined = s.keywords.all()
-            except Exception, e:
+                record.keywords_combined.set(s.keywords.all())
+            except Exception as e:
                 logger.error(str(e))
 
         for o in orgs:
@@ -504,8 +504,8 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
             try:
                 record.save(doing_import=True)
-                record.keywords_combined = o.keywords.all()
-            except Exception, e:
+                record.keywords_combined.set(o.keywords.all())
+            except Exception as e:
                 logger.error(str(e))
 
         for d in depts:
@@ -525,15 +525,15 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
             try:
                 record.save(doing_import=True)
-                record.keywords_combined = d.keywords.all()
-            except Exception, e:
+                record.keywords_combined.set(d.keywords.all())
+            except Exception as e:
                 logger.error(str(e))
 
 
 class CombinedTeledata(models.Model):
     pkid = models.AutoField(primary_key=True)
     id = models.IntegerField(auto_created=False, null=True, blank=True)
-    alpha = models.NullBooleanField(default=True, null=True, blank=True)
+    alpha = models.BooleanField(default=True, null=True, blank=True)
     name = models.CharField(max_length=255, null=False, blank=False)
     first_name = models.CharField(max_length=14, null=True, blank=True)
     last_name = models.CharField(max_length=25, null=True, blank=True)
