@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.shortcuts import render, get_object_or_404
 from rest_framework import generics
@@ -172,7 +172,7 @@ class CIPDetailView(generics.RetrieveAPIView):
     serializer_class = CIPSerializer
 
     def get_object(self):
-        version = self.kwargs['version'] if 'version' in self.kwargs.keys() else settings.CIP_CURRENT_VERSION
+        version = self.kwargs['version'] if 'version' in list(self.kwargs.keys()) else settings.CIP_CURRENT_VERSION
         code = str(self.kwargs['code'])
         return CIP.objects.get(version=version, code=code)
 

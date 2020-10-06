@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from images.models import *
 
+import argparse
 import csv
 import datetime
 import json
@@ -27,7 +28,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--file',
-            type=file,
+            type=argparse.FileType('r'),
             help='''\
             CSV file containing existing tag and synonym information
             from Tandem Vault
@@ -68,7 +69,7 @@ class Command(BaseCommand):
         # against the file name before continuing:
         try:
             mime = mimetypes.guess_type(self.tandemvault_tags_csv.name)[0]
-        except Exception, e:
+        except Exception as e:
             logging.error(
                 '\nError reading CSV: couldn\'t verify mimetype of file'
             )
@@ -86,7 +87,7 @@ class Command(BaseCommand):
 
         try:
             csv_reader = csv.DictReader(self.tandemvault_tags_csv)
-        except csv.Error, e:
+        except csv.Error as e:
             logging.error(
                 '\nError reading CSV: {0}'
                 .format(e)
@@ -110,7 +111,7 @@ class Command(BaseCommand):
                 self.tags_skipped += 1
                 continue
 
-            synonyms = filter(None, [self.clean_tag_name(synonym) for synonym in json.loads(tandemvault_tag['synonym_names'])])
+            synonyms = [_f for _f in [self.clean_tag_name(synonym) for synonym in json.loads(tandemvault_tag['synonym_names'])] if _f]
 
             try:
                 tag = ImageTag.objects.get(name=name)
@@ -148,7 +149,7 @@ class Command(BaseCommand):
     '''
     def clean_tag_name(self, name):
         try:
-            name = name.decode('utf-8')
+            name = name.encode('utf-8').decode('utf-8')
         except (UnicodeDecodeError, UnicodeEncodeError):
             # we tried; make it behave
             name = unidecode(name)
