@@ -3,7 +3,7 @@
 
 from django.contrib import admin
 from django.urls import reverse
-from django.utils.html import format_html_join
+from django.utils.html import format_html_join, mark_safe
 from django_mysql.models import ListCharField
 
 from .models import *
@@ -171,10 +171,10 @@ class ApplicationDeadlineAdmin(admin.ModelAdmin):
             )
         )
 
-        return '{0} Programs:\n<ul style="margin-left: 0; margin-top: 1rem; padding-left: 0;">{1}</ul>'.format(
+        return mark_safe('{0} Programs:\n<ul style="margin-left: 0; margin-top: 1rem; padding-left: 0;">{1}</ul>'.format(
             programs.count(),
             program_list_items
-        )
+        ))
 
     programs_list.allow_tags = True
     programs_list.short_description = 'Program(s)'
