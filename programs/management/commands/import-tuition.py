@@ -121,10 +121,6 @@ class Command(BaseCommand):
 
             # Empty values if skip is true then continue
             if mapping and mapping.skip:
-                program.resident_tuition = None
-                program.nonresident_tuition = None
-                program.tuition_type = None
-                program.save()
                 self.program_skipped += 1
                 continue
 
