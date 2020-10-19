@@ -540,7 +540,8 @@ class TuitionOverride(models.Model):
     tuition_code = models.CharField(max_length=10, null=False, blank=False)
     plan_code = models.CharField(max_length=10, null=False, blank=False)
     subplan_code = models.CharField(max_length=10, null=True, blank=True)
-    skip = models.BooleanField(default=False, null=False, blank=False)
+    skip = models.BooleanField(default=False, null=False, blank=False,
+        help_text="The tuition values for the program will not be updated during the tuition import when this is checked.")
     required_fees = models.ManyToManyField(Fee, blank=True)
 
     @property
