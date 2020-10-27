@@ -166,6 +166,11 @@ class Command(BaseCommand):
         career = Career.objects.get(name=self.career)
 
         for row in self.guid_data:
+            # If any of these keys are missing, skip!
+            if not all(k in row for k in ("PLAN", "SUBPLAN", "GUID")):
+                self.rows_skipped_count += 1
+                continue
+
             plan_code = row['PLAN']
             subplan_code = row['SUBPLAN']
             guid = row['GUID']
