@@ -343,7 +343,7 @@ class Command(BaseCommand):
         return description_html
 
     def get_description_full(self, program_id, catalog_url):
-        response = requests.get(catalog_url)
+        response = requests.get(catalog_url, verify=False) # :(
         encoding = response.encoding
         raw_data = response.text.encode(encoding)
 
