@@ -378,6 +378,11 @@ class Command(BaseCommand):
             'b', 'em', 'i', 'strong', 'u'
         ]
 
+        attr_blacklist = [
+            'class',
+            'border', 'cellpadding', 'cellspacing'
+        ]
+
         for match in description_html.descendants:
             if isinstance(match, NavigableString) == False:
                 if match.name not in tag_whitelist:
@@ -386,8 +391,9 @@ class Command(BaseCommand):
                     match.attrs = []
                 else:
                     # Remove unused attrs from elements
-                    if 'class' in match.attrs:
-                        match.attrs.pop('class')
+                    for bad_attr in attr_blacklist:
+                        if bad_attr in match.attrs:
+                            match.attrs.pop(bad_attr)
 
 
         # BS seems to have a hard time with doing this in-place, so perform
