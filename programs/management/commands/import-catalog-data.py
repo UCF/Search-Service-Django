@@ -307,38 +307,11 @@ class Command(BaseCommand):
         if self.graduate:
             cores = root.find('cores')
             description_xml = cores.find('core').encode_contents()
-            description_html = BeautifulSoup(description_xml, 'html.parser')
         else:
             description_xml = root.find('content').encode_contents()
-            description_html = BeautifulSoup(description_xml, 'html.parser')
 
-        tag_whitelist = [
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'p', 'br', 'pre',
-            'table', 'tbody', 'thead', 'tr', 'td', 'a',
-            'ul', 'li', 'ol',
-            'b', 'em', 'i', 'strong', 'u'
-        ]
-
-        # Filter out tags not in our whitelist (replace them with span's)
-        for match in description_html.descendants:
-            if match.name not in tag_whitelist and isinstance(match, NavigableString) == False:
-                match.name = 'span'
-                match.attrs = []
-
-        # BS seems to have a hard time with doing this in-place, so perform
-        # a second loop to remove the garbage tags
-        for span_match in description_html.find_all('span'):
-            span_match.unwrap()
-
-        # Strip newlines
-        nl_regex = re.compile(r'[\r\n\t]')
-        description_html = nl_regex.sub(' ', str(description_html))
-
-        description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
-        # Final filter out of Program Description
-        description_html = re.sub('Program Description<a name=\"ProgramDescription\"></a><a id=\"core-\d+\" name=\"programdescription\"></a>', '', description_html)
-        description_html = re.sub('1Active-Visible.*', '', description_html)
+        # Sanitize contents:
+        description_html = self.sanitize_description(description_xml)
 
         return description_html
 
@@ -367,9 +340,16 @@ class Command(BaseCommand):
             if isinstance(desc_2_node, NavigableString) == False:
                 description_str += str(desc_2_node)
 
-        # Translate description_str into soup:
-        description_html = BeautifulSoup(description_str, 'html.parser')
+        # Sanitize contents:
+        description_html = self.sanitize_description(description_str, strip_links=True)
 
+        return description_html
+
+    def sanitize_description(self, description_str, strip_links=False):
+        """
+        Modifies the provided catalog description string
+        to clean up markup and strip undesired tags/content.
+        """
         tag_whitelist = [
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
             'p', 'br', 'pre',
@@ -377,14 +357,35 @@ class Command(BaseCommand):
             'ul', 'li', 'ol',
             'b', 'em', 'i', 'strong', 'u'
         ]
+        if not strip_links:
+            tag_whitelist.append('a')
+
+        table_elems = ['table', 'tbody', 'thead', 'tr', 'td']
 
         attr_blacklist = [
-            'class',
+            'class', 'style',
             'border', 'cellpadding', 'cellspacing'
         ]
 
+        # Make some soup:
+        description_html = BeautifulSoup(description_str, 'html.parser')
+
+        # Remove stray "Track Description" fragments:
+        track_desc_fragments = description_html.find_all(string='Track Description')
+        for track_desc_fragment in track_desc_fragments:
+            track_desc_fragment.extract()
+
+        # Strip empty tags:
+        empty_tags = description_html.findAll(lambda tag: (not tag.contents or len(tag.get_text(strip=True)) <= 0) and not tag.name == 'br')
+        for empty_tag in empty_tags:
+            empty_tag.decompose()
+
         for match in description_html.descendants:
             if isinstance(match, NavigableString) == False:
+                # Transform <u> tags to <em>
+                if match.name == 'u':
+                    match.name = 'em'
+
                 if match.name not in tag_whitelist:
                     # Filter out tags not in our whitelist (replace them with span's)
                     match.name = 'span'
@@ -400,13 +401,19 @@ class Command(BaseCommand):
         for span_match in description_html.find_all('span'):
             span_match.unwrap()
 
-        # Strip newlines
+        # Un-soup(?) the soup; strip newlines:
         nl_regex = re.compile(r'[\r\n\t]')
         description_html = nl_regex.sub(' ', str(description_html))
 
+        # Strip characters outside the ASCII range:
         description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
-        # Final filter out of Program Description
+
+        # Other miscellaneous string replacements:
+        description_html = re.sub('Program Description<a name=\"ProgramDescription\"></a><a id=\"core-\d+\" name=\"programdescription\"></a>', '', description_html)
         description_html = re.sub('1Active-Visible.*', '', description_html)
+        description_html = re.sub(r'[\♦\►]', '', description_html)
+        description_html = description_html.replace('<!--StartFragment-->', '')
+        description_html = description_html.replace('<!--EndFragment-->', '')
 
         return description_html
 
