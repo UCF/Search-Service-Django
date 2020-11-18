@@ -370,11 +370,6 @@ class Command(BaseCommand):
         # Make some soup:
         description_html = BeautifulSoup(description_str, 'html.parser')
 
-        # Remove stray "Track Description" fragments:
-        track_desc_fragments = description_html.find_all(string='Track Description')
-        for track_desc_fragment in track_desc_fragments:
-            track_desc_fragment.extract()
-
         # Strip empty tags:
         empty_tags = description_html.findAll(lambda tag: (not tag.contents or len(tag.get_text(strip=True)) <= 0) and not tag.name == 'br')
         for empty_tag in empty_tags:
@@ -409,7 +404,7 @@ class Command(BaseCommand):
         description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
 
         # Other miscellaneous string replacements:
-        description_html = re.sub('Program Description<a name=\"ProgramDescription\"></a><a id=\"core-\d+\" name=\"programdescription\"></a>', '', description_html)
+        description_html = re.sub(r'^(Program|Track) Description<p>', '<p>', description_html)
         description_html = re.sub('1Active-Visible.*', '', description_html)
         description_html = re.sub(r'[\♦\►]', '', description_html)
         description_html = description_html.replace('<!--StartFragment-->', '')
