@@ -212,6 +212,9 @@ class Command(BaseCommand):
         description_type, created = ProgramDescriptionType.objects.get_or_create(
             name='Catalog Description'
         )
+        description_type_full, created = ProgramDescriptionType.objects.get_or_create(
+            name='Full Catalog Description'
+        )
 
         programs = Program.objects.all()
         match_count = 0
@@ -229,10 +232,15 @@ class Command(BaseCommand):
             p.catalog_url = None
             p.save()
 
-            # Wipe out existing catalog description
+            # Wipe out existing catalog descriptions
             try:
                 description = p.descriptions.get(description_type=description_type)
                 description.delete()
+            except ProgramDescription.DoesNotExist:
+                pass
+            try:
+                description_full = p.descriptions.get(description_type=description_type_full)
+                description_full.delete()
             except ProgramDescription.DoesNotExist:
                 pass
 
@@ -251,13 +259,23 @@ class Command(BaseCommand):
                 p.program.catalog_url = self.catalog_url.format(self.catalog_id, matched_entry.id)
                 p.program.save()
 
-                # Create a new program description with the description provided in the matched catalog entry
+                # Create new program descriptions with the description provided in the matched catalog entry
                 description = ProgramDescription(
                     description_type=description_type,
                     description=self.get_description(matched_entry.id),
                     program=p.program
                 )
                 description.save()
+
+                description_full = ProgramDescription(
+                    description_type=description_type_full,
+                    description=self.get_description_full(
+                        matched_entry.id,
+                        p.program.catalog_url
+                    ),
+                    program=p.program
+                )
+                description_full.save()
 
                 # Increment match counts for all programs and for the matched catalog entry
                 match_count += 1
@@ -320,6 +338,74 @@ class Command(BaseCommand):
         description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
         # Final filter out of Program Description
         description_html = re.sub('Program Description<a name=\"ProgramDescription\"></a><a id=\"core-\d+\" name=\"programdescription\"></a>', '', description_html)
+        description_html = re.sub('1Active-Visible.*', '', description_html)
+
+        return description_html
+
+    def get_description_full(self, program_id, catalog_url):
+        response = requests.get(catalog_url, verify=False) # :(
+        encoding = response.encoding
+        raw_data = response.text.encode(encoding)
+
+        root = BeautifulSoup(raw_data, 'html.parser')
+
+        description_str = ''
+        desc_parts = root.select('.block_content > .table_default > tr')
+        desc_1_row = desc_parts[0]
+        desc_2_row = desc_parts[1]
+
+        # Parse first part of description, which is basically
+        # everything up to course listings/plans of study.
+        # Ignore table nodes in this row (assume they're just
+        # contact info):
+        for desc_1_node in desc_1_row.find(class_='table_default').next_siblings:
+            if isinstance(desc_1_node, NavigableString) == False and desc_1_node.name != 'table':
+                description_str += str(desc_1_node)
+
+        # Parse second description part:
+        for desc_2_node in desc_2_row.td:
+            if isinstance(desc_2_node, NavigableString) == False:
+                description_str += str(desc_2_node)
+
+        # Translate description_str into soup:
+        description_html = BeautifulSoup(description_str, 'html.parser')
+
+        tag_whitelist = [
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'p', 'br', 'pre',
+            'table', 'tbody', 'thead', 'tr', 'td',
+            'ul', 'li', 'ol',
+            'b', 'em', 'i', 'strong', 'u'
+        ]
+
+        attr_blacklist = [
+            'class',
+            'border', 'cellpadding', 'cellspacing'
+        ]
+
+        for match in description_html.descendants:
+            if isinstance(match, NavigableString) == False:
+                if match.name not in tag_whitelist:
+                    # Filter out tags not in our whitelist (replace them with span's)
+                    match.name = 'span'
+                    match.attrs = []
+                else:
+                    # Remove unused attrs from elements
+                    for bad_attr in attr_blacklist:
+                        if bad_attr in match.attrs:
+                            match.attrs.pop(bad_attr)
+
+        # BS seems to have a hard time with doing this in-place, so perform
+        # a second loop to remove the garbage tags
+        for span_match in description_html.find_all('span'):
+            span_match.unwrap()
+
+        # Strip newlines
+        nl_regex = re.compile(r'[\r\n\t]')
+        description_html = nl_regex.sub(' ', str(description_html))
+
+        description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
+        # Final filter out of Program Description
         description_html = re.sub('1Active-Visible.*', '', description_html)
 
         return description_html
