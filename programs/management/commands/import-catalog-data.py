@@ -395,7 +395,6 @@ class Command(BaseCommand):
                         if bad_attr in match.attrs:
                             match.attrs.pop(bad_attr)
 
-
         # BS seems to have a hard time with doing this in-place, so perform
         # a second loop to remove the garbage tags
         for span_match in description_html.find_all('span'):
