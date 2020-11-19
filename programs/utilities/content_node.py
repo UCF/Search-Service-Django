@@ -291,6 +291,6 @@ class ContentNode(object):
         `previous_heading` node passed in.
         """
         previous_idx = int(previous_heading.tag[0:1])
-        node.tag = 'h{0}'.format(previous_idx + 1)
+        self.tag = 'h{0}'.format(previous_idx + 1)
 
     #endregion
