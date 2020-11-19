@@ -78,7 +78,7 @@ class Oscar:
                 continue
 
             # If this node is in a category that should be skipped
-            if node.node_type in self.SKIP:
+            if node.content_category in self.SKIP:
                 continue
 
             # If this is a title, see if it's the right heading level
