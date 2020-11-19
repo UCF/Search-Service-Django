@@ -82,7 +82,7 @@ class Oscar:
                 continue
 
             # If this is a title, see if it's the right heading level
-            if node.node_type ==ContentNodeType.TITLE and previous_node:
+            if node.node_type == ContentNodeType.TITLE and previous_node:
                 if previous_heading == None:
                     node.tag = 'h2'
                     setval.append(node)
