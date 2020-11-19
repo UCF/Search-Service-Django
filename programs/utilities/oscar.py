@@ -95,6 +95,7 @@ class Oscar:
 
             # By default, just add the node
             setval.append(node)
+            previous_node = node
 
         self.nodes = setval
 
