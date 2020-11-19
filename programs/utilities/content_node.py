@@ -290,7 +290,7 @@ class ContentNode(object):
         Increments or decrements a heading based on the
         `previous_heading` node passed in.
         """
-        previous_idx = int(previous_heading.tag[0:1])
+        previous_idx = int(previous_heading.tag[1:2])
         node.tag = 'h{0}'.format(previous_idx + 1)
 
     #endregion
