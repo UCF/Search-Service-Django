@@ -360,8 +360,6 @@ class Command(BaseCommand):
         if not strip_links:
             tag_whitelist.append('a')
 
-        table_elems = ['table', 'tbody', 'thead', 'tr', 'td']
-
         attr_blacklist = [
             'class', 'style',
             'border', 'cellpadding', 'cellspacing'
