@@ -1,8 +1,10 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
+from programs.utilities.oscar import Oscar
 
 import requests
 import re
+import boto3
 import itertools
 import logging
 import sys
@@ -178,6 +180,12 @@ class Command(BaseCommand):
         self.catalog_url = options['catalog-url'] + '/preview_program.php?catoid={0}&poid={1}'
         self.graduate = options['graduate']
         self.loglevel = options['loglevel']
+        self.client = boto3.client(
+            'comprehend',
+            aws_access_key_id=settings.AWS_ACCESS_KEY,
+            aws_secret_access_key=settings.AWS_SECRET_KEY,
+            region_name=settings.AWS_REGION
+        )
 
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
@@ -342,6 +350,9 @@ class Command(BaseCommand):
 
         # Sanitize contents:
         description_html = self.sanitize_description(description_str, strip_links=True)
+
+        oscar = Oscar(description_html, self.client)
+        description_html = oscar.get_updated_description()
 
         return description_html
 
