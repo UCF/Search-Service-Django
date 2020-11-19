@@ -271,6 +271,8 @@ class ContentNode(object):
                 LanguageCode='en'
             )
 
+        return response
+
     #endregion
 
     #region Public Functions
