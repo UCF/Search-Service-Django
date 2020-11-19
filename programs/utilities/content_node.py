@@ -189,6 +189,7 @@ class ContentNode(object):
         cleaned_lines = self.cleaned.splitlines()
 
         contact_info_score = 0
+        contact_re = re.compile(r'^(?:College of|Department of) [a-zA-Z\ ]+$')
 
         if len(cleaned_lines) == 1:
             self.__list_processing()
@@ -198,6 +199,7 @@ class ContentNode(object):
                 return
 
         for line in cleaned_lines:
+            line = line.strip()
             pii_response = self.__get_pii_entities(line)
             ent_response = self.__get_entities(line)
 
@@ -216,6 +218,12 @@ class ContentNode(object):
                         e_offset = int(entity['EndOffset'])
                         word_count = len(line[b_offset:e_offset].split(' '))
                         contact_info_score += entity['Score'] * word_count * 100
+
+            # Addition processing to catch contact info
+            result = contact_re.match(line)
+
+            if result:
+                contact_info_score += len(line.split(' ')) * 100
 
         total_words = len(self.cleaned.split(' '))
         contact_info_avg = contact_info_score / total_words
