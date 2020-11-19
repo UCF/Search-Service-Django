@@ -352,7 +352,7 @@ class Command(BaseCommand):
         """
         tag_whitelist = [
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'p', 'br', 'pre',
+            'p', 'br', 'pre', 'sup', 'sub',
             'table', 'tbody', 'thead', 'tr', 'td',
             'ul', 'li', 'ol',
             'b', 'em', 'i', 'strong', 'u'
