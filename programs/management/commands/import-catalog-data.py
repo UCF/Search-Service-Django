@@ -381,6 +381,11 @@ class Command(BaseCommand):
                 if match.name == 'u':
                     match.name = 'em'
 
+                # Strip <p> tags within <li>s
+                if match.name == 'p' and match.parent.name == 'li':
+                    match.name = 'span'
+                    match.attrs = []
+
                 if match.name not in tag_whitelist:
                     # Filter out tags not in our whitelist (replace them with span's)
                     match.name = 'span'
