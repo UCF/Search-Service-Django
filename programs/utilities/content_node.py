@@ -96,7 +96,7 @@ class ContentNode(object):
 
         self.lines = []
 
-        self.cleaned = self.__clean_html(html)
+        self.cleaned = self.__clean_html(str(self.html_node))
 
         self.__set_node_details()
 
@@ -198,22 +198,24 @@ class ContentNode(object):
                 return
 
         for line in cleaned_lines:
-            pii_response = self.client.get_pii_entities(line)
-            ent_response = self.client.get_entities(line)
+            pii_response = self.__get_pii_entities(line)
+            ent_response = self.__get_entities(line)
 
-            for pii_ent in pii_response['Entities']:
-                if pii_ent['Type'] in self.PII_TYPES:
-                    b_offset = int(pii_ent['BeginOffset'])
-                    e_offset = int(pii_ent['EndOffset'])
-                    word_count = len(line[b_offset:e_offset].split(' '))
-                    contact_info_score += pii_ent['Score'] * word_count * 100
+            if pii_response:
+                for pii_ent in pii_response['Entities']:
+                    if pii_ent['Type'] in self.PII_TYPES:
+                        b_offset = int(pii_ent['BeginOffset'])
+                        e_offset = int(pii_ent['EndOffset'])
+                        word_count = len(line[b_offset:e_offset].split(' '))
+                        contact_info_score += pii_ent['Score'] * word_count * 100
 
-            for entity in ent_response['Entities']:
-                if entity['Type'] in self.PII_TYPES:
-                    b_offset = int(entity['BeginOffset'])
-                    e_offset = int(entity['EndOffset'])
-                    word_count = len(line[b_offset:e_offset].split(' '))
-                    contact_info_score += entity['Score'] * word_count * 100
+            if ent_response:
+                for entity in ent_response['Entities']:
+                    if entity['Type'] in self.PII_TYPES:
+                        b_offset = int(entity['BeginOffset'])
+                        e_offset = int(entity['EndOffset'])
+                        word_count = len(line[b_offset:e_offset].split(' '))
+                        contact_info_score += entity['Score'] * word_count * 100
 
         total_words = len(self.cleaned.split(' '))
         contact_info_avg = contact_info_score / total_words
@@ -240,22 +242,6 @@ class ContentNode(object):
     #endregion
 
     #region Comprehend Functions
-
-    def __initialize_client(self):
-        """
-        Initializes the AWS client.
-        """
-        if (settings.AWS_ACCESS_KEY in [None, '']
-            and settings.AWS_SECRET_KEY in [None, '']
-            and settings.AWS_REGION == [None, '']):
-            raise Exception('AWS_ACCESS_KEY, AWS_SECRET_KEY and AWS_REGION must be set in the settings_local.py file.')
-
-        self.client = boto3.client(
-            'comprehend',
-            aws_access_key_id=settings.AWS_ACCESS_KEY,
-            aws_secret_access_key=settings.AWS_SECRET_KEY,
-            region_name=settings.AWS_REGION
-        )
 
     def __get_pii_entities(self, text):
         """
