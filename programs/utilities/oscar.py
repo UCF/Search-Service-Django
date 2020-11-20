@@ -6,6 +6,19 @@ from programs.utilities.content_node import ContentNode, ContentNodeType, Conten
 from io import StringIO
 
 class Oscar:
+    """
+    Utility for transforming catalog descriptions.
+    This will take description markup, as html, breaks
+    down each top level "node" of content, identifies
+    its type and category, and then removes the unwanted
+    parts of the description.
+
+    params
+    ---------------
+
+    description {string} The description to be transformed
+    client {boto3.client} The AWS client used for comprehend API calls
+    """
 
     #region Shared Class Variables
 

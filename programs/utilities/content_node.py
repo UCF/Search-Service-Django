@@ -189,7 +189,7 @@ class ContentNode(object):
         cleaned_lines = self.cleaned.splitlines()
 
         contact_info_score = 0
-        contact_re = re.compile(r'^(?:College of|Department of) [a-zA-Z\ ]+$')
+        contact_re = re.compile(r'^(?:College of|Department of|Rosen College of) [a-zA-Z\ ]+$')
 
         if len(cleaned_lines) == 1:
             self.__list_processing()
