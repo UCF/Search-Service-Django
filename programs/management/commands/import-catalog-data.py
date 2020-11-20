@@ -305,9 +305,13 @@ class Command(BaseCommand):
             self.catalog_id
         )
 
-        response = requests.get(url)
-        encoding = response.encoding
-        raw_data = response.text.encode(encoding)
+        try:
+            response = requests.get(url)
+            encoding = response.encoding
+            raw_data = response.text.encode(encoding)
+        except Exception as e:
+            logging.error('Error requesting catalog description: {0}'.format(e))
+            return ''
 
         # Strip xmlns attributes to parse string to xml without namespaces
         data = re.sub(b' xmlns(?:\:[a-z]*)?="[^"]+"', b'', raw_data)
@@ -324,9 +328,13 @@ class Command(BaseCommand):
         return description_html
 
     def get_description_full(self, program_id, catalog_url):
-        response = requests.get(catalog_url, verify=False) # :(
-        encoding = response.encoding
-        raw_data = response.text.encode(encoding)
+        try:
+            requests.get(catalog_url, verify=False)  # :(
+            encoding = response.encoding
+            raw_data = response.text.encode(encoding)
+        except Exception as e:
+            logging.error('Error requesting catalog description: {0}'.format(e))
+            return ''
 
         root = BeautifulSoup(raw_data, 'html.parser')
 
