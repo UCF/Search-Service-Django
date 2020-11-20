@@ -332,21 +332,35 @@ class Command(BaseCommand):
 
         description_str = ''
         desc_parts = root.select('.block_content > .table_default > tr')
-        desc_1_row = desc_parts[0]
-        desc_2_row = desc_parts[1]
+
+        try:
+            desc_1_row = desc_parts[0]
+        except IndexError:
+            desc_1_row = None
+
+        try:
+            desc_2_row = desc_parts[1]
+        except IndexError:
+            desc_2_row = None
 
         # Parse first part of description, which is basically
         # everything up to course listings/plans of study.
         # Ignore table nodes in this row (assume they're just
         # contact info):
-        for desc_1_node in desc_1_row.find(class_='table_default').next_siblings:
-            if isinstance(desc_1_node, NavigableString) == False and desc_1_node.name != 'table':
-                description_str += str(desc_1_node)
+        if desc_1_row:
+            for desc_1_node in desc_1_row.find(class_='table_default').next_siblings:
+                if isinstance(desc_1_node, NavigableString) == False and desc_1_node.name != 'table':
+                    description_str += str(desc_1_node)
 
         # Parse second description part:
-        for desc_2_node in desc_2_row.td:
-            if isinstance(desc_2_node, NavigableString) == False:
-                description_str += str(desc_2_node)
+        if desc_2_row and hasattr(desc_2_row, 'td'):
+            for desc_2_node in desc_2_row.td:
+                if isinstance(desc_2_node, NavigableString) == False:
+                    description_str += str(desc_2_node)
+
+        # Back out now if no description contents were found:
+        if not description_str:
+            return ''
 
         # Sanitize contents:
         description_html = self.sanitize_description(description_str, strip_links=True)
