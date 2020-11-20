@@ -365,9 +365,6 @@ class Command(BaseCommand):
         # Sanitize contents:
         description_html = self.sanitize_description(description_str, strip_links=True)
 
-        oscar = Oscar(description_html, self.client)
-        description_html = oscar.get_updated_description()
-
         return description_html
 
     def sanitize_description(self, description_str, strip_links=False):
@@ -437,6 +434,10 @@ class Command(BaseCommand):
         description_html = re.sub(r'[\♦\►]', '', description_html)
         description_html = description_html.replace('<!--StartFragment-->', '')
         description_html = description_html.replace('<!--EndFragment-->', '')
+
+        # Finally, pass along to Oscar:
+        oscar = Oscar(description_html, self.client)
+        description_html = oscar.get_updated_description()
 
         return description_html
 
