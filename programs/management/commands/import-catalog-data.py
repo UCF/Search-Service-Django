@@ -329,7 +329,7 @@ class Command(BaseCommand):
 
     def get_description_full(self, program_id, catalog_url):
         try:
-            requests.get(catalog_url, verify=False)  # :(
+            response = requests.get(catalog_url, verify=False)  # :(
             encoding = response.encoding
             raw_data = response.text.encode(encoding)
         except Exception as e:
