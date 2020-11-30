@@ -252,3 +252,18 @@ GRADUATE_SLATE_ENDPOINTS = {
         'password': ''
     }
 }
+
+# The base URL to use when building catalog URLs during the catalog import
+CATALOG_URL_BASE = 'https://catalog.ucf.edu'
+
+# The base URL of the Acalog API
+CATALOG_API_BASE = ''
+
+# The API key used to connect to Acalog
+CATALOG_API_KEY = ''
+
+# The ID of the current active undergraduate catalog in Acalog
+CATALOG_UNDERGRADUATE_ID = 18
+
+# The ID of the current active graduate catalog in Acalog
+CATALOG_GRADUATE_ID = 17

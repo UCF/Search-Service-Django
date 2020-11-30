@@ -53,10 +53,11 @@ def clean_name(program_name):
 
 class CatalogEntry(object):
 
-    def __init__(self, id, name, program_type):
+    def __init__(self, id, name, program_type, catalog_id):
         self.id = id
         self.name = name.decode()
         self.type = program_type.decode()
+        self.catalog_id = catalog_id
         self.match_count = 0
 
     @property
@@ -128,28 +129,32 @@ class Command(BaseCommand):
         parser.add_argument(
             'path',
             type=str,
-            help='The base url of the Acalog API'
+            nargs='?',
+            help='The base url of the Acalog API',
+            default=settings.CATALOG_API_BASE
         )
         parser.add_argument(
             '--api-key',
             type=str,
             help='The api key used to connect to Acalog',
             dest='api-key',
-            required=True
+            default=settings.CATALOG_API_KEY,
+            required=False
         )
         parser.add_argument(
             '--catalog-id',
             type=int,
             help='The ID of the catalog to use',
             dest='catalog-id',
-            required=True
+            required=False
         )
         parser.add_argument(
             '--catalog-url',
             type=str,
             help='The url to use when building catalog urls',
             dest='catalog-url',
-            required=True
+            default=settings.CATALOG_URL_BASE,
+            required=False
         )
         parser.add_argument(
             '--graduate',
@@ -157,6 +162,18 @@ class Command(BaseCommand):
             help='Set to True if this is the graduate import',
             dest='graduate',
             default=False,
+            required=False
+        )
+        parser.add_argument(
+            '--program-ids',
+            type=int,
+            nargs='*',
+            help='''\
+            One or more program IDs to import catalog data for. Supersedes the
+            `--catalog-id` arg if provided, and depends on undergraduate and
+            graduate catalog IDs set in settings_local.
+            ''',
+            dest='program-ids',
             required=False
         )
         parser.add_argument(
@@ -173,12 +190,22 @@ class Command(BaseCommand):
         ET.register_namespace('a', 'http://www.w3.org/2005/Atom')
         ET.register_namespace('h', 'http://www.w3.org/1999/xhtml')
 
-
         self.path = options['path']
         self.key = options['api-key']
-        self.catalog_id = options['catalog-id']
-        self.catalog_url = options['catalog-url'] + '/preview_program.php?catoid={0}&poid={1}'
+        self.catalog_url = options['catalog-url']
+
+        # Make sure these are actually set before continuing
+        if not self.path or not self.key or not self.catalog_url:
+            raise Exception('Catalog URL base, API URL base and API key are required. Add these args to the import command or update settings_local.py.')
+
+        self.catalog_url += '/preview_program.php?catoid={0}&poid={1}'
+
+        self.program_ids = options['program-ids']
         self.graduate = options['graduate']
+        self.catalog_id = options['catalog-id']
+        if self.catalog_id is None and not self.program_ids:
+            self.catalog_id = settings.CATALOG_GRADUATE_ID if self.graduate else settings.CATALOG_UNDERGRADUATE_ID
+
         self.loglevel = options['loglevel']
         self.client = boto3.client(
             'comprehend',
@@ -190,17 +217,30 @@ class Command(BaseCommand):
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
-        program_url = '{0}search/programs?key={1}&format=xml&method=listing&catalog={2}&options%5Blimit%5D=500'.format(self.path, self.key, self.catalog_id)
+        # Retrieve catalog data
+        if self.program_ids:
+            careers = Career.objects.filter(program__pk__in=self.program_ids).distinct()
 
-        # Fetch the catalog programs and set the variable
-        self.get_catalog_programs(program_url)
+            for career in careers:
+                if career.name == 'Undergraduate':
+                    catalog_id = settings.CATALOG_UNDERGRADUATE_ID
+                elif career.name == 'Graduate':
+                    catalog_id = settings.CATALOG_GRADUATE_ID
+
+                program_url = '{0}search/programs?key={1}&format=xml&method=listing&catalog={2}&options%5Blimit%5D=500'.format(self.path, self.key, catalog_id)
+
+                self.get_catalog_programs(program_url, catalog_id)
+        else:
+            program_url = '{0}search/programs?key={1}&format=xml&method=listing&catalog={2}&options%5Blimit%5D=500'.format(self.path, self.key, self.catalog_id)
+
+            self.get_catalog_programs(program_url, self.catalog_id)
 
         # Start matching up programs by name
         self.match_programs()
 
         return 0
 
-    def get_catalog_programs(self, program_url):
+    def get_catalog_programs(self, program_url, catalog_id):
         response = requests.get(program_url)
         encoding = response.encoding
         raw_data = response.text.encode(encoding)
@@ -212,7 +252,8 @@ class Command(BaseCommand):
                     CatalogEntry(
                         result.find('id').text,
                         result.find('name').text.encode('ascii', 'ignore'),
-                        result.find('type').text.encode('ascii', 'ignore')
+                        result.find('type').text.encode('ascii', 'ignore'),
+                        catalog_id
                     )
                 )
 
@@ -228,12 +269,15 @@ class Command(BaseCommand):
         match_count = 0
         career_name = ''
 
-        if self.graduate:
-            career_name = 'Graduate'
+        if self.program_ids:
+            programs = programs.filter(pk__in=self.program_ids)
         else:
-            career_name = 'Undergraduate'
+            if self.graduate:
+                career_name = 'Graduate'
+            else:
+                career_name = 'Undergraduate'
 
-        programs = programs.filter(career__name=career_name)
+            programs = programs.filter(career__name=career_name)
 
         for p in programs:
             # Wipe out existing catalog URL
@@ -264,13 +308,16 @@ class Command(BaseCommand):
                 # Get the best match and update the program with the matched catalog URL
                 match = p.get_best_match()
                 matched_entry = match.catalog_entry
-                p.program.catalog_url = self.catalog_url.format(self.catalog_id, matched_entry.id)
+                p.program.catalog_url = self.catalog_url.format(matched_entry.catalog_id, matched_entry.id)
                 p.program.save()
 
                 # Create new program descriptions with the description provided in the matched catalog entry
                 description = ProgramDescription(
                     description_type=description_type,
-                    description=self.get_description(matched_entry.id),
+                    description=self.get_description(
+                        matched_entry.id,
+                        matched_entry.catalog_id
+                    ),
                     program=p.program
                 )
                 description.save()
@@ -297,12 +344,12 @@ class Command(BaseCommand):
         print('Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len([x for x in self.catalog_programs if x.has_matches == True]), len(self.catalog_programs), len([x for x in self.catalog_programs if x.has_matches == True]) / float(len(self.catalog_programs)) * 100))
 
 
-    def get_description(self, program_id):
+    def get_description(self, program_id, catalog_id):
         url = '{0}content?key={1}&format=xml&method=getItems&type=programs&ids[]={2}&catalog={3}'.format(
             self.path,
             self.key,
             program_id,
-            self.catalog_id
+            catalog_id
         )
 
         try:
