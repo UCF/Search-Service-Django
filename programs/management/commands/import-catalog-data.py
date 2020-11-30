@@ -1,8 +1,10 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
+from programs.utilities.oscar import Oscar
 
 import requests
 import re
+import boto3
 import itertools
 import logging
 import sys
@@ -178,6 +180,12 @@ class Command(BaseCommand):
         self.catalog_url = options['catalog-url'] + '/preview_program.php?catoid={0}&poid={1}'
         self.graduate = options['graduate']
         self.loglevel = options['loglevel']
+        self.client = boto3.client(
+            'comprehend',
+            aws_access_key_id=settings.AWS_ACCESS_KEY,
+            aws_secret_access_key=settings.AWS_SECRET_KEY,
+            region_name=settings.AWS_REGION
+        )
 
         # Set logging level
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
@@ -297,9 +305,13 @@ class Command(BaseCommand):
             self.catalog_id
         )
 
-        response = requests.get(url)
-        encoding = response.encoding
-        raw_data = response.text.encode(encoding)
+        try:
+            response = requests.get(url)
+            encoding = response.encoding
+            raw_data = response.text.encode(encoding)
+        except Exception as e:
+            logging.error('Error requesting catalog description: {0}'.format(e))
+            return ''
 
         # Strip xmlns attributes to parse string to xml without namespaces
         data = re.sub(b' xmlns(?:\:[a-z]*)?="[^"]+"', b'', raw_data)
@@ -307,84 +319,101 @@ class Command(BaseCommand):
         if self.graduate:
             cores = root.find('cores')
             description_xml = cores.find('core').encode_contents()
-            description_html = BeautifulSoup(description_xml, 'html.parser')
         else:
             description_xml = root.find('content').encode_contents()
-            description_html = BeautifulSoup(description_xml, 'html.parser')
 
-        tag_whitelist = [
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'p', 'br', 'pre',
-            'table', 'tbody', 'thead', 'tr', 'td', 'a',
-            'ul', 'li', 'ol',
-            'b', 'em', 'i', 'strong', 'u'
-        ]
-
-        # Filter out tags not in our whitelist (replace them with span's)
-        for match in description_html.descendants:
-            if match.name not in tag_whitelist and isinstance(match, NavigableString) == False:
-                match.name = 'span'
-                match.attrs = []
-
-        # BS seems to have a hard time with doing this in-place, so perform
-        # a second loop to remove the garbage tags
-        for span_match in description_html.find_all('span'):
-            span_match.unwrap()
-
-        # Strip newlines
-        nl_regex = re.compile(r'[\r\n\t]')
-        description_html = nl_regex.sub(' ', str(description_html))
-
-        description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
-        # Final filter out of Program Description
-        description_html = re.sub('Program Description<a name=\"ProgramDescription\"></a><a id=\"core-\d+\" name=\"programdescription\"></a>', '', description_html)
-        description_html = re.sub('1Active-Visible.*', '', description_html)
+        # Sanitize contents:
+        description_html = self.sanitize_description(description_xml)
 
         return description_html
 
     def get_description_full(self, program_id, catalog_url):
-        response = requests.get(catalog_url, verify=False) # :(
-        encoding = response.encoding
-        raw_data = response.text.encode(encoding)
+        try:
+            response = requests.get(catalog_url, verify=False)  # :(
+            encoding = response.encoding
+            raw_data = response.text.encode(encoding)
+        except Exception as e:
+            logging.error('Error requesting catalog description: {0}'.format(e))
+            return ''
 
         root = BeautifulSoup(raw_data, 'html.parser')
 
         description_str = ''
         desc_parts = root.select('.block_content > .table_default > tr')
-        desc_1_row = desc_parts[0]
-        desc_2_row = desc_parts[1]
+
+        try:
+            desc_1_row = desc_parts[0]
+        except IndexError:
+            desc_1_row = None
+
+        try:
+            desc_2_row = desc_parts[1]
+        except IndexError:
+            desc_2_row = None
 
         # Parse first part of description, which is basically
         # everything up to course listings/plans of study.
         # Ignore table nodes in this row (assume they're just
         # contact info):
-        for desc_1_node in desc_1_row.find(class_='table_default').next_siblings:
-            if isinstance(desc_1_node, NavigableString) == False and desc_1_node.name != 'table':
-                description_str += str(desc_1_node)
+        if desc_1_row:
+            for desc_1_node in desc_1_row.find(class_='table_default').next_siblings:
+                if isinstance(desc_1_node, NavigableString) == False and desc_1_node.name != 'table':
+                    description_str += str(desc_1_node)
 
         # Parse second description part:
-        for desc_2_node in desc_2_row.td:
-            if isinstance(desc_2_node, NavigableString) == False:
-                description_str += str(desc_2_node)
+        if desc_2_row and hasattr(desc_2_row, 'td'):
+            for desc_2_node in desc_2_row.td:
+                if isinstance(desc_2_node, NavigableString) == False:
+                    description_str += str(desc_2_node)
 
-        # Translate description_str into soup:
-        description_html = BeautifulSoup(description_str, 'html.parser')
+        # Back out now if no description contents were found:
+        if not description_str:
+            return ''
 
+        # Sanitize contents:
+        description_html = self.sanitize_description(description_str, strip_links=True)
+
+        return description_html
+
+    def sanitize_description(self, description_str, strip_links=False):
+        """
+        Modifies the provided catalog description string
+        to clean up markup and strip undesired tags/content.
+        """
         tag_whitelist = [
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'p', 'br', 'pre',
+            'p', 'br', 'pre', 'sup', 'sub',
             'table', 'tbody', 'thead', 'tr', 'td',
             'ul', 'li', 'ol',
             'b', 'em', 'i', 'strong', 'u'
         ]
+        if not strip_links:
+            tag_whitelist.append('a')
 
         attr_blacklist = [
-            'class',
+            'class', 'style',
             'border', 'cellpadding', 'cellspacing'
         ]
 
+        # Make some soup:
+        description_html = BeautifulSoup(description_str, 'html.parser')
+
+        # Strip empty tags:
+        empty_tags = description_html.findAll(lambda tag: (not tag.contents or len(tag.get_text(strip=True)) <= 0) and not tag.name == 'br')
+        for empty_tag in empty_tags:
+            empty_tag.decompose()
+
         for match in description_html.descendants:
             if isinstance(match, NavigableString) == False:
+                # Transform <u> tags to <em>
+                if match.name == 'u':
+                    match.name = 'em'
+
+                # Strip <p> tags within <li>s
+                if match.name == 'p' and match.parent.name == 'li':
+                    match.name = 'span'
+                    match.attrs = []
+
                 if match.name not in tag_whitelist:
                     # Filter out tags not in our whitelist (replace them with span's)
                     match.name = 'span'
@@ -400,13 +429,23 @@ class Command(BaseCommand):
         for span_match in description_html.find_all('span'):
             span_match.unwrap()
 
-        # Strip newlines
+        # Un-soup(?) the soup; strip newlines:
         nl_regex = re.compile(r'[\r\n\t]')
         description_html = nl_regex.sub(' ', str(description_html))
 
+        # Strip characters outside the ASCII range:
         description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
-        # Final filter out of Program Description
+
+        # Other miscellaneous string replacements:
+        description_html = re.sub(r'^(Program|Track) Description<p>', '<p>', description_html)
         description_html = re.sub('1Active-Visible.*', '', description_html)
+        description_html = re.sub(r'[\♦\►]', '', description_html)
+        description_html = description_html.replace('<!--StartFragment-->', '')
+        description_html = description_html.replace('<!--EndFragment-->', '')
+
+        # Finally, pass along to Oscar:
+        oscar = Oscar(description_html, self.client)
+        description_html = oscar.get_updated_description()
 
         return description_html
 
