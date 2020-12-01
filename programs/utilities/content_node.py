@@ -159,15 +159,15 @@ class ContentNode(object):
         """
         course_re = re.compile(r'([A-Za-z]{3,4}\s)([0-9]{4})')
 
-        cleaned_lines = self.cleaned.splitlines()
+        parsed_lines = self.html_node.find_all('li', recursive=False)
         course_line_score = 0
 
-        for line in cleaned_lines:
-            result = course_re.match(line)
+        for li in parsed_lines:
+            result = course_re.match(li.text)
             if result:
                 course_line_score += 100
 
-        avg_score = course_line_score / len(cleaned_lines)
+        avg_score = course_line_score / len(parsed_lines)
 
         if avg_score > 80:
             self.content_category = ContentCategory.COURSES
