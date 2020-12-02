@@ -37,6 +37,15 @@ class ContentNode(object):
         'ORGANIZATION'
     ]
 
+    TITLE_TAGS = [
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6'
+    ]
+
     #endregion
 
     #region Properties
@@ -49,7 +58,7 @@ class ContentNode(object):
         if self.tag == None:
             return None
 
-        if self.tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
+        if self.tag in self.TITLE_TAGS:
             return ContentNodeType.TITLE
         if self.tag in ['ul', 'ol', 'dl']:
             return ContentNodeType.LIST
@@ -99,6 +108,9 @@ class ContentNode(object):
         self.cleaned = self.__clean_html(str(self.html_node))
 
         self.__set_node_details()
+
+        # Set subtitle elems (if this is a TITLE node)
+        self.subheadings = self.__get_subheadings()
 
 
     def __clean_html(self, html):
@@ -247,6 +259,39 @@ class ContentNode(object):
         new_soup = BeautifulSoup(new_content, 'html.parser')
         self.html_node = new_soup
 
+    def __get_subheadings(self):
+        """
+        Returns immediate subheadings of the given node (non-recursive).
+        Returns False if the given node is not the TITLE type.
+        """
+        if self.node_type != ContentNodeType.TITLE:
+            return False
+
+        if self.tag == 'h6':
+            # can't have subheadings beyond this point
+            return []
+
+        # Increment through all possible immediate subheadings
+        # for this node.
+        # Accounts for skipped heading order (malformed markup.)
+        subtitles = []
+        possible_subtitle_tags = self.TITLE_TAGS[self.TITLE_TAGS.index(self.tag) + 1:]
+
+        for subtitle_tag in possible_subtitle_tags:
+            if subtitles:
+                break
+            # Traverse the DOM for this type of subheading until
+            # the next equivalent heading is found.
+            # (e.g. if self.tag == 'h2', search for all adjacent h3s
+            # until an adjacent h2 is found)
+            for sibling in self.html_node.find_next_siblings([self.tag, subtitle_tag]):
+                if sibling.name == self.tag:
+                    break
+                elif sibling.name == subtitle_tag:
+                    subtitles.append(sibling)
+
+        return subtitles
+
     #endregion
 
     #region Comprehend Functions
@@ -287,10 +332,20 @@ class ContentNode(object):
 
     def increment_title_tag(self, previous_heading):
         """
-        Increments or decrements a heading based on the
+        Increments or decrements a heading tag based on the
         `previous_heading` node passed in.
         """
         previous_idx = int(previous_heading.tag[1:2])
-        self.tag = 'h{0}'.format(previous_idx + 1)
+
+        # Don't increment past h6:
+        if previous_idx < 6:
+            self.change_tag('h{0}'.format(previous_idx + 1))
+
+    def change_tag(self, new_tag):
+        """
+        Changes the name of the HTML tag for this node.
+        """
+        self.tag = new_tag
+        self.html_node.name = new_tag
 
     #endregion
