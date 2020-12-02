@@ -1,4 +1,8 @@
+from email.utils import parseaddr
 from enum import Enum
+
+from programs.models import College
+from teledata.models import Building, Department
 
 from bs4 import BeautifulSoup
 import re
@@ -20,6 +24,10 @@ class ContentCategory(Enum):
     CONTACT_INFO = 'Contact Info'
 
 #endregion
+
+college_names = College.objects.values_list('full_name', flat=True)
+dept_names = Department.objects.values_list('name', flat=True)
+bldgs = Building.objects.values('name', 'abbr')
 
 class ContentNode(object):
     """
@@ -96,7 +104,8 @@ class ContentNode(object):
 
         self.lines = []
 
-        self.cleaned = self.__clean_html(str(self.html_node))
+        self.cleaned_lines = self.__clean_html(str(self.html_node))
+        self.cleaned_str = ' '.join(self.cleaned_lines)
 
         self.__set_node_details()
 
@@ -107,7 +116,7 @@ class ContentNode(object):
         and preprares it for Comprehend processing.
         """
         soup = BeautifulSoup(html, 'html.parser')
-        return soup.get_text(separator='\n').strip()
+        return [line for line in soup.stripped_strings]
 
 
     def __set_node_details(self):
@@ -133,7 +142,7 @@ class ContentNode(object):
         don't send these off to comprehend for processing and
         instead do simple string lookups.
         """
-        cleaned_line = self.cleaned.strip()
+        cleaned_line = self.cleaned_str
         self.lines.append({
             'text': cleaned_line,
             'personal_data': [],
@@ -159,7 +168,7 @@ class ContentNode(object):
         """
         course_re = re.compile(r'([A-Za-z]{3,4}\s)([0-9]{4})')
 
-        cleaned_lines = self.cleaned.splitlines()
+        cleaned_lines = self.cleaned_lines
         course_line_score = 0
 
         for line in cleaned_lines:
@@ -186,11 +195,12 @@ class ContentNode(object):
         split each separate line of content and send it off
         to AWS Comprehend for language processing.
         """
-        cleaned_lines = self.cleaned.splitlines()
-
+        cleaned_lines = self.cleaned_lines
+        total_words = 0
         contact_info_score = 0
-        contact_re = re.compile(r'^(?:College of|Department of|Rosen College of) [a-zA-Z\ ]+$')
 
+        # Handle single line nodes first, and convert them to
+        # bulleted lists if they look like course listings:
         if len(cleaned_lines) == 1:
             self.__list_processing()
 
@@ -198,41 +208,43 @@ class ContentNode(object):
                 self.__convert_to_list()
                 return
 
+        # Determine if these lines of content look like contact info:
         for line in cleaned_lines:
-            line = line.strip()
-            pii_response = self.__get_pii_entities(line)
-            ent_response = self.__get_entities(line)
+            line_word_count = len(line.split(' '))
+            total_words += line_word_count
 
-            if pii_response:
-                for pii_ent in pii_response['Entities']:
-                    if pii_ent['Type'] in self.PII_TYPES:
-                        b_offset = int(pii_ent['BeginOffset'])
-                        e_offset = int(pii_ent['EndOffset'])
-                        word_count = len(line[b_offset:e_offset].split(' '))
-                        contact_info_score += pii_ent['Score'] * word_count * 100
+            # Try to catch common types of contact info before passing
+            # along to Comprehend:
+            if self.__line_is_common_contact_info(line):
+                contact_info_score += line_word_count * 100
+            else:
+                pii_response = self.__get_pii_entities(line)
+                ent_response = self.__get_entities(line)
 
-            if ent_response:
-                for entity in ent_response['Entities']:
-                    if entity['Type'] in self.PII_TYPES:
-                        b_offset = int(entity['BeginOffset'])
-                        e_offset = int(entity['EndOffset'])
-                        word_count = len(line[b_offset:e_offset].split(' '))
-                        contact_info_score += entity['Score'] * word_count * 100
+                if pii_response:
+                    for pii_ent in pii_response['Entities']:
+                        if pii_ent['Type'] in self.PII_TYPES:
+                            b_offset = int(pii_ent['BeginOffset'])
+                            e_offset = int(pii_ent['EndOffset'])
+                            word_count = len(line[b_offset:e_offset].split(' '))
+                            contact_info_score += pii_ent['Score'] * word_count * 100
 
-            # Addition processing to catch contact info
-            result = contact_re.match(line)
+                if ent_response:
+                    for entity in ent_response['Entities']:
+                        if entity['Type'] in self.PII_TYPES:
+                            b_offset = int(entity['BeginOffset'])
+                            e_offset = int(entity['EndOffset'])
+                            word_count = len(line[b_offset:e_offset].split(' '))
+                            contact_info_score += entity['Score'] * word_count * 100
 
-            if result:
-                contact_info_score += len(line.split(' ')) * 100
-
-        total_words = len(self.cleaned.split(' '))
         contact_info_avg = contact_info_score / total_words
 
+        # Finally, assign a content category:
         if contact_info_avg > 30:
             self.content_category = ContentCategory.CONTACT_INFO
-        elif any([x in self.cleaned.lower() for x in ['credit hour', 'course', 'elective']]):
+        elif any([x in self.cleaned_str.lower() for x in ['credit hour', 'course', 'elective']]):
             self.content_category = ContentCategory.COURSES
-        elif any([x in self.cleaned.lower() for x in ['admission']]):
+        elif any([x in self.cleaned_str.lower() for x in ['admission']]):
             self.content_category = ContentCategory.ADMISSIONS
         else:
             self.content_category = ContentCategory.GENERAL
@@ -246,6 +258,36 @@ class ContentNode(object):
         new_content = "<ul><li>{0}</li></ul>".format(inner_html)
         new_soup = BeautifulSoup(new_content, 'html.parser')
         self.html_node = new_soup
+
+    def __line_is_common_contact_info(self, line):
+        """
+        Catches exact or near-exact matches for common types of
+        contact info that reside on their own lines of text.
+        """
+        retval = False
+
+        # Is this line a phone number?
+        # TODO do we need to account for other written phone variants? e.g. (407) 823-...
+        phone_re = re.compile(r'^\d{3}\-\d{3}\-\d{4}$')
+        phone_result = phone_re.fullmatch(line)
+
+        # Is this line an email address?
+        # https://stackoverflow.com/a/14485817
+        email_parsed = parseaddr(line)
+        email_result = '@' in email_parsed[1]
+
+        if (
+            phone_result
+            or email_result
+            or (college_names and line in college_names)
+            or (dept_names and line in dept_names)
+            or (bldgs and line in bldgs.values())
+        ):
+            retval = True
+
+        # TODO add more complex regex lookups?
+
+        return retval
 
     #endregion
 
