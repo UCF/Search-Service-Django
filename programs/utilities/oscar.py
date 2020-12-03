@@ -113,15 +113,10 @@ class Oscar:
                 if node.tag == 'h1':
                     node.change_tag('h2')
                 # Enforce correct ordering of immediate subheadings:
-                # TODO there is probably a cleaner way of doing this
-                elif previous_headings['h2'] and node.html_node in previous_headings['h2'].subheadings:
-                    node.increment_title_tag(previous_headings['h2'])
-                elif previous_headings['h3'] and node.html_node in previous_headings['h3'].subheadings:
-                    node.increment_title_tag(previous_headings['h3'])
-                elif previous_headings['h4'] and node.html_node in previous_headings['h4'].subheadings:
-                    node.increment_title_tag(previous_headings['h4'])
-                elif previous_headings['h5'] and node.html_node in previous_headings['h5'].subheadings:
-                    node.increment_title_tag(previous_headings['h5'])
+                else:
+                    for prev_heading_tag, prev_heading_node in previous_headings.items():
+                        if prev_heading_node and node.html_node in prev_heading_node.subheadings:
+                            node.increment_title_tag(prev_heading_node)
 
                 previous_headings[node.tag] = node
 
