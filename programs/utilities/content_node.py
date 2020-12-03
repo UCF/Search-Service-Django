@@ -159,7 +159,7 @@ class ContentNode(object):
         """
         course_re = re.compile(r'([A-Za-z]{3,4}\s)([0-9]{4})')
 
-        parsed_lines = self.html_node.find_all('li', recursive=False)
+        parsed_lines = self.html_node.find_all(['li', 'dt', 'dd'], recursive=False)
         course_line_score = 0
 
         if parsed_lines:
