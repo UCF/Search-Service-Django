@@ -102,9 +102,9 @@ class Oscar:
             # If the previous and next node are skippable,
             # then skip this one too.
             if (previous_node
-                and len(nodes) > idx + 1
+                and len(self.nodes) > idx + 1
                 and previous_node.content_category in self.SKIP
-                and nodes[idx + 1].content_category in self.SKIP):
+                and self.nodes[idx + 1].content_category in self.SKIP):
                 continue
 
             # If this is a title, make sure headings are ordered correctly:
