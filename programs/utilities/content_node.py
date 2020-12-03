@@ -25,8 +25,8 @@ class ContentCategory(Enum):
 
 #endregion
 
-college_names = College.objects.values_list('full_name', flat=True)
-dept_names = Department.objects.values_list('name', flat=True)
+college_names = [x.lower() for x in College.objects.values_list('full_name', flat=True)]
+dept_names = [x.lower() for x in Department.objects.values_list('name', flat=True)]
 
 class ContentNode(object):
     """
@@ -279,8 +279,8 @@ class ContentNode(object):
         if (
             phone_result
             or email_result
-            or (college_names and line in college_names)
-            or (dept_names and line in dept_names)
+            or (college_names and line.lower() in college_names)
+            or (dept_names and line.lower() in dept_names)
         ):
             retval = True
 
