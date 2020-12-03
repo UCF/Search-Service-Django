@@ -79,9 +79,18 @@ class Oscar:
         setval = []
 
         previous_node = None
-        previous_heading = None
+        previous_headings = {
+            'h2': None,
+            'h3': None,
+            'h4': None,
+            'h5': None
+        }
 
         for idx, node in enumerate(self.nodes):
+            # If this node is in a category that should be skipped
+            if node.content_category in skip:
+                continue
+
             # If this node is a title, and there's more
             # content after it, and that content is skippable,
             # then skip this title. We don't want it.
@@ -90,21 +99,26 @@ class Oscar:
                 and self.nodes[idx + 1].content_category in self.SKIP):
                 continue
 
-            # If this node is in a category that should be skipped
-            if node.content_category in self.SKIP:
+            # If the previous and next node are skippable,
+            # then skip this one too.
+            if (previous_node
+                and len(nodes) > idx + 1
+                and previous_node.content_category in skip
+                and nodes[idx + 1].content_category in skip):
                 continue
 
-            # If this is a title, see if it's the right heading level
-            if node.node_type == ContentNodeType.TITLE and previous_node:
-                if previous_heading == None:
-                    node.tag = 'h2'
-                    setval.append(node)
-                    previous_heading = node
+            # If this is a title, make sure headings are ordered correctly:
+            if node.node_type == ContentNodeType.TITLE:
+                # Don't allow h1's:
+                if node.tag == 'h1':
+                    node.change_tag('h2')
+                # Enforce correct ordering of immediate subheadings:
                 else:
-                    if previous_heading.content_category == node.content_category:
-                        node.increment_title_tag(previous_heading)
-                        setval.append(node)
-                        previous_heading = node
+                    for prev_heading_tag, prev_heading_node in previous_headings.items():
+                        if prev_heading_node and node.html_node in prev_heading_node.subheadings:
+                            node.increment_title_tag(prev_heading_node)
+
+                previous_headings[node.tag] = node
 
             # By default, just add the node
             setval.append(node)
