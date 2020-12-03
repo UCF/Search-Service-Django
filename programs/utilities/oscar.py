@@ -86,7 +86,7 @@ class Oscar:
             'h5': None
         }
 
-        for idx, node in enumerate(nodes):
+        for idx, node in enumerate(self.nodes):
             # If this node is in a category that should be skipped
             if node.content_category in skip:
                 continue
