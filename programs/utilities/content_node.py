@@ -267,7 +267,8 @@ class ContentNode(object):
         retval = False
 
         # Is this line a phone number?
-        # TODO do we need to account for other written phone variants? e.g. (407) 823-...
+        # NOTE: This check currently only tests against the basic
+        # format 555-555-5555 (parentheses/spaces aren't accounted for)
         phone_re = re.compile(r'^\d{3}\-\d{3}\-\d{4}$')
         phone_result = phone_re.fullmatch(line)
 
@@ -284,8 +285,6 @@ class ContentNode(object):
             or (bldgs and line in bldgs.values())
         ):
             retval = True
-
-        # TODO add more complex regex lookups?
 
         return retval
 
