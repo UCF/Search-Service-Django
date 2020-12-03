@@ -27,7 +27,6 @@ class ContentCategory(Enum):
 
 college_names = College.objects.values_list('full_name', flat=True)
 dept_names = Department.objects.values_list('name', flat=True)
-bldgs = Building.objects.values('name', 'abbr')
 
 class ContentNode(object):
     """
@@ -261,7 +260,7 @@ class ContentNode(object):
 
     def __line_is_common_contact_info(self, line):
         """
-        Catches exact or near-exact matches for common types of
+        Catches exact matches for common types of
         contact info that reside on their own lines of text.
         """
         retval = False
@@ -282,7 +281,6 @@ class ContentNode(object):
             or email_result
             or (college_names and line in college_names)
             or (dept_names and line in dept_names)
-            or (bldgs and line in bldgs.values())
         ):
             retval = True
 
