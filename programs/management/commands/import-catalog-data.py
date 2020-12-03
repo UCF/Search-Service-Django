@@ -12,6 +12,7 @@ from operator import attrgetter
 import xml.etree.ElementTree as ET
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup, NavigableString
+import unicodedata
 
 
 def clean_name(program_name):
@@ -480,8 +481,8 @@ class Command(BaseCommand):
         nl_regex = re.compile(r'[\r\n\t]')
         description_html = nl_regex.sub(' ', str(description_html))
 
-        # Strip characters outside the ASCII range:
-        description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
+        # Fix garbage characters due to mismatched encodings
+        description_html = unicodedata.normalize('NFKC', description_html)
 
         # Other miscellaneous string replacements:
         description_html = re.sub(r'^(Program|Track) Description<p>', '<p>', description_html)
