@@ -431,7 +431,7 @@ class Command(BaseCommand):
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
             'p', 'br', 'pre', 'sup', 'sub',
             'table', 'tbody', 'thead', 'tr', 'td',
-            'ul', 'li', 'ol',
+            'ul', 'li', 'ol', 'dl', 'dt', 'dd',
             'b', 'em', 'i', 'strong', 'u'
         ]
         if not strip_links:
