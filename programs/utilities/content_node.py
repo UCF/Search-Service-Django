@@ -153,18 +153,26 @@ class ContentNode(object):
     def __list_processing(self):
         """
         Processes nodes determined to be LISTs. We currently
-        don't send these off to comprehend for processing and
+        don't send these off to Comprehend for processing and
         instead do some regex lookups to determine if they
-        contain progam course information.
+        contain program course information.
         """
         course_re = re.compile(r'([A-Za-z]{3,4}\s)([0-9]{4})')
-
-        parsed_lines = self.html_node.find_all(['li', 'dt', 'dd'], recursive=False)
         course_line_score = 0
+
+        parsed_lines = []
+        if self.node_type == ContentNodeType.LIST:
+            # If this is actually a list already, extract text
+            # from each child list item
+            parsed_lines = [li.text for li in self.html_node.find_all(['li', 'dt', 'dd'], recursive=False)]
+        else:
+            # If this is something else (e.g. a paragraph),
+            # just use self.cleaned
+            parsed_lines = self.cleaned.splitlines()
 
         if parsed_lines:
             for li in parsed_lines:
-                result = course_re.match(li.text)
+                result = course_re.match(li)
                 if result:
                     course_line_score += 100
 
@@ -249,6 +257,7 @@ class ContentNode(object):
         new_content = "<ul><li>{0}</li></ul>".format(inner_html)
         new_soup = BeautifulSoup(new_content, 'html.parser')
         self.html_node = new_soup
+        self.tag = 'ul'
 
     #endregion
 
