@@ -79,46 +79,24 @@ class Oscar:
         setval = []
 
         previous_node = None
-        previous_heading = None
+        previous_headings = {
+            'h2': None,
+            'h3': None,
+            'h4': None,
+            'h5': None
+        }
 
-        for idx, node in enumerate(self.nodes):
+        for idx, node in enumerate(nodes):
+            # If this node is in a category that should be skipped
+            if node.content_category in skip:
+                continue
+
             # If this node is a title, and there's more
             # content after it, and that content is skippable,
             # then skip this title. We don't want it.
             if (node.node_type == ContentNodeType.TITLE
                 and len(self.nodes) > idx + 1
                 and self.nodes[idx + 1].content_category in self.SKIP):
-                continue
-
-            # If this node is in a category that should be skipped
-            if node.content_category in self.SKIP:
-                continue
-
-<<<<<<< HEAD
-            # If this is a title, see if it's the right heading level
-            if node.node_type == ContentNodeType.TITLE and previous_node:
-                if previous_heading == None:
-                    node.tag = 'h2'
-                    setval.append(node)
-                    previous_heading = node
-                else:
-                    if previous_heading.content_category == node.content_category:
-                        node.increment_title_tag(previous_heading)
-                        setval.append(node)
-                        previous_heading = node
-=======
-            # If this is a title, make sure headings are ordered correctly:
-            if node.node_type == ContentNodeType.TITLE:
-                if node.tag == 'h1':
-                    # Don't allow h1's:
-                    node.change_tag('h2')
-                elif previous_heading and node.html_node in previous_heading.subheadings:
-                    # Enforce correct ordering of immediate subheadings:
-                    node.increment_title_tag(previous_heading)
-
-                retval.append(node)
-                previous_heading = node
-                previous_node = node
                 continue
 
             # If the previous and next node are skippable,
@@ -128,7 +106,24 @@ class Oscar:
                 and previous_node.content_category in skip
                 and nodes[idx + 1].content_category in skip):
                 continue
->>>>>>> 28b8fe6... WIP updating how heading incrementing works
+
+            # If this is a title, make sure headings are ordered correctly:
+            if node.node_type == ContentNodeType.TITLE:
+                # Don't allow h1's:
+                if node.tag == 'h1':
+                    node.change_tag('h2')
+                # Enforce correct ordering of immediate subheadings:
+                # TODO there is probably a cleaner way of doing this
+                elif previous_headings['h2'] and node.html_node in previous_headings['h2'].subheadings:
+                    node.increment_title_tag(previous_headings['h2'])
+                elif previous_headings['h3'] and node.html_node in previous_headings['h3'].subheadings:
+                    node.increment_title_tag(previous_headings['h3'])
+                elif previous_headings['h4'] and node.html_node in previous_headings['h4'].subheadings:
+                    node.increment_title_tag(previous_headings['h4'])
+                elif previous_headings['h5'] and node.html_node in previous_headings['h5'].subheadings:
+                    node.increment_title_tag(previous_headings['h5'])
+
+                previous_headings[node.tag] = node
 
             # By default, just add the node
             setval.append(node)
