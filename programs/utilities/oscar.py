@@ -88,7 +88,7 @@ class Oscar:
 
         for idx, node in enumerate(self.nodes):
             # If this node is in a category that should be skipped
-            if node.content_category in skip:
+            if node.content_category in self.SKIP:
                 continue
 
             # If this node is a title, and there's more
@@ -103,8 +103,8 @@ class Oscar:
             # then skip this one too.
             if (previous_node
                 and len(nodes) > idx + 1
-                and previous_node.content_category in skip
-                and nodes[idx + 1].content_category in skip):
+                and previous_node.content_category in self.SKIP
+                and nodes[idx + 1].content_category in self.SKIP):
                 continue
 
             # If this is a title, make sure headings are ordered correctly:
