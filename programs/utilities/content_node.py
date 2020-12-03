@@ -162,12 +162,15 @@ class ContentNode(object):
         parsed_lines = self.html_node.find_all('li', recursive=False)
         course_line_score = 0
 
-        for li in parsed_lines:
-            result = course_re.match(li.text)
-            if result:
-                course_line_score += 100
+        if parsed_lines:
+            for li in parsed_lines:
+                result = course_re.match(li.text)
+                if result:
+                    course_line_score += 100
 
-        avg_score = course_line_score / len(parsed_lines)
+            avg_score = course_line_score / len(parsed_lines)
+        else:
+            avg_score = 0
 
         if avg_score > 80:
             self.content_category = ContentCategory.COURSES
