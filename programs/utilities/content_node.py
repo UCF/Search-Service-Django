@@ -117,8 +117,9 @@ class ContentNode(object):
 
         self.__set_node_details()
 
-        # Set subtitle elems (if this is a TITLE node)
+        # Set subtitle, sibling elems (if this is a TITLE node)
         self.subheadings = self.__get_subheadings()
+        self.next_sibling_headings = self.__get_next_sibling_headings()
 
 
     def __clean_html(self, html):
@@ -282,34 +283,6 @@ class ContentNode(object):
         self.html_node = new_soup
         self.tag = 'ul'
 
-    def __line_is_common_contact_info(self, line):
-        """
-        Catches exact matches for common types of
-        contact info that reside on their own lines of text.
-        """
-        retval = False
-
-        # Is this line a phone number?
-        # NOTE: This check currently only tests against the basic
-        # format 555-555-5555 (parentheses/spaces aren't accounted for)
-        phone_re = re.compile(r'^\d{3}\-\d{3}\-\d{4}$')
-        phone_result = phone_re.fullmatch(line)
-
-        # Is this line an email address?
-        # https://stackoverflow.com/a/14485817
-        email_parsed = parseaddr(line)
-        email_result = '@' in email_parsed[1]
-
-        if (
-            phone_result
-            or email_result
-            or (college_names and line.lower() in college_names)
-            or (dept_names and line.lower() in dept_names)
-        ):
-            retval = True
-
-        return retval
-
     def __get_subheadings(self):
         """
         Returns immediate subheadings of the given node (non-recursive).
@@ -342,6 +315,61 @@ class ContentNode(object):
                     subtitles.append(sibling)
 
         return subtitles
+
+    def __get_next_sibling_headings(self):
+        """
+        Returns immediate sibling headings of the given node.
+        Does not include previous siblings.
+        Returns False if the given node is not the TITLE type.
+        """
+        if self.node_type != ContentNodeType.TITLE:
+            return False
+
+        # Increment through all possible immediate subheadings
+        # for this node.
+        # Accounts for skipped heading order (malformed markup.)
+        siblings = []
+        parent_tag = 'h{0}'.format(int(self.tag[1:2]) - 1)
+
+        # Traverse the DOM for this type of sibling heading until
+        # the next parent heading is found.
+        # (e.g. if self.tag == 'h3', search for all adjacent h3s
+        # until an adjacent h2 is found)
+        for sibling in self.html_node.find_next_siblings([self.tag, parent_tag]):
+            if sibling.name == parent_tag:
+                break
+            elif sibling.name == self.tag:
+                siblings.append(sibling)
+
+        return siblings
+
+    def __line_is_common_contact_info(self, line):
+        """
+        Catches exact matches for common types of
+        contact info that reside on their own lines of text.
+        """
+        retval = False
+
+        # Is this line a phone number?
+        # NOTE: This check currently only tests against the basic
+        # format 555-555-5555 (parentheses/spaces aren't accounted for)
+        phone_re = re.compile(r'^\d{3}\-\d{3}\-\d{4}$')
+        phone_result = phone_re.fullmatch(line)
+
+        # Is this line an email address?
+        # https://stackoverflow.com/a/14485817
+        email_parsed = parseaddr(line)
+        email_result = '@' in email_parsed[1]
+
+        if (
+            phone_result
+            or email_result
+            or (college_names and line.lower() in college_names)
+            or (dept_names and line.lower() in dept_names)
+        ):
+            retval = True
+
+        return retval
 
     #endregion
 
@@ -381,12 +409,12 @@ class ContentNode(object):
 
     #region Public Functions
 
-    def increment_title_tag(self, previous_heading):
+    def increment_title_tag(self, previous_heading_tag):
         """
         Increments or decrements a heading tag based on the
         `previous_heading` node passed in.
         """
-        previous_idx = int(previous_heading.tag[1:2])
+        previous_idx = int(previous_heading_tag[1:2])
 
         # Don't increment past h6:
         if previous_idx < 6:
