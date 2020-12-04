@@ -98,7 +98,7 @@ class Oscar:
 
         for idx, node in enumerate(nodes):
             # If this node is in a category that should be skipped
-            if node.content_category in self.SKIP:
+            if node.content_category in skip:
                 continue
 
             # If this node is a heading, and there's more
@@ -112,9 +112,9 @@ class Oscar:
             # If the previous and next node are skippable,
             # then skip this one too.
             if (previous_node
-                and len(self.nodes) > idx + 1
-                and previous_node.content_category in self.SKIP
-                and self.nodes[idx + 1].content_category in self.SKIP):
+                and len(nodes) > idx + 1
+                and previous_node.content_category in skip
+                and nodes[idx + 1].content_category in skip):
                 continue
 
             # If this is a heading, make sure it's ordered correctly:
