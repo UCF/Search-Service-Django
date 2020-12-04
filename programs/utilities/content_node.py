@@ -101,8 +101,6 @@ class ContentNode(object):
         if self.tag is None:
             return
 
-        self.lines = []
-
         self.cleaned_lines = self.__clean_html(str(self.html_node))
         self.cleaned_str = ' '.join(self.cleaned_lines)
 
@@ -142,11 +140,6 @@ class ContentNode(object):
         instead do simple string lookups.
         """
         cleaned_line = self.cleaned_str
-        self.lines.append({
-            'text': cleaned_line,
-            'personal_data': [],
-            'entities': []
-        })
 
         if any([x in cleaned_line.lower() for x in ['application', 'admission']]):
             self.content_category = ContentCategory.ADMISSIONS
