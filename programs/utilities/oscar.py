@@ -109,14 +109,45 @@ class Oscar:
 
             # If this is a title, make sure headings are ordered correctly:
             if node.node_type == ContentNodeType.TITLE:
+                heading_assigned = False
+
                 # Don't allow h1's:
                 if node.tag == 'h1':
                     node.change_tag('h2')
-                # Enforce correct ordering of immediate subheadings:
+                    heading_assigned = True
                 else:
+                    # Enforce correct ordering of immediate subheadings:
                     for prev_heading_tag, prev_heading_node in previous_headings.items():
-                        if prev_heading_node and node.html_node in prev_heading_node.subheadings:
-                            node.increment_title_tag(prev_heading_node)
+                        if prev_heading_node:
+                            if node.html_node in prev_heading_node.subheadings:
+                                # This heading is a subheading of the previous
+                                # heading node, so, increment it:
+                                node.increment_title_tag(prev_heading_node.tag)
+                                heading_assigned = True
+                                break
+                            elif node.html_node in prev_heading_node.next_sibling_headings:
+                                # This heading is a sibling of the previous
+                                # heading node, so, ensure it uses the same tag
+                                # as its sibling:
+                                node.change_tag(prev_heading_tag)
+                                heading_assigned = True
+                                break
+
+                # If we've gotten to this point and this heading
+                # isn't a h2 and hasn't been processed by the above
+                # code yet, assume the order of this heading is invalid:
+                if not heading_assigned and node.tag != 'h2':
+                    heading_idx = int(node.tag[1:2])
+                    # What is the last known heading type in
+                    # `previous_headings` with a set node?
+                    # Find it, and increment this node's tag from that value:
+                    for prev_heading_tag, prev_heading_node in previous_headings.items():
+                        prev_heading_idx = int(prev_heading_tag[1:2])
+                        if prev_heading_idx > heading_idx:
+                            break
+                        if not prev_heading_node:
+                            node.increment_title_tag('h{0}'.format(prev_heading_idx - 1))
+                            break
 
                 previous_headings[node.tag] = node
 

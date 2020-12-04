@@ -109,8 +109,9 @@ class ContentNode(object):
 
         self.__set_node_details()
 
-        # Set subtitle elems (if this is a TITLE node)
+        # Set subtitle, sibling elems (if this is a TITLE node)
         self.subheadings = self.__get_subheadings()
+        self.next_sibling_headings = self.__get_next_sibling_headings()
 
 
     def __clean_html(self, html):
@@ -304,6 +305,33 @@ class ContentNode(object):
 
         return subtitles
 
+    def __get_next_sibling_headings(self):
+        """
+        Returns immediate sibling headings of the given node.
+        Does not include previous siblings.
+        Returns False if the given node is not the TITLE type.
+        """
+        if self.node_type != ContentNodeType.TITLE:
+            return False
+
+        # Increment through all possible immediate subheadings
+        # for this node.
+        # Accounts for skipped heading order (malformed markup.)
+        siblings = []
+        parent_tag = 'h{0}'.format(int(self.tag[1:2]) - 1)
+
+        # Traverse the DOM for this type of sibling heading until
+        # the next parent heading is found.
+        # (e.g. if self.tag == 'h3', search for all adjacent h3s
+        # until an adjacent h2 is found)
+        for sibling in self.html_node.find_next_siblings([self.tag, parent_tag]):
+            if sibling.name == parent_tag:
+                break
+            elif sibling.name == self.tag:
+                siblings.append(sibling)
+
+        return siblings
+
     #endregion
 
     #region Comprehend Functions
@@ -342,12 +370,12 @@ class ContentNode(object):
 
     #region Public Functions
 
-    def increment_title_tag(self, previous_heading):
+    def increment_title_tag(self, previous_heading_tag):
         """
         Increments or decrements a heading tag based on the
         `previous_heading` node passed in.
         """
-        previous_idx = int(previous_heading.tag[1:2])
+        previous_idx = int(previous_heading_tag[1:2])
 
         # Don't increment past h6:
         if previous_idx < 6:
