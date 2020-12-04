@@ -12,7 +12,6 @@ import re
 class ContentNodeType(Enum):
     TITLE = 'title'
     LIST = 'list'
-    LIST_ITEM = 'list item'
     TABLE = 'table'
     CONTENT = 'content'
 
@@ -60,8 +59,6 @@ class ContentNode(object):
             return ContentNodeType.TITLE
         if self.tag in ['ul', 'ol', 'dl']:
             return ContentNodeType.LIST
-        elif self.tag in ['li']:
-            return ContentNodeType.LIST_ITEM
         elif self.tag in ['table']:
             return ContentNodeType.TABLE
         else:
@@ -126,8 +123,6 @@ class ContentNode(object):
             self.__title_processing()
         elif self.node_type == ContentNodeType.LIST:
             self.__list_processing()
-        elif self.node_type == ContentNodeType.LIST_ITEM:
-            self.__list_item_processing()
         elif self.node_type == ContentNodeType.CONTENT:
             self.__content_processing()
         else:
@@ -185,12 +180,6 @@ class ContentNode(object):
             self.content_category = ContentCategory.COURSES
         else:
             self.content_category = ContentCategory.GENERAL
-
-    def __list_item_processing(self):
-        """
-        Not used. TODO: Consider removing.
-        """
-        pass
 
     def __content_processing(self):
         """
