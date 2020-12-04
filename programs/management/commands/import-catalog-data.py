@@ -374,7 +374,7 @@ class Command(BaseCommand):
         root = BeautifulSoup(data, 'xml')
         if is_graduate:
             cores = root.find('cores')
-            description_xml = cores.find('core').encode_contents()
+            description_xml = cores.find('core').find('content').encode_contents()
         else:
             description_xml = root.find('content').encode_contents()
 
