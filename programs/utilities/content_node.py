@@ -10,7 +10,7 @@ import re
 #region Helper Enums
 
 class ContentNodeType(Enum):
-    TITLE = 'title'
+    HEADING = 'heading'
     LIST = 'list'
     LIST_ITEM = 'list item'
     TABLE = 'table'
@@ -44,7 +44,7 @@ class ContentNode(object):
         'ORGANIZATION'
     ]
 
-    TITLE_TAGS = [
+    HEADING_TAGS = [
         'h1',
         'h2',
         'h3',
@@ -65,8 +65,8 @@ class ContentNode(object):
         if self.tag == None:
             return None
 
-        if self.tag in self.TITLE_TAGS:
-            return ContentNodeType.TITLE
+        if self.tag in self.HEADING_TAGS:
+            return ContentNodeType.HEADING
         if self.tag in ['ul', 'ol', 'dl']:
             return ContentNodeType.LIST
         elif self.tag in ['li']:
@@ -117,7 +117,7 @@ class ContentNode(object):
 
         self.__set_node_details()
 
-        # Set subtitle, sibling elems (if this is a TITLE node)
+        # Set subheading, sibling elems (if this is a HEADING node)
         self.subheadings = self.__get_subheadings()
         self.next_sibling_headings = self.__get_next_sibling_headings()
 
@@ -137,8 +137,8 @@ class ContentNode(object):
         dealing with, further type specific processing
         will happen.
         """
-        if self.node_type == ContentNodeType.TITLE:
-            self.__title_processing()
+        if self.node_type == ContentNodeType.HEADING:
+            self.__heading_processing()
         elif self.node_type == ContentNodeType.LIST:
             self.__list_processing()
         elif self.node_type == ContentNodeType.LIST_ITEM:
@@ -148,9 +148,9 @@ class ContentNode(object):
         else:
             return
 
-    def __title_processing(self):
+    def __heading_processing(self):
         """
-        Processes nodes determined to be TITLEs. We currently
+        Processes nodes determined to be HEADINGs. We currently
         don't send these off to comprehend for processing and
         instead do simple string lookups.
         """
@@ -286,9 +286,9 @@ class ContentNode(object):
     def __get_subheadings(self):
         """
         Returns immediate subheadings of the given node (non-recursive).
-        Returns False if the given node is not the TITLE type.
+        Returns False if the given node is not the HEADING type.
         """
-        if self.node_type != ContentNodeType.TITLE:
+        if self.node_type != ContentNodeType.HEADING:
             return False
 
         if self.tag == 'h6':
@@ -298,31 +298,31 @@ class ContentNode(object):
         # Increment through all possible immediate subheadings
         # for this node.
         # Accounts for skipped heading order (malformed markup.)
-        subtitles = []
-        possible_subtitle_tags = self.TITLE_TAGS[self.TITLE_TAGS.index(self.tag) + 1:]
+        subheadings = []
+        possible_subheading_tags = self.HEADING_TAGS[self.HEADING_TAGS.index(self.tag) + 1:]
 
-        for subtitle_tag in possible_subtitle_tags:
-            if subtitles:
+        for subheading_tag in possible_subheading_tags:
+            if subheadings:
                 break
             # Traverse the DOM for this type of subheading until
             # the next equivalent heading is found.
             # (e.g. if self.tag == 'h2', search for all adjacent h3s
             # until an adjacent h2 is found)
-            for sibling in self.html_node.find_next_siblings([self.tag, subtitle_tag]):
+            for sibling in self.html_node.find_next_siblings([self.tag, subheading_tag]):
                 if sibling.name == self.tag:
                     break
-                elif sibling.name == subtitle_tag:
-                    subtitles.append(sibling)
+                elif sibling.name == subheading_tag:
+                    subheadings.append(sibling)
 
-        return subtitles
+        return subheadings
 
     def __get_next_sibling_headings(self):
         """
         Returns immediate sibling headings of the given node.
         Does not include previous siblings.
-        Returns False if the given node is not the TITLE type.
+        Returns False if the given node is not the HEADING type.
         """
-        if self.node_type != ContentNodeType.TITLE:
+        if self.node_type != ContentNodeType.HEADING:
             return False
 
         # Increment through all possible immediate subheadings
@@ -409,7 +409,7 @@ class ContentNode(object):
 
     #region Public Functions
 
-    def increment_title_tag(self, previous_heading_tag):
+    def increment_heading_tag(self, previous_heading_tag):
         """
         Increments or decrements a heading tag based on the
         `previous_heading` node passed in.
