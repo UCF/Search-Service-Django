@@ -101,10 +101,10 @@ class Oscar:
             if node.content_category in self.SKIP:
                 continue
 
-            # If this node is a title, and there's more
+            # If this node is a heading, and there's more
             # content after it, and that content is skippable,
-            # then skip this title. We don't want it.
-            if (node.node_type == ContentNodeType.TITLE
+            # then skip this heading. We don't want it.
+            if (node.node_type == ContentNodeType.HEADING
                 and len(nodes) > idx + 1
                 and nodes[idx + 1].content_category in skip):
                 continue
@@ -117,8 +117,8 @@ class Oscar:
                 and self.nodes[idx + 1].content_category in self.SKIP):
                 continue
 
-            # If this is a title, make sure headings are ordered correctly:
-            if node.node_type == ContentNodeType.TITLE:
+            # If this is a heading, make sure it's ordered correctly:
+            if node.node_type == ContentNodeType.HEADING:
                 heading_assigned = False
 
                 # Don't allow h1's:
@@ -132,7 +132,7 @@ class Oscar:
                             if node.html_node in prev_heading_node.subheadings:
                                 # This heading is a subheading of the previous
                                 # heading node, so, increment it:
-                                node.increment_title_tag(prev_heading_node.tag)
+                                node.increment_heading_tag(prev_heading_node.tag)
                                 heading_assigned = True
                                 break
                             elif node.html_node in prev_heading_node.next_sibling_headings:
@@ -156,7 +156,7 @@ class Oscar:
                         if prev_heading_idx > heading_idx:
                             break
                         if not prev_heading_node:
-                            node.increment_title_tag('h{0}'.format(prev_heading_idx - 1))
+                            node.increment_heading_tag('h{0}'.format(prev_heading_idx - 1))
                             break
 
                 previous_headings[node.tag] = node
