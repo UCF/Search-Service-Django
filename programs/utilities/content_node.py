@@ -325,9 +325,6 @@ class ContentNode(object):
         if self.node_type != ContentNodeType.HEADING:
             return False
 
-        # Increment through all possible immediate subheadings
-        # for this node.
-        # Accounts for skipped heading order (malformed markup.)
         siblings = []
         parent_tag = 'h{0}'.format(int(self.tag[1:2]) - 1)
 
