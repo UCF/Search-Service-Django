@@ -229,7 +229,10 @@ class ContentNode(object):
                             word_count = len(line[b_offset:e_offset].split(' '))
                             contact_info_score += entity['Score'] * word_count * 100
 
-        contact_info_avg = contact_info_score / total_words
+        try:
+            contact_info_avg = contact_info_score / total_words
+        except ZeroDivisionError:
+            contact_info_avg = 0
 
         # Finally, assign a content category:
         if contact_info_avg > 30:
