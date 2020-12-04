@@ -38,6 +38,7 @@ class Oscar:
             self.__initialize_client()
 
         self.nodes = []
+        self.__initialize_nodes()
 
     #endregion
 
@@ -59,6 +60,15 @@ class Oscar:
             region_name=settings.AWS_REGION
         )
 
+    def __initialize_nodes(self):
+        soup = BeautifulSoup(self.description, 'html.parser')
+
+        for node in soup.contents:
+            content_node = ContentNode(node, self.client)
+            self.nodes.append(content_node)
+
+        self.__remove_empty()
+
     def __remove_empty(self):
         """
         Removes nodes that have no content
@@ -71,12 +81,12 @@ class Oscar:
 
         self.nodes = setval
 
-    def __organize_nodes(self):
+    def __organize_nodes(self, nodes, skip=[]):
         """
         Makes various decisions about removing or updating
         nodes based on the logic below.
         """
-        setval = []
+        retval = []
 
         previous_node = None
         previous_headings = {
@@ -86,7 +96,7 @@ class Oscar:
             'h5': None
         }
 
-        for idx, node in enumerate(self.nodes):
+        for idx, node in enumerate(nodes):
             # If this node is in a category that should be skipped
             if node.content_category in self.SKIP:
                 continue
@@ -95,8 +105,8 @@ class Oscar:
             # content after it, and that content is skippable,
             # then skip this title. We don't want it.
             if (node.node_type == ContentNodeType.TITLE
-                and len(self.nodes) > idx + 1
-                and self.nodes[idx + 1].content_category in self.SKIP):
+                and len(nodes) > idx + 1
+                and nodes[idx + 1].content_category in skip):
                 continue
 
             # If the previous and next node are skippable,
@@ -152,10 +162,10 @@ class Oscar:
                 previous_headings[node.tag] = node
 
             # By default, just add the node
-            setval.append(node)
+            retval.append(node)
             previous_node = node
 
-        self.nodes = setval
+        return retval
 
 
     #endregion
@@ -164,16 +174,9 @@ class Oscar:
 
     def get_updated_description(self):
         buffer = StringIO()
-        soup = BeautifulSoup(self.description, 'html.parser')
+        filtered_nodes = self.__organize_nodes(self.nodes, self.SKIP)
 
-        for node in soup.contents:
-            content_node = ContentNode(node, self.client)
-            self.nodes.append(content_node)
-
-        self.__remove_empty()
-        self.__organize_nodes()
-
-        for node in self.nodes:
+        for node in filtered_nodes:
             buffer.write(str(node.html_node))
 
         retval = buffer.getvalue()

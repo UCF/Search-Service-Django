@@ -12,6 +12,7 @@ from operator import attrgetter
 import xml.etree.ElementTree as ET
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup, NavigableString
+import unicodedata
 
 
 def clean_name(program_name):
@@ -280,6 +281,13 @@ class Command(BaseCommand):
             programs = programs.filter(career__name=career_name)
 
         for p in programs:
+            # Is this a graduate program?
+            # (Necessary when running import by program IDs)
+            if self.program_ids:
+                is_graduate = p.career.name == 'Graduate'
+            else:
+                is_graduate = self.graduate
+
             # Wipe out existing catalog URL
             p.catalog_url = None
             p.save()
@@ -316,7 +324,8 @@ class Command(BaseCommand):
                     description_type=description_type,
                     description=self.get_description(
                         matched_entry.id,
-                        matched_entry.catalog_id
+                        matched_entry.catalog_id,
+                        is_graduate
                     ),
                     program=p.program
                 )
@@ -344,7 +353,7 @@ class Command(BaseCommand):
         print('Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len([x for x in self.catalog_programs if x.has_matches == True]), len(self.catalog_programs), len([x for x in self.catalog_programs if x.has_matches == True]) / float(len(self.catalog_programs)) * 100))
 
 
-    def get_description(self, program_id, catalog_id):
+    def get_description(self, program_id, catalog_id, is_graduate):
         url = '{0}content?key={1}&format=xml&method=getItems&type=programs&ids[]={2}&catalog={3}'.format(
             self.path,
             self.key,
@@ -363,7 +372,7 @@ class Command(BaseCommand):
         # Strip xmlns attributes to parse string to xml without namespaces
         data = re.sub(b' xmlns(?:\:[a-z]*)?="[^"]+"', b'', raw_data)
         root = BeautifulSoup(data, 'xml')
-        if self.graduate:
+        if is_graduate:
             cores = root.find('cores')
             description_xml = cores.find('core').encode_contents()
         else:
@@ -476,12 +485,15 @@ class Command(BaseCommand):
         for span_match in description_html.find_all('span'):
             span_match.unwrap()
 
-        # Un-soup(?) the soup; strip newlines:
-        nl_regex = re.compile(r'[\r\n\t]')
-        description_html = nl_regex.sub(' ', str(description_html))
+        # Un-soup(?) the soup
+        description_html = str(description_html)
 
-        # Strip characters outside the ASCII range:
-        description_html = re.sub(r'[\x01-\x1F\x7F]', '', description_html)
+        # Strip newlines:
+        description_html = re.sub(r'[\r\n\t]', ' ', description_html)
+
+        # Fix various garbage characters
+        description_html = unicodedata.normalize('NFKC', description_html)
+        description_html = description_html.replace('\u200b', '')
 
         # Other miscellaneous string replacements:
         description_html = re.sub(r'^(Program|Track) Description<p>', '<p>', description_html)
