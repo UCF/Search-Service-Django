@@ -38,6 +38,7 @@ class Oscar:
             self.__initialize_client()
 
         self.nodes = []
+        self.__initialize_nodes()
 
     #endregion
 
@@ -59,6 +60,15 @@ class Oscar:
             region_name=settings.AWS_REGION
         )
 
+    def __initialize_nodes(self):
+        soup = BeautifulSoup(self.description, 'html.parser')
+
+        for node in soup.contents:
+            content_node = ContentNode(node, self.client)
+            self.nodes.append(content_node)
+
+        self.__remove_empty()
+
     def __remove_empty(self):
         """
         Removes nodes that have no content
@@ -71,46 +81,46 @@ class Oscar:
 
         self.nodes = setval
 
-    def __organize_nodes(self):
+    def __organize_nodes(self, nodes, skip=[]):
         """
         Makes various decisions about removing or updating
         nodes based on the logic below.
         """
-        setval = []
+        retval = []
 
         previous_node = None
         previous_heading = None
 
-        for idx, node in enumerate(self.nodes):
+        for idx, node in enumerate(nodes):
             # If this node is a title, and there's more
             # content after it, and that content is skippable,
             # then skip this title. We don't want it.
             if (node.node_type == ContentNodeType.TITLE
-                and len(self.nodes) > idx + 1
-                and self.nodes[idx + 1].content_category in self.SKIP):
+                and len(nodes) > idx + 1
+                and nodes[idx + 1].content_category in skip):
                 continue
 
             # If this node is in a category that should be skipped
-            if node.content_category in self.SKIP:
+            if node.content_category in skip:
                 continue
 
             # If this is a title, see if it's the right heading level
             if node.node_type == ContentNodeType.TITLE and previous_node:
                 if previous_heading == None:
                     node.tag = 'h2'
-                    setval.append(node)
+                    retval.append(node)
                     previous_heading = node
                 else:
                     if previous_heading.content_category == node.content_category:
                         node.increment_title_tag(previous_heading)
-                        setval.append(node)
+                        retval.append(node)
                         previous_heading = node
 
             # By default, just add the node
-            setval.append(node)
+            retval.append(node)
             previous_node = node
 
-        self.nodes = setval
+        return retval
 
 
     #endregion
@@ -119,16 +129,9 @@ class Oscar:
 
     def get_updated_description(self):
         buffer = StringIO()
-        soup = BeautifulSoup(self.description, 'html.parser')
+        filtered_nodes = self.__organize_nodes(self.nodes, self.SKIP)
 
-        for node in soup.contents:
-            content_node = ContentNode(node, self.client)
-            self.nodes.append(content_node)
-
-        self.__remove_empty()
-        self.__organize_nodes()
-
-        for node in self.nodes:
+        for node in filtered_nodes:
             buffer.write(str(node.html_node))
 
         retval = buffer.getvalue()

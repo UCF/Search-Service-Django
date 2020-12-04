@@ -165,7 +165,7 @@ class ContentNode(object):
         instead do some regex lookups to determine if they
         contain program course information.
         """
-        course_re = re.compile(r'([A-Za-z]{3,4}\s)([0-9]{4})')
+        course_re = re.compile(r'([A-Za-z]{3,4}\s)([0-9]{4})([A-Za-z]{1})?')
         course_line_score = 0
 
         parsed_lines = []
