@@ -12,7 +12,6 @@ import re
 class ContentNodeType(Enum):
     TITLE = 'title'
     LIST = 'list'
-    LIST_ITEM = 'list item'
     TABLE = 'table'
     CONTENT = 'content'
 
@@ -60,8 +59,6 @@ class ContentNode(object):
             return ContentNodeType.TITLE
         if self.tag in ['ul', 'ol', 'dl']:
             return ContentNodeType.LIST
-        elif self.tag in ['li']:
-            return ContentNodeType.LIST_ITEM
         elif self.tag in ['table']:
             return ContentNodeType.TABLE
         else:
@@ -101,8 +98,6 @@ class ContentNode(object):
         if self.tag is None:
             return
 
-        self.lines = []
-
         self.cleaned_lines = self.__clean_html(str(self.html_node))
         self.cleaned_str = ' '.join(self.cleaned_lines)
 
@@ -128,8 +123,6 @@ class ContentNode(object):
             self.__title_processing()
         elif self.node_type == ContentNodeType.LIST:
             self.__list_processing()
-        elif self.node_type == ContentNodeType.LIST_ITEM:
-            self.__list_item_processing()
         elif self.node_type == ContentNodeType.CONTENT:
             self.__content_processing()
         else:
@@ -142,11 +135,6 @@ class ContentNode(object):
         instead do simple string lookups.
         """
         cleaned_line = self.cleaned_str
-        self.lines.append({
-            'text': cleaned_line,
-            'personal_data': [],
-            'entities': []
-        })
 
         if any([x in cleaned_line.lower() for x in ['application', 'admission']]):
             self.content_category = ContentCategory.ADMISSIONS
@@ -192,12 +180,6 @@ class ContentNode(object):
             self.content_category = ContentCategory.COURSES
         else:
             self.content_category = ContentCategory.GENERAL
-
-    def __list_item_processing(self):
-        """
-        Not used. TODO: Consider removing.
-        """
-        pass
 
     def __content_processing(self):
         """
