@@ -76,7 +76,7 @@ class Oscar:
         setval = []
 
         for node in self.nodes:
-            if str(node.html_node).strip() != '':
+            if node.tag != 'br' and str(node.html_node).strip() != '':
                 setval.append(node)
 
         self.nodes = setval

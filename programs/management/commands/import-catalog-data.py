@@ -320,26 +320,30 @@ class Command(BaseCommand):
                 p.program.save()
 
                 # Create new program descriptions with the description provided in the matched catalog entry
-                description = ProgramDescription(
-                    description_type=description_type,
-                    description=self.get_description(
-                        matched_entry.id,
-                        matched_entry.catalog_id,
-                        is_graduate
-                    ),
-                    program=p.program
+                description_str = self.get_description(
+                    matched_entry.id,
+                    matched_entry.catalog_id,
+                    is_graduate
                 )
-                description.save()
+                if description_str:
+                    description = ProgramDescription(
+                        description_type=description_type,
+                        description=description_str,
+                        program=p.program
+                    )
+                    description.save()
 
-                description_full = ProgramDescription(
-                    description_type=description_type_full,
-                    description=self.get_description_full(
-                        matched_entry.id,
-                        p.program.catalog_url
-                    ),
-                    program=p.program
+                description_full_str = self.get_description_full(
+                    matched_entry.id,
+                    p.program.catalog_url
                 )
-                description_full.save()
+                if description_full_str:
+                    description_full = ProgramDescription(
+                        description_type=description_type_full,
+                        description=description_full_str,
+                        program=p.program
+                    )
+                    description_full.save()
 
                 # Increment match counts for all programs and for the matched catalog entry
                 match_count += 1
@@ -494,6 +498,14 @@ class Command(BaseCommand):
         # Fix various garbage characters
         description_html = unicodedata.normalize('NFKC', description_html)
         description_html = description_html.replace('\u200b', '')
+
+        # Some of these descriptions have likely been through some sort
+        # of back-and-forth between encodings via copy+paste, and contain
+        # stray diacritics (e.g. "Â") not caught via filtering logic above.
+        # They were likely non-breaking space characters in a past life.
+        # https://stackoverflow.com/a/1462039
+        # Just get rid of them here:
+        description_html = description_html.replace('Â', '')
 
         # Other miscellaneous string replacements:
         description_html = re.sub(r'^(Program|Track) Description<p>', '<p>', description_html)

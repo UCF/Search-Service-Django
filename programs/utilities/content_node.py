@@ -37,6 +37,7 @@ class ContentNode(object):
 
     PII_TYPES = [
         'NAME',
+        'PERSON',
         'PHONE',
         'ADDRESS',
         'EMAIL',
@@ -242,7 +243,10 @@ class ContentNode(object):
                             word_count = len(line[b_offset:e_offset].split(' '))
                             contact_info_score += entity['Score'] * word_count * 100
 
-        contact_info_avg = contact_info_score / total_words
+        try:
+            contact_info_avg = contact_info_score / total_words
+        except ZeroDivisionError:
+            contact_info_avg = 0
 
         # Finally, assign a content category:
         if contact_info_avg > 30:
@@ -329,10 +333,10 @@ class ContentNode(object):
         """
         retval = False
 
-        # Is this line a phone number?
-        # NOTE: This check currently only tests against the basic
+        # Is this line a phone/fax number?
+        # NOTE: This check currently only tests against the basic phone
         # format 555-555-5555 (parentheses/spaces aren't accounted for)
-        phone_re = re.compile(r'^\d{3}\-\d{3}\-\d{4}$')
+        phone_re = re.compile(r'^((Telephone|Appointment Line|Fax)\: )?\d{3}\-\d{3}\-\d{4}$')
         phone_result = phone_re.fullmatch(line)
 
         # Is this line an email address?
@@ -340,11 +344,28 @@ class ContentNode(object):
         email_parsed = parseaddr(line)
         email_result = '@' in email_parsed[1]
 
+        # Is this line a common subhead-but-not-a-heading
+        # (e.g. a single line wrapped in <strong>) for contact info?
+        common_contact_subhead_result = line.lower() in [
+            'mailing address',
+            'institution codes',
+            'graduate fellowships',
+            'grad fellowships'
+        ]
+
+        # Does this line look like a college or
+        # department name? (Useful as a fallback when
+        # we can't make an exact string match)
+        college_dept_re = re.compile(r'^(?:College of|Department of|Rosen College of) [a-zA-Z\ ]+$')
+        college_dept_result = college_dept_re.match(line)
+
         if (
             phone_result
             or email_result
+            or common_contact_subhead_result
             or (college_names and line.lower() in college_names)
             or (dept_names and line.lower() in dept_names)
+            or college_dept_result
         ):
             retval = True
 
