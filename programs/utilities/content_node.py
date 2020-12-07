@@ -37,6 +37,7 @@ class ContentNode(object):
 
     PII_TYPES = [
         'NAME',
+        'PERSON',
         'PHONE',
         'ADDRESS',
         'EMAIL',
