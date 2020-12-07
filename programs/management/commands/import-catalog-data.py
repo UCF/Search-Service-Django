@@ -499,6 +499,14 @@ class Command(BaseCommand):
         description_html = unicodedata.normalize('NFKC', description_html)
         description_html = description_html.replace('\u200b', '')
 
+        # Some of these descriptions have likely been through some sort
+        # of back-and-forth between encodings via copy+paste, and contain
+        # stray diacritics (e.g. "Â") not caught via filtering logic above.
+        # They were likely non-breaking space characters in a past life.
+        # https://stackoverflow.com/a/1462039
+        # Just get rid of them here:
+        description_html = description_html.replace('Â', '')
+
         # Other miscellaneous string replacements:
         description_html = re.sub(r'^(Program|Track) Description<p>', '<p>', description_html)
         description_html = re.sub('1Active-Visible.*', '', description_html)
