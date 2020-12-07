@@ -352,12 +352,19 @@ class ContentNode(object):
             'grad fellowships'
         ]
 
+        # Does this line look like a college or
+        # department name? (Useful as a fallback when
+        # we can't make an exact string match)
+        college_dept_re = re.compile(r'^(?:College of|Department of|Rosen College of) [a-zA-Z\ ]+$')
+        college_dept_result = college_dept_re.match(line)
+
         if (
             phone_result
             or email_result
             or common_contact_subhead_result
             or (college_names and line.lower() in college_names)
             or (dept_names and line.lower() in dept_names)
+            or college_dept_result
         ):
             retval = True
 
