@@ -332,10 +332,10 @@ class ContentNode(object):
         """
         retval = False
 
-        # Is this line a phone number?
-        # NOTE: This check currently only tests against the basic
+        # Is this line a phone/fax number?
+        # NOTE: This check currently only tests against the basic phone
         # format 555-555-5555 (parentheses/spaces aren't accounted for)
-        phone_re = re.compile(r'^\d{3}\-\d{3}\-\d{4}$')
+        phone_re = re.compile(r'^((Telephone|Appointment Line|Fax)\: )?\d{3}\-\d{3}\-\d{4}$')
         phone_result = phone_re.fullmatch(line)
 
         # Is this line an email address?
@@ -343,9 +343,11 @@ class ContentNode(object):
         email_parsed = parseaddr(line)
         email_result = '@' in email_parsed[1]
 
-        # Is this line a common "Mailing Address"
-        # subhead?
-        mailing_address_result = line.lower() == 'mailing address'
+        # Is this line a common "subhead" for contact info?
+        common_contact_heading_result = line.lower() in [
+            'mailing address',
+            'institution codes'
+        ]
 
         if (
             phone_result
