@@ -10,7 +10,7 @@ import re
 #region Helper Enums
 
 class ContentNodeType(Enum):
-    TITLE = 'title'
+    HEADING = 'heading'
     LIST = 'list'
     TABLE = 'table'
     CONTENT = 'content'
@@ -43,6 +43,15 @@ class ContentNode(object):
         'ORGANIZATION'
     ]
 
+    HEADING_TAGS = [
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6'
+    ]
+
     #endregion
 
     #region Properties
@@ -55,8 +64,8 @@ class ContentNode(object):
         if self.tag == None:
             return None
 
-        if self.tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
-            return ContentNodeType.TITLE
+        if self.tag in self.HEADING_TAGS:
+            return ContentNodeType.HEADING
         if self.tag in ['ul', 'ol', 'dl']:
             return ContentNodeType.LIST
         elif self.tag in ['table']:
@@ -103,6 +112,10 @@ class ContentNode(object):
 
         self.__set_node_details()
 
+        # Set subheading, sibling elems (if this is a HEADING node)
+        self.subheadings = self.__get_subheadings()
+        self.next_sibling_headings = self.__get_next_sibling_headings()
+
 
     def __clean_html(self, html):
         """
@@ -119,8 +132,8 @@ class ContentNode(object):
         dealing with, further type specific processing
         will happen.
         """
-        if self.node_type == ContentNodeType.TITLE:
-            self.__title_processing()
+        if self.node_type == ContentNodeType.HEADING:
+            self.__heading_processing()
         elif self.node_type == ContentNodeType.LIST:
             self.__list_processing()
         elif self.node_type == ContentNodeType.CONTENT:
@@ -128,9 +141,9 @@ class ContentNode(object):
         else:
             return
 
-    def __title_processing(self):
+    def __heading_processing(self):
         """
-        Processes nodes determined to be TITLEs. We currently
+        Processes nodes determined to be HEADINGs. We currently
         don't send these off to comprehend for processing and
         instead do simple string lookups.
         """
@@ -252,6 +265,63 @@ class ContentNode(object):
         self.html_node = new_soup
         self.tag = 'ul'
 
+    def __get_subheadings(self):
+        """
+        Returns immediate subheadings of the given node (non-recursive).
+        Returns False if the given node is not the HEADING type.
+        """
+        if self.node_type != ContentNodeType.HEADING:
+            return False
+
+        if self.tag == 'h6':
+            # can't have subheadings beyond this point
+            return []
+
+        # Increment through all possible immediate subheadings
+        # for this node.
+        # Accounts for skipped heading order (malformed markup.)
+        subheadings = []
+        possible_subheading_tags = self.HEADING_TAGS[self.HEADING_TAGS.index(self.tag) + 1:]
+
+        for subheading_tag in possible_subheading_tags:
+            if subheadings:
+                break
+            # Traverse the DOM for this type of subheading until
+            # the next equivalent heading is found.
+            # (e.g. if self.tag == 'h2', search for all adjacent h3s
+            # until an adjacent h2 is found)
+            for sibling in self.html_node.find_next_siblings([self.tag, subheading_tag]):
+                if sibling.name == self.tag:
+                    break
+                elif sibling.name == subheading_tag:
+                    subheadings.append(sibling)
+
+        return subheadings
+
+    def __get_next_sibling_headings(self):
+        """
+        Returns immediate sibling headings of the given node.
+        Does not include previous siblings.
+        Returns False if the given node is not the HEADING type.
+        """
+        if self.node_type != ContentNodeType.HEADING:
+            return False
+
+        siblings = []
+        parent_tag = 'h{0}'.format(int(self.tag[1:2]) - 1)
+
+        # Traverse the DOM for this type of sibling heading until
+        # the next parent heading is found.
+        # (e.g. if self.tag == 'h3', search for all adjacent h3s
+        # until an adjacent h2 is found)
+        for sibling in self.html_node.find_next_siblings([self.tag, parent_tag]):
+            if sibling.name == parent_tag:
+                break
+            elif sibling.name == self.tag:
+                siblings.append(sibling)
+
+        return siblings
+
     def __line_is_common_contact_info(self, line):
         """
         Catches exact matches for common types of
@@ -318,12 +388,22 @@ class ContentNode(object):
 
     #region Public Functions
 
-    def increment_title_tag(self, previous_heading):
+    def increment_heading_tag(self, previous_heading_tag):
         """
-        Increments or decrements a heading based on the
+        Increments or decrements a heading tag based on the
         `previous_heading` node passed in.
         """
-        previous_idx = int(previous_heading.tag[1:2])
-        self.tag = 'h{0}'.format(previous_idx + 1)
+        previous_idx = int(previous_heading_tag[1:2])
+
+        # Don't increment past h6:
+        if previous_idx < 6:
+            self.change_tag('h{0}'.format(previous_idx + 1))
+
+    def change_tag(self, new_tag):
+        """
+        Changes the name of the HTML tag for this node.
+        """
+        self.tag = new_tag
+        self.html_node.name = new_tag
 
     #endregion
