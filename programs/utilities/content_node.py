@@ -343,16 +343,19 @@ class ContentNode(object):
         email_parsed = parseaddr(line)
         email_result = '@' in email_parsed[1]
 
-        # Is this line a common "subhead" for contact info?
-        common_contact_heading_result = line.lower() in [
+        # Is this line a common subhead-but-not-a-heading
+        # (e.g. a single line wrapped in <strong>) for contact info?
+        common_contact_subhead_result = line.lower() in [
             'mailing address',
-            'institution codes'
+            'institution codes',
+            'graduate fellowships',
+            'grad fellowships'
         ]
 
         if (
             phone_result
             or email_result
-            or mailing_address_result
+            or common_contact_subhead_result
             or (college_names and line.lower() in college_names)
             or (dept_names and line.lower() in dept_names)
         ):
