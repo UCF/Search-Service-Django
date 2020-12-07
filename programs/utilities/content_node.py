@@ -343,9 +343,14 @@ class ContentNode(object):
         email_parsed = parseaddr(line)
         email_result = '@' in email_parsed[1]
 
+        # Is this line a common "Mailing Address"
+        # subhead?
+        mailing_address_result = line.lower() == 'mailing address'
+
         if (
             phone_result
             or email_result
+            or mailing_address_result
             or (college_names and line.lower() in college_names)
             or (dept_names and line.lower() in dept_names)
         ):
