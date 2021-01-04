@@ -69,10 +69,9 @@ class Oscar:
             # These p tags _shouldn't_ have nested elements like these,
             # but just in case, make sure we ignore them:
             if node.name == 'p' and not node.find(['ul', 'ol', 'dl', 'table']):
-                # If this is a paragraph node, and the node contains
-                # two subsequent <br> tags (<br><br>), split the node
-                # and transform each split chunk into its own new
-                # paragraph node:
+                # If this is a paragraph node, split the node
+                # by subsequent <br> tags (<br><br>) and transform each
+                # split chunk into its own new paragraph node:
                 node_str = str(node).replace('<p>', '').replace('</p>', '')
                 substrings = re.split(r'<br[\s]?[\/]?>[\s]?<br[\s]?[\/]?>', node_str)
                 if len(substrings) > 1:
