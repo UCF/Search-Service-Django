@@ -467,26 +467,6 @@ class Command(BaseCommand):
         for empty_tag in empty_tags:
             empty_tag.decompose()
 
-        # Split paragraph tag contents by subsequent <br> tags (<br><br>)
-        # and transform each split chunk into its own new paragraph.
-        # NOTE: These p tags _shouldn't_ have nested elements like
-        # these, but just in case, make sure we ignore them:
-        p_tags = description_html.find_all(lambda tag: tag.name == 'p' and not tag.find(['ul', 'ol', 'dl', 'table']))
-        for p_tag in p_tags:
-            p_str = str(p_tag).replace('<p>', '').replace('</p>', '')
-            substrings = re.split(r'<br[\s]?[\/]?>[\s]?<br[\s]?[\/]?>', p_str)
-            if len(substrings) > 1:
-                substring_inserted = False
-                for substring in substrings:
-                    new_p = BeautifulSoup('<p>{0}</p>'.format(substring), 'html.parser')
-                    new_p = new_p.find('p')
-                    # Make sure new paragraphs aren't empty:
-                    if len(new_p.get_text(strip=True)) > 0:
-                        p_tag.insert_before(new_p)
-                        substring_inserted = True
-                if substring_inserted:
-                    p_tag.decompose()
-
         for match in description_html.descendants:
             if isinstance(match, NavigableString) == False:
                 # Transform <u> tags to <em>
@@ -520,6 +500,26 @@ class Command(BaseCommand):
         # a second loop to remove the garbage tags
         for span_match in description_html.find_all('span'):
             span_match.unwrap()
+
+        # Split paragraph tag contents by subsequent <br> tags (<br><br>)
+        # and transform each split chunk into its own new paragraph.
+        # NOTE: These p tags _shouldn't_ have nested elements like
+        # these, but just in case, make sure we ignore them:
+        p_tags = description_html.find_all(lambda tag: tag.name == 'p' and not tag.find(['ul', 'ol', 'dl', 'table']))
+        for p_tag in p_tags:
+            p_str = str(p_tag).replace('<p>', '').replace('</p>', '')
+            substrings = re.split(r'<br[\s]?[\/]?>[\s]*<br[\s]?[\/]?>', p_str)
+            if len(substrings) > 1:
+                substring_inserted = False
+                for substring in substrings:
+                    new_p = BeautifulSoup('<p>{0}</p>'.format(substring), 'html.parser')
+                    new_p = new_p.find('p')
+                    # Make sure new paragraphs aren't empty:
+                    if len(new_p.get_text(strip=True)) > 0:
+                        p_tag.insert_before(new_p)
+                        substring_inserted = True
+                if substring_inserted:
+                    p_tag.decompose()
 
         # Un-soup(?) the soup
         description_html = str(description_html)
