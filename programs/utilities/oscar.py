@@ -1,7 +1,6 @@
 import boto3
 from bs4 import BeautifulSoup
 import settings
-import re
 
 from programs.utilities.content_node import ContentNode, ContentNodeType, ContentCategory
 from io import StringIO
@@ -65,28 +64,8 @@ class Oscar:
         soup = BeautifulSoup(self.description, 'html.parser')
 
         for node in soup.contents:
-            subnodes = []
-            # These p tags _shouldn't_ have nested elements like these,
-            # but just in case, make sure we ignore them:
-            if node.name == 'p' and not node.find(['ul', 'ol', 'dl', 'table']):
-                # If this is a paragraph node, split the node
-                # by subsequent <br> tags (<br><br>) and transform each
-                # split chunk into its own new paragraph node:
-                node_str = str(node).replace('<p>', '').replace('</p>', '')
-                substrings = re.split(r'<br[\s]?[\/]?>[\s]?<br[\s]?[\/]?>', node_str)
-                if len(substrings) > 1:
-                    for substring in substrings:
-                        new_p = BeautifulSoup('<p>{0}</p>'.format(substring), 'html.parser')
-                        new_p = new_p.find('p')
-                        subnodes.append(new_p)
-                else:
-                    subnodes = [node]
-            else:
-                subnodes = [node]
-
-            for subnode in subnodes:
-                content_node = ContentNode(subnode, self.client)
-                self.nodes.append(content_node)
+            content_node = ContentNode(node, self.client)
+            self.nodes.append(content_node)
 
         self.__remove_empty()
 
