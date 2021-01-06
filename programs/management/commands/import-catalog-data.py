@@ -486,6 +486,13 @@ class Command(BaseCommand):
                         nested_tag.name = 'span'
                         nested_tag.attrs = []
 
+                # Remove relative links, and links with no href
+                if not strip_links and match.name == 'a':
+                    href = match.get('href')
+                    if not href or not href.startswith(('http', 'mailto', 'tel')):
+                        match.name = 'span'
+                        match.attrs = []
+
                 if match.name not in tag_whitelist:
                     # Filter out tags not in our whitelist (replace them with span's)
                     match.name = 'span'
