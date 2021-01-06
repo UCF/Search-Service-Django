@@ -451,13 +451,17 @@ class Command(BaseCommand):
             tag_whitelist.append('a')
 
         # Tags that should not allow nesting of the same
-        # tag type (e.g. <em><em>...</em></em>)
+        # tag type (e.g. <em><em>...</em></em>),
+        # nor surround all inner heading contents
+        # (e.g. <h2><strong>...</strong></h2>)
         nested_tag_blacklist = ['b', 'em', 'i', 'strong']
 
         attr_blacklist = [
             'class', 'style',
             'border', 'cellpadding', 'cellspacing'
         ]
+
+        heading_tags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 
         # Make some soup:
         description_html = BeautifulSoup(description_str, 'html.parser')
@@ -492,6 +496,14 @@ class Command(BaseCommand):
                     if not href or not href.startswith(('http', 'mailto', 'tel')):
                         match.name = 'span'
                         match.attrs = []
+
+                # Remove inline tags in nested_tag_blacklist that
+                # surround all content within headings
+                if match.name in heading_tags:
+                    inner_tag = match.find(nested_tag_blacklist)
+                    if inner_tag and inner_tag.string.strip() == match.string.strip():
+                        inner_tag.name = 'span'
+                        inner_tag.attrs = []
 
                 if match.name not in tag_whitelist:
                     # Filter out tags not in our whitelist (replace them with span's)
