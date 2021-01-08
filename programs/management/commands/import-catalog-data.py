@@ -527,7 +527,7 @@ class Command(BaseCommand):
         p_tags = description_html.find_all(lambda tag: tag.name == 'p' and not tag.find(['ul', 'ol', 'dl', 'table']))
         for p_tag in p_tags:
             p_str = str(p_tag).replace('<p>', '').replace('</p>', '')
-            substrings = re.split(r'<br[\s]?[\/]?>[\s]*<br[\s]?[\/]?>', p_str)
+            substrings = re.split(r'(?:<br[\s]?[\/]?>[\s]*){2}', p_str)
             if len(substrings) > 1:
                 substring_inserted = False
                 for substring in substrings:
