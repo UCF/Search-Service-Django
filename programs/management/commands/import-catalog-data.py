@@ -501,7 +501,12 @@ class Command(BaseCommand):
                 # surround all content within headings
                 if match.name in heading_tags:
                     inner_tag = match.find(nested_tag_blacklist)
-                    if inner_tag and inner_tag.string.strip() == match.string.strip():
+                    if (
+                        inner_tag
+                        and inner_tag.string
+                        and match.string
+                        and inner_tag.string.strip() == match.string.strip()
+                    ):
                         inner_tag.name = 'span'
                         inner_tag.attrs = []
 
