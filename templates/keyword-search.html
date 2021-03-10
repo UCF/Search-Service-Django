@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block header_content %}
+<div class="row">
+  <div class="col">
+    <h1 class="display-4 text-inverse">
+      <span class="d-block h6 font-weight-normal mb-3">{{ heading }}</span>
+      Keyword Search
+    </h1>
+  </div>
+  <div class="col-auto">
+    <a href="{% url 'logout' %}" class="btn btn-outline-inverse">Sign Out</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block body %}
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-auto">
+      <h2>Search UCF </h2>
+    </div>
+    <div class="col">
+      <form action="{% url 'keyword-search' %}" method="GET">
+        <label class="sr-only" for="q">Search Field</label>
+        <div class="input-group">
+          <input type="text" name="q" class="form-control" placeholder="Search for keywords" value="{{ q }}">
+          <span class="input-group-btn">
+            <button class="btn btn-primary" type="submit">Search</button>
+          </span>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="row mt-4">
+    {% if google_results %}
+    <div class="col-md-8">
+      <p class="mb-4">Found <strong>{{ google_results.searchInformation.totalResults }}</strong> results for {{ q }} across UCF websites.</p>
+      <h2 class="mb-4 h4 heading-underline">First 10 Results:</h2>
+      <ul class="list-unstyled">
+      {% for result in google_results.items %}
+        <li class="mb-5">
+          <a class="h4 d-block mb-2" href="{{ result.link }}" target="_blank">{{ result.htmlTitle|safe }}</a>
+          <a class="d-secondary d-block mb-2" href="{{ result.link }}" target="_blank">{{ result.htmlFormattedUrl|safe }}</a>
+          <p>{{ result.htmlSnippet|safe }}</p>
+        </li>
+      {% endfor %}
+      </ul>
+    </div>
+    <div class="col-md-4">
+      <form class="bg-faded px-4 py-4" action="report.html" method="POST">
+        <div class="form-group">
+          <label class="form-control-label" for="report-email">Email</label>
+          <input class="form-control" name="report-email" id="report-email" placeholder="email@ucf.edu">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Generate Report</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

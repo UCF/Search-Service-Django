@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 from django.conf import settings
 
 from django.shortcuts import render
@@ -8,6 +6,8 @@ from django.views.generic.base import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from jsonview.views import JsonView
+from googleapiclient.discovery import build
 
 import settings
 
@@ -36,6 +36,34 @@ class SearchView(LoginRequiredMixin, TitleContextMixin, TemplateView):
     title = ''
     heading = 'UCF Search Service'
     local = settings.LOCAL
+
+class KeywordSearchView(LoginRequiredMixin, TitleContextMixin, TemplateView):
+    template_name = 'keyword-search.html'
+    title = 'UCF Keyword Search'
+    heading = 'UCF Search Service'
+    local = settings.LOCAL
+
+    def get_context_data(self, **kwargs):
+        context = super(KeywordSearchView, self).get_context_data(**kwargs)
+
+        if not settings.GOOGLE_API_KEY or not settings.GOOGLE_CUSTOM_SEARCH_CX:
+            context['search_error'] = "Google API Key and CX ID are required."
+            return context
+
+        q = self.request.GET.get('q', None)
+        if not q:
+            return context
+
+        service = build("customsearch", "v1",
+                    developerKey=settings.GOOGLE_API_KEY)
+
+        context['q'] = q
+        context['google_results'] = service.cse().list(
+            q=q,
+            cx=settings.GOOGLE_CUSTOM_SEARCH_CX,
+        ).execute()
+
+        return context
 
 class SettingsAPIView(APIView):
     def get(request, format=None, **kwargs):

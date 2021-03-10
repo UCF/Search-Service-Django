@@ -267,3 +267,9 @@ CATALOG_UNDERGRADUATE_ID = 18
 
 # The ID of the current active graduate catalog in Acalog
 CATALOG_GRADUATE_ID = 17
+
+# An API key with access to the Custom Search API
+GOOGLE_API_KEY = ''
+
+# A Custom Search CX ID
+GOOGLE_CUSTOM_SEARCH_CX = ''
