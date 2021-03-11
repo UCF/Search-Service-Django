@@ -36,16 +36,16 @@
     </div>
   </div>
   <div class="row mt-4">
-    {% if google_results %}
+    {% if bing_results %}
     <div class="col-md-8">
-      <p class="mb-4">Found <strong>{{ google_results.searchInformation.totalResults }}</strong> results for {{ q }} across UCF websites.</p>
+      <p class="mb-4">Found <strong>{{ bing_results.webPages.totalEstimatedMatches }}</strong> results for {{ q }} across UCF websites.</p>
       <h2 class="mb-4 h4 heading-underline">First 10 Results:</h2>
       <ul class="list-unstyled">
-      {% for result in google_results.items %}
+      {% for result in bing_results.webPages.value %}
         <li class="mb-5">
-          <a class="h4 d-block mb-2" href="{{ result.link }}" target="_blank">{{ result.htmlTitle|safe }}</a>
-          <a class="d-secondary d-block mb-2" href="{{ result.link }}" target="_blank">{{ result.htmlFormattedUrl|safe }}</a>
-          <p>{{ result.htmlSnippet|safe }}</p>
+          <a class="h4 d-block mb-2" href="{{ result.url }}" target="_blank">{{ result.name|safe }}</a>
+          <a class="d-secondary d-block mb-2" href="{{ result.link }}" target="_blank">{{ result.displayUrl|safe }}</a>
+          <p>{{ result.snippet|safe }}</p>
         </li>
       {% endfor %}
       </ul>

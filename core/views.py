@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from jsonview.views import JsonView
-from googleapiclient.discovery import build
+import requests
 
 import settings
 
@@ -46,22 +46,29 @@ class KeywordSearchView(LoginRequiredMixin, TitleContextMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(KeywordSearchView, self).get_context_data(**kwargs)
 
-        if not settings.GOOGLE_API_KEY or not settings.GOOGLE_CUSTOM_SEARCH_CX:
-            context['search_error'] = "Google API Key and CX ID are required."
+        if not settings.MICROSOFT_AZURE_API_KEY or not settings.BING_SEARCH_API_BASE:
+            context['search_error'] = "Azure API Key and Bing Search API Base Url are required settings."
             return context
 
         q = self.request.GET.get('q', None)
         if not q:
             return context
 
-        service = build("customsearch", "v1",
-                    developerKey=settings.GOOGLE_API_KEY)
-
         context['q'] = q
-        context['google_results'] = service.cse().list(
-            q=q,
-            cx=settings.GOOGLE_CUSTOM_SEARCH_CX,
-        ).execute()
+
+        headers = {
+            "Ocp-Apim-Subscription-Key": settings.MICROSOFT_AZURE_API_KEY
+        }
+
+        params = {
+            "q": q + " site:ucf.edu",
+            "textDecorations": True,
+            "textFormat": "HTML"
+        }
+
+        response = requests.get(settings.BING_SEARCH_API_BASE, headers=headers, params=params)
+        response.raise_for_status()
+        context['bing_results'] = response.json()
 
         return context
 
