@@ -55,6 +55,7 @@ class KeywordSearchView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             return context
 
         context['q'] = q
+        q = f"\"{q}\""
 
         headers = {
             "Ocp-Apim-Subscription-Key": settings.MICROSOFT_AZURE_API_KEY
@@ -71,6 +72,19 @@ class KeywordSearchView(LoginRequiredMixin, TitleContextMixin, TemplateView):
         context['bing_results'] = response.json()
 
         return context
+
+    def post(self, request):
+        q = request.POST.get('q', None)
+        email = request.POST.get('report-email', None)
+
+        if q and email:
+            # Send jenkins a request to run the report
+            print(email)
+        else:
+            # Throw an error
+            print("There was an error")
+
+        return self.get(request)
 
 class SettingsAPIView(APIView):
     def get(request, format=None, **kwargs):
