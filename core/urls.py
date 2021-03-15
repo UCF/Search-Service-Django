@@ -20,6 +20,11 @@ urlpatterns = [
         name='search'
     ),
     url(
+        r'manager/keywords/$',
+        KeywordSearchView.as_view(),
+        name='keyword-search'
+    ),
+    url(
         r'^settings/$',
         SettingsAPIView.as_view(),
         name='settings'

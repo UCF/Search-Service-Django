@@ -267,3 +267,20 @@ CATALOG_UNDERGRADUATE_ID = 18
 
 # The ID of the current active graduate catalog in Acalog
 CATALOG_GRADUATE_ID = 17
+
+# Azure API Key with access to bing search api
+MICROSOFT_AZURE_API_KEY = ''
+
+# The base API URL. Change to upgrade API version we access
+BING_SEARCH_API_BASE = ''
+
+# Email settings
+EMAIL_HOST = ''
+
+EMAIL_PORT = None # Integer
+
+EMAIL_HOST_USER = ''
+
+EMAIL_HOST_PASSWORD = ''
+
+EMAIL_USE_SSL = True
