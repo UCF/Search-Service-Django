@@ -273,3 +273,14 @@ MICROSOFT_AZURE_API_KEY = ''
 
 # The base API URL. Change to upgrade API version we access
 BING_SEARCH_API_BASE = ''
+
+# Email settings
+EMAIL_HOST = ''
+
+EMAIL_PORT = None # Integer
+
+EMAIL_HOST_USER = ''
+
+EMAIL_HOST_PASSWORD = ''
+
+EMAIL_USE_SSL = True
