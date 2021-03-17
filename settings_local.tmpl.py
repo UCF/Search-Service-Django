@@ -277,10 +277,26 @@ BING_SEARCH_API_BASE = ''
 # Email settings
 EMAIL_HOST = ''
 
-EMAIL_PORT = None # Integer
+# The email port to be used (int)
+EMAIL_PORT = None
 
+# The SMTP Host Username
 EMAIL_HOST_USER = ''
 
+# The SMTP Host Password
 EMAIL_HOST_PASSWORD = ''
 
+# Whether SSL should be enabled
 EMAIL_USE_SSL = True
+
+# The base jenkins URL
+JENKINS_BASE_URL = ''
+
+# The URL of the jenkins job that kicks off the crawler
+JENKINS_CRAWLER_JOB = ''
+
+# The username to use when connecting to jenkins
+JENKINS_USERNAME = ''
+
+# The token to use when connecting to jenkins
+JENKINS_TOKEN = ''

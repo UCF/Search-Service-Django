@@ -8,8 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from jsonview.views import JsonView
 import requests
-
-import settings
+from requests.auth import HTTPBasicAuth
 
 class TitleContextMixin(object):
     """
@@ -73,13 +72,44 @@ class KeywordSearchView(LoginRequiredMixin, TitleContextMixin, TemplateView):
 
         return context
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         q = request.POST.get('q', None)
         email = request.POST.get('report-email', None)
+        jenkins_path = settings.JENKINS_CRAWLER_JOB
+        crumb_path = f'{settings.JENKINS_BASE_URL}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'
+        username = settings.JENKINS_USERNAME
+        token = settings.JENKINS_TOKEN
 
-        if q and email:
+        auth = HTTPBasicAuth(username, token)
+
+        crumb = requests.get(crumb_path, verify=False, auth=auth)
+        token = crumb.text[14:]
+
+        if q and email and jenkins_path and token:
             # Send jenkins a request to run the report
-            print(email)
+            params = {
+                'KEYWORDS': q,
+                'REPORT_EMAIL': email
+            }
+
+            headers = {
+                'Jenkins-Crumb': token
+            }
+
+            response = requests.post(
+                f"{jenkins_path}/buildWithParameters",
+                data=params,
+                verify=False,
+                auth=auth,
+                headers=headers
+            )
+
+            print(response.text)
+
+            if response.ok:
+                self.get(request, *args, **kwargs)
+            else:
+                self.get(request, *args, **kwargs)
         else:
             # Throw an error
             print("There was an error")
