@@ -376,11 +376,16 @@ class Command(BaseCommand):
         # Strip xmlns attributes to parse string to xml without namespaces
         data = re.sub(b' xmlns(?:\:[a-z]*)?="[^"]+"', b'', raw_data)
         root = BeautifulSoup(data, 'xml')
-        if is_graduate:
-            cores = root.find('cores')
-            description_xml = cores.find('core').find('content').encode_contents()
-        else:
-            description_xml = root.find('content').encode_contents()
+
+        try:
+            if is_graduate:
+                cores = root.find('cores')
+                description_xml = cores.find('core').find('content').encode_contents()
+            else:
+                description_xml = root.find('content').encode_contents()
+        except Exception as e:
+            logging.error('Error parsing catalog description XML: {0}'.format(e))
+            return ''
 
         # Sanitize contents:
         description_html = self.sanitize_description(description_xml)
