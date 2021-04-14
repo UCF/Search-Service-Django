@@ -267,3 +267,36 @@ CATALOG_UNDERGRADUATE_ID = 18
 
 # The ID of the current active graduate catalog in Acalog
 CATALOG_GRADUATE_ID = 17
+
+# Azure API Key with access to bing search api
+MICROSOFT_AZURE_API_KEY = ''
+
+# The base API URL. Change to upgrade API version we access
+BING_SEARCH_API_BASE = ''
+
+# Email settings
+EMAIL_HOST = ''
+
+# The email port to be used (int)
+EMAIL_PORT = None
+
+# The SMTP Host Username
+EMAIL_HOST_USER = ''
+
+# The SMTP Host Password
+EMAIL_HOST_PASSWORD = ''
+
+# Whether SSL should be enabled
+EMAIL_USE_SSL = True
+
+# The base jenkins URL
+JENKINS_BASE_URL = ''
+
+# The URL of the jenkins job that kicks off the crawler
+JENKINS_CRAWLER_JOB = ''
+
+# The username to use when connecting to jenkins
+JENKINS_USERNAME = ''
+
+# The token to use when connecting to jenkins
+JENKINS_TOKEN = ''
