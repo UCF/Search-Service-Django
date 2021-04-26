@@ -267,3 +267,8 @@ CATALOG_UNDERGRADUATE_ID = 18
 
 # The ID of the current active graduate catalog in Acalog
 CATALOG_GRADUATE_ID = 17
+
+# ORCID API Settings
+ORCID_BASE_API_URL = 'https://pub.orcid.org/v2.1/'
+
+INSTITUTION_GRID_ID = ''
