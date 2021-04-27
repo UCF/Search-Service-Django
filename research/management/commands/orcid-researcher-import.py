@@ -2,9 +2,12 @@ from django.core.management.base import BaseCommand, CommandError
 from research.models import Researcher
 from teledata.models import Staff
 
+from django.db.models import Q
+
 import settings
 import requests
 import math
+import pprint
 
 from progress.bar import ChargingBar
 
@@ -170,8 +173,10 @@ class Command(BaseCommand):
 
             try:
                 person = Staff.objects.get(
-                    first_name__iexact=first_name,
-                    last_name__iexact=last_name
+                    Q(
+                        first_name__iexact=first_name,
+                        last_name__iexact=last_name
+                    )
                 )
 
                 created = Researcher.objects.create(
