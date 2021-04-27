@@ -268,6 +268,7 @@ CATALOG_UNDERGRADUATE_ID = 18
 # The ID of the current active graduate catalog in Acalog
 CATALOG_GRADUATE_ID = 17
 
+<<<<<<< HEAD
 # Azure API Key with access to bing search api
 MICROSOFT_AZURE_API_KEY = ''
 
@@ -300,3 +301,9 @@ JENKINS_USERNAME = ''
 
 # The token to use when connecting to jenkins
 JENKINS_TOKEN = ''
+=======
+# ORCID API Settings
+ORCID_BASE_API_URL = 'https://pub.orcid.org/v2.1/'
+
+INSTITUTION_GRID_ID = ''
+>>>>>>> researchers
