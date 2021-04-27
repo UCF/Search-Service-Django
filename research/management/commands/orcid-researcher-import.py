@@ -137,7 +137,7 @@ class Command(BaseCommand):
             max=len(self.orcid_ids_to_import)
         )
 
-        for idx, orcid_id in enumerate(self.orcid_ids_to_import):
+        for orcid_id in self.orcid_ids_to_import:
             self.progress_bar.next()
             try:
                 Researcher.objects.get(
@@ -162,11 +162,7 @@ class Command(BaseCommand):
             try:
                 first_name = data['person']['name']['given-names']['value']
                 last_name = data['person']['name']['family-name']['value']
-            except KeyError:
-                self.stdout.write("Unable to get first or last name from record.\n")
-                self.error += 1
-                continue
-            except TypeError:
+            except (KeyError, TypeError):
                 self.stdout.write("Unable to get first or last name from record.\n")
                 self.error += 1
                 continue
@@ -204,8 +200,8 @@ class Command(BaseCommand):
 
         response = requests.get(request_url, params, headers=headers)
 
-        if response.status_code != response.ok:
-            CommandError("There was an error retriving the results from ORCID")
+        if not response.ok:
+            raise CommandError("There was an error retriving the results from ORCID")
 
         try:
             data = response.json()
