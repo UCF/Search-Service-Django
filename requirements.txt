@@ -38,4 +38,4 @@ six==1.13.0
 sqlparse==0.3.0
 tabulate==0.8.3
 Unidecode==1.0.22
-urllib3==1.25.7
+urllib3==1.25.8
