@@ -2,6 +2,6 @@
   "name": "search-service-django",
   "devDependencies": {
     "gulp": "^4.0.2",
-    "merge": "^1.2.1"
+    "merge": "^2.1.1"
   }
 }
