@@ -7,7 +7,6 @@ from django.db.models import Q
 import settings
 import requests
 import math
-import pprint
 
 from progress.bar import ChargingBar
 
@@ -25,6 +24,8 @@ class Command(BaseCommand):
         """
         Define the command line arguments using argparse
         """
+        super().add_arguments(parser)
+
         parser.add_argument(
             '--orcid-api-url',
             dest='orcid_url',
