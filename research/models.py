@@ -1,7 +1,6 @@
 from django.db import models
-from django.db.models.fields.related import ForeignKey
 
-from teledata.models import Staff, Department
+from teledata.models import Staff
 
 # Create your models here.
 class Researcher(models.Model):

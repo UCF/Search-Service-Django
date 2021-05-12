@@ -1,16 +1,10 @@
 from django.core.management.base import BaseCommand, CommandError
 from research.models import ResearchWork, Researcher, ResearcherEducation
-from teledata.models import Staff
 
 from django.core.management.base import BaseCommand, CommandError
-from research.models import Researcher
-from teledata.models import Staff
-
-from django.db.models import Q
 
 import settings
 import requests
-import pprint
 
 from datetime import datetime
 
