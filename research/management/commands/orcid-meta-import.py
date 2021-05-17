@@ -153,6 +153,8 @@ class Command(BaseCommand):
                 self.work_records_skipped += 1
                 continue
 
+
+
             # Get all required fields
             try:
                 title = summary['title']['title']['value']
@@ -164,6 +166,20 @@ class Command(BaseCommand):
             except (KeyError, ValueError, TypeError):
                 self.work_records_skipped += 1
                 continue
+
+            work_details_url = '{0}{1}/works/{2}'.format(
+                self.orcid_base_url,
+                researcher.orcid_id,
+                put_code
+            );
+
+            work_details = self.__request_records(work_details_url)
+
+            if (work_details):
+                try:
+                    bt_str = work_details['bulk'][0]['work']['citation']['citation-value']
+                except:
+                    pass
 
             try:
                 subtitle = summary['title']['subtitle']['value'] \
@@ -186,6 +202,7 @@ class Command(BaseCommand):
                     existing.title = title
                     existing.subtitle = subtitle
                     existing.publish_date = publish_date
+                    existing.bibtex_string = bt_str
                     existing.work_type = work_type
 
                     existing.save()
@@ -200,6 +217,7 @@ class Command(BaseCommand):
                         title=title,
                         subtitle=subtitle,
                         publish_date=publish_date,
+                        bibtex_string = bt_str,
                         work_type=work_type,
                         work_put_code=put_code
                     )
