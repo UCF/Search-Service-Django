@@ -13,4 +13,5 @@ class ResearcherEducationAdmin(admin.ModelAdmin):
 
 @admin.register(ResearchWork)
 class ResearchWorkAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('title',)
+    list_filter = ('work_type',)

@@ -65,7 +65,7 @@ class Command(BaseCommand):
 
         if options['grid_id'] is not None:
             self.grid_id = options['grid_id']
-        elif hasattr( settings, 'INSTITUTION_GRID_ID' ) and settings.INSTITUTION_GRID_ID is not None:
+        elif hasattr(settings, 'INSTITUTION_GRID_ID') and settings.INSTITUTION_GRID_ID is not None:
             self.grid_id = settings.INSTITUTION_GRID_ID
 
         self.institution_name = options['institution_name']
@@ -172,7 +172,8 @@ class Command(BaseCommand):
                 person = Staff.objects.get(
                     Q(
                         first_name__iexact=first_name,
-                        last_name__iexact=last_name
+                        last_name__iexact=last_name,
+                        alpha=True
                     )
                 )
 
