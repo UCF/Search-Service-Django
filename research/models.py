@@ -117,7 +117,7 @@ class ResearchWork(models.Model):
         return None
 
     @property
-    def citation(self) -> str:
+    def citation(self):
         if self.bibtex:
             try:
                 return self.bib2html(self.bibtex)
