@@ -28,6 +28,9 @@ urlpatterns = [
     url(r'^api/v1/',
         include('programs.urls')
         ),
+    url(r'^api/v1/research/',
+        include('research.urls')
+        ),
     url(r'^api-auth/',
         include('rest_framework.urls')
         ),
