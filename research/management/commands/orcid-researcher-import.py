@@ -164,7 +164,6 @@ class Command(BaseCommand):
                 first_name = data['person']['name']['given-names']['value']
                 last_name = data['person']['name']['family-name']['value']
             except (KeyError, TypeError):
-                self.stdout.write("Unable to get first or last name from record.\n")
                 self.error += 1
                 continue
 
@@ -172,25 +171,36 @@ class Command(BaseCommand):
                 person = Staff.objects.get(
                     Q(
                         first_name__iexact=first_name,
-                        last_name__iexact=last_name,
-                        alpha=True
+                        last_name__iexact=last_name
                     )
                 )
 
-                created = Researcher.objects.create(
-                    orcid_id=orcid_id,
-                    teledata_record=person
-                )
-
-                if created:
-                    self.created += 1
-
             except Staff.DoesNotExist:
                 continue
-                # self.stderr.write('Cannot find match for {0} {1}\n'.format(first_name, last_name))
             except Staff.MultipleObjectsReturned:
-                continue
-                # self.stderr.write('Well... whoops... There is more than one person with the name {0} {1}'.format(first_name, last_name))
+                persons = Staff.objects.filter(
+                    Q(
+                        first_name__iexact=first_name,
+                        last_name__iexact=last_name
+                    )
+                ).values_list('email').distinct()
+
+                # Yay! We found a single person, but with multiple entries
+                if persons.count() == 1:
+                    person = Staff.objects.filter(email=persons[0][0]).first()
+
+                    if not person:
+                        continue
+                else:
+                    continue
+
+            created = Researcher.objects.create(
+                orcid_id=orcid_id,
+                teledata_record=person
+            )
+
+            if created:
+                self.created += 1
 
 
     def __request_records(self, page_num, request_url, params, headers):

@@ -179,6 +179,7 @@ class Command(BaseCommand):
                 try:
                     bt_str = work_details['bulk'][0]['work']['citation']['citation-value']
                 except:
+                    bt_str = None
                     pass
 
             try:
