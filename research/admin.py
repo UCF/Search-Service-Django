@@ -6,7 +6,7 @@ from .models import ResearchWork, Researcher, ResearcherEducation
 # Register your models here.
 @admin.register(Researcher)
 class ResearcherAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('teledata_record__first_name', 'teledata_record__last_name', 'orcid_id')
 
 @admin.register(ResearcherEducation)
 class ResearcherEducationAdmin(admin.ModelAdmin):
@@ -14,7 +14,7 @@ class ResearcherEducationAdmin(admin.ModelAdmin):
 
 @admin.register(ResearchWork)
 class ResearchWorkAdmin(admin.ModelAdmin):
-    search_fields = ('title',)
+    search_fields = ('title', 'researcher__orcid_id')
     list_filter = ('work_type',)
     readonly_fields = ['citation',]
 
