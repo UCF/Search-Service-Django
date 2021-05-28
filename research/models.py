@@ -29,25 +29,17 @@ class Researcher(models.Model):
         )
 
     @property
-    def name_formatted_full_given(self):
-        retval = f"{self.teledata_record.last_name}, {self.teledata_record.first_name}"
-        retval += f" {self.teledata_record.middle[0]}." if self.teledata_record.middle not in (None, '') else ''
-        return retval
+    def name_formatted_title(self):
+        title = self.teledata_record.name_title.strip()
 
-    @property
-    def name_formatted_initials(self):
-        retval = f"{self.teledata_record.last_name}, {self.teledata_record.first_name[0]}."
-        retval += f" {self.teledata_record.middle[0]}." if self.teledata_record.middle not in (None, '') else ''
+        retval = f"{title} " if title== 'Dr.' else ''
+        retval += f"{self.teledata_record.first_name} {self.teledata_record.last_name}"
 
         return retval
 
     @property
-    def name_formatted_given_family(self):
-        retval = self.teledata_record.first_name
-        retval += f" {self.teledata_record.middle[0]}" if self.teledata_record.middle not in (None, '') else ''
-        retval += f" {self.teledata_record.last_name}"
-
-        return retval
+    def name_formatted_no_title(self):
+        return f"{self.teledata_record.first_name} {self.teledata_record.last_name}"
 
 class ResearcherEducation(models.Model):
     researcher = models.ForeignKey(Researcher, on_delete=models.CASCADE, related_name='education')

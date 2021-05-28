@@ -28,6 +28,8 @@ class ResearcherSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'orcid_id',
+            'name_formatted_title',
+            'name_formatted_no_title',
             'biography',
             'teledata_record',
             'education',
