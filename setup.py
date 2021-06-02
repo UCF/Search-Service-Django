@@ -33,6 +33,7 @@ setup(
         'django-widget-tweaks',
         'drf-dynamic-fields',
         'fuzzywuzzy',
+        'gunicorn',
         'lxml',
         'mysqlclient',
         'Pillow',
