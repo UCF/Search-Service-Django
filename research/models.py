@@ -41,6 +41,13 @@ class Researcher(models.Model):
     def name_formatted_no_title(self):
         return f"{self.teledata_record.first_name} {self.teledata_record.last_name}"
 
+    @property
+    def featured_works_count(self):
+        return self.works.filter(
+            work_type__in=['BOOK', 'JOURNAL_ARTICLE'],
+            bibtex_string__isnull=False
+        ).count()
+
 class ResearcherEducation(models.Model):
     researcher = models.ForeignKey(Researcher, on_delete=models.CASCADE, related_name='education')
     institution_name = models.CharField(max_length=255, blank=False, null=False)

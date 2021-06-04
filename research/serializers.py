@@ -34,6 +34,7 @@ class ResearcherSerializer(serializers.ModelSerializer):
             'teledata_record',
             'education',
             'works',
-            'works_count'
+            'works_count',
+            'featured_works_count'
         )
         model = Researcher
