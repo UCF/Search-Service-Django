@@ -39,10 +39,13 @@ class Command(BaseCommand):
 
     def do_import(self, reader):
         for row in reader:
-            title_def = row['Title & Definition']
-            code = row['CIP Code']
-
-            title, definition = title_def.split('.', 1)
+            title = row['Title']
+            definition = row['Definition']
+            code = row['CIP Code'][2:-1]
+            if code.startswith('="'):
+                code = code[2:-1]
+            else:
+                code = code
 
             self.create_or_update_cip(title, definition, code)
 
