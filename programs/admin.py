@@ -137,6 +137,11 @@ class EmploymentProjectionAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(ProgramOutcomeStat)
+class ProgramOutcomeStat(admin.ModelAdmin):
+    search_fields = ('cip__name',)
+    list_filter = ('academic_year',)
+
 @admin.register(AdmissionTerm)
 class AdmissionTermAdmin(admin.ModelAdmin):
     pass
