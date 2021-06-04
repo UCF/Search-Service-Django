@@ -98,10 +98,7 @@ class CIPVersionManager(models.Manager):
 
 
 class CIP(models.Model):
-    versions = [
-        ('2010', '2010'),
-        ('2020', '2020')
-    ]
+    versions = settings.CIP_AVAILABLE_VERSIONS
 
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=False, blank=False)
@@ -150,9 +147,7 @@ class JobPosition(models.Model):
 
 
 class SOC(models.Model):
-    versions = [
-        ('2010', '2010'),
-    ]
+    versions = settings.SOC_AVAILABLE_VERSIONS
 
     name = models.CharField(max_length=255, null=False, blank=False)
     code = models.CharField(max_length=7, null=False, blank=False)
@@ -168,9 +163,7 @@ class SOC(models.Model):
 
 
 class EmploymentProjection(models.Model):
-    report_years = [
-        ('1828', '2018-2028'),
-    ]
+    report_years = settings.PROJ_AVAILABLE_REPORTS
 
     soc = models.ForeignKey(SOC, related_name='projections', on_delete=models.CASCADE)
     report = models.CharField(max_length=4, default=settings.PROJ_CURRENT_REPORT, choices=report_years, null=False, blank=False)

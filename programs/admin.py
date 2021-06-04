@@ -128,7 +128,8 @@ class CIPAdmin(admin.ModelAdmin):
 
 @admin.register(SOC)
 class SOCAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('name', 'code')
+    list_filter = ('version',)
 
 
 @admin.register(EmploymentProjection)
