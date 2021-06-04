@@ -24,7 +24,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             'file',
-            type=FileType('r'),
+            type=FileType('r', encoding='utf-8-sig'),
             help='The file path of the CSV file containing outcome data'
         )
         parser.add_argument(
