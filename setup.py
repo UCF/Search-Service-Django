@@ -25,7 +25,7 @@ setup(
     install_requires=[
         'beautifulsoup4',
         'boto3',
-        'Django>=3.1',
+        'Django',
         'django-cors-headers',
         'djangorestframework',
         'django-filter',
@@ -38,6 +38,8 @@ setup(
         'mysqlclient',
         'Pillow',
         'progress',
+        'pybtex',
+        'pybtex-apa-style',
         'python-dateutil',
         'raven',
         'requests',
