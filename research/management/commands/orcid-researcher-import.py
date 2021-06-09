@@ -65,6 +65,8 @@ class Command(BaseCommand):
         self.use_grid = False
         self.orcid_ids_to_import = []
 
+        self.max_threads = settings.RESEARCH_MAX_THREADS
+
         if options['grid_id'] is not None:
             self.grid_id = options['grid_id']
         elif hasattr(settings, 'INSTITUTION_GRID_ID') and settings.INSTITUTION_GRID_ID is not None:
@@ -228,7 +230,7 @@ class Command(BaseCommand):
         # to update things on the main thread
         self.mt_lock = threading.Lock()
 
-        for x in range(10):
+        for x in range(self.max_threads):
             threading.Thread(target=self.match_teledata_record, daemon=True).start()
 
         for orcid_id in self.orcid_ids_to_import:

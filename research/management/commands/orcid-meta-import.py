@@ -40,6 +40,8 @@ class Command(BaseCommand):
         self.work_records_skipped = 0
         self.work_records_error = 0
 
+        self.max_threads = settings.RESEARCH_MAX_THREADS
+
         self.records = Researcher.objects.all()
         self.orcid_base_url = settings.ORCID_BASE_API_URL
         self.headers = {
@@ -69,7 +71,7 @@ class Command(BaseCommand):
             max=self.records.count()
         )
 
-        for _ in range(10):
+        for _ in range(self.max_threads):
             threading.Thread(target=self.__update_education, daemon=True).start()
 
 
@@ -84,7 +86,7 @@ class Command(BaseCommand):
         # Let's take care of all the research at once
         self.education_queue.join()
 
-        for _ in range(10):
+        for _ in range(self.max_threads):
             threading.Thread(target=self.__get_works_data, daemon=True).start()
 
         self.works_queue.join()
@@ -98,7 +100,7 @@ class Command(BaseCommand):
             max=self.works_detail_queue.qsize()
         )
 
-        for _ in range(10):
+        for _ in range(self.max_threads):
             threading.Thread(target=self.__process_works_details, daemon=True).start()
 
         self.works_detail_queue.join()
