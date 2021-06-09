@@ -8,6 +8,8 @@ import settings
 import requests
 import math
 
+import threading, queue
+
 from progress.bar import ChargingBar
 
 class Command(BaseCommand):
@@ -121,25 +123,16 @@ class Command(BaseCommand):
 
         self.stdout.write('Collected {0} of {1} ORCID records found...\n'.format(self.processed, self.total_records))
 
-
-    def match_teledata_records(self):
-        """
-        Loop through the found ORCID IDs,
-        gather more information and attempt
-        to match them up with our teledata
-        records.
-        """
+    def match_teledata_record(self):
         headers = {
             'Accept': 'application/json'
         }
 
-        self.progress_bar = ChargingBar(
-            'Processing',
-            max=len(self.orcid_ids_to_import)
-        )
+        while True:
+            orcid_id = self.request_queue.get()
 
-        for orcid_id in self.orcid_ids_to_import:
             self.progress_bar.next()
+
             try:
                 Researcher.objects.get(
                     orcid_id=orcid_id
@@ -149,6 +142,7 @@ class Command(BaseCommand):
                 # at-a-glance understanding
                 self.updated += 1
                 # Nothing to do, continue
+                self.request_queue.task_done()
                 continue
             except Researcher.DoesNotExist:
                 existing = None
@@ -165,6 +159,7 @@ class Command(BaseCommand):
                 last_name = data['person']['name']['family-name']['value']
             except (KeyError, TypeError):
                 self.error += 1
+                self.request_queue.task_done()
                 continue
 
             try:
@@ -176,6 +171,7 @@ class Command(BaseCommand):
                 )
 
             except Staff.DoesNotExist:
+                self.request_queue.task_done()
                 continue
             except Staff.MultipleObjectsReturned:
                 persons = Staff.objects.filter(
@@ -190,8 +186,10 @@ class Command(BaseCommand):
                     person = Staff.objects.filter(email=persons[0][0]).first()
 
                     if not person:
+                        self.request_queue.task_done()
                         continue
                 else:
+                    self.request_queue.task_done()
                     continue
 
             created = Researcher.objects.create(
@@ -201,6 +199,30 @@ class Command(BaseCommand):
 
             if created:
                 self.created += 1
+
+            self.request_queue.task_done()
+
+    def match_teledata_records(self):
+        """
+        Loop through the found ORCID IDs,
+        gather more information and attempt
+        to match them up with our teledata
+        records.
+        """
+        self.progress_bar = ChargingBar(
+            'Processing',
+            max=len(self.orcid_ids_to_import)
+        )
+
+        self.request_queue = queue.Queue()
+
+        for x in range(10):
+            threading.Thread(target=self.match_teledata_record, daemon=True).start()
+
+        for orcid_id in self.orcid_ids_to_import:
+            self.request_queue.put(orcid_id)
+
+        self.request_queue.join()
 
 
     def __request_records(self, page_num, request_url, params, headers):
