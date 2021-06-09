@@ -13,7 +13,7 @@ class Organization(models.Model):
     TODO
     """
     name = models.CharField(max_length=255, null=False, blank=False)
-    teledata = models.ForeignKey(TeledataOrg, related_name='organization_unit', on_delete=models.CASCADE)
+    teledata = models.ForeignKey(TeledataOrg, related_name='organization_unit', blank=True, null=True, on_delete=models.SET_NULL)
     college = models.ForeignKey(College, related_name='organization_unit', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
@@ -29,8 +29,8 @@ class Department(models.Model):
     """
     name = models.CharField(max_length=255, null=False, blank=False)
     organization = models.ForeignKey(Organization, blank=True, null=True, on_delete=models.SET_NULL)
-    teledata = models.ForeignKey(TeledataDept, related_name='department_unit', on_delete=models.CASCADE)
-    program_data = models.ForeignKey(ProgramDept, related_name='department_unit', on_delete=models.CASCADE)
+    teledata = models.ForeignKey(TeledataDept, related_name='department_unit', blank=True, null=True, on_delete=models.SET_NULL)
+    program_data = models.ForeignKey(ProgramDept, related_name='department_unit', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
