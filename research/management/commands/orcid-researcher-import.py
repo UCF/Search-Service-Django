@@ -79,7 +79,7 @@ class Command(BaseCommand):
             self.use_grid = True
 
         self.get_orcid_ids()
-        self.match_teledata_records()
+        self.process_ids()
         self.print_stats()
 
     def get_orcid_ids(self):
@@ -121,6 +121,10 @@ class Command(BaseCommand):
 
             current_page += 1
 
+        # Cast to a set and then back to a list to
+        # ensure there are no duplicates.
+        self.orcid_ids_to_import = list(set(self.orcid_ids_to_import))
+
         self.stdout.write('Collected {0} of {1} ORCID records found...\n'.format(self.processed, self.total_records))
 
     def match_teledata_record(self):
@@ -131,7 +135,8 @@ class Command(BaseCommand):
         while True:
             orcid_id = self.request_queue.get()
 
-            self.progress_bar.next()
+            with self.mt_lock:
+                self.progress_bar.next()
 
             try:
                 Researcher.objects.get(
@@ -140,7 +145,8 @@ class Command(BaseCommand):
 
                 # Not really, but it makes for better
                 # at-a-glance understanding
-                self.updated += 1
+                with self.mt_lock:
+                    self.updated += 1
                 # Nothing to do, continue
                 self.request_queue.task_done()
                 continue
@@ -158,7 +164,8 @@ class Command(BaseCommand):
                 first_name = data['person']['name']['given-names']['value']
                 last_name = data['person']['name']['family-name']['value']
             except (KeyError, TypeError):
-                self.error += 1
+                with self.mt_lock:
+                    self.error += 1
                 self.request_queue.task_done()
                 continue
 
@@ -198,11 +205,12 @@ class Command(BaseCommand):
             )
 
             if created:
-                self.created += 1
+                with self.mt_lock:
+                    self.created += 1
 
             self.request_queue.task_done()
 
-    def match_teledata_records(self):
+    def process_ids(self):
         """
         Loop through the found ORCID IDs,
         gather more information and attempt
@@ -215,6 +223,10 @@ class Command(BaseCommand):
         )
 
         self.request_queue = queue.Queue()
+
+        # Main thread lock, for when we need
+        # to update things on the main thread
+        self.mt_lock = threading.Lock()
 
         for x in range(10):
             threading.Thread(target=self.match_teledata_record, daemon=True).start()
@@ -245,17 +257,12 @@ class Command(BaseCommand):
         return data
 
     def print_stats(self):
-        stats = """
-Processed : {0}
-Created   : {1}
-Updated   : {2}
-Errors    : {3}
+        stats = f"""
+Processed : {self.processed}
+Created   : {self.created}
+Updated   : {self.updated}
+Errors    : {self.error}
 
-        """.format(
-            self.processed,
-            self.created,
-            self.updated,
-            self.error
-        )
+        """
 
         self.stdout.write(stats)
