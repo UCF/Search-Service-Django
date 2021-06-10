@@ -91,7 +91,7 @@ class Command(BaseCommand):
 
         self.works_queue.join()
 
-        # Everything below is dependency on everything
+        # Everything below is dependent on everything
         # above finishing. That's why none of the following
         # is declared until after the second queue.join()
 
