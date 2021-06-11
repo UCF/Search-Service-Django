@@ -14,6 +14,8 @@ from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import fields
 
+from org_units.models import *
+
 logger = logging.getLogger(__name__)
 
 
@@ -159,6 +161,7 @@ class Organization(models.Model):
     import_id = models.IntegerField(null=True, blank=True)
     keywords = fields.GenericRelation(Keyword)
     active = models.BooleanField(default=True)
+    organization_unit = models.ForeignKey(OrganizationUnit, related_name='teledata', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __unicode__(self):
         return self.name
@@ -183,6 +186,7 @@ class Department(models.Model):
     import_id = models.IntegerField(null=True, blank=True)
     keywords = fields.GenericRelation(Keyword)
     active = models.BooleanField(default=True)
+    department_unit = models.ForeignKey(DepartmentUnit, related_name='teledata', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __unicode__(self):
         return self.name

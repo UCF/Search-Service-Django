@@ -5,11 +5,13 @@ from org_units.models import *
 # Register your models here.
 
 
-@admin.register(Organization)
-class OrganizationAdmin(admin.ModelAdmin):
+@admin.register(OrganizationUnit)
+class OrganizationUnitAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
     pass
 
 
-@admin.register(Department)
-class DepartmentAdmin(admin.ModelAdmin):
+@admin.register(DepartmentUnit)
+class DepartmentUnitAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
     pass
