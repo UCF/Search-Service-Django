@@ -92,7 +92,7 @@ class DepartmentUnitAdmin(admin.ModelAdmin):
                         'admin:programs_department_change',
                         args=(program_dept.pk,)
                     ),
-                    program_dept.name
+                    program_dept.full_name
                 )
                 for program_dept in program_depts
             )
