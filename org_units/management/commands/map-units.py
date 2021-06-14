@@ -3,7 +3,7 @@ import re
 from django.core.management.base import BaseCommand, CommandError
 from org_units.models import *
 from teledata.models import Organization as TeledataOrg
-from programs.models import College, Program
+from programs.models import College
 from teledata.models import Department as TeledataDept
 from programs.models import Department as ProgramDept
 
