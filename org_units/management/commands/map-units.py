@@ -3,7 +3,7 @@ import re
 from django.core.management.base import BaseCommand, CommandError
 from org_units.models import *
 from teledata.models import Organization as TeledataOrg
-from programs.models import College
+from programs.models import College, Program
 from teledata.models import Department as TeledataDept
 from programs.models import Department as ProgramDept
 
@@ -47,12 +47,15 @@ class Command(BaseCommand):
         # Full name replacements ARE case-sensitive! They are performed
         # *before* names are Capital-Cased.
         full_name_replacements = {
+            'Center for Advanced Transportation Systems Simulation (CATSS)': ['Ctr. for Advanced Transportation Sys. Simulation', 'CATSS'],
             'Civil, Environmental, and Construction Engineering': ['Civil, Environ, & Constr Engr'],
             'College of Optics and Photonics': ['CREOL, THE COLLEGE OF OPTICS AND PHOTONICS', 'CREOL'],
             'Department of Finance, Dr. P. Phillips School of Real Estate': ['DEPARTMENT OF FINANCE/DR. P. PHILLIPS SCHOOL OF REAL ESTATE'],
+            'Industrial Engineering and Management Systems': ['Industrial Engr & Mgmt Sys'],
             'National Center for Optics and Photonics Education, Waco, TX': ['OP-TEC Nat. Ctr.,Optics & Photonics Ed./Waco,TX'],
             'School of Kinesiology and Physical Therapy': ['Kinesiology&Phys Thpy, Schl of'],
-            'School of Politics, Security, and International Affairs': ['Pol, Scty & Intl Afrs, Schl of']
+            'School of Politics, Security, and International Affairs': ['Pol, Scty & Intl Afrs, Schl of'],
+            'Tourism, Events and Attractions': ['Tourism Event and Attractions', 'Tourism, Events and Attraction', 'Tourism, Events, and Attractions']
         }
 
         # Basic replacements ARE case-sensitive! They are performed
@@ -70,6 +73,7 @@ class Command(BaseCommand):
             'Children': ['Childern'],
             'Communication ': ['Comm '],
             'Counselor': ['Counslr'],
+            'Department': ['Dept'],
             'Demonstration': ['Demo.'],
             'Educational ': ['Educ. ', 'Educ ', 'Ed '],
             'Engineering': ['Engr'],
@@ -90,7 +94,7 @@ class Command(BaseCommand):
             'ROTC': ['Rotc'],
             'Services': ['Svcs', 'Srvcs'],
             'School ': ['Schl '],
-            'Science ': ['Sci '],
+            'Sciences ': ['Sci '],
             'Technology': ['Tech.'],
             'UCF': ['Ucf'],
         }
@@ -160,6 +164,18 @@ class Command(BaseCommand):
             flags=re.IGNORECASE
         )
 
+        # If the unit name ends with ", school"
+        # move it to the beginning of the unit name, and add " of"
+        # \1: the (desired) end of the unit name
+        # \2: the splitting comma
+        # \3: the captured "school" chunk
+        name = re.sub(
+            r"^([\w\.\,\/\- ]+)(, )(school)$",
+            r"School of \1",
+            name,
+            flags=re.IGNORECASE
+        )
+
         # If ", UCF" is present at the end of the unit name,
         # remove it completely
         name = re.sub(', UCF$', '', name, flags=re.IGNORECASE)
@@ -202,7 +218,7 @@ class Command(BaseCommand):
         else:
             return None
 
-    def get_dept_by_name(self, name):
+    def get_dept_by_name(self, name, organization_unit=None):
         """
         Retrieves a DepartmentUnit by its sanitized name.
         Handles incrementing of script created/updated flags.
@@ -210,8 +226,10 @@ class Command(BaseCommand):
         dept_name_sanitized = self.sanitize_unit_name(name)
         if dept_name_sanitized:
             dept_unit, created = DepartmentUnit.objects.get_or_create(
-                name=dept_name_sanitized
+                name=dept_name_sanitized,
+                organization_unit=organization_unit
             )
+
             if created:
                 self.dept_units_created.add(dept_unit)
             elif dept_unit not in self.dept_units_created:
@@ -270,9 +288,14 @@ class Command(BaseCommand):
         self.teledata_depts_processed = teledata_depts
 
         for teledata_dept in teledata_depts:
-            dept_unit = self.get_dept_by_name(teledata_dept.name) # can be DepartmentUnit or None
+            org_unit = teledata_dept.org.organization_unit
+            dept_unit = self.get_dept_by_name(teledata_dept.name, org_unit) # can be DepartmentUnit or None
             teledata_dept.department_unit = dept_unit
             teledata_dept.save()
+
+            if org_unit:
+                dept_unit.organization_unit = org_unit
+                dept_unit.save()
 
     def map_depts_programs(self):
         """
@@ -283,9 +306,19 @@ class Command(BaseCommand):
         self.program_depts_processed = program_depts
 
         for program_dept in program_depts:
-            dept_unit = self.get_dept_by_name(program_dept.full_name) # can be DepartmentUnit or None
+            colleges = College.objects.filter(program__departments=program_dept).distinct()
+            if colleges.count() == 1:
+                org_unit = colleges.first().organization_unit
+            else:
+                org_unit = None
+
+            dept_unit = self.get_dept_by_name(program_dept.full_name, org_unit) # can be DepartmentUnit or None
             program_dept.department_unit = dept_unit
             program_dept.save()
+
+            if org_unit:
+                dept_unit.organization_unit = org_unit
+                dept_unit.save()
 
     def delete_stale_orgs(self):
         """
@@ -296,7 +329,7 @@ class Command(BaseCommand):
             teledata__isnull=True,
             college__isnull=True
         )
-        self.org_units_deleted = len(stale_orgs)
+        self.org_units_deleted_count = len(stale_orgs)
 
         if len(stale_orgs):
             stale_orgs.delete()
@@ -310,7 +343,7 @@ class Command(BaseCommand):
             teledata__isnull=True,
             program_data__isnull=True
         )
-        self.dept_units_deleted = len(stale_depts)
+        self.dept_units_deleted_count = len(stale_depts)
 
         if len(stale_depts):
             stale_depts.delete()
@@ -324,12 +357,14 @@ class Command(BaseCommand):
         return
 
     def print_stats(self):
-        mapped_colleges = len(College.objects.filter(organization_unit__isnull=False, organization_unit__teledata__isnull=False))
+        mapped_colleges = len(College.objects.filter(organization_unit__isnull=False, organization_unit__teledata__isnull=False).distinct())
         mapped_teledata_orgs = len(TeledataOrg.objects.filter(organization_unit__isnull=False))
 
         mapped_program_depts = len(ProgramDept.objects.filter(department_unit__isnull=False))
         mapped_teledata_depts = len(TeledataDept.objects.filter(department_unit__isnull=False))
         fully_mapped_dept_units = len(DepartmentUnit.objects.filter(teledata__isnull=False, program_data__isnull=False))
+
+        dept_units_with_college_prog_data = len(DepartmentUnit.objects.filter(organization_unit__college__isnull=False, program_data__isnull=False))
 
         stats = """
 Organizations from Teledata processed : {}
@@ -348,6 +383,7 @@ Organizations in Teledata with mapped OrganizationUnits: {}/{} ({}%)
 Program Departments with mapped DepartmentUnits: {}/{} ({}%)
 Departments in Teledata with mapped DepartmentUnits: {}/{} ({}%)
 DepartmentUnits with mapped Program Departments *and* Teledata (that can have both): {}/{} ({}%)
+DepartmentUnits with mapped OrganizationUnits tied to a College: {}/{} ({}%)
 
         """.format(
             len(self.teledata_orgs_processed),
@@ -375,6 +411,9 @@ DepartmentUnits with mapped Program Departments *and* Teledata (that can have bo
             fully_mapped_dept_units,
             len(self.program_depts_processed),
             round((fully_mapped_dept_units / len(self.program_depts_processed)) * 100),
+            dept_units_with_college_prog_data,
+            len(self.program_depts_processed),
+            round((dept_units_with_college_prog_data / len(self.program_depts_processed)) * 100),
         )
 
         self.stdout.write(stats)

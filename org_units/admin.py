@@ -3,9 +3,6 @@ from django.urls import reverse
 from django.utils.html import format_html_join, mark_safe
 
 from org_units.models import *
-from programs.models import Department as ProgramDept
-from teledata.models import Organization as TeledataOrg
-from teledata.models import Department as TeledataDept
 
 # Register your models here.
 
@@ -13,11 +10,10 @@ from teledata.models import Department as TeledataDept
 @admin.register(OrganizationUnit)
 class OrganizationUnitAdmin(admin.ModelAdmin):
     search_fields = ('name',)
-    readonly_fields = ('teledata_list', 'college',)
+    readonly_fields = ('dept_unit_list', 'teledata_list', 'college',)
 
     def teledata_list(self, obj):
         teledata_orgs = obj.teledata.all()
-        teledata_orgs = TeledataOrg.objects.filter(organization_unit=obj)
         if teledata_orgs.count() == 0:
             return '-'
 
@@ -44,6 +40,34 @@ class OrganizationUnitAdmin(admin.ModelAdmin):
     teledata_list.allow_tags = True
     teledata_list.short_description = 'Teledata Organization(s)'
 
+    def dept_unit_list(self, obj):
+        dept_units = obj.department_units.all()
+        if dept_units.count() == 0:
+            return '-'
+
+        dept_list_items = format_html_join(
+            '\n',
+            '<li><a href="{0}">{1}</a></li>',
+            (
+                (
+                    reverse(
+                        'admin:org_units_departmentunit_change',
+                        args=(dept_unit.pk,)
+                    ),
+                    dept_unit.name
+                )
+                for dept_unit in dept_units
+            )
+        )
+
+        return mark_safe('{0} Department Units:\n<ul style="margin-left: 0; margin-top: 1rem; padding-left: 0;">{1}</ul>'.format(
+            dept_units.count(),
+            dept_list_items
+        ))
+
+    dept_unit_list.allow_tags = True
+    dept_unit_list.short_description = 'Department Unit(s)'
+
 
 @admin.register(DepartmentUnit)
 class DepartmentUnitAdmin(admin.ModelAdmin):
@@ -51,7 +75,7 @@ class DepartmentUnitAdmin(admin.ModelAdmin):
     readonly_fields = ('teledata_list', 'program_dept_list',)
 
     def teledata_list(self, obj):
-        teledata_depts = TeledataDept.objects.filter(department_unit=obj)
+        teledata_depts = obj.teledata.all()
         if teledata_depts.count() == 0:
             return '-'
 
@@ -79,7 +103,7 @@ class DepartmentUnitAdmin(admin.ModelAdmin):
     teledata_list.short_description = 'Teledata Department(s)'
 
     def program_dept_list(self, obj):
-        program_depts = ProgramDept.objects.filter(department_unit=obj)
+        program_depts = obj.program_data.all()
         if program_depts.count() == 0:
             return '-'
 

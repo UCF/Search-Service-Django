@@ -21,7 +21,7 @@ class DepartmentUnit(models.Model):
     TODO
     """
     name = models.CharField(max_length=255, null=False, blank=False)
-    organization_unit = models.ForeignKey(OrganizationUnit, blank=True, null=True, on_delete=models.SET_NULL)
+    organization_unit = models.ForeignKey(OrganizationUnit, related_name='department_units', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
