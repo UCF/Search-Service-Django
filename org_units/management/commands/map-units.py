@@ -53,6 +53,7 @@ class Command(BaseCommand):
             'Civil, Environmental, and Construction Engineering': ['Civil, Environ, & Constr Engr'],
             'College of Optics and Photonics': ['CREOL, THE COLLEGE OF OPTICS AND PHOTONICS', 'CREOL'],
             'Counselor Education and School Psychology': ['Counslr Educ & Schl Psychology'],
+            'Dean\'s Office': ['Office of the Dean'],
             'Department of Finance, Dr. P. Phillips School of Real Estate': ['DEPARTMENT OF FINANCE/DR. P. PHILLIPS SCHOOL OF REAL ESTATE'],
             'Food Service and Lodging Management': ['Food Svcs & Lodging Management'],
             'Industrial Engineering and Management Systems': ['Industrial Engr & Mgmt Sys'],
@@ -197,6 +198,24 @@ class Command(BaseCommand):
 
         # Remove instances of "department" and "department of" / ", department of"
         name = re.sub('(, )?department( of)?', '', name, flags=re.IGNORECASE)
+
+        # If the unit name starts with "Dean's Suite|Office",
+        # normalize the name to "Dean's Office"
+        name = re.sub(
+            r"^(Dean)(\'s)? (Office|Suite)([\w\.\,\/\- ]+)?$",
+            "Dean's Office",
+            name,
+            flags=re.IGNORECASE
+        )
+
+        # If the unit name ends with "Dean's Suite|Office",
+        # normalize the name to "Dean's Office"
+        name = re.sub(
+            r"^([\w\.\,\/\- ]+)?(Dean)(\'s)? (Office|Suite)$",
+            "Dean's Office",
+            name,
+            flags=re.IGNORECASE
+        )
 
         # Again, trim whitespace from the start and end of the name,
         # and replace more than one instance of a single space "  ..." with
