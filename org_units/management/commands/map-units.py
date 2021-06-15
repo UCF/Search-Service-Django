@@ -22,6 +22,7 @@ class Command(BaseCommand):
     program_depts_processed = set()
     dept_units_created = set()
     dept_units_updated = set()
+    dept_data_skipped_count = 0
     dept_units_deleted_count = 0
 
     def handle(self, *args, **options):
@@ -47,14 +48,22 @@ class Command(BaseCommand):
         # Full name replacements ARE case-sensitive! They are performed
         # *before* names are Capital-Cased.
         full_name_replacements = {
+            'Burnett School of Biomedical Sciences': ['Biomedical Sciences', 'BIOMEDICAL SCIENCES, BURNETT SCHOOL OF'],
             'Center for Advanced Transportation Systems Simulation (CATSS)': ['Ctr. for Advanced Transportation Sys. Simulation', 'CATSS'],
             'Civil, Environmental, and Construction Engineering': ['Civil, Environ, & Constr Engr'],
             'College of Optics and Photonics': ['CREOL, THE COLLEGE OF OPTICS AND PHOTONICS', 'CREOL'],
+            'Counselor Education and School Psychology': ['Counslr Educ & Schl Psychology'],
             'Department of Finance, Dr. P. Phillips School of Real Estate': ['DEPARTMENT OF FINANCE/DR. P. PHILLIPS SCHOOL OF REAL ESTATE'],
+            'Food Service and Lodging Management': ['Food Svcs & Lodging Management'],
             'Industrial Engineering and Management Systems': ['Industrial Engr & Mgmt Sys'],
+            'Interdisciplinary Studies': ['Office of Interdisc Studies'],
+            'Judaic Studies': ['JUDAIC STUDIES PROGRAM'],
+            'Modern Languages and Literatures': ['Modern Languages', 'Modern Language & Literatures'],
             'National Center for Optics and Photonics Education, Waco, TX': ['OP-TEC Nat. Ctr.,Optics & Photonics Ed./Waco,TX'],
+            'School of Communication Sciences and Disorders': ['Communication Sciences & Disorders Department'],
             'School of Kinesiology and Physical Therapy': ['Kinesiology&Phys Thpy, Schl of'],
             'School of Politics, Security, and International Affairs': ['Pol, Scty & Intl Afrs, Schl of'],
+            'School of Teacher Education': ['Teacher Education 2, School'],
             'Tourism, Events and Attractions': ['Tourism Event and Attractions', 'Tourism, Events and Attraction', 'Tourism, Events, and Attractions']
         }
 
@@ -83,11 +92,11 @@ class Command(BaseCommand):
             ' in ': [' In '],
             'Information Technology': ['Inform. Tech.'],
             'Institute': ['Inst.'],
-            'Interdisciplinary ': ['Interdisc '],
             'International': ['Intl'],
             'Leadership': ['Ldrshp'],
             'Management': ['Mgmt.', 'Mgmt'],
-            ' of ': [' Of '],
+            'NanoScience': ['Nanoscience'],
+            ' of ': [' Of ', ' Of '],
             'Office': ['Ofc.'],
             'Prop.': ['Prop.'],
             'Regional': ['Rgnl'],
@@ -225,26 +234,44 @@ class Command(BaseCommand):
         """
         dept_name_sanitized = self.sanitize_unit_name(name)
         if dept_name_sanitized:
-            dept_unit, created = DepartmentUnit.objects.get_or_create(
-                name=dept_name_sanitized,
-                organization_unit=organization_unit
-            )
+            # If this is a Department from Teledata whose name matches
+            # its Organization's name exactly, try to find an existing
+            # DepartmentUnit whose OrganizationUnit maps to a College,
+            # and use it instead.
+            if organization_unit and organization_unit.name == dept_name_sanitized:
+                try:
+                    dept_unit = DepartmentUnit.objects.get(name=dept_name_sanitized, organization_unit__college__isnull=False)
+                    organization_unit = dept_unit.organization_unit
+                    created = False
+                except (DepartmentUnit.DoesNotExist, DepartmentUnit.MultipleObjectsReturned):
+                    self.dept_data_skipped_count += 1
+                    return (None, None)
+            else:
+                dept_unit, created = DepartmentUnit.objects.get_or_create(
+                    name=dept_name_sanitized,
+                    organization_unit=organization_unit
+                )
 
             if created:
                 self.dept_units_created.add(dept_unit)
             elif dept_unit not in self.dept_units_created:
                 self.dept_units_updated.add(dept_unit)
 
-            return dept_unit
+            return (dept_unit, organization_unit)
         else:
-            return None
+            return (None, None)
 
     def map_orgs(self):
         """
         Performs mapping for all Organization-related data
+
+        NOTE: We assume that relationships for departments
+        and organizations defined in the Programs app should
+        be prioritized over relationships defined in Teledata.
+        Therefore, *Colleges must be processed first!*
         """
-        self.map_orgs_teledata()
         self.map_orgs_colleges()
+        self.map_orgs_teledata()
 
     def map_orgs_teledata(self):
         """
@@ -255,7 +282,7 @@ class Command(BaseCommand):
         self.teledata_orgs_processed = teledata_orgs
 
         for teledata_org in teledata_orgs:
-            org_unit = self.get_org_by_name(teledata_org.name) # can be OrganizationUnit or None
+            org_unit = self.get_org_by_name(teledata_org.name)
             teledata_org.organization_unit = org_unit
             teledata_org.save()
 
@@ -268,16 +295,21 @@ class Command(BaseCommand):
         self.colleges_processed = colleges
 
         for college in colleges:
-            org_unit = self.get_org_by_name(college.full_name) # can be OrganizationUnit or None
+            org_unit = self.get_org_by_name(college.full_name)
             college.organization_unit = org_unit
             college.save()
 
     def map_depts(self):
         """
-        Performs mapping for all Department-related data
+        Performs mapping for all Department-related data.
+
+        NOTE: We assume that relationships for departments
+        and organizations defined in the Programs app should
+        be prioritized over relationships defined in Teledata.
+        Therefore, *Program data must be processed first!*
         """
-        self.map_depts_teledata()
         self.map_depts_programs()
+        self.map_depts_teledata()
 
     def map_depts_teledata(self):
         """
@@ -288,12 +320,12 @@ class Command(BaseCommand):
         self.teledata_depts_processed = teledata_depts
 
         for teledata_dept in teledata_depts:
-            org_unit = teledata_dept.org.organization_unit
-            dept_unit = self.get_dept_by_name(teledata_dept.name, org_unit) # can be DepartmentUnit or None
+            teledata_org_unit = teledata_dept.org.organization_unit
+            dept_unit, org_unit = self.get_dept_by_name(teledata_dept.name, teledata_org_unit)
             teledata_dept.department_unit = dept_unit
             teledata_dept.save()
 
-            if org_unit:
+            if dept_unit is not None:
                 dept_unit.organization_unit = org_unit
                 dept_unit.save()
 
@@ -308,15 +340,15 @@ class Command(BaseCommand):
         for program_dept in program_depts:
             colleges = College.objects.filter(program__departments=program_dept).distinct()
             if colleges.count() == 1:
-                org_unit = colleges.first().organization_unit
+                college = colleges.first().organization_unit
             else:
-                org_unit = None
+                college = None
 
-            dept_unit = self.get_dept_by_name(program_dept.full_name, org_unit) # can be DepartmentUnit or None
+            dept_unit, org_unit = self.get_dept_by_name(program_dept.full_name, college)
             program_dept.department_unit = dept_unit
             program_dept.save()
 
-            if org_unit:
+            if dept_unit is not None:
                 dept_unit.organization_unit = org_unit
                 dept_unit.save()
 
@@ -376,6 +408,7 @@ Departments from Teledata processed   : {}
 Departments from Programs processed   : {}
 DepartmentUnits created               : {}
 DepartmentUnits updated               : {}
+Department data skipped               : {}
 DepartmentUnits deleted               : {}
 
 Colleges with mapped OrganizationUnits *and* matched teledata: {}/{} ({}%)
@@ -395,6 +428,7 @@ DepartmentUnits with mapped OrganizationUnits tied to a College: {}/{} ({}%)
             len(self.program_depts_processed),
             len(self.dept_units_created),
             len(self.dept_units_updated),
+            self.dept_data_skipped_count,
             self.dept_units_deleted_count,
             mapped_colleges,
             len(self.colleges_processed),
