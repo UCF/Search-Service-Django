@@ -48,36 +48,44 @@ class Command(BaseCommand):
         # Full name replacements ARE case-sensitive! They are performed
         # *before* names are Capital-Cased.
         full_name_replacements = {
+            'Amateur Radio Club-K4UCF': ['AMATEUR RADIO CLUB-K4UCF'],
+            'Barnes and Noble Bookstore @ UCF': ['BARNES & NOBLE BOOKSTORE@ UCF'],
             'Burnett School of Biomedical Sciences': ['Biomedical Sciences', 'BIOMEDICAL SCIENCES, BURNETT SCHOOL OF'],
             'Center for Advanced Transportation Systems Simulation (CATSS)': ['Ctr. for Advanced Transportation Sys. Simulation', 'CATSS'],
             'Civil, Environmental, and Construction Engineering': ['Civil, Environ, & Constr Engr'],
+            'College of Business': ['BUSINESS ADMINISTRATION, COLLEGE OF'],
             'College of Optics and Photonics': ['CREOL, THE COLLEGE OF OPTICS AND PHOTONICS', 'CREOL'],
             'Counselor Education and School Psychology': ['Counslr Educ & Schl Psychology'],
             'Dean\'s Office': ['Office of the Dean'],
             'Department of Finance, Dr. P. Phillips School of Real Estate': ['DEPARTMENT OF FINANCE/DR. P. PHILLIPS SCHOOL OF REAL ESTATE'],
+            'Finance': ['Budget & Finance'],
             'Food Service and Lodging Management': ['Food Svcs & Lodging Management'],
             'Industrial Engineering and Management Systems': ['Industrial Engr & Mgmt Sys'],
             'Interdisciplinary Studies': ['Office of Interdisc Studies'],
             'Judaic Studies': ['JUDAIC STUDIES PROGRAM'],
+            'Learning Institute for Elders (LIFE @ UCF)': ['LIFE', 'LEARNING INSTITUTE FOR ELDERS  (LIFE @ UCF)'],
             'Modern Languages and Literatures': ['Modern Languages', 'Modern Language & Literatures'],
             'National Center for Optics and Photonics Education, Waco, TX': ['OP-TEC Nat. Ctr.,Optics & Photonics Ed./Waco,TX'],
             'School of Communication Sciences and Disorders': ['Communication Sciences & Disorders Department'],
             'School of Kinesiology and Physical Therapy': ['Kinesiology&Phys Thpy, Schl of'],
             'School of Politics, Security, and International Affairs': ['Pol, Scty & Intl Afrs, Schl of'],
             'School of Teacher Education': ['Teacher Education 2, School'],
-            'Tourism, Events and Attractions': ['Tourism Event and Attractions', 'Tourism, Events and Attraction', 'Tourism, Events, and Attractions']
+            'Tourism, Events and Attractions': ['Tourism Event and Attractions', 'Tourism, Events and Attraction', 'Tourism, Events, and Attractions'],
+            'UCF Card Office': ['UCF CARD', 'UCF Card'],
+            'Women\'s Studies': ['Womens Studies', 'WOMEN\'S STUDIES PROGRAM', 'Women\'s Studies Program']
         }
 
         # Basic replacements ARE case-sensitive! They are performed
         # *after* names are Capital-Cased.
         basic_replacements = {
+            '\'': ['’'],
             'Academic': ['Acad.'],
             'Additional': ['Add.'],
             'Administration': ['Adm.', 'Admin.'],
-            ' and ': [' & ', ' And '],
+            ' and ': [' & '],
             'Application': ['App.'],
             'AVP': ['Avp'],
-            'Business ': ['Bus ', 'Business Administration'],
+            'Business ': ['Bus '],
             'Café': ['Cafe'],
             'Center': ['Ctr.'],
             'Children': ['Childern'],
@@ -87,27 +95,36 @@ class Command(BaseCommand):
             'Demonstration': ['Demo.'],
             'Educational ': ['Educ. ', 'Educ ', 'Ed '],
             'Engineering': ['Engr'],
-            ' for ': [' For '],
             'Florida': ['Fla.'],
             'General': ['Gen.'],
-            ' in ': [' In '],
-            'Information Technology': ['Inform. Tech.'],
+            'Graduate ': ['Grad '],
+            'Information': ['Inform.'],
             'Institute': ['Inst.'],
             'International': ['Intl'],
             'Leadership': ['Ldrshp'],
             'Management': ['Mgmt.', 'Mgmt'],
             'NanoScience': ['Nanoscience'],
-            ' of ': [' Of ', ' Of '],
             'Office': ['Ofc.'],
+            'Programs': ['Prgms'],
             'Prop.': ['Prop.'],
             'Regional': ['Rgnl'],
-            'ROTC': ['Rotc'],
             'Services': ['Svcs', 'Srvcs'],
             'School ': ['Schl '],
             'Sciences ': ['Sci '],
-            'Technology': ['Tech.'],
-            'UCF': ['Ucf'],
+            'Technology': ['Tech.']
         }
+
+        # These words should always be lowercase
+        lowercase_replacements = [
+            'and', 'of', 'for', 'in', 'at'
+        ]
+
+        # These words should always be uppercase/all-caps
+        uppercase_replacements = [
+            'AVP', 'CHAMPS', 'CREATE', 'FM', 'GTA', 'HRIS', 'IT',
+            'LETTR', 'LINK', 'NASA', 'RESTORES', 'ROTC', 'STAT', 'TV',
+            'TV/FM', 'UCF', 'WUCF',
+        ]
 
         # Trim whitespace from the start and end of the name
         name = name.strip()
@@ -123,13 +140,58 @@ class Command(BaseCommand):
                     name = replacement
 
         # If the unit name is in all-caps, let's convert it to
-        # capital case.  This is not perfect and will remove proper
-        # all-caps on abbreviations not wrapped in parentheses, as
-        # well as miss parentheses-wrapped content that are _not_
-        # abbreviations.
+        # capital case. This is not perfect but should work well
+        # enough for the majority of use cases.
         if name.isupper():
-            name = ' '.join([
-                word[0] + (word[1:] if word[0] == '(' or word[-1] == ')' else word[1:].lower()) for word in name.split(' ')
+            name_parts = name.split('(')
+            for i, name_part in enumerate(name_parts):
+                words = name_part.split(' ')
+                if len(words) == 1 and name_part[-1] == ')':
+                    # This part of the name is most likely an abbreviation
+                    # enclosed in parentheses. Force it to be uppercase.
+                    words[0] = words[0].upper()
+                else:
+                    for j, word in enumerate(words):
+                        # word can be an empty string here; just ignore it
+                        if not word:
+                            continue
+
+                        # if word ends in closing parentheses or a comma,
+                        # temporarily remove it for the sake of manipulating
+                        # the word
+                        end_char = ''
+                        if word[-1] in [')', ',']:
+                            end_char = word[-1]
+                            word = word[:-1]
+
+                        if j == 0 and end_char == ')':
+                            # This part of the name is most likely an
+                            # abbreviation enclosed in parentheses.
+                            # Force it to be uppercase.
+                            words[j] = word.upper()
+                        else:
+                            if word.lower() in lowercase_replacements:
+                                words[j] = word.lower()
+                            elif word.upper() not in uppercase_replacements:
+                                words[j] = word[0].upper() + word[1:].lower()
+                            else:
+                                words[j] = word.upper()
+
+                        # If we removed an end character earlier,
+                        # stick it back on:
+                        if end_char:
+                            words[j] = words[j] + end_char
+
+                name_parts[i] = ' '.join(words)
+            name = '('.join(name_parts)
+
+            # Ensure that parts of a word divided by a dash or slash
+            # have the 2nd portion's 1st character capitalized
+            name = '-'.join([
+                word[0].upper() + word[1:] for word in name.split('-')
+            ])
+            name = '/'.join([
+                word[0].upper() + word[1:] for word in name.split('/')
             ])
 
         # Perform basic string replacements
@@ -186,6 +248,9 @@ class Command(BaseCommand):
             flags=re.IGNORECASE
         )
 
+        # Fix capitalization on names containing " The "
+        name = name.replace(' The ', ' the ')
+
         # If ", UCF" is present at the end of the unit name,
         # remove it completely
         name = re.sub(', UCF$', '', name, flags=re.IGNORECASE)
@@ -216,6 +281,18 @@ class Command(BaseCommand):
             name,
             flags=re.IGNORECASE
         )
+
+        # Force lowercase replacements on names not already
+        # affected by logic above
+        name = ' '.join([
+            word.lower() if word.lower() in lowercase_replacements else word for word in name.split(' ')
+        ])
+
+        # Force uppercase replacements on names not already
+        # affected by logic above
+        name = ' '.join([
+            word.upper() if word.upper() in uppercase_replacements else word for word in name.split(' ')
+        ])
 
         # Again, trim whitespace from the start and end of the name,
         # and replace more than one instance of a single space "  ..." with
@@ -262,7 +339,15 @@ class Command(BaseCommand):
                     dept_unit = DepartmentUnit.objects.get(name=dept_name_sanitized, organization_unit__college__isnull=False)
                     organization_unit = dept_unit.organization_unit
                     created = False
-                except (DepartmentUnit.DoesNotExist, DepartmentUnit.MultipleObjectsReturned):
+                except DepartmentUnit.DoesNotExist:
+                    dept_unit = DepartmentUnit(
+                        name=dept_name_sanitized,
+                        organization_unit=organization_unit
+                    )
+                    dept_unit.save()
+                    created = True
+                except DepartmentUnit.MultipleObjectsReturned:
+                    # yikes--just skip for now
                     self.dept_data_skipped_count += 1
                     return (None, None)
             else:
