@@ -1,13 +1,16 @@
 import re
+from urllib.parse import urlparse
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Value as V
+from django.db.models.functions import StrIndex
+from progress.bar import ChargingBar  # TODO
+
 from org_units.models import *
 from teledata.models import Organization as TeledataOrg
 from programs.models import College
 from teledata.models import Department as TeledataDept
 from programs.models import Department as ProgramDept
-
-from progress.bar import ChargingBar # TODO
 
 
 class Command(BaseCommand):
@@ -15,26 +18,27 @@ class Command(BaseCommand):
 
     teledata_orgs_processed = set()
     colleges_processed = set()
-    org_units_created = set()
-    org_units_updated = set()
-    org_units_deleted_count = 0
+    units_created = set()
+    units_updated = set()
+    units_deleted_count = 0
     teledata_depts_processed = set()
     program_depts_processed = set()
-    dept_units_created = set()
-    dept_units_updated = set()
     dept_data_skipped_count = 0
-    dept_units_deleted_count = 0
 
     def handle(self, *args, **options):
         """
         Main entry function for the command.
         Execution logic handled here.
+
+        NOTE: order is important here! Particularly,
+        in order for teledata and Program Departments to
+        map properly, Colleges must be mapped first.
         """
-        self.map_orgs()
-        self.map_depts()
-        self.delete_stale_orgs()
-        self.delete_stale_depts()
-        self.assign_depts_to_orgs()
+        self.map_orgs_colleges()
+        self.map_orgs_teledata()
+        self.map_depts_programs()
+        self.map_depts_teledata()
+        self.delete_stale_units()
         self.print_stats()
 
     def sanitize_unit_name(self, name):
@@ -53,7 +57,7 @@ class Command(BaseCommand):
             'Burnett School of Biomedical Sciences': ['Biomedical Sciences', 'BIOMEDICAL SCIENCES, BURNETT SCHOOL OF'],
             'Center for Advanced Transportation Systems Simulation (CATSS)': ['Ctr. for Advanced Transportation Sys. Simulation', 'CATSS'],
             'Civil, Environmental, and Construction Engineering': ['Civil, Environ, & Constr Engr'],
-            'College of Business': ['BUSINESS ADMINISTRATION, COLLEGE OF'],
+            'College of Business': ['BUSINESS ADMINISTRATION, COLLEGE OF', 'College of Business Administration'],
             'College of Optics and Photonics': ['CREOL, THE COLLEGE OF OPTICS AND PHOTONICS', 'CREOL'],
             'Counselor Education and School Psychology': ['Counslr Educ & Schl Psychology'],
             'Dean\'s Office': ['Office of the Dean'],
@@ -304,139 +308,125 @@ class Command(BaseCommand):
 
         return name
 
-    def get_org_by_name(self, name):
+    def get_unit_by_name(self, name, parent_unit=None):
         """
-        Retrieves an Organization by its sanitized name.
+        Retrieves a Unit by its sanitized name.
         Handles incrementing of script created/updated flags.
         """
-        org_name_sanitized = self.sanitize_unit_name(name)
-        if org_name_sanitized:
-            org_unit, created = OrganizationUnit.objects.get_or_create(
-                name=org_name_sanitized
-            )
-            if created:
-                self.org_units_created.add(org_unit)
-            elif org_unit not in self.org_units_created:
-                self.org_units_updated.add(org_unit)
+        unit_name_sanitized = self.sanitize_unit_name(name)
+        if unit_name_sanitized:
+            if parent_unit:
+                # Relationships between Departments and Organizations
+                # across Programs and Teledata are wildly inconsistent.
+                # Assume that a Unit is the one we're looking for if we get a
+                # name match, and `parent_unit` is present _somewhere_ up the
+                # Unit parent relationship chain.
+                possible_parent_units = parent_unit.get_all_relatives()
 
-            return org_unit
-        else:
-            return None
-
-    def get_dept_by_name(self, name, organization_unit=None):
-        """
-        Retrieves a DepartmentUnit by its sanitized name.
-        Handles incrementing of script created/updated flags.
-        """
-        dept_name_sanitized = self.sanitize_unit_name(name)
-        if dept_name_sanitized:
-            # If this is a Department from Teledata whose name matches
-            # its Organization's name exactly, try to find an existing
-            # DepartmentUnit whose OrganizationUnit maps to a College,
-            # and use it instead.
-            if organization_unit and organization_unit.name == dept_name_sanitized:
-                try:
-                    dept_unit = DepartmentUnit.objects.get(name=dept_name_sanitized, organization_unit__college__isnull=False)
-                    organization_unit = dept_unit.organization_unit
+                # If the parent dept/org shares the same name as its child,
+                # return the parent Unit
+                if unit_name_sanitized == parent_unit.name:
+                    unit = parent_unit
+                    parent_unit = parent_unit.parent_unit
                     created = False
-                except DepartmentUnit.DoesNotExist:
-                    dept_unit = DepartmentUnit(
-                        name=dept_name_sanitized,
-                        organization_unit=organization_unit
+                elif len(possible_parent_units) > 0:
+                    try:
+                        # Try to get a single existing Unit match:
+                        unit = Unit.objects.get(
+                            name=unit_name_sanitized,
+                            parent_unit__in=possible_parent_units
+                        )
+                        created = False
+                    except Unit.DoesNotExist:
+                        # Proceed with creating a new Unit with the
+                        # original `parent_unit`.
+                        unit = Unit(
+                            name=unit_name_sanitized,
+                            parent_unit=parent_unit
+                        )
+                        unit.save()
+                        created = True
+                    except Unit.MultipleObjectsReturned:
+                        # There are multiple Units with this name that are
+                        # assigned a parent in `possible_parent_units`, so we
+                        # can't accurately determine which one is the "right"
+                        # one to use. Skip.
+                        self.dept_data_skipped_count += 1
+                        return (None, None)
+                else:
+                    # Assume this Unit shouldn't have a parent.
+                    unit, created = Unit.objects.get_or_create(
+                        name=unit_name_sanitized,
+                        parent_unit=None
                     )
-                    dept_unit.save()
-                    created = True
-                except DepartmentUnit.MultipleObjectsReturned:
-                    # yikes--just skip for now
-                    self.dept_data_skipped_count += 1
-                    return (None, None)
             else:
-                dept_unit, created = DepartmentUnit.objects.get_or_create(
-                    name=dept_name_sanitized,
-                    organization_unit=organization_unit
-                )
+                # Try to find a match for an Organization that belongs
+                # to a College:
+                try:
+                    unit = Unit.objects.get(
+                        name=unit_name_sanitized,
+                        parent_unit__college__isnull=False
+                    )
+                    created = False
+                except (Unit.DoesNotExist, Unit.MultipleObjectsReturned):
+                    # This is probably an Organization or a College.
+                    # Procced with getting/creating a Unit with no parent.
+                    unit, created = Unit.objects.get_or_create(
+                        name=unit_name_sanitized,
+                        parent_unit=None
+                    )
 
             if created:
-                self.dept_units_created.add(dept_unit)
-            elif dept_unit not in self.dept_units_created:
-                self.dept_units_updated.add(dept_unit)
+                self.units_created.add(unit)
+            elif unit not in self.units_created:
+                self.units_updated.add(unit)
 
-            return (dept_unit, organization_unit)
+            return (unit, parent_unit)
         else:
             return (None, None)
 
-    def map_orgs(self):
-        """
-        Performs mapping for all Organization-related data
-
-        NOTE: We assume that relationships for departments
-        and organizations defined in the Programs app should
-        be prioritized over relationships defined in Teledata.
-        Therefore, *Colleges must be processed first!*
-        """
-        self.map_orgs_colleges()
-        self.map_orgs_teledata()
-
-    def map_orgs_teledata(self):
-        """
-        Gets or creates an OrganizationUnit from corresponding
-        teledata, and maps the teledata to the OrganizationUnit.
-        """
-        teledata_orgs = TeledataOrg.objects.all()
-        self.teledata_orgs_processed = teledata_orgs
-
-        for teledata_org in teledata_orgs:
-            org_unit = self.get_org_by_name(teledata_org.name)
-            teledata_org.organization_unit = org_unit
-            teledata_org.save()
-
     def map_orgs_colleges(self):
         """
-        Gets or creates an OrganizationUnit from corresponding
-        College data, and maps the College to the OrganizationUnit.
+        Gets or creates a Unit from corresponding
+        College data, and maps the College to the Unit.
         """
         colleges = College.objects.all()
         self.colleges_processed = colleges
 
         for college in colleges:
-            org_unit = self.get_org_by_name(college.full_name)
-            college.organization_unit = org_unit
+            unit, parent_unit = self.get_unit_by_name(college.full_name)
+            college.unit = unit
             college.save()
 
-    def map_depts(self):
+    def map_orgs_teledata(self):
         """
-        Performs mapping for all Department-related data.
-
-        NOTE: We assume that relationships for departments
-        and organizations defined in the Programs app should
-        be prioritized over relationships defined in Teledata.
-        Therefore, *Program data must be processed first!*
+        Gets or creates a Unit from corresponding
+        teledata, and maps the teledata to the Unit.
         """
-        self.map_depts_programs()
-        self.map_depts_teledata()
+        teledata_orgs = TeledataOrg.objects.annotate(college_index=StrIndex('name', V('college'))).order_by('-college_index')
+        self.teledata_orgs_processed = teledata_orgs
 
-    def map_depts_teledata(self):
-        """
-        Gets or creates a DepartmentUnit from corresponding
-        teledata, and maps the teledata to the DepartmentUnit.
-        """
-        teledata_depts = TeledataDept.objects.all()
-        self.teledata_depts_processed = teledata_depts
+        # Loop through all Teledata Organizations. Organizations that
+        # look like they could align to a College should go first (see
+        # `annotate()`/`order_by()` above)
+        for teledata_org in teledata_orgs:
+            org_parent_unit = None
+            if 'school of' in teledata_org.name.lower():
+                # If this Organization corresponds to a school, try to extract
+                # the parent College's Unit from teledata meta
+                org_parent_unit = self.get_college_unit_by_school_teledata(teledata_org)
+            unit, parent_unit = self.get_unit_by_name(teledata_org.name, org_parent_unit)
+            teledata_org.unit = unit
+            teledata_org.save()
 
-        for teledata_dept in teledata_depts:
-            teledata_org_unit = teledata_dept.org.organization_unit
-            dept_unit, org_unit = self.get_dept_by_name(teledata_dept.name, teledata_org_unit)
-            teledata_dept.department_unit = dept_unit
-            teledata_dept.save()
-
-            if dept_unit is not None:
-                dept_unit.organization_unit = org_unit
-                dept_unit.save()
+            if unit is not None and parent_unit is not None:
+                unit.parent_unit = parent_unit
+                unit.save()
 
     def map_depts_programs(self):
         """
-        Gets or creates a DepartmentUnit from corresponding
-        program data, and maps the program data to the DepartmentUnit.
+        Gets or creates a Unit from corresponding
+        program data, and maps the program data to the Unit.
         """
         program_depts = ProgramDept.objects.all()
         self.program_depts_processed = program_depts
@@ -444,114 +434,150 @@ class Command(BaseCommand):
         for program_dept in program_depts:
             colleges = College.objects.filter(program__departments=program_dept).distinct()
             if colleges.count() == 1:
-                college = colleges.first().organization_unit
+                college = colleges.first().unit
             else:
                 college = None
 
-            dept_unit, org_unit = self.get_dept_by_name(program_dept.full_name, college)
-            program_dept.department_unit = dept_unit
+            unit, parent_unit = self.get_unit_by_name(program_dept.full_name, college)
+            program_dept.unit = unit
             program_dept.save()
 
-            if dept_unit is not None:
-                dept_unit.organization_unit = org_unit
-                dept_unit.save()
+            if unit is not None:
+                unit.parent_unit = parent_unit
+                unit.save()
 
-    def delete_stale_orgs(self):
+    def map_depts_teledata(self):
         """
-        Deletes OrganizationUnits that no longer have any
+        Gets or creates a Unit from corresponding Department teledata,
+        and maps the Department teledata to the Unit.
+        """
+        teledata_depts = TeledataDept.objects.all()
+        self.teledata_depts_processed = teledata_depts
+
+        for teledata_dept in teledata_depts:
+            teledata_org_unit = teledata_dept.org.unit
+            unit, parent_unit = self.get_unit_by_name(teledata_dept.name, teledata_org_unit)
+            teledata_dept.unit = unit
+            teledata_dept.save()
+
+            if unit is not None:
+                unit.parent_unit = parent_unit
+                unit.save()
+
+    def get_college_unit_by_school_teledata(self, teledata_org):
+        """
+        Sniffs through a Teledata Organization's metadata to determine
+        what College Unit it should belong to.
+        """
+        college_unit = None
+
+        secondary_comment = teledata_org.secondary_comment
+        url = teledata_org.url
+        college_units = Unit.objects.filter(college__isnull=False)
+
+        if secondary_comment:
+            # If there's something present in `secondary_comment`,
+            # try to extract out a college name from the first line
+            # in the comment to match against:
+            secondary_comment_fl = secondary_comment.split("\n", 1)[0]
+            secondary_comment_fl = secondary_comment_fl.replace('(', '').replace(')', '')
+            secondary_comment_fl = self.sanitize_unit_name(secondary_comment_fl)
+            college_unit = next((c for c in college_units if c.name == secondary_comment_fl), None)
+        elif url:
+            # As a fallback, try to see if `url` looks like a subdomain
+            # of an existing College's teledata URL
+            url = urlparse(url)
+            url_domain = url.netloc.replace('www.', '')
+            for c in college_units:
+                try:
+                    for org in c.teledata_organizations.all():
+                        org_url = urlparse(org.url)
+                        org_url_domain = org_url.netloc.replace('www.', '')
+                        if org_url_domain in url_domain:
+                            college_unit = c
+                            break
+                    if college_unit:
+                        break
+                except AttributeError:
+                    continue
+
+        return college_unit
+
+    def delete_stale_units(self):
+        """
+        Deletes Units that no longer have any
         external ForeignKey relationships.
         """
-        stale_orgs = OrganizationUnit.objects.filter(
-            teledata__isnull=True,
-            college__isnull=True
+        stale_units = Unit.objects.filter(
+            teledata_departments__isnull=True,
+            teledata_organizations__isnull=True,
+            program_departments__isnull=True
         )
-        self.org_units_deleted_count = len(stale_orgs)
+        self.units_deleted_count = len(stale_units)
 
-        if len(stale_orgs):
-            stale_orgs.delete()
-
-    def delete_stale_depts(self):
-        """
-        Deletes DepartmentUnits that no longer have any
-        external ForeignKey relationships.
-        """
-        stale_depts = DepartmentUnit.objects.filter(
-            teledata__isnull=True,
-            program_data__isnull=True
-        )
-        self.dept_units_deleted_count = len(stale_depts)
-
-        if len(stale_depts):
-            stale_depts.delete()
-
-    def assign_depts_to_orgs(self):
-        """
-        TODO
-        Assigns ForeignKey relationships from DepartmentUnits to
-        OrganizationUnits, based on inferred teledata and program data.
-        """
-        return
+        if len(stale_units):
+            stale_units.delete()
 
     def print_stats(self):
-        mapped_colleges = len(College.objects.filter(organization_unit__isnull=False, organization_unit__teledata__isnull=False).distinct())
-        mapped_teledata_orgs = len(TeledataOrg.objects.filter(organization_unit__isnull=False))
-
-        mapped_program_depts = len(ProgramDept.objects.filter(department_unit__isnull=False))
-        mapped_teledata_depts = len(TeledataDept.objects.filter(department_unit__isnull=False))
-        fully_mapped_dept_units = len(DepartmentUnit.objects.filter(teledata__isnull=False, program_data__isnull=False))
-
-        dept_units_with_college_prog_data = len(DepartmentUnit.objects.filter(organization_unit__college__isnull=False, program_data__isnull=False))
+        mapped_colleges = len(College.objects.filter(unit__isnull=False).distinct())
+        mapped_teledata_orgs = len(TeledataOrg.objects.filter(unit__isnull=False))
+        mapped_program_depts = len(ProgramDept.objects.filter(unit__isnull=False))
+        mapped_teledata_depts = len(TeledataDept.objects.filter(unit__isnull=False))
+        # TODO update to make either teledata_departments__isnull OR teledata_organizations__isnull check
+        #fully_mapped_units = len(Unit.objects.filter(teledata_departments__isnull=False, teledata_organizations__isnull=False, program_data__isnull=False))
 
         stats = """
-Organizations from Teledata processed : {}
 Colleges from Programs processed      : {}
-OrganizationUnits created             : {}
-OrganizationUnits updated             : {}
-OrganizationUnits deleted             : {}
-Departments from Teledata processed   : {}
+Organizations from Teledata processed : {}
 Departments from Programs processed   : {}
-DepartmentUnits created               : {}
-DepartmentUnits updated               : {}
+Departments from Teledata processed   : {}
 Department data skipped               : {}
-DepartmentUnits deleted               : {}
 
-Colleges with mapped OrganizationUnits *and* matched teledata: {}/{} ({}%)
-Organizations in Teledata with mapped OrganizationUnits: {}/{} ({}%)
-Program Departments with mapped DepartmentUnits: {}/{} ({}%)
-Departments in Teledata with mapped DepartmentUnits: {}/{} ({}%)
-DepartmentUnits with mapped Program Departments *and* Teledata (that can have both): {}/{} ({}%)
-DepartmentUnits with mapped OrganizationUnits tied to a College: {}/{} ({}%)
+Units created                         : {}
+Units updated                         : {}
+Units deleted                         : {}
+
+Colleges mapped to a Unit with teledata: {}/{} ({}%)
+Organizations in Teledata with mapped Units: {}/{} ({}%)
+Program Departments with mapped Units: {}/{} ({}%)
+Departments in Teledata with mapped Units: {}/{} ({}%)
+Units with mapped Program Departments *and* Teledata (that can have both): {}/{} ({}%)
+Units with mapped Program Departments related to a Unit with a College: {}/{} ({}%)
 
         """.format(
-            len(self.teledata_orgs_processed),
             len(self.colleges_processed),
-            len(self.org_units_created),
-            len(self.org_units_updated),
-            self.org_units_deleted_count,
-            len(self.teledata_depts_processed),
+            len(self.teledata_orgs_processed),
             len(self.program_depts_processed),
-            len(self.dept_units_created),
-            len(self.dept_units_updated),
+            len(self.teledata_depts_processed),
             self.dept_data_skipped_count,
-            self.dept_units_deleted_count,
+
+            len(self.units_created),
+            len(self.units_updated),
+            self.units_deleted_count,
+
             mapped_colleges,
             len(self.colleges_processed),
             round((mapped_colleges / len(self.colleges_processed)) * 100),
+
             mapped_teledata_orgs,
             len(self.teledata_orgs_processed),
             round((mapped_teledata_orgs / len(self.teledata_orgs_processed)) * 100),
+
             mapped_program_depts,
             len(self.program_depts_processed),
             round((mapped_program_depts / len(self.program_depts_processed)) * 100),
+
             mapped_teledata_depts,
             len(self.teledata_depts_processed),
             round((mapped_teledata_depts / len(self.teledata_depts_processed)) * 100),
-            fully_mapped_dept_units,
-            len(self.program_depts_processed),
-            round((fully_mapped_dept_units / len(self.program_depts_processed)) * 100),
-            dept_units_with_college_prog_data,
-            len(self.program_depts_processed),
-            round((dept_units_with_college_prog_data / len(self.program_depts_processed)) * 100),
+
+            'TODO',
+            'TODO',
+            'TODO',
+
+            'TODO',
+            'TODO',
+            'TODO',
         )
 
         self.stdout.write(stats)

@@ -7,13 +7,41 @@ from org_units.models import *
 # Register your models here.
 
 
-@admin.register(OrganizationUnit)
-class OrganizationUnitAdmin(admin.ModelAdmin):
+@admin.register(Unit)
+class UnitAdmin(admin.ModelAdmin):
     search_fields = ('name',)
-    readonly_fields = ('dept_unit_list', 'teledata_list', 'college',)
+    readonly_fields = ('parent_unit', 'child_units_list', 'college', 'teledata_orgs_list', 'teledata_depts_list', 'program_depts_list' )
 
-    def teledata_list(self, obj):
-        teledata_orgs = obj.teledata.all()
+    def child_units_list(self, obj):
+        child_units = obj.child_units.all()
+        if child_units.count() == 0:
+            return '-'
+
+        child_list_items = format_html_join(
+            '\n',
+            '<li><a href="{0}">{1}</a></li>',
+            (
+                (
+                    reverse(
+                        'admin:org_units_unit_change',
+                        args=(child_unit.pk,)
+                    ),
+                    child_unit.name
+                )
+                for child_unit in child_units
+            )
+        )
+
+        return mark_safe('{0} Child Units:\n<ul style="margin-left: 0; margin-top: 1rem; padding-left: 0;">{1}</ul>'.format(
+            child_units.count(),
+            child_list_items
+        ))
+
+    child_units_list.allow_tags = True
+    child_units_list.short_description = 'Child Unit(s)'
+
+    def teledata_orgs_list(self, obj):
+        teledata_orgs = obj.teledata_organizations.all()
         if teledata_orgs.count() == 0:
             return '-'
 
@@ -37,45 +65,11 @@ class OrganizationUnitAdmin(admin.ModelAdmin):
             org_list_items
         ))
 
-    teledata_list.allow_tags = True
-    teledata_list.short_description = 'Teledata Organization(s)'
+    teledata_orgs_list.allow_tags = True
+    teledata_orgs_list.short_description = 'Teledata Organization(s)'
 
-    def dept_unit_list(self, obj):
-        dept_units = obj.department_units.all()
-        if dept_units.count() == 0:
-            return '-'
-
-        dept_list_items = format_html_join(
-            '\n',
-            '<li><a href="{0}">{1}</a></li>',
-            (
-                (
-                    reverse(
-                        'admin:org_units_departmentunit_change',
-                        args=(dept_unit.pk,)
-                    ),
-                    dept_unit.name
-                )
-                for dept_unit in dept_units
-            )
-        )
-
-        return mark_safe('{0} Department Units:\n<ul style="margin-left: 0; margin-top: 1rem; padding-left: 0;">{1}</ul>'.format(
-            dept_units.count(),
-            dept_list_items
-        ))
-
-    dept_unit_list.allow_tags = True
-    dept_unit_list.short_description = 'Department Unit(s)'
-
-
-@admin.register(DepartmentUnit)
-class DepartmentUnitAdmin(admin.ModelAdmin):
-    search_fields = ('name',)
-    readonly_fields = ('teledata_list', 'program_dept_list',)
-
-    def teledata_list(self, obj):
-        teledata_depts = obj.teledata.all()
+    def teledata_depts_list(self, obj):
+        teledata_depts = obj.teledata_departments.all()
         if teledata_depts.count() == 0:
             return '-'
 
@@ -99,11 +93,11 @@ class DepartmentUnitAdmin(admin.ModelAdmin):
             dept_list_items
         ))
 
-    teledata_list.allow_tags = True
-    teledata_list.short_description = 'Teledata Department(s)'
+    teledata_depts_list.allow_tags = True
+    teledata_depts_list.short_description = 'Teledata Department(s)'
 
-    def program_dept_list(self, obj):
-        program_depts = obj.program_data.all()
+    def program_depts_list(self, obj):
+        program_depts = obj.program_departments.all()
         if program_depts.count() == 0:
             return '-'
 
@@ -127,5 +121,5 @@ class DepartmentUnitAdmin(admin.ModelAdmin):
             dept_list_items
         ))
 
-    program_dept_list.allow_tags = True
-    program_dept_list.short_description = 'Program Department(s)'
+    program_depts_list.allow_tags = True
+    program_depts_list.short_description = 'Program Department(s)'
