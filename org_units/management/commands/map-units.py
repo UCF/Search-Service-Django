@@ -433,13 +433,15 @@ class Command(BaseCommand):
         self.program_depts_processed = program_depts
 
         for program_dept in program_depts:
+            # Use a College Unit as the matchable parent Unit
+            # for all Program Departments:
             colleges = College.objects.filter(program__departments=program_dept).distinct()
             if colleges.count() == 1:
-                college = colleges.first().unit
+                college_unit = colleges.first().unit
             else:
-                college = None
+                college_unit = None
 
-            unit, parent_unit = self.get_unit_by_name(program_dept.full_name, college)
+            unit, parent_unit = self.get_unit_by_name(program_dept.full_name, college_unit)
             program_dept.unit = unit
             program_dept.save()
 
@@ -457,7 +459,14 @@ class Command(BaseCommand):
 
         for teledata_dept in teledata_depts:
             teledata_org_unit = teledata_dept.org.unit
-            unit, parent_unit = self.get_unit_by_name(teledata_dept.name, teledata_org_unit)
+            if teledata_dept.name == 'Main' or teledata_dept.name == 'Main Office':
+                # A lot of redundant teledata gets saved in Departments
+                # named "Main" or "Main Office". Consolidate them into their
+                # parent early:
+                unit = teledata_org_unit
+                parent_unit = teledata_org_unit.parent_unit
+            else:
+                unit, parent_unit = self.get_unit_by_name(teledata_dept.name, teledata_org_unit)
             teledata_dept.unit = unit
             teledata_dept.save()
 
