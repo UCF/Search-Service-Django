@@ -10,7 +10,22 @@ from org_units.models import *
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):
     search_fields = ('name',)
-    readonly_fields = ('parent_unit', 'child_units_list', 'college', 'teledata_orgs_list', 'teledata_depts_list', 'program_depts_list' )
+    readonly_fields = ('name', 'parent_unit_link', 'child_units_list', 'college_link', 'teledata_orgs_list', 'teledata_depts_list', 'program_depts_list',)
+    exclude = ('parent_unit', 'college',)
+
+    def parent_unit_link(self, obj):
+        return mark_safe(
+            '<a href="{0}">{1}</a>'.format(
+                reverse(
+                    'admin:org_units_unit_change',
+                    args=(obj.parent_unit.pk,)
+                ),
+                obj.parent_unit.name
+            )
+        )
+
+    parent_unit_link.allow_tags = True
+    parent_unit_link.short_description = 'Parent Unit'
 
     def child_units_list(self, obj):
         child_units = obj.child_units.all()
@@ -39,6 +54,20 @@ class UnitAdmin(admin.ModelAdmin):
 
     child_units_list.allow_tags = True
     child_units_list.short_description = 'Child Unit(s)'
+
+    def college_link(self, obj):
+        return mark_safe(
+            '<a href="{0}">{1}</a>'.format(
+                reverse(
+                    'admin:programs_college_change',
+                    args=(obj.college.pk,)
+                ),
+                obj.college.full_name
+            )
+        )
+
+    college_link.allow_tags = True
+    college_link.short_description = 'College'
 
     def teledata_orgs_list(self, obj):
         teledata_orgs = obj.teledata_organizations.all()

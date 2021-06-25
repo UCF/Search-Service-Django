@@ -2,6 +2,7 @@ import re
 from urllib.parse import urlparse
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Count
 from django.db.models import Value as V
 from django.db.models.functions import StrIndex
 from progress.bar import ChargingBar  # TODO
@@ -38,6 +39,7 @@ class Command(BaseCommand):
         self.map_orgs_teledata()
         self.map_depts_programs()
         self.map_depts_teledata()
+        self.consolidate_duplicate_units()
         self.delete_stale_units()
         self.print_stats()
 
@@ -410,12 +412,11 @@ class Command(BaseCommand):
         # look like they could align to a College should go first (see
         # `annotate()`/`order_by()` above)
         for teledata_org in teledata_orgs:
-            org_parent_unit = None
-            if 'school of' in teledata_org.name.lower():
-                # If this Organization corresponds to a school, try to extract
-                # the parent College's Unit from teledata meta
-                org_parent_unit = self.get_college_unit_by_school_teledata(teledata_org)
-            unit, parent_unit = self.get_unit_by_name(teledata_org.name, org_parent_unit)
+            # Try to extract a parent College's Unit from teledata meta;
+            # use it as the parent Unit if available
+            org_college_unit = self.get_college_unit_by_teledata_org(teledata_org)
+
+            unit, parent_unit = self.get_unit_by_name(teledata_org.name, org_college_unit)
             teledata_org.unit = unit
             teledata_org.save()
 
@@ -464,7 +465,7 @@ class Command(BaseCommand):
                 unit.parent_unit = parent_unit
                 unit.save()
 
-    def get_college_unit_by_school_teledata(self, teledata_org):
+    def get_college_unit_by_teledata_org(self, teledata_org):
         """
         Sniffs through a Teledata Organization's metadata to determine
         what College Unit it should belong to.
@@ -503,12 +504,62 @@ class Command(BaseCommand):
 
         return college_unit
 
+    def consolidate_duplicate_units(self):
+        """
+        Attempts to consolidate Units with exactly 2 identical name matches.
+        Considering the logic in this script, we cannot accurately determine
+        dupes of more than two name matches, and can only make assumptions
+        about Units when one of the two is missing a parent.
+        """
+        dupe_names = Unit.objects.values('name').annotate(name_count=Count('pk')).filter(name_count=2)
+        for dupe_name in dupe_names:
+            try:
+                # The dupe without a parent must *not* have a College
+                # assigned to it. Higher-level organizations can contain
+                # a College.
+                dupe_with_parent = Unit.objects.get(name=dupe_name['name'], parent_unit__isnull=False)
+                dupe_without_parent = Unit.objects.get(name=dupe_name['name'], parent_unit__isnull=True, college__isnull=True)
+            except (Unit.DoesNotExist, Unit.MultipleObjectsReturned):
+                continue
+
+            # Assume the dupe with a parent is the preferred Unit.
+            # Update the dupe with a parent with values from the
+            # orphan Unit:
+            if dupe_without_parent.child_units:
+                for child in dupe_without_parent.child_units.all():
+                    child.parent_unit = dupe_with_parent
+                    child.save()
+            if dupe_without_parent.teledata_organizations:
+                for org in dupe_without_parent.teledata_organizations.all():
+                    org.unit = dupe_with_parent
+                    org.save()
+            if dupe_without_parent.teledata_departments:
+                for teledata_dept in dupe_without_parent.teledata_departments.all():
+                    teledata_dept.unit = dupe_with_parent
+                    teledata_dept.save()
+            if dupe_without_parent.program_departments:
+                for program_dept in dupe_without_parent.program_departments.all():
+                    program_dept.unit = dupe_with_parent
+                    program_dept.save()
+
+            # Finally, delete the dupe with no parent:
+            if dupe_without_parent in self.units_created:
+                self.units_created.remove(dupe_without_parent)
+            elif dupe_without_parent in self.units_updated:
+                self.units_updated.remove(dupe_without_parent)
+            else:
+                self.units_deleted_count += 1
+
+            dupe_without_parent.delete()
+
     def delete_stale_units(self):
         """
         Deletes Units that no longer have any
         external ForeignKey relationships.
         """
         stale_units = Unit.objects.filter(
+            parent_unit__isnull=True,
+            child_units__isnull=True,
             teledata_departments__isnull=True,
             teledata_organizations__isnull=True,
             program_departments__isnull=True
