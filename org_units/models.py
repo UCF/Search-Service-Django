@@ -28,10 +28,10 @@ class Unit(models.Model):
         except Unit.college.RelatedObjectDoesNotExist:
             parent = self.parent_unit
             while parent:
-                if parent.college:
+                try:
                     college = parent.college
                     break
-                else:
+                except Unit.college.RelatedObjectDoesNotExist:
                     parent = parent.parent_unit
 
         return college
