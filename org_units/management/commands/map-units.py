@@ -1,6 +1,7 @@
 import re
 from urllib.parse import urlparse
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Count
 from django.db.models import Q
@@ -18,6 +19,10 @@ from programs.models import Department as ProgramDept
 class Command(BaseCommand):
     help = 'Assigns relationships across various apps for organizations and departments'
 
+    full_name_replacements = {}
+    basic_replacements = {}
+    lowercase_replacements = []
+    uppercase_replacements = []
     teledata_orgs_processed = None
     colleges_processed = None
     teledata_depts_processed = None
@@ -40,6 +45,11 @@ class Command(BaseCommand):
         in order for teledata and Program Departments to
         map properly, Colleges must be mapped first.
         """
+        self.full_name_replacements = settings.UNIT_NAME_FULL_REPLACEMENTS
+        self.basic_replacements = settings.UNIT_NAME_PARTIAL_REPLACEMENTS
+        self.lowercase_replacements = settings.UNIT_NAME_LOWERCASE_REPLACEMENTS
+        self.uppercase_replacements = settings.UNIT_NAME_UPPERCASE_REPLACEMENTS
+
         self.colleges_processed = College.objects.all()
         # Teledata Organizations that look like they could align to a College
         # should be prioritized for processing, hence the ordering here:
@@ -84,89 +94,6 @@ class Command(BaseCommand):
         or department for consistency and to make cross-app
         string matching possible
         """
-        # Full name replacements ARE case-sensitive! They are performed
-        # *before* names are Capital-Cased.
-        full_name_replacements = {
-            'Amateur Radio Club-K4UCF': ['AMATEUR RADIO CLUB-K4UCF'],
-            'Barnes and Noble Bookstore @ UCF': ['BARNES & NOBLE BOOKSTORE@ UCF'],
-            'Burnett School of Biomedical Sciences': ['Biomedical Sciences', 'BIOMEDICAL SCIENCES, BURNETT SCHOOL OF'],
-            'Center for Advanced Transportation Systems Simulation (CATSS)': ['Ctr. for Advanced Transportation Sys. Simulation', 'CATSS'],
-            'Civil, Environmental, and Construction Engineering': ['Civil, Environ, & Constr Engr'],
-            'College of Business': ['BUSINESS ADMINISTRATION, COLLEGE OF', 'College of Business Administration'],
-            'College of Optics and Photonics': ['CREOL, THE COLLEGE OF OPTICS AND PHOTONICS', 'CREOL'],
-            'Counselor Education and School Psychology': ['Counslr Educ & Schl Psychology'],
-            'Dean\'s Office': ['Office of the Dean'],
-            'Department of Finance, Dr. P. Phillips School of Real Estate': ['DEPARTMENT OF FINANCE/DR. P. PHILLIPS SCHOOL OF REAL ESTATE'],
-            'Florida Interactive Entertainment Academy (FIEA)': ['Florida Interactive Entertainment Academy'],
-            'Finance': ['Budget & Finance'],
-            'Food Service and Lodging Management': ['Food Svcs & Lodging Management'],
-            'Industrial Engineering and Management Systems': ['Industrial Engr & Mgmt Sys'],
-            'Interdisciplinary Studies': ['Office of Interdisc Studies'],
-            'Judaic Studies': ['JUDAIC STUDIES PROGRAM'],
-            'Learning Institute for Elders (LIFE @ UCF)': ['LIFE', 'LEARNING INSTITUTE FOR ELDERS  (LIFE @ UCF)'],
-            'Modern Languages and Literatures': ['Modern Languages', 'Modern Language & Literatures'],
-            'National Center for Optics and Photonics Education, Waco, TX': ['OP-TEC Nat. Ctr.,Optics & Photonics Ed./Waco,TX'],
-            'School of Communication Sciences and Disorders': ['Communication Sciences & Disorders Department'],
-            'School of Kinesiology and Physical Therapy': ['Kinesiology&Phys Thpy, Schl of'],
-            'School of Politics, Security, and International Affairs': ['Pol, Scty & Intl Afrs, Schl of'],
-            'School of Teacher Education': ['Teacher Education 2, School'],
-            'Tourism, Events and Attractions': ['Tourism Event and Attractions', 'Tourism, Events and Attraction', 'Tourism, Events, and Attractions'],
-            'UCF Card Office': ['UCF CARD', 'UCF Card'],
-            'UCF Connect - Administration': ['Administration - UCF Connect'],
-            'Women\'s Studies': ['Womens Studies', 'WOMEN\'S STUDIES PROGRAM', 'Women\'s Studies Program']
-        }
-
-        # Basic replacements ARE case-sensitive! They are performed
-        # *after* names are Capital-Cased.
-        basic_replacements = {
-            '\'': ['’'],
-            'Academic': ['Acad.'],
-            'Additional': ['Add.'],
-            'Administration': ['Adm.', 'Admin.'],
-            ' and ': [' & '],
-            'Application': ['App.'],
-            'AVP': ['Avp'],
-            'Business ': ['Bus '],
-            'Café': ['Cafe'],
-            'Center': ['Ctr.'],
-            'Children': ['Childern'],
-            'Communication ': ['Comm '],
-            'Counselor': ['Counslr'],
-            'Department': ['Dept'],
-            'Demonstration': ['Demo.'],
-            'Educational ': ['Educ. ', 'Educ ', 'Ed '],
-            'Engineering': ['Engr'],
-            'Florida': ['Fla.'],
-            'General': ['Gen.'],
-            'Graduate ': ['Grad '],
-            'Information': ['Inform.'],
-            'Institute': ['Inst.'],
-            'International': ['Intl'],
-            'Leadership': ['Ldrshp'],
-            'Management': ['Mgmt.', 'Mgmt'],
-            'NanoScience': ['Nanoscience'],
-            'Office': ['Ofc.'],
-            'Programs': ['Prgms'],
-            'Prop.': ['Prop.'],
-            'Regional': ['Rgnl'],
-            'Services': ['Svcs', 'Srvcs'],
-            'School ': ['Schl '],
-            'Sciences ': ['Sci '],
-            'Technology': ['Tech.']
-        }
-
-        # These words should always be lowercase
-        lowercase_replacements = [
-            'and', 'of', 'for', 'in', 'at'
-        ]
-
-        # These words should always be uppercase/all-caps
-        uppercase_replacements = [
-            'AVP', 'BRIDG', 'CHAMPS', 'CREATE', 'FM', 'GTA', 'HRIS', 'IT',
-            'LETTR', 'LINK', 'NASA', 'RESTORES', 'ROTC', 'STAT', 'TV',
-            'TV/FM', 'UCF', 'WUCF',
-        ]
-
         # Trim whitespace from the start and end of the name
         name = name.strip()
 
@@ -175,7 +102,7 @@ class Command(BaseCommand):
         name = re.sub('\s+', ' ', name)
 
         # Perform initial full-name replacements
-        for replacement, replaceables in full_name_replacements.items():
+        for replacement, replaceables in self.full_name_replacements.items():
             for replaceable in replaceables:
                 if name == replaceable:
                     name = replacement
@@ -211,9 +138,9 @@ class Command(BaseCommand):
                             # Force it to be uppercase.
                             words[j] = word.upper()
                         else:
-                            if word.lower() in lowercase_replacements:
+                            if word.lower() in self.lowercase_replacements:
                                 words[j] = word.lower()
-                            elif word.upper() not in uppercase_replacements:
+                            elif word.upper() not in self.uppercase_replacements:
                                 words[j] = word[0].upper() + word[1:].lower()
                             else:
                                 words[j] = word.upper()
@@ -236,7 +163,7 @@ class Command(BaseCommand):
             ])
 
         # Perform basic string replacements
-        for replacement, replaceables in basic_replacements.items():
+        for replacement, replaceables in self.basic_replacements.items():
             for replaceable in replaceables:
                 name = name.replace(replaceable, replacement)
 
@@ -326,13 +253,13 @@ class Command(BaseCommand):
         # Force lowercase replacements on names not already
         # affected by logic above
         name = ' '.join([
-            word.lower() if word.lower() in lowercase_replacements else word for word in name.split(' ')
+            word.lower() if word.lower() in self.lowercase_replacements else word for word in name.split(' ')
         ])
 
         # Force uppercase replacements on names not already
         # affected by logic above
         name = ' '.join([
-            word.upper() if word.upper() in uppercase_replacements else word for word in name.split(' ')
+            word.upper() if word.upper() in self.uppercase_replacements else word for word in name.split(' ')
         ])
 
         # Again, trim whitespace from the start and end of the name,
