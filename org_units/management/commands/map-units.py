@@ -30,9 +30,6 @@ class Command(BaseCommand):
     dept_data_skipped_count = 0
     consolidatable_unit_names = []
     units_created = set()
-    units_updated = set()
-    units_deleted = set()
-    stale_units = None
     mapping_progress_bar = None
     cleanup_progress_bar = None
 
@@ -40,11 +37,18 @@ class Command(BaseCommand):
         """
         Main entry function for the command.
         Execution logic handled here.
-
-        NOTE: order is important here! Particularly,
-        in order for teledata and Program Departments to
-        map properly, Colleges must be mapped first.
         """
+        # Remove all existing Units before proceeding.
+        # Unfortunately, the logic in this importer currently
+        # is not consistent on imports against existing Units
+        # vs a fresh db, so to have the most accurate data we can,
+        # we have to start fresh with each run.
+        Unit.objects.all().delete()
+
+        # Perform mapping.
+        # NOTE: order is important here! Particularly,
+        # in order for teledata and Program Departments to
+        # map properly, Colleges must be mapped first.
         self.full_name_replacements = settings.UNIT_NAME_FULL_REPLACEMENTS
         self.basic_replacements = settings.UNIT_NAME_PARTIAL_REPLACEMENTS
         self.lowercase_replacements = settings.UNIT_NAME_LOWERCASE_REPLACEMENTS
@@ -70,22 +74,15 @@ class Command(BaseCommand):
         self.map_depts_programs()
         self.map_depts_teledata()
 
+        # Consolidate duplicate Units as best as we can.
         self.consolidatable_unit_names = Unit.objects.values('name').annotate(name_count=Count('pk')).filter(name_count=2)
-        self.stale_units = Unit.objects.filter(
-            college__isnull=True,
-            teledata_departments__isnull=True,
-            teledata_organizations__isnull=True,
-            program_departments__isnull=True
-        )
-
         self.cleanup_progress_bar = ChargingBar(
             'Cleaning up...',
-            max=len(self.consolidatable_unit_names) +
-            len(self.stale_units)
+            max=len(self.consolidatable_unit_names)
         )
         self.consolidate_duplicate_units()
-        self.delete_stale_units()
 
+        # Done.
         self.print_stats()
 
     def sanitize_unit_name(self, name):
@@ -273,7 +270,7 @@ class Command(BaseCommand):
     def get_unit_by_name(self, name, parent_unit=None):
         """
         Retrieves a Unit by its sanitized name.
-        Handles incrementing of script created/updated flags.
+        Handles incrementing of script's created flags.
         """
         unit_name_sanitized = self.sanitize_unit_name(name)
         if not unit_name_sanitized:
@@ -378,8 +375,6 @@ class Command(BaseCommand):
 
         if created:
             self.units_created.add(unit)
-        elif unit not in self.units_created:
-            self.units_updated.add(unit)
 
         return (unit, parent_unit)
 
@@ -547,22 +542,8 @@ class Command(BaseCommand):
             # Finally, delete the dupe with no parent:
             if dupe_without_parent in self.units_created:
                 self.units_created.remove(dupe_without_parent)
-            elif dupe_without_parent in self.units_updated:
-                self.units_updated.remove(dupe_without_parent)
-            else:
-                self.units_deleted.add(dupe_without_parent)
-
             dupe_without_parent.delete()
 
-    def delete_stale_units(self):
-        """
-        Deletes Units that no longer have any
-        external ForeignKey relationships.
-        """
-        for stale_unit in self.stale_units:
-            self.cleanup_progress_bar.next()
-            self.units_deleted.add(stale_unit)
-            stale_unit.delete()
 
     def print_stats(self):
         mapped_colleges = College.objects.filter(unit__isnull=False).distinct()
@@ -583,8 +564,6 @@ Departments from Teledata processed   : {}
 Department data skipped               : {}
 
 Units created                         : {}
-Units updated                         : {}
-Units deleted                         : {}
 
 Colleges mapped to a Unit with teledata: {}/{} ({}%)
 Organizations in Teledata with mapped Units: {}/{} ({}%)
@@ -601,8 +580,6 @@ Program Departments mapped to a Unit with a mapped College: {}/{} ({}%)
             self.dept_data_skipped_count,
 
             len(self.units_created),
-            len(self.units_updated),
-            len(self.units_deleted),
 
             len(mapped_colleges),
             len(self.colleges_processed),
