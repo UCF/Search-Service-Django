@@ -35,7 +35,7 @@ class CollegeAdmin(admin.ModelAdmin):
         return mark_safe(
             '<a href="{0}">{1}</a>'.format(
                 reverse(
-                    'admin:org_units_unit_change',
+                    'admin:units_unit_change',
                     args=(obj.unit.pk,)
                 ),
                 obj.unit.name
@@ -55,7 +55,7 @@ class DepartmentAdmin(admin.ModelAdmin):
         return mark_safe(
             '<a href="{0}">{1}</a>'.format(
                 reverse(
-                    'admin:org_units_unit_change',
+                    'admin:units_unit_change',
                     args=(obj.unit.pk,)
                 ),
                 obj.unit.name

@@ -9,7 +9,7 @@ from django.db.models import Value as V
 from django.db.models.functions import StrIndex
 from progress.bar import ChargingBar
 
-from org_units.models import *
+from units.models import *
 from teledata.models import Organization as TeledataOrg
 from programs.models import College
 from teledata.models import Department as TeledataDept

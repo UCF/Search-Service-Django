@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('org_units', '0004_auto_20210616_1741'),
+        ('units', '0004_auto_20210616_1741'),
         ('teledata', '0015_auto_20210611_1621'),
     ]
 
@@ -23,11 +23,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='department',
             name='unit',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='teledata_department', to='org_units.unit'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='teledata_department', to='units.unit'),
         ),
         migrations.AddField(
             model_name='organization',
             name='unit',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='teledata_organization', to='org_units.unit'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='teledata_organization', to='units.unit'),
         ),
     ]

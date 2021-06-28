@@ -14,7 +14,7 @@ from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import fields
 
-from org_units.models import Unit
+from units.models import Unit
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html_join, mark_safe
 
-from org_units.models import *
+from units.models import *
 
 # Register your models here.
 
@@ -17,7 +17,7 @@ class UnitAdmin(admin.ModelAdmin):
         return mark_safe(
             '<a href="{0}">{1}</a>'.format(
                 reverse(
-                    'admin:org_units_unit_change',
+                    'admin:units_unit_change',
                     args=(obj.parent_unit.pk,)
                 ),
                 obj.parent_unit.name
@@ -38,7 +38,7 @@ class UnitAdmin(admin.ModelAdmin):
             (
                 (
                     reverse(
-                        'admin:org_units_unit_change',
+                        'admin:units_unit_change',
                         args=(child_unit.pk,)
                     ),
                     child_unit.name
