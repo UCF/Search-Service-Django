@@ -6,7 +6,7 @@ from django.db.models import Count
 from django.db.models import Q
 from django.db.models import Value as V
 from django.db.models.functions import StrIndex
-from progress.bar import ChargingBar  # TODO
+from progress.bar import ChargingBar
 
 from org_units.models import *
 from teledata.models import Organization as TeledataOrg
@@ -97,6 +97,7 @@ class Command(BaseCommand):
             'Counselor Education and School Psychology': ['Counslr Educ & Schl Psychology'],
             'Dean\'s Office': ['Office of the Dean'],
             'Department of Finance, Dr. P. Phillips School of Real Estate': ['DEPARTMENT OF FINANCE/DR. P. PHILLIPS SCHOOL OF REAL ESTATE'],
+            'Florida Interactive Entertainment Academy (FIEA)': ['Florida Interactive Entertainment Academy'],
             'Finance': ['Budget & Finance'],
             'Food Service and Lodging Management': ['Food Svcs & Lodging Management'],
             'Industrial Engineering and Management Systems': ['Industrial Engr & Mgmt Sys'],
@@ -348,76 +349,112 @@ class Command(BaseCommand):
         Handles incrementing of script created/updated flags.
         """
         unit_name_sanitized = self.sanitize_unit_name(name)
-        if unit_name_sanitized:
-            if parent_unit:
-                # Relationships between Departments and Organizations
-                # across Programs and Teledata are wildly inconsistent.
-                # Assume that a Unit is the one we're looking for if we get a
-                # name match, and `parent_unit` is present _somewhere_ up the
-                # Unit parent relationship chain.
-                possible_parent_units = parent_unit.get_all_relatives()
+        if not unit_name_sanitized:
+            return (None, None)
 
-                # If the parent dept/org shares the same name as its child,
-                # return the parent Unit
-                if unit_name_sanitized == parent_unit.name:
-                    unit = parent_unit
-                    parent_unit = parent_unit.parent_unit
+        if parent_unit:
+            # If the parent dept/org shares the same name as its child,
+            # return the parent Unit.
+            if unit_name_sanitized == parent_unit.name:
+                unit = parent_unit
+                parent_unit = parent_unit.parent_unit
+                created = False
+            else:
+                try:
+                    # See if we can get a match with the sanitized name
+                    # and parent Unit provided first:
+                    unit = Unit.objects.get(
+                        name=unit_name_sanitized,
+                        parent_unit=parent_unit
+                    )
                     created = False
-                elif len(possible_parent_units) > 0:
+                except Unit.DoesNotExist:
+                    # Relationships between Departments and Organizations
+                    # across Programs and Teledata are wildly inconsistent.
+                    # If we couldn't get a match above, assume that a Unit is
+                    # the one we're looking for if we get a name match, and
+                    # `parent_unit` is present _somewhere_ in the Unit parent
+                    # relationship chain.
+                    possible_parent_units = parent_unit.get_all_parents()
+
+                    # If the Unit does not appear to map to a school, and
+                    # the parent Unit maps to a College, add all school
+                    # Units under the College to the list of possible
+                    # parent Units to match against.
+                    # NOTE: if relevant school-mapped Units haven't yet been
+                    # created/imported, this logic won't have any effect!
+                    parent_has_college = False
                     try:
-                        # Try to get a single existing Unit match:
-                        unit = Unit.objects.get(
-                            name=unit_name_sanitized,
-                            parent_unit__in=possible_parent_units
-                        )
-                        created = False
-                    except Unit.DoesNotExist:
-                        # Proceed with creating a new Unit with the
-                        # original `parent_unit`.
+                        parent_has_college = True if parent_unit.college else False
+                    except:
+                        pass
+                    if parent_has_college and not 'school of' in unit_name_sanitized.lower():
+                        parent_schools = Unit.objects.filter(
+                            parent_unit=parent_unit,
+                            name__icontains='school of'
+                        ).all()
+                        possible_parent_units += list(parent_schools)
+
+                    if len(possible_parent_units):
+                        try:
+                            # Try to get a single existing Unit match:
+                            unit = Unit.objects.get(
+                                name=unit_name_sanitized,
+                                parent_unit__in=possible_parent_units
+                            )
+                            created = False
+                        except Unit.DoesNotExist:
+                            # We've tried finding an existing Unit with the
+                            # provided `parent_unit` and all available,
+                            # possible relative parent Units, but failed.
+                            # Proceed with creating a new Unit with the
+                            # original `parent_unit`.
+                            unit = Unit(
+                                name=unit_name_sanitized,
+                                parent_unit=parent_unit
+                            )
+                            unit.save()
+                            created = True
+                        except Unit.MultipleObjectsReturned:
+                            # There are multiple Units with this name that are
+                            # assigned a parent in `possible_parent_units`, so we
+                            # can't accurately determine which one is the "right"
+                            # one to use. Skip.
+                            self.dept_data_skipped_count += 1
+                            return (None, None)
+                    else:
+                        # `parent_unit` is the only possible parent Unit we
+                        # have to work with, so proceed with creating a
+                        # new Unit:
                         unit = Unit(
                             name=unit_name_sanitized,
                             parent_unit=parent_unit
                         )
                         unit.save()
                         created = True
-                    except Unit.MultipleObjectsReturned:
-                        # There are multiple Units with this name that are
-                        # assigned a parent in `possible_parent_units`, so we
-                        # can't accurately determine which one is the "right"
-                        # one to use. Skip.
-                        self.dept_data_skipped_count += 1
-                        return (None, None)
-                else:
-                    # Assume this Unit shouldn't have a parent.
-                    unit, created = Unit.objects.get_or_create(
-                        name=unit_name_sanitized,
-                        parent_unit=None
-                    )
-            else:
-                # Try to find a match for an Organization that belongs
-                # to a College:
-                try:
-                    unit = Unit.objects.get(
-                        name=unit_name_sanitized,
-                        parent_unit__college__isnull=False
-                    )
-                    created = False
-                except (Unit.DoesNotExist, Unit.MultipleObjectsReturned):
-                    # This is probably an Organization or a College.
-                    # Procced with getting/creating a Unit with no parent.
-                    unit, created = Unit.objects.get_or_create(
-                        name=unit_name_sanitized,
-                        parent_unit=None
-                    )
-
-            if created:
-                self.units_created.add(unit)
-            elif unit not in self.units_created:
-                self.units_updated.add(unit)
-
-            return (unit, parent_unit)
         else:
-            return (None, None)
+            # Try to find a single match for an existing Unit whose
+            # immediate parent maps to a College:
+            try:
+                unit = Unit.objects.get(
+                    name=unit_name_sanitized,
+                    parent_unit__college__isnull=False
+                )
+                created = False
+            except (Unit.DoesNotExist, Unit.MultipleObjectsReturned):
+                # This is probably an Organization or a College.
+                # Procced with getting/creating a Unit with no parent.
+                unit, created = Unit.objects.get_or_create(
+                    name=unit_name_sanitized,
+                    parent_unit=None
+                )
+
+        if created:
+            self.units_created.add(unit)
+        elif unit not in self.units_created:
+            self.units_updated.add(unit)
+
+        return (unit, parent_unit)
 
     def map_orgs_colleges(self):
         """
@@ -521,16 +558,19 @@ class Command(BaseCommand):
         elif url:
             # As a fallback, try to see if `url` looks like a subdomain
             # of an existing College's teledata URL
-            url = urlparse(url)
-            url_domain = url.netloc.replace('www.', '')
             for c in college_units:
                 try:
                     for org in c.teledata_organizations.all():
-                        org_url = urlparse(org.url)
-                        org_url_domain = org_url.netloc.replace('www.', '')
-                        if org_url_domain in url_domain:
-                            college_unit = c
-                            break
+                        if org.url:
+                            org_url = urlparse(org.url)
+                            # The domain of the URL will be stored in
+                            # `org_url.netloc` if urllib thinks it's
+                            # not a relative URL; otherwise, the whole
+                            # URL will get tossed into `org_url.path`:
+                            org_url_domain = org_url.netloc.replace('www.', '') if org_url.netloc else org_url.path.split('/', 1)[0]
+                            if org_url_domain and org_url_domain in url:
+                                college_unit = c
+                                break
                     if college_unit:
                         break
                 except AttributeError:
@@ -598,17 +638,15 @@ class Command(BaseCommand):
             stale_unit.delete()
 
     def print_stats(self):
-        mapped_colleges = len(College.objects.filter(unit__isnull=False).distinct())
-        mapped_teledata_orgs = len(TeledataOrg.objects.filter(unit__isnull=False))
-        mapped_program_depts = len(ProgramDept.objects.filter(unit__isnull=False))
-        mapped_teledata_depts = len(TeledataDept.objects.filter(unit__isnull=False))
+        mapped_colleges = College.objects.filter(unit__isnull=False).distinct()
+        mapped_teledata_orgs = TeledataOrg.objects.filter(unit__isnull=False)
+        mapped_program_depts = ProgramDept.objects.filter(unit__isnull=False)
+        mapped_teledata_depts = TeledataDept.objects.filter(unit__isnull=False)
 
-        prog_depts_with_mapped_teledata = len(ProgramDept.objects.filter(
+        prog_depts_with_mapped_teledata = ProgramDept.objects.filter(
             Q(unit__teledata_departments__isnull=False) | Q(unit__teledata_organizations__isnull=False)
-        ).distinct())
-        prog_depts_with_mapped_college = len([d for d in ProgramDept.objects.filter(
-            unit__isnull=False
-        ) if d.unit.get_college() is not None])
+        ).distinct()
+        prog_depts_with_mapped_college = [d for d in mapped_program_depts if d.unit.get_related_college() is not None]
 
         stats = """
 Colleges from Programs processed      : {}
@@ -639,29 +677,29 @@ Program Departments mapped to a Unit with a mapped College: {}/{} ({}%)
             len(self.units_updated),
             len(self.units_deleted),
 
-            mapped_colleges,
+            len(mapped_colleges),
             len(self.colleges_processed),
-            round((mapped_colleges / len(self.colleges_processed)) * 100),
+            round((len(mapped_colleges) / len(self.colleges_processed)) * 100),
 
-            mapped_teledata_orgs,
+            len(mapped_teledata_orgs),
             len(self.teledata_orgs_processed),
-            round((mapped_teledata_orgs / len(self.teledata_orgs_processed)) * 100),
+            round((len(mapped_teledata_orgs) / len(self.teledata_orgs_processed)) * 100),
 
-            mapped_program_depts,
+            len(mapped_program_depts),
             len(self.program_depts_processed),
-            round((mapped_program_depts / len(self.program_depts_processed)) * 100),
+            round((len(mapped_program_depts) / len(self.program_depts_processed)) * 100),
 
-            mapped_teledata_depts,
+            len(mapped_teledata_depts),
             len(self.teledata_depts_processed),
-            round((mapped_teledata_depts / len(self.teledata_depts_processed)) * 100),
+            round((len(mapped_teledata_depts) / len(self.teledata_depts_processed)) * 100),
 
-            prog_depts_with_mapped_teledata,
+            len(prog_depts_with_mapped_teledata),
             len(self.program_depts_processed),
-            round((prog_depts_with_mapped_teledata / len(self.program_depts_processed)) * 100),
+            round((len(prog_depts_with_mapped_teledata) / len(self.program_depts_processed)) * 100),
 
-            prog_depts_with_mapped_college,
+            len(prog_depts_with_mapped_college),
             len(self.program_depts_processed),
-            round((prog_depts_with_mapped_college / len(self.program_depts_processed)) * 100),
+            round((len(prog_depts_with_mapped_college) / len(self.program_depts_processed)) * 100),
         )
 
         self.stdout.write(stats)

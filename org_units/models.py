@@ -5,7 +5,8 @@ from django.db import models
 
 class Unit(models.Model):
     """
-    TODO
+    A generic 'unit' that represents a college,
+    department, or organization
     """
     name = models.CharField(max_length=255, null=False, blank=False)
     parent_unit = models.ForeignKey('self',
@@ -20,7 +21,11 @@ class Unit(models.Model):
     def __unicode__(self):
         return self.name
 
-    def get_college(self):
+    def get_related_college(self):
+        """
+        Returns a College assigned to either the given Unit,
+        or a College assigned to one of the Unit's parents.
+        """
         college = None
 
         try:
@@ -37,34 +42,31 @@ class Unit(models.Model):
         return college
 
     def get_topmost_parent(self):
-        topmost_parent = self.parent_unit
+        """
+        Returns the uppermost parent Unit in the Unit's
+        chain of parent relationships.  Will return the
+        given Unit if it has no parent.
+        """
+        topmost_parent = self
+        all_parents = self.get_all_parents()
 
-        if topmost_parent is None:
-            topmost_parent = self
-        else:
-            while topmost_parent:
-                next_parent = topmost_parent.parent_unit
-                if next_parent:
-                    topmost_parent = next_parent
-                else:
-                    break
+        if len(all_parents):
+            topmost_parent = all_parents[-1]
 
         return topmost_parent
 
-    def get_all_relatives(self, start_from=None):
+    def get_all_parents(self):
         """
-        Returns all Units in a tree of parent/child
-        relationships.
+        Returns all parent Units related to the Unit,
+        ordered by closest to furthest parent relationship
+        (e.g. parent, grandparent, great-grandparent...)
         """
-        topmost_unit = start_from if start_from is not None else self.get_topmost_parent()
-        relatives = [topmost_unit]
+        parents = []
+        topmost_parent = self.parent_unit
 
-        try:
-            children = topmost_unit.child_units.all()
-            for child in children:
-                child_relatives = child.get_all_relatives(child)
-                relatives.extend(child_relatives)
-        except Unit.RelatedObjectDoesNotExist:
-            pass
+        while topmost_parent:
+            parents.append(topmost_parent)
+            topmost_parent = topmost_parent.parent_unit
 
-        return relatives
+        return parents
+
