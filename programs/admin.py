@@ -158,13 +158,19 @@ class CIPAdmin(admin.ModelAdmin):
 
 @admin.register(SOC)
 class SOCAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('name', 'code')
+    list_filter = ('version',)
 
 
 @admin.register(EmploymentProjection)
 class EmploymentProjectionAdmin(admin.ModelAdmin):
     pass
 
+
+@admin.register(ProgramOutcomeStat)
+class ProgramOutcomeStat(admin.ModelAdmin):
+    search_fields = ('cip__name',)
+    list_filter = ('academic_year',)
 
 @admin.register(AdmissionTerm)
 class AdmissionTermAdmin(admin.ModelAdmin):

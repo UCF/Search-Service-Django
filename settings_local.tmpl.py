@@ -110,13 +110,32 @@ LOGGING = {
 
 APP_NAME = 'UCF Search Service'
 
+# The available CIP versions that can be used.
+# More info: https://nces.ed.gov/ipeds/cipcode/
+CIP_AVAILABLE_VERSIONS = [
+    ('2010', '2010'),
+    ('2020', '2020'),
+]
+
 # Set a base CIP version to use when filtering other objects by CIP.
 # More info: https://nces.ed.gov/ipeds/cipcode/
 CIP_CURRENT_VERSION = '2010'
 
+# The available SOC versions that can be used.
+# More info: https://www.bls.gov/soc/
+SOC_AVAILABLE_VERSIONS = [
+    ('2010', '2010'),
+    ('2018', '2018'),
+]
+
 # Set a base SOC version to use when filtering other objects by SOC.
 # More info: https://www.bls.gov/soc/
 SOC_CURRENT_VERSION = '2010'
+
+# Available employment project report year ranges
+PROJ_AVAILABLE_REPORTS = [
+    ('1828', '2018-2028'),
+]
 
 # Set the current employment projection report year range
 PROJ_CURRENT_REPORT = '1828'

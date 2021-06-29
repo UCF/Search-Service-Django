@@ -21,9 +21,10 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             'file',
-            type=FileType('r', encoding='utf-8'),
+            type=FileType('r', encoding='utf-8-sig'),
             help='The file path of the csv file'
         )
+
         parser.add_argument(
             '--verbose',
             help='Use verbose logging',
@@ -102,14 +103,14 @@ class Command(BaseCommand):
             if cip is not None and soc_code != 'NO MATCH':
                 try:
                     existing = SOC.objects.get(code=soc_code, version=self.soc_version)
-                    existing.name = cip_title
+                    existing.name = soc_title
                     existing.cip.add(cip)
                     existing.save()
 
                     self.socs_updated += 1
                 except SOC.DoesNotExist:
                     new_soc = SOC(
-                        name=cip_title,
+                        name=soc_title,
                         code=soc_code,
                         version=self.soc_version
                     )
