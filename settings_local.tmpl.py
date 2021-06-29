@@ -273,6 +273,8 @@ ORCID_BASE_API_URL = 'https://pub.orcid.org/v2.1/'
 
 INSTITUTION_GRID_ID = ''
 
+RESEARCH_MAX_THREADS = 10
+
 # Full name replacements to be performed on college, department and
 # organization names for Units generated via map-units.py.
 # Full name replacements are case-sensitive. Replacements are performed

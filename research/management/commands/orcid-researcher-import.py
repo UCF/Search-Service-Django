@@ -8,6 +8,8 @@ import settings
 import requests
 import math
 
+import threading, queue
+
 from progress.bar import ChargingBar
 
 class Command(BaseCommand):
@@ -63,6 +65,8 @@ class Command(BaseCommand):
         self.use_grid = False
         self.orcid_ids_to_import = []
 
+        self.max_threads = settings.RESEARCH_MAX_THREADS
+
         if options['grid_id'] is not None:
             self.grid_id = options['grid_id']
         elif hasattr(settings, 'INSTITUTION_GRID_ID') and settings.INSTITUTION_GRID_ID is not None:
@@ -77,7 +81,7 @@ class Command(BaseCommand):
             self.use_grid = True
 
         self.get_orcid_ids()
-        self.match_teledata_records()
+        self.process_ids()
         self.print_stats()
 
     def get_orcid_ids(self):
@@ -119,27 +123,23 @@ class Command(BaseCommand):
 
             current_page += 1
 
+        # Cast to a set and then back to a list to
+        # ensure there are no duplicates.
+        self.orcid_ids_to_import = list(set(self.orcid_ids_to_import))
+
         self.stdout.write('Collected {0} of {1} ORCID records found...\n'.format(self.processed, self.total_records))
 
-
-    def match_teledata_records(self):
-        """
-        Loop through the found ORCID IDs,
-        gather more information and attempt
-        to match them up with our teledata
-        records.
-        """
+    def match_teledata_record(self):
         headers = {
             'Accept': 'application/json'
         }
 
-        self.progress_bar = ChargingBar(
-            'Processing',
-            max=len(self.orcid_ids_to_import)
-        )
+        while True:
+            orcid_id = self.request_queue.get()
 
-        for orcid_id in self.orcid_ids_to_import:
-            self.progress_bar.next()
+            with self.mt_lock:
+                self.progress_bar.next()
+
             try:
                 Researcher.objects.get(
                     orcid_id=orcid_id
@@ -147,8 +147,10 @@ class Command(BaseCommand):
 
                 # Not really, but it makes for better
                 # at-a-glance understanding
-                self.updated += 1
+                with self.mt_lock:
+                    self.updated += 1
                 # Nothing to do, continue
+                self.request_queue.task_done()
                 continue
             except Researcher.DoesNotExist:
                 existing = None
@@ -164,7 +166,9 @@ class Command(BaseCommand):
                 first_name = data['person']['name']['given-names']['value']
                 last_name = data['person']['name']['family-name']['value']
             except (KeyError, TypeError):
-                self.error += 1
+                with self.mt_lock:
+                    self.error += 1
+                self.request_queue.task_done()
                 continue
 
             try:
@@ -176,6 +180,7 @@ class Command(BaseCommand):
                 )
 
             except Staff.DoesNotExist:
+                self.request_queue.task_done()
                 continue
             except Staff.MultipleObjectsReturned:
                 persons = Staff.objects.filter(
@@ -190,8 +195,10 @@ class Command(BaseCommand):
                     person = Staff.objects.filter(email=persons[0][0]).first()
 
                     if not person:
+                        self.request_queue.task_done()
                         continue
                 else:
+                    self.request_queue.task_done()
                     continue
 
             created = Researcher.objects.create(
@@ -200,7 +207,36 @@ class Command(BaseCommand):
             )
 
             if created:
-                self.created += 1
+                with self.mt_lock:
+                    self.created += 1
+
+            self.request_queue.task_done()
+
+    def process_ids(self):
+        """
+        Loop through the found ORCID IDs,
+        gather more information and attempt
+        to match them up with our teledata
+        records.
+        """
+        self.progress_bar = ChargingBar(
+            'Processing',
+            max=len(self.orcid_ids_to_import)
+        )
+
+        self.request_queue = queue.Queue()
+
+        # Main thread lock, for when we need
+        # to update things on the main thread
+        self.mt_lock = threading.Lock()
+
+        for x in range(self.max_threads):
+            threading.Thread(target=self.match_teledata_record, daemon=True).start()
+
+        for orcid_id in self.orcid_ids_to_import:
+            self.request_queue.put(orcid_id)
+
+        self.request_queue.join()
 
 
     def __request_records(self, page_num, request_url, params, headers):
@@ -223,17 +259,12 @@ class Command(BaseCommand):
         return data
 
     def print_stats(self):
-        stats = """
-Processed : {0}
-Created   : {1}
-Updated   : {2}
-Errors    : {3}
+        stats = f"""
+Processed : {self.processed}
+Created   : {self.created}
+Updated   : {self.updated}
+Errors    : {self.error}
 
-        """.format(
-            self.processed,
-            self.created,
-            self.updated,
-            self.error
-        )
+        """
 
         self.stdout.write(stats)

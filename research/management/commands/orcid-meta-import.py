@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 import settings
 import requests
+import threading, queue
 
 from datetime import datetime
 
@@ -39,118 +40,202 @@ class Command(BaseCommand):
         self.work_records_skipped = 0
         self.work_records_error = 0
 
+        self.max_threads = settings.RESEARCH_MAX_THREADS
+
         self.records = Researcher.objects.all()
         self.orcid_base_url = settings.ORCID_BASE_API_URL
         self.headers = {
             'Accept': 'application/json'
         }
 
+        self.education_queue = queue.Queue()
+        self.works_queue = queue.Queue()
+        self.works_detail_queue = queue.Queue()
+
+        self.mt_lock = threading.Lock()
+
         self.__update_meta()
 
     def __update_meta(self):
-        self.progress_bar = ChargingBar(
-            'Updating researcher meta...',
+        self.education_threads = []
+        self.works_threads = []
+        self.work_detail_threads = []
+
+        self.education_pb = ChargingBar(
+            'Updating researcher education...',
             max=self.records.count()
         )
 
+        self.works_pb = ChargingBar(
+            'Gathering researcher works...',
+            max=self.records.count()
+        )
+
+        for _ in range(self.max_threads):
+            threading.Thread(target=self.__update_education, daemon=True).start()
+
+
         for researcher in self.records:
-            self.__update_education(researcher)
-            self.__update_works(researcher)
-            self.progress_bar.next()
+            self.education_queue.put(researcher)
+            self.works_queue.put(researcher)
+
+            # Works details get filled up during
+            # the thread work of the __get_works_data
+            # functions.
+
+        # Let's take care of all the research at once
+        self.education_queue.join()
+
+        for _ in range(self.max_threads):
+            threading.Thread(target=self.__get_works_data, daemon=True).start()
+
+        self.works_queue.join()
+
+        # Everything below is dependent on everything
+        # above finishing. That's why none of the following
+        # is declared until after the second queue.join()
+
+        self.works_details_pb = ChargingBar(
+            'Updating researcher works data...',
+            max=self.works_detail_queue.qsize()
+        )
+
+        for _ in range(self.max_threads):
+            threading.Thread(target=self.__process_works_details, daemon=True).start()
+
+        self.works_detail_queue.join()
 
         self.print_stats()
 
-    def __update_education(self, researcher):
-        education_url = '{0}{1}/educations'.format(
-            self.orcid_base_url,
-            researcher.orcid_id
-        )
+    def __update_education(self):
+        while True:
+            researcher = self.education_queue.get()
 
-        try:
-            education_data = self.__request_records(education_url)
-        except CommandError:
-            education_data = None
+            with self.mt_lock:
+                self.education_pb.next()
 
-        # Exit early if we didn't get any education data
-        if education_data is None:
-            return
+            education_url = '{0}{1}/educations'.format(
+                self.orcid_base_url,
+                researcher.orcid_id
+            )
 
-        for education in education_data['education-summary']:
-            self.edu_records_processed += 1
-
-            # Wrap all the required fields in a try/except
             try:
-                institution_name = education['organization']['name']
-                role_name = education['role-title']
-                put_code = education['put-code']
-            except (KeyError, TypeError):
-                # Can't add if any of these are missing
-                self.edu_records_skipped += 1
+                education_data = self.__request_records(education_url)
+            except CommandError:
+                education_data = None
+
+            # Exit early if we didn't get any education data
+            if education_data is None:
+                self.education_queue.task_done()
                 continue
 
-            try:
-                department_name = education['department-name']
-            except (KeyError, TypeError):
-                # We can live without a department_name.
-                department_name = None
+            for education in education_data['education-summary']:
+                with self.mt_lock:
+                    self.edu_records_processed += 1
 
-            start_date = self.__format_orcid_date(education['start-date'])
-            end_date = self.__format_orcid_date(education['end-date'])
-
-            try:
-                existing = ResearcherEducation.objects.get(education_put_code=put_code)
-            except ResearcherEducation.DoesNotExist:
-                existing = None
-
-            if existing:
+                # Wrap all the required fields in a try/except
                 try:
-                    existing.institution_name = institution_name
-                    existing.start_date = start_date
-                    existing.end_date = end_date
-                    existing.department_name = department_name
-                    existing.role_name = role_name
-                    existing.save()
+                    institution_name = education['organization']['name']
+                    role_name = education['role-title']
+                    put_code = education['put-code']
+                except (KeyError, TypeError):
+                    # Can't add if any of these are missing
+                    with self.mt_lock:
+                        self.edu_records_skipped += 1
+                    self.education_queue.task_done()
+                    continue
 
-                    self.edu_records_updated += 1
-                except:
-                    self.edu_records_error += 1
-            else:
                 try:
-                    ResearcherEducation.objects.create(
-                        researcher=researcher,
-                        institution_name=institution_name,
-                        start_date=start_date,
-                        end_date=end_date,
-                        department_name=department_name,
-                        role_name=role_name,
-                        education_put_code=put_code
-                    )
-                except:
-                    self.edu_records_error += 1
+                    department_name = education['department-name']
+                except (KeyError, TypeError):
+                    # We can live without a department_name.
+                    department_name = None
+
+                start_date = self.__format_orcid_date(education['start-date'])
+                end_date = self.__format_orcid_date(education['end-date'])
+
+                try:
+                    existing = ResearcherEducation.objects.get(education_put_code=put_code)
+                except ResearcherEducation.DoesNotExist:
+                    existing = None
+
+                if existing:
+                    try:
+                        existing.institution_name = institution_name
+                        existing.start_date = start_date
+                        existing.end_date = end_date
+                        existing.department_name = department_name
+                        existing.role_name = role_name
+                        existing.save()
+
+                        with self.mt_lock:
+                            self.edu_records_updated += 1
+                    except:
+                        with self.mt_lock:
+                            self.edu_records_error += 1
+                else:
+                    try:
+                        ResearcherEducation.objects.create(
+                            researcher=researcher,
+                            institution_name=institution_name,
+                            start_date=start_date,
+                            end_date=end_date,
+                            department_name=department_name,
+                            role_name=role_name,
+                            education_put_code=put_code
+                        )
+                    except:
+                        with self.mt_lock:
+                            self.edu_records_error += 1
 
 
-    def __update_works(self, researcher):
-        works_url = '{0}{1}/works'.format(
-            self.orcid_base_url,
-            researcher.orcid_id
-        )
+            self.education_queue.task_done()
 
-        try:
-            works_data = self.__request_records(works_url)
-        except:
-            works_data = None
 
-        if works_data is None:
-            return
+    def __get_works_data(self):
+        while True:
+            researcher = self.works_queue.get()
 
-        for work in works_data['group']:
-            self.work_records_processed += 1
+            with self.mt_lock:
+                self.works_pb.next()
+
+            works_url = '{0}{1}/works'.format(
+                self.orcid_base_url,
+                researcher.orcid_id
+            )
+
+            try:
+                works_data = self.__request_records(works_url)
+            except:
+                works_data = None
+
+            if works_data is None:
+                self.works_queue.task_done()
+                continue
+
+            for work in works_data['group']:
+                self.works_detail_queue.put((researcher, work,))
+
+            self.works_queue.task_done()
+
+
+    def __process_works_details(self):
+        while True:
+            researcher, work = self.works_detail_queue.get()
+
+            with self.mt_lock:
+                self.works_details_pb.next()
+
+            with self.mt_lock:
+                self.work_records_processed += 1
             # Make sure we have summary data
             try:
                 summary = work['work-summary'][0]
             except (KeyError, ValueError, TypeError):
                 # There's no work summary, continue
-                self.work_records_skipped += 1
+                with self.mt_lock:
+                    self.work_records_skipped += 1
+                self.works_detail_queue.task_done()
                 continue
 
 
@@ -164,7 +249,9 @@ class Command(BaseCommand):
                 publish_date = self.__format_orcid_date(summary['publication-date'])
                 put_code = summary['put-code']
             except (KeyError, ValueError, TypeError):
-                self.work_records_skipped += 1
+                with self.mt_lock:
+                    self.work_records_skipped += 1
+                self.works_detail_queue.task_done()
                 continue
 
             work_details_url = '{0}{1}/works/{2}'.format(
@@ -180,7 +267,6 @@ class Command(BaseCommand):
                     bt_str = work_details['bulk'][0]['work']['citation']['citation-value']
                 except:
                     bt_str = None
-                    pass
 
             try:
                 subtitle = summary['title']['subtitle']['value'] \
@@ -190,7 +276,9 @@ class Command(BaseCommand):
                 subtitle = None
 
             if put_code is None or publish_date is None:
-                self.work_records_skipped += 1
+                with self.mt_lock:
+                    self.work_records_skipped += 1
+                self.works_detail_queue.task_done()
                 continue
 
             try:
@@ -208,9 +296,11 @@ class Command(BaseCommand):
 
                     existing.save()
 
-                    self.work_records_updated += 1
+                    with self.mt_lock:
+                        self.work_records_updated += 1
                 except:
-                    self.work_records_error += 1
+                    with self.mt_lock:
+                        self.work_records_error += 1
             else:
                 try:
                     ResearchWork.objects.create(
@@ -223,9 +313,13 @@ class Command(BaseCommand):
                         work_put_code=put_code
                     )
 
-                    self.work_records_created += 1
+                    with self.mt_lock:
+                        self.work_records_created += 1
                 except:
-                    self.work_records_error += 1
+                    with self.mt_lock:
+                        self.work_records_error += 1
+
+            self.works_detail_queue.task_done()
 
 
     def __request_records(self, request_url, params={}):
