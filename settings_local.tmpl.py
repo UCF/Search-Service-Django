@@ -332,7 +332,7 @@ UNIT_NAME_FULL_REPLACEMENTS = {
 # and organization names for Units generated via map-units.py.
 # Basic replacements are case-sensitive. Replacements are performed *after*
 # names are Capital Cased.
-UNIT_NAME_PARTIAL_REPLACMENTS = {
+UNIT_NAME_PARTIAL_REPLACEMENTS = {
     '\'': ['’'],
     'Academic': ['Acad.'],
     'Additional': ['Add.'],
