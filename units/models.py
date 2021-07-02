@@ -66,7 +66,10 @@ class Unit(models.Model):
 
         while topmost_parent:
             parents.append(topmost_parent)
-            topmost_parent = topmost_parent.parent_unit
+            if topmost_parent != topmost_parent.parent_unit:
+                topmost_parent = topmost_parent.parent_unit
+            else:
+                topmost_parent = None
 
         return parents
 
