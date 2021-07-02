@@ -37,7 +37,10 @@ class Unit(models.Model):
                     college = parent.college
                     break
                 except Unit.college.RelatedObjectDoesNotExist:
-                    parent = parent.parent_unit
+                    if parent != parent.parent_unit:
+                        parent = parent.parent_unit
+                    else:
+                        parent = None
 
         return college
 
