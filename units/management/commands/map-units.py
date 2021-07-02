@@ -64,10 +64,10 @@ class Command(BaseCommand):
 
         self.mapping_progress_bar = ChargingBar(
             'Mapping data...',
-            max=len(self.colleges_processed) +
-            len(self.teledata_orgs_processed) +
-            len(self.program_depts_processed) +
-            len(self.teledata_depts_processed)
+            max=self.colleges_processed.count() +
+            self.teledata_orgs_processed.count() +
+            self.program_depts_processed.count() +
+            self.teledata_depts_processed.count()
         )
         self.map_orgs_colleges()
         self.map_orgs_teledata()
@@ -78,7 +78,7 @@ class Command(BaseCommand):
         self.consolidatable_unit_names = Unit.objects.values('name').annotate(name_count=Count('pk')).filter(name_count=2)
         self.cleanup_progress_bar = ChargingBar(
             'Cleaning up...',
-            max=len(self.consolidatable_unit_names)
+            max=self.consolidatable_unit_names.count()
         )
         self.consolidate_duplicate_units()
 
