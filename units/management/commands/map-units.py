@@ -288,7 +288,7 @@ class Command(BaseCommand):
                     # See if we can get a match with the sanitized name
                     # and parent Unit provided first:
                     unit = Unit.objects.get(
-                        name=unit_name_sanitized,
+                        name__iexact=unit_name_sanitized,
                         parent_unit=parent_unit
                     )
                     created = False
@@ -323,7 +323,7 @@ class Command(BaseCommand):
                         try:
                             # Try to get a single existing Unit match:
                             unit = Unit.objects.get(
-                                name=unit_name_sanitized,
+                                name__iexact=unit_name_sanitized,
                                 parent_unit__in=possible_parent_units
                             )
                             created = False
@@ -361,17 +361,26 @@ class Command(BaseCommand):
             # immediate parent maps to a College:
             try:
                 unit = Unit.objects.get(
-                    name=unit_name_sanitized,
+                    name__iexact=unit_name_sanitized,
                     parent_unit__college__isnull=False
                 )
                 created = False
             except (Unit.DoesNotExist, Unit.MultipleObjectsReturned):
                 # This is probably an Organization or a College.
                 # Procced with getting/creating a Unit with no parent.
-                unit, created = Unit.objects.get_or_create(
-                    name=unit_name_sanitized,
-                    parent_unit__isnull=True
-                )
+                try:
+                    unit = Unit.objects.get(
+                        name__iexact=unit_name_sanitized,
+                        parent_unit__isnull=True
+                    )
+                    created = False
+                except Unit.DoesNotExist:
+                    unit = Unit(
+                        name=unit_name_sanitized,
+                        parent_unit=None
+                    )
+                    unit.save()
+                    created = True
 
         if created:
             self.units_created.add(unit)
