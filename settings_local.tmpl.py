@@ -293,3 +293,92 @@ ORCID_BASE_API_URL = 'https://pub.orcid.org/v2.1/'
 INSTITUTION_GRID_ID = ''
 
 RESEARCH_MAX_THREADS = 10
+
+# Full name replacements to be performed on college, department and
+# organization names for Units generated via map-units.py.
+# Full name replacements are case-sensitive. Replacements are performed
+# *before* names are Capital Cased.
+UNIT_NAME_FULL_REPLACEMENTS = {
+    'Amateur Radio Club-K4UCF': ['AMATEUR RADIO CLUB-K4UCF'],
+    'Barnes and Noble Bookstore @ UCF': ['BARNES & NOBLE BOOKSTORE@ UCF'],
+    'Burnett School of Biomedical Sciences': ['Biomedical Sciences', 'BIOMEDICAL SCIENCES, BURNETT SCHOOL OF'],
+    'Center for Advanced Transportation Systems Simulation (CATSS)': ['Ctr. for Advanced Transportation Sys. Simulation', 'CATSS'],
+    'Civil, Environmental, and Construction Engineering': ['Civil, Environ, & Constr Engr'],
+    'College of Business': ['BUSINESS ADMINISTRATION, COLLEGE OF', 'College of Business Administration'],
+    'College of Optics and Photonics': ['CREOL, THE COLLEGE OF OPTICS AND PHOTONICS', 'CREOL'],
+    'Counselor Education and School Psychology': ['Counslr Educ & Schl Psychology'],
+    'Dean\'s Office': ['Office of the Dean'],
+    'Department of Finance, Dr. P. Phillips School of Real Estate': ['DEPARTMENT OF FINANCE/DR. P. PHILLIPS SCHOOL OF REAL ESTATE'],
+    'Florida Interactive Entertainment Academy (FIEA)': ['Florida Interactive Entertainment Academy'],
+    'Finance': ['Budget & Finance'],
+    'Food Service and Lodging Management': ['Food Svcs & Lodging Management'],
+    'Industrial Engineering and Management Systems': ['Industrial Engr & Mgmt Sys'],
+    'Interdisciplinary Studies': ['Office of Interdisc Studies'],
+    'Judaic Studies': ['JUDAIC STUDIES PROGRAM'],
+    'Learning Institute for Elders (LIFE @ UCF)': ['LIFE', 'LEARNING INSTITUTE FOR ELDERS  (LIFE @ UCF)'],
+    'Modern Languages and Literatures': ['Modern Languages', 'Modern Language & Literatures'],
+    'National Center for Optics and Photonics Education, Waco, TX': ['OP-TEC Nat. Ctr.,Optics & Photonics Ed./Waco,TX'],
+    'School of Communication Sciences and Disorders': ['Communication Sciences & Disorders Department'],
+    'School of Kinesiology and Physical Therapy': ['Kinesiology&Phys Thpy, Schl of'],
+    'School of Politics, Security, and International Affairs': ['Pol, Scty & Intl Afrs, Schl of'],
+    'School of Teacher Education': ['Teacher Education 2, School'],
+    'Tourism, Events and Attractions': ['Tourism Event and Attractions', 'Tourism, Events and Attraction', 'Tourism, Events, and Attractions'],
+    'UCF Card Office': ['UCF CARD', 'UCF Card'],
+    'UCF Connect - Administration': ['Administration - UCF Connect'],
+    'Women\'s Studies': ['Womens Studies', 'WOMEN\'S STUDIES PROGRAM', 'Women\'s Studies Program']
+}
+
+# Partial/substring name replacements to be performed on college, department
+# and organization names for Units generated via map-units.py.
+# Basic replacements are case-sensitive. Replacements are performed *after*
+# names are Capital Cased.
+UNIT_NAME_PARTIAL_REPLACEMENTS = {
+    '\'': ['’'],
+    'Academic': ['Acad.'],
+    'Additional': ['Add.'],
+    'Administration': ['Adm.', 'Admin.'],
+    ' and ': [' & '],
+    'Application': ['App.'],
+    'AVP': ['Avp'],
+    'Business ': ['Bus '],
+    'Café': ['Cafe'],
+    'Center': ['Ctr.'],
+    'Children': ['Childern'],
+    'Communication ': ['Comm '],
+    'Counselor': ['Counslr'],
+    'Department': ['Dept'],
+    'Demonstration': ['Demo.'],
+    'DeVos': ['Devos'],
+    'Educational ': ['Educ. ', 'Educ ', 'Ed '],
+    'Engineering': ['Engr'],
+    'Florida': ['Fla.'],
+    'General': ['Gen.'],
+    'Graduate ': ['Grad '],
+    'Information': ['Inform.'],
+    'Institute': ['Inst.'],
+    'International': ['Intl'],
+    'Leadership': ['Ldrshp'],
+    'Management': ['Mgmt.', 'Mgmt'],
+    'NanoScience': ['Nanoscience'],
+    'Office': ['Ofc.'],
+    'Programs': ['Prgms'],
+    'Regional': ['Rgnl'],
+    'Services': ['Svcs', 'Srvcs'],
+    'School ': ['Schl '],
+    'Sciences ': ['Sci '],
+    'Technology': ['Tech.']
+}
+
+# Partial/substring words in college, department and organization names
+# that must always be lowercase in Unit names.
+UNIT_NAME_LOWERCASE_REPLACEMENTS = [
+    'and', 'of', 'for', 'in', 'at'
+]
+
+# Partial/substring words in college, department and organization names
+# that must always be uppercase in Unit names.
+UNIT_NAME_UPPERCASE_REPLACEMENTS = [
+    'AVP', 'BRIDG', 'CHAMPS', 'CREATE', 'FM', 'GTA', 'HRIS', 'IT',
+    'LETTR', 'LINK', 'NASA', 'RESTORES', 'ROTC', 'STAT', 'TV',
+    'TV/FM', 'UCF', 'WUCF',
+]
