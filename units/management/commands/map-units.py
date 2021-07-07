@@ -27,7 +27,7 @@ class Command(BaseCommand):
     colleges_processed = None
     teledata_depts_processed = None
     program_depts_processed = None
-    dept_data_skipped_count = 0
+    data_skipped_count = 0
     consolidatable_unit_names = []
     units_created = set()
     mapping_progress_bar = None
@@ -279,7 +279,7 @@ class Command(BaseCommand):
         if parent_unit:
             # If the parent dept/org shares the same name as its child,
             # return the parent Unit.
-            if unit_name_sanitized == parent_unit.name:
+            if unit_name_sanitized.lower() == parent_unit.name.lower():
                 unit = parent_unit
                 parent_unit = parent_unit.parent_unit
                 created = False
@@ -344,7 +344,7 @@ class Command(BaseCommand):
                             # assigned a parent in `possible_parent_units`, so we
                             # can't accurately determine which one is the "right"
                             # one to use. Skip.
-                            self.dept_data_skipped_count += 1
+                            self.data_skipped_count += 1
                             return (None, None)
                     else:
                         # `parent_unit` is the only possible parent Unit we
@@ -376,9 +376,6 @@ class Command(BaseCommand):
         if created:
             self.units_created.add(unit)
 
-        if unit == parent_unit:
-            print("unit and unit parent are the same? {}".format(unit))
-
         return (unit, parent_unit)
 
     def map_orgs_colleges(self):
@@ -409,7 +406,7 @@ class Command(BaseCommand):
             teledata_org.unit = unit
             teledata_org.save()
 
-            if unit is not None and parent_unit is not None:
+            if unit is not None:
                 unit.parent_unit = parent_unit
                 unit.save()
 
@@ -580,7 +577,7 @@ Program Departments mapped to a Unit with a mapped College: {}/{} ({}%)
             len(self.teledata_orgs_processed),
             len(self.program_depts_processed),
             len(self.teledata_depts_processed),
-            self.dept_data_skipped_count,
+            self.data_skipped_count,
 
             len(self.units_created),
 

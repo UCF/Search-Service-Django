@@ -348,6 +348,7 @@ UNIT_NAME_PARTIAL_REPLACEMENTS = {
     'Counselor': ['Counslr'],
     'Department': ['Dept'],
     'Demonstration': ['Demo.'],
+    'DeVos': ['Devos'],
     'Educational ': ['Educ. ', 'Educ ', 'Ed '],
     'Engineering': ['Engr'],
     'Florida': ['Fla.'],
