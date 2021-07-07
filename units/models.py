@@ -31,16 +31,13 @@ class Unit(models.Model):
         try:
             college = self.college
         except Unit.college.RelatedObjectDoesNotExist:
-            parent = self.parent_unit
-            while parent:
+            all_parents = self.get_all_parents()
+            for parent in all_parents:
                 try:
                     college = parent.college
                     break
                 except Unit.college.RelatedObjectDoesNotExist:
-                    if parent != parent.parent_unit:
-                        parent = parent.parent_unit
-                    else:
-                        parent = None
+                    continue
 
         return college
 
@@ -68,11 +65,14 @@ class Unit(models.Model):
         topmost_parent = self.parent_unit
 
         while topmost_parent:
-            parents.append(topmost_parent)
-            if topmost_parent != topmost_parent.parent_unit:
+            if topmost_parent not in parents:
+                parents.append(topmost_parent)
                 topmost_parent = topmost_parent.parent_unit
             else:
-                topmost_parent = None
+                # We shouldn't ever get here if our data is sane,
+                # but, just in case, ensure we don't wind up
+                # in a recursive loop:
+                break
 
         return parents
 
