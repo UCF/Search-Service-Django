@@ -370,11 +370,14 @@ class Command(BaseCommand):
                 # Procced with getting/creating a Unit with no parent.
                 unit, created = Unit.objects.get_or_create(
                     name=unit_name_sanitized,
-                    parent_unit=None
+                    parent_unit__isnull=True
                 )
 
         if created:
             self.units_created.add(unit)
+
+        if unit == parent_unit:
+            print("unit and unit parent are the same? {}".format(unit))
 
         return (unit, parent_unit)
 
