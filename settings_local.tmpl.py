@@ -273,7 +273,7 @@ GRADUATE_SLATE_ENDPOINTS = {
 }
 
 # The base URL to use when building catalog URLs during the catalog import
-CATALOG_URL_BASE = 'https://catalog.ucf.edu'
+CATALOG_URL_BASE = 'https://www.ucf.edu/'
 
 # The base URL of the Acalog API
 CATALOG_API_BASE = ''
@@ -382,3 +382,8 @@ UNIT_NAME_UPPERCASE_REPLACEMENTS = [
     'LETTR', 'LINK', 'NASA', 'RESTORES', 'ROTC', 'STAT', 'TV',
     'TV/FM', 'UCF', 'WUCF',
 ]
+
+# KUALI Catalog Settings
+KUALI_BASE_URL = ''
+
+KUALI_API_TOKEN = ''
