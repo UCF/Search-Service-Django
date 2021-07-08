@@ -308,9 +308,6 @@ class Command(BaseCommand):
             programs = programs.filter(pk__in=self.program_ids)
 
         for p in programs:
-            # Is this a graduate program? (Including Professional)
-            is_graduate = p.career.name != 'Undergraduate'
-
             # Wipe out existing catalog URL
             p.catalog_url = None
             p.save()
@@ -345,10 +342,7 @@ class Command(BaseCommand):
                 p.program.save()
 
                 # Create new program descriptions with the description provided in the matched catalog entry
-                description_str = self.get_description(
-                    matched_entry,
-                    is_graduate
-                )
+                description_str = self.get_description(matched_entry)
                 if description_str:
                     description = ProgramDescription(
                         description_type=self.description_type,
@@ -357,10 +351,7 @@ class Command(BaseCommand):
                     )
                     description.save()
 
-                description_full_str = self.get_description_full(
-                    matched_entry,
-                    is_graduate
-                )
+                description_full_str = self.get_description_full(matched_entry)
                 if description_full_str:
                     description_full = ProgramDescription(
                         description_type=self.description_type_full,
@@ -429,7 +420,7 @@ class Command(BaseCommand):
 
         return program_type
 
-    def get_description(self, catalog_entry, is_graduate):
+    def get_description(self, catalog_entry):
         """
         Returns the shortened catalog description
         Args:
@@ -439,19 +430,12 @@ class Command(BaseCommand):
         """
         retval = ''
 
-        if is_graduate:
-            # Graduate programs--assume programDescription
-            # is useless.  TODO need to figure out how to extract _just_
-            # program desc from this
-            if 'requiredCoreCourses' in catalog_entry.data:
-                retval = self.sanitize_description(catalog_entry.data['requiredCoreCourses'], True)
-        else:
-            if 'programDescription' in catalog_entry.data:
-                retval = self.sanitize_description(catalog_entry.data['programDescription'])
+        if 'programDescription' in catalog_entry.data:
+            retval = self.sanitize_description(catalog_entry.data['programDescription'])
 
         return retval
 
-    def get_description_full(self, catalog_entry, is_graduate):
+    def get_description_full(self, catalog_entry):
         """
         Returns the complete catalog description
         Args:
@@ -461,7 +445,7 @@ class Command(BaseCommand):
         """
         retval = ''
 
-        if not is_graduate and 'programDescription' in catalog_entry.data:
+        if 'programDescription' in catalog_entry.data:
             retval += self.sanitize_description(catalog_entry.data['programDescription'], True)
 
         if 'requiredCoreCourses' in catalog_entry.data:
