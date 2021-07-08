@@ -121,11 +121,6 @@ class Command(BaseCommand):
     catalog_program_types = {}
     program_match_count = 0
 
-    # ns = {
-    #     'a': 'http://www.w3.org/2005/Atom',
-    #     'h': 'http://www.w3.org/1999/xhtml'
-    # }
-
     def add_arguments(self, parser):
         parser.add_argument(
             'path',
@@ -150,17 +145,17 @@ class Command(BaseCommand):
             default=settings.CATALOG_URL_BASE,
             required=False
         )
-        # parser.add_argument(
-        #     '--program-ids',
-        #     type=int,
-        #     nargs='*',
-        #     help='''\
-        #     One or more program IDs to import catalog data for. If set, only
-        #     programs with the IDs provided will be processed/matched.
-        #     ''',
-        #     dest='program-ids',
-        #     required=False
-        # )
+        parser.add_argument(
+            '--program-ids',
+            type=int,
+            nargs='*',
+            help='''\
+            One or more program IDs to import catalog data for. If set, only
+            programs with the IDs provided will be processed/matched.
+            ''',
+            dest='program-ids',
+            required=False
+        )
         parser.add_argument(
             '--fast',
             action='store_true',
@@ -180,9 +175,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # ET.register_namespace('a', 'http://www.w3.org/2005/Atom')
-        # ET.register_namespace('h', 'http://www.w3.org/1999/xhtml')
-
         self.path = self.__trailingslashit(options['path'])
         self.key = options['api-key']
         self.catalog_url = self.__trailingslashit(options['catalog-url'])
@@ -194,7 +186,7 @@ class Command(BaseCommand):
 
         self.catalog_url += 'catalog/{0}/#/programs/{1}'
 
-        # self.program_ids = options['program-ids'] # TODO
+        self.program_ids = options['program-ids']
 
         self.loglevel = options['loglevel']
         self.client = boto3.client(
@@ -211,11 +203,6 @@ class Command(BaseCommand):
         self.__get_description_types()
 
         # Retrieve catalog data
-        # TODO support program_ids arg
-        # if self.program_ids:
-        #     program_url = '{0}search/programs?key={1}&format=xml&method=listing&catalog={2}&options%5Blimit%5D=500'.format(self.path, self.key)
-        #     self.get_catalog_programs(program_url)
-        # else:
         self.get_catalog_programs(f"{self.path}api/cm/programs/queryAll/")
         self.get_catalog_programs(f"{self.path}api/cm/specializations/queryAll/")
 
@@ -317,8 +304,8 @@ class Command(BaseCommand):
     def match_programs(self):
         programs = Program.objects.all()
 
-        # if self.program_ids:
-        #     programs = programs.filter(pk__in=self.program_ids)
+        if self.program_ids:
+            programs = programs.filter(pk__in=self.program_ids)
 
         for p in programs:
             # Is this a graduate program? (Including Professional)
