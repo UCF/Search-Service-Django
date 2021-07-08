@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     # Local
     'programs',
     'teledata',
+    'research',
     'images',
+    'units',
     'core'
 ]
 
@@ -103,6 +105,8 @@ SILENCED_SYSTEM_CHECKS = [
 LOGIN_REDIRECT_URL = 'home'
 
 LOGIN_URL = '/manager/login/'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 try:
     from settings_local import *

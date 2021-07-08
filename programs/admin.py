@@ -28,12 +28,42 @@ class DegreeAdmin(admin.ModelAdmin):
 
 @admin.register(College)
 class CollegeAdmin(admin.ModelAdmin):
-    pass
+    exclude = ('unit',)
+    readonly_fields = ('unit_link',)
+
+    def unit_link(self, obj):
+        return mark_safe(
+            '<a href="{0}">{1}</a>'.format(
+                reverse(
+                    'admin:units_unit_change',
+                    args=(obj.unit.pk,)
+                ),
+                obj.unit.name
+            )
+        )
+
+    unit_link.allow_tags = True
+    unit_link.short_description = 'Unit'
 
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    pass
+    exclude = ('unit',)
+    readonly_fields = ('unit_link',)
+
+    def unit_link(self, obj):
+        return mark_safe(
+            '<a href="{0}">{1}</a>'.format(
+                reverse(
+                    'admin:units_unit_change',
+                    args=(obj.unit.pk,)
+                ),
+                obj.unit.name
+            )
+        )
+
+    unit_link.allow_tags = True
+    unit_link.short_description = 'Unit'
 
 
 @admin.register(ProgramProfileType)

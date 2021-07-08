@@ -3,6 +3,8 @@
 
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
+from django.urls import reverse
+from django.utils.html import mark_safe
 
 from .models import *
 
@@ -24,13 +26,30 @@ class OrganizationAdmin(admin.ModelAdmin):
         KeywordInline
     ]
     search_fields = ('name',)
+    exclude = ('unit',)
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
             readonly = [item.name for item in obj._meta.fields]
             readonly.remove('active')
+            readonly.remove('unit')
+            readonly.append('unit_link')
             return self.readonly_fields + tuple(readonly)
         return self.readonly_fields
+
+    def unit_link(self, obj):
+        return mark_safe(
+            '<a href="{0}">{1}</a>'.format(
+                reverse(
+                    'admin:units_unit_change',
+                    args=(obj.unit.pk,)
+                ),
+                obj.unit.name
+            )
+        )
+
+    unit_link.allow_tags = True
+    unit_link.short_description = 'Unit'
 
 
 @admin.register(Department)
@@ -39,13 +58,30 @@ class DepartmentAdmin(admin.ModelAdmin):
         KeywordInline
     ]
     search_fields = ('name',)
+    exclude = ('unit',)
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
             readonly = [item.name for item in obj._meta.fields]
             readonly.remove('active')
+            readonly.remove('unit')
+            readonly.append('unit_link')
             return self.readonly_fields + tuple(readonly)
         return self.readonly_fields
+
+    def unit_link(self, obj):
+        return mark_safe(
+            '<a href="{0}">{1}</a>'.format(
+                reverse(
+                    'admin:units_unit_change',
+                    args=(obj.unit.pk,)
+                ),
+                obj.unit.name
+            )
+        )
+
+    unit_link.allow_tags = True
+    unit_link.short_description = 'Unit'
 
 
 @admin.register(Staff)

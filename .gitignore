@@ -18,6 +18,9 @@ Thumbs.db
 # SASS
 .sass-cache
 
+# Setup
+*.egg-info
+
 # Bower
 src/components/*
 
