@@ -30,7 +30,7 @@ def clean_name(program_name):
     name = name.replace('Bachelor of Design', '')
     name = name.replace('In State', 'In-State')
     name = name.replace('Out of State', 'Out-of-State')
-    name = name.replace('Accel', 'Accelerated')
+    name = name.replace('Accel ', 'Accelerated ')
 
     # Filter out case-sensitive stop words
     stop_words_cs = [
@@ -54,10 +54,9 @@ def clean_name(program_name):
 
 class CatalogEntry(object):
 
-    def __init__(self, id, name, program_type, catalog_id):
-        self.id = id
-        self.name = name.decode()
-        self.type = program_type.decode()
+    def __init__(self, json, program_type):
+        self.data = json
+        self.type = program_type
         self.match_count = 0
 
     @property
@@ -66,14 +65,14 @@ class CatalogEntry(object):
             temp_level = Level.objects.get(name=self.type)
             return temp_level
         except Level.DoesNotExist:
-            temp_level = None
+            pass
 
-        if self.type in ['Major', 'Accelerated Undergraduate-Graduate Program', 'Articulated A.S. Programs']:
+        if self.type in ['Major', 'Accelerated UndergraduateGraduate Program', 'Accelerated Undergraduate-Graduate Program', 'Articulated A.S. Programs']:
             return Level.objects.get(name='Bachelors')
         elif self.type == 'Certificate':
             return Level.objects.get(name='Certificate')
         elif self.type == 'Minor':
-            return Level.objects.get(name='None')
+            return Level.objects.get(name='Minor')
         elif self.type in ['Master', 'Master of Fine Arts']:
             return Level.objects.get(name='Masters')
 
@@ -81,7 +80,7 @@ class CatalogEntry(object):
 
     @property
     def name_clean(self):
-        return clean_name(self.name)
+        return clean_name(self.data['title'])
 
     @property
     def has_matches(self):
@@ -119,6 +118,8 @@ class Command(BaseCommand):
     help = 'Imports catalog urls from the Kuali catalog system'
 
     catalog_programs = []
+    catalog_program_types = {}
+    program_match_count = 0
 
     # ns = {
     #     'a': 'http://www.w3.org/2005/Atom',
@@ -184,14 +185,14 @@ class Command(BaseCommand):
 
         self.path = self.__trailingslashit(options['path'])
         self.key = options['api-key']
-        self.catalog_url = self.path = self.__trailingslashit(options['catalog-url'])
+        self.catalog_url = self.__trailingslashit(options['catalog-url'])
         self.skip_oscar = options['skip_oscar']
 
         # Make sure these are actually set before continuing
         if not self.path or not self.key or not self.catalog_url:
             raise Exception('Catalog URL base, API URL base and API key are required. Add these args to the import command or update settings_local.py.')
 
-        self.catalog_url += '/preview_program.php?catoid={0}&poid={1}' # TODO--need final url path for single programs on ucf.edu/catalog
+        self.catalog_url += 'catalog/{0}/#/programs/{1}'
 
         # self.program_ids = options['program-ids'] # TODO
 
@@ -213,12 +214,10 @@ class Command(BaseCommand):
         # TODO support program_ids arg
         # if self.program_ids:
         #     program_url = '{0}search/programs?key={1}&format=xml&method=listing&catalog={2}&options%5Blimit%5D=500'.format(self.path, self.key)
-        #     self.get_catalog_programs(program_url, catalog_id)
+        #     self.get_catalog_programs(program_url)
         # else:
-        plans_url = f"{self.path}api/cm/programs/"
-        subplans_url = f"{self.path}api/cm/specializations/queryAll/"
-        self.get_catalog_programs(plans_url)
-        self.get_catalog_programs(subplans_url)
+        self.get_catalog_programs(f"{self.path}api/cm/programs/queryAll/")
+        self.get_catalog_programs(f"{self.path}api/cm/specializations/queryAll/")
 
         # Start matching up programs by name
         self.match_programs()
@@ -254,7 +253,7 @@ class Command(BaseCommand):
         }
 
         if use_auth:
-            headers['Authorization'] = f'Bearer {self.token}'
+            headers['Authorization'] = f'Bearer {self.key}'
 
         try:
             response = requests.get(
@@ -300,32 +299,30 @@ class Command(BaseCommand):
         data = self.__get_json_response(
             program_url
         )
-        # response = requests.get(program_url)
-        # encoding = response.encoding
-        # raw_data = response.text.encode(encoding)
-        # program_root = ET.fromstring(raw_data)
 
-        for result in data:
-            if result['status'] == 'active':
-                self.catalog_programs.append(
-                    CatalogEntry(
-                        result['id'],
-                        result['title'],
-                        'TODO' # add program type
+        for result in data['res']:
+            # Catalog data must be active and have a title, academicLevel,
+            # and programType field assigned to it for us to be able to
+            # work with it. Additionally, we want to avoid nondegree programs:
+            if 'status' in result and result['status'] == 'active' and 'title' in result and 'academicLevel' in result and ('programTypeUndergrad' in result or 'programTypeGrad' in result):
+                catalog_program_type = self.get_catalog_program_type(result)
+                if catalog_program_type != 'Nondegree':
+                    self.catalog_programs.append(
+                        CatalogEntry(
+                            result,
+                            catalog_program_type
+                        )
                     )
-                )
 
     def match_programs(self):
         programs = Program.objects.all()
-        match_count = 0
-        career_name = ''
 
         # if self.program_ids:
         #     programs = programs.filter(pk__in=self.program_ids)
 
         for p in programs:
-            # Is this a graduate program?
-            is_graduate = p.career.name == 'Graduate'
+            # Is this a graduate program? (Including Professional)
+            is_graduate = p.career.name != 'Undergraduate'
 
             # Wipe out existing catalog URL
             p.catalog_url = None
@@ -344,7 +341,9 @@ class Command(BaseCommand):
                 pass
 
             p = MatchableProgram(p)
-            filtered_entries = [x for x in self.catalog_programs if x.academicLevel.lower() == p.program.level.name.lower()]
+            # Create a list of CatalogEntry's to match against that
+            # share the same career and level as the program:
+            filtered_entries = [x for x in self.catalog_programs if x.level.name.lower() == p.program.level.name.lower() and x.data['academicLevel'].lower() == p.program.career.name.lower()]
 
             for entry in filtered_entries:
                 match_score = fuzz.token_sort_ratio(p.name_clean, entry.name_clean)
@@ -355,7 +354,7 @@ class Command(BaseCommand):
                 # Get the best match and update the program with the matched catalog URL
                 match = p.get_best_match()
                 matched_entry = match.catalog_entry
-                p.program.catalog_url = self.catalog_url.format(matched_entry['academicLevel'], matched_entry['id'])
+                p.program.catalog_url = self.catalog_url.format(matched_entry.data['academicLevel'], matched_entry.data['pid'])
                 p.program.save()
 
                 # Create new program descriptions with the description provided in the matched catalog entry
@@ -373,7 +372,7 @@ class Command(BaseCommand):
 
                 description_full_str = self.get_description_full(
                     matched_entry,
-                    p.program.is_graduate
+                    is_graduate
                 )
                 if description_full_str:
                     description_full = ProgramDescription(
@@ -384,22 +383,70 @@ class Command(BaseCommand):
                     description_full.save()
 
                 # Increment match counts for all programs and for the matched catalog entry
-                match_count += 1
+                self.program_match_count += 1
                 matched_entry.match_count += 1
 
-                logging.info(str('MATCH \n Matched program name: %s \n Cleaned program name: %s \n Catalog entry full name: %s \n Cleaned catalog entry name: %s \n Match score: %d \n' % (p.program.name, p.name_clean, matched_entry.name, matched_entry.name_clean, match.match_score)).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(
+                    f"MATCH \n Matched program name: {p.program.name} \n Cleaned program name: {p.name_clean} \n Catalog entry full name: {matched_entry.data['title']} \n Cleaned catalog entry name: {matched_entry.name_clean} \n Match score: {match.match_score} \n"
+                )
             else:
-                logging.info(str('FAILURE \n Matched program name: %s \n Cleaned program name: %s \n' % (p.program.name, p.name_clean)).encode('ascii', 'xmlcharrefreplace'))
+                logging.info(
+                    f"FAILURE \n Matched program name: {p.program.name} \n Cleaned program name: {p.name_clean} \n"
+                )
 
-        print('Matched {0}/{1} of Existing {2} Programs to a Catalog Entry: {3:.0f}%'.format(match_count, len(programs), career_name, float(match_count) / float(len(programs)) * 100))
-        print('Matched {0}/{1} of Fetched Catalog Entries to at Least One Existing Program: {2:.0f}%'.format(len([x for x in self.catalog_programs if x.has_matches == True]), len(self.catalog_programs), len([x for x in self.catalog_programs if x.has_matches == True]) / float(len(self.catalog_programs) if len(self.catalog_programs) else 1) * 100))
+        print(
+            'Matched {}/{} of Existing Programs to a Catalog Entry: {:.0f}%'
+            .format(
+                self.program_match_count,
+                len(programs),
+                float(self.program_match_count) / float(len(programs)) * 100
+            )
+        )
+        print(
+            'Matched {}/{} of Fetched Catalog Entries to at Least One Existing Program: {:.0f}%'
+            .format(
+                len([x for x in self.catalog_programs if x.has_matches == True]),
+                len(self.catalog_programs),
+                len([x for x in self.catalog_programs if x.has_matches == True]) / float(len(self.catalog_programs) if len(self.catalog_programs) else 1) * 100
+            )
+        )
 
+    def get_catalog_program_type(self, catalog_entry_data):
+        """
+        Returns the string name of the program type of the
+        provided catalog entry. (This maps to what we call the
+        "level" in search service programs.)
+        Args:
+            catalog_entry_data (dict): The catalog entry JSON dictionary
+        Returns:
+            (str): The program type name string
+        """
+        program_type = None
+
+        if 'programTypeUndergrad' in catalog_entry_data:
+            try:
+                program_type = self.catalog_program_types[catalog_entry_data['programTypeUndergrad']]
+            except KeyError:
+                program_type_data = self.__get_json_response(f"{self.path}api/cm/options/{catalog_entry_data['programTypeUndergrad']}/")
+                program_type = program_type_data['name']
+                # Save it for reference later
+                self.catalog_program_types[program_type_data['id']] = program_type
+        elif 'programTypeGrad' in catalog_entry_data:
+            try:
+                program_type = self.catalog_program_types[catalog_entry_data['programTypeGrad']]
+            except KeyError:
+                program_type_data = self.__get_json_response(f"{self.path}api/cm/options/{catalog_entry_data['programTypeGrad']}/")
+                program_type = program_type_data['name']
+                # Save it for reference later
+                self.catalog_program_types[program_type_data['id']] = program_type
+
+        return program_type
 
     def get_description(self, catalog_entry, is_graduate):
         """
         Returns the shortened catalog description
         Args:
-            catalog_entry (dict): The catalog entry JSON dictionary
+            catalog_entry (obj): a CatalogEntry object
         Returns:
             (str): The cleaned string
         """
@@ -409,11 +456,11 @@ class Command(BaseCommand):
             # Graduate programs--assume programDescription
             # is useless.  TODO need to figure out how to extract _just_
             # program desc from this
-            if 'requiredCoreCourses' in catalog_entry:
-                retval = self.__sanitize_description(catalog_entry['requiredCoreCourses'], True)
+            if 'requiredCoreCourses' in catalog_entry.data:
+                retval = self.sanitize_description(catalog_entry.data['requiredCoreCourses'], True)
         else:
-            if 'programDescription' in catalog_entry:
-                retval = self.__sanitize_description(catalog_entry['programDescription'])
+            if 'programDescription' in catalog_entry.data:
+                retval = self.sanitize_description(catalog_entry.data['programDescription'])
 
         return retval
 
@@ -421,17 +468,17 @@ class Command(BaseCommand):
         """
         Returns the complete catalog description
         Args:
-            catalog_entry (dict): The catalog entry JSON dictionary
+            catalog_entry (obj): a CatalogEntry object
         Returns:
             (str): The cleaned string
         """
         retval = ''
 
-        if not is_graduate and 'programDescription' in catalog_entry:
-            retval += self.__sanitize_description(catalog_entry['programDescription'], True)
+        if not is_graduate and 'programDescription' in catalog_entry.data:
+            retval += self.sanitize_description(catalog_entry.data['programDescription'], True)
 
-        if 'requiredCoreCourses' in catalog_entry:
-            retval += self.__sanitize_description(catalog_entry['requiredCoreCourses'], True)
+        if 'requiredCoreCourses' in catalog_entry.data:
+            retval += self.sanitize_description(catalog_entry.data['requiredCoreCourses'], True)
 
         return retval
 
