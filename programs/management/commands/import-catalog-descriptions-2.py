@@ -9,6 +9,7 @@ import requests
 import re
 import unicodedata
 import logging
+import sys
 from operator import itemgetter
 from fuzzywuzzy import fuzz
 import boto3
@@ -197,13 +198,17 @@ class Command(BaseCommand):
         self.program_ids = options['program-ids']
         self.skip_oscar = options['skip_oscar']
         self.max_threads = options['max_threads']
+        self.loglevel = options['loglevel']
+
+        # Set logging level
+        logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
         # Make sure these are actually set before continuing
         if not self.path or not self.key or not self.catalog_url:
             raise Exception(
                 'Catalog URL base, API URL base and API key are required. Add these args to the import command or update settings_local.py.')
 
-        self.programs = self.__get_programs()
+        self.matchable_programs = []
         self.catalog_url += 'catalog/{0}/#/programs/{1}'
         self.catalog_programs_url = f"{self.path}api/cm/programs/queryAll/"
         self.catalog_tracks_url = f"{self.path}api/cm/specializations/queryAll/"
@@ -223,29 +228,30 @@ class Command(BaseCommand):
         self.descriptions_updated_created = 0
         self.full_descriptions_updated_created = 0
 
-        self.program_match_progress = None
+        self.program_prep_progress = None
+        self.catalog_prep_progress = None
+        self.catalog_match_progress = None
         self.catalog_description_progress = None
         self.catalog_curriculum_progress = None
         self.program_update_progress = None
 
         # Setup our queues for multithreading
-        self.program_match_queue = Queue()
         self.catalog_description_queue = Queue()
         self.catalog_curriculum_queue = Queue()
-        self.program_update_queue = Queue()
         # General lock we can use when we need
         # to talk to the main thread
         self.mt_lock = Lock()
 
-        # Let's do some work
-        self.__get_catalog_entries(self.catalog_programs_url)
-        self.__get_catalog_entries(self.catalog_tracks_url)
+        # Get everything prepped/fetched
         self.__get_description_types()
-        self.__queue_programs()
-        self.__setup_program_matching()
+        self.__get_programs()
+        self.__get_catalog_entries()
+
+        # Let's do some work
+        self.__match_programs()
         self.__setup_description_processing()
         self.__setup_curriculum_processing()
-        self.__setup_program_updates()
+        self.__update_programs()
 
         self.__print_stats()
 
@@ -253,19 +259,19 @@ class Command(BaseCommand):
         """
         Prints the output of the command
         """
-        p_to_c_match_percent = float(self.program_match_count) / float(len(self.programs) if len(self.programs) else 1) * 100
+        p_to_c_match_percent = round(float(self.program_match_count) / float(len(self.matchable_programs) if len(self.matchable_programs) else 1) * 100, 2)
         c_with_match = len([x for x in self.catalog_entries if x.has_matches == True])
-        c_to_m_match_percent = c_with_match / float(len(self.catalog_entries) if len(self.catalog_entries) else 1) * 100
+        c_to_m_match_percent = round(c_with_match / float(len(self.catalog_entries) if len(self.catalog_entries) else 1) * 100, 2)
 
         msg = f"""
-Programs Processed        : {len(self.programs)}
+Programs Processed        : {len(self.matchable_programs)}
 Catalog Entries Processed : {len(self.catalog_entries)}
 
-Matched {self.program_match_count}/{len(self.programs)} of Existing Programs to a Catalog Entry: {p_to_c_match_percent}%
+Matched {self.program_match_count}/{len(self.matchable_programs)} of Existing Programs to a Catalog Entry: {p_to_c_match_percent}%
 Matched {c_with_match}/{len(self.catalog_entries)} of Fetched Catalog Entries to at Least One Existing Program: {c_to_m_match_percent}%
 
-Descriptions Updated or Created      : {self.descriptions_updated_created}
-Full Descriptions Updated or Created : {self.full_descriptions_updated_created}
+Short Descriptions Updated or Created : {self.descriptions_updated_created}
+Full Descriptions Updated or Created  : {self.full_descriptions_updated_created}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))
@@ -319,13 +325,22 @@ Full Descriptions Updated or Created : {self.full_descriptions_updated_created}
         except Exception as e:
             self.stderr.write(self.style.ERROR(str(e)))
 
-    def __get_catalog_entries(self, url):
+    def __get_catalog_entries(self):
         """
         Requests programs/tracks from Kuali at the provided URL
         """
-        data = self.__get_json_response(url)
+        catalog_program_data = self.__get_json_response(self.catalog_programs_url)
+        catalog_tracks_data = self.__get_json_response(self.catalog_tracks_url)
+        data = catalog_program_data['res'] + catalog_tracks_data['res']
 
-        for result in data['res']:
+        self.catalog_prep_progress = ChargingBar(
+            'Prepping catalog entries...',
+            max=len(data)
+        )
+
+        for result in data:
+            self.catalog_prep_progress.next()
+
             # Catalog data must be active and have a title, academicLevel,
             # and programType field assigned to it for us to be able to
             # work with it. Additionally, we want to avoid nondegree programs:
@@ -402,103 +417,89 @@ Full Descriptions Updated or Created : {self.full_descriptions_updated_created}
 
     def __get_programs(self):
         """
-        Returns all existing programs to be processed.
+        Grabs and preps existing programs to be matched with
+        catalog entries.
         """
         programs = Program.objects.all()
 
         if self.program_ids:
             programs = programs.filter(pk__in=self.program_ids)
 
-        return programs
-
-    def __queue_programs(self):
-        """
-        Queues up all Program objects for program matching.
-        """
-        for p in self.programs:
-            self.program_match_queue.put(p)
-
-    def __setup_program_matching(self):
-        """
-        Sets up multiple threads for matching existing
-        programs to catalog entries.
-        """
-        self.program_match_progress = ChargingBar(
-            'Matching existing programs to catalog entries...',
-            max=self.program_match_queue.qsize()
+        self.program_prep_progress = ChargingBar(
+            'Prepping existing programs...',
+            max=len(programs)
         )
 
-        for _ in range(self.max_threads):
-            Thread(target=self.__match_programs, daemon=True).start()
+        for p in programs:
+            self.program_prep_progress.next()
 
-        self.program_match_queue.join()
+            # Wipe out existing catalog URL
+            p.catalog_url = None
+            p.save()
+
+            # Wipe out existing catalog descriptions
+            try:
+                description = p.descriptions.get(
+                    description_type=self.description_type)
+                description.delete()
+            except ProgramDescription.DoesNotExist:
+                pass
+            try:
+                description_full = p.descriptions.get(
+                    description_type=self.description_type_full)
+                description_full.delete()
+            except ProgramDescription.DoesNotExist:
+                pass
+
+            mp = MatchableProgram(p)
+            self.matchable_programs.append(mp)
 
     def __match_programs(self):
         """
         Loops through the catalog entries and
         attempts to match them to existing programs.
         """
-        while True:
-            try:
-                p = self.program_match_queue.get()
+        self.catalog_match_progress = ChargingBar(
+            'Matching existing programs to catalog entries...',
+            max=len(self.matchable_programs)
+        )
 
-                with self.mt_lock:
-                    self.program_match_progress.next()
+        for mp in self.matchable_programs:
+            self.catalog_match_progress.next()
 
-                # Wipe out existing catalog URL
-                p.catalog_url = None
-                p.save()
+            # Create a list of CatalogEntry's to match against that
+            # share the same career and level as the program:
+            filtered_entries = [x for x in self.catalog_entries if x.level.name.lower(
+            ) == mp.program.level.name.lower() and x.data['academicLevel'].lower() == mp.program.career.name.lower()]
 
-                # Wipe out existing catalog descriptions
-                try:
-                    description = p.descriptions.get(
-                        description_type=self.description_type)
-                    description.delete()
-                except ProgramDescription.DoesNotExist:
-                    pass
-                try:
-                    description_full = p.descriptions.get(
-                        description_type=self.description_type_full)
-                    description_full.delete()
-                except ProgramDescription.DoesNotExist:
-                    pass
+            # Determine all potential catalog entry matches for the program:
+            for entry in filtered_entries:
+                match_score = fuzz.token_sort_ratio(
+                    mp.name_clean, entry.name_clean)
+                if match_score >= self.__get_match_threshold(mp, entry):
+                    mp.matches.append((match_score, entry))
 
-                mp = MatchableProgram(p)
-                # Create a list of CatalogEntry's to match against that
-                # share the same career and level as the program:
-                filtered_entries = [x for x in self.catalog_entries if x.level.name.lower(
-                ) == mp.program.level.name.lower() and x.data['academicLevel'].lower() == mp.program.career.name.lower()]
+            if mp.has_matches:
+                # Send the MatchableProgram off for further processing
+                self.catalog_description_queue.put(mp)
 
-                # Determine all potential catalog entry matches for the program:
-                for entry in filtered_entries:
-                    match_score = fuzz.token_sort_ratio(
-                        mp.name_clean, entry.name_clean)
-                    if match_score >= self.__get_match_threshold(mp, entry):
-                        mp.matches.append((match_score, entry))
+                # Get the best match and save it for later
+                match = mp.get_best_match()
+                mp.best_match = matched_entry = match[1]
 
-                if mp.has_matches:
-                    # Send the MatchableProgram off for further processing
-                    self.catalog_description_queue.put(mp)
+                # Increment match counts
+                self.program_match_count += 1
+                matched_entry.match_count += 1
 
-                    # Get the best match and save it for later
-                    match = mp.get_best_match()
-                    mp.best_match = matched_entry = match[1]
-
-                    # Increment match counts
-                    self.program_match_count += 1
-                    matched_entry.match_count += 1
-
-                    logging.info(
-                        f"MATCH \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n Catalog entry full name: {matched_entry.data['title']} \n Cleaned catalog entry name: {matched_entry.name_clean} \n Match score: {match[0]} \n"
-                    )
-                else:
-                    logging.info(
-                        f"FAILURE \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n"
-                    )
-            except Exception as e:
-                logging.log(logging.ERROR, e)
-            finally:
-                self.program_match_queue.task_done()
+                logging.log(
+                    logging.INFO,
+                    f"MATCH \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n Catalog entry full name: {matched_entry.data['title']} \n Cleaned catalog entry name: {matched_entry.name_clean} \n Match score: {match[0]} \n"
+                )
+            else:
+                logging.log(
+                    logging.INFO,
+                    f"FAILURE \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n"
+                )
 
     def __setup_description_processing(self):
         """
@@ -532,6 +533,7 @@ Full Descriptions Updated or Created : {self.full_descriptions_updated_created}
                 if catalog_desc:
                     catalog_entry.program_description_clean = self.__sanitize_description(catalog_desc)
 
+                # Pass along to the curriculum queue next
                 self.catalog_curriculum_queue.put(mp)
 
             except Exception as e:
@@ -571,42 +573,27 @@ Full Descriptions Updated or Created : {self.full_descriptions_updated_created}
                 if catalog_curriculum:
                     catalog_entry.program_curriculum_clean = self.__sanitize_description(catalog_curriculum, True)
 
-                self.program_update_queue.put(mp)
-
             except Exception as e:
                 logging.log(logging.ERROR, e)
             finally:
                 self.catalog_curriculum_queue.task_done()
 
-    def __setup_program_updates(self):
-        """
-        Sets up multiple threads for processing updates to
-        ProgramDescriptions and Programs
-        """
-        self.program_update_progress = ChargingBar(
-            'Saving changes...',
-            max=self.program_update_queue.qsize()
-        )
-
-        for _ in range(self.max_threads):
-            Thread(target=self.__do_program_updates, daemon=True).start()
-
-        self.program_update_queue.join()
-
-    def __do_program_updates(self):
+    def __update_programs(self):
         """
         Actually generates new ProgramDescription objects and
         updates catalog URLs on Program objects
         """
-        while True:
-            try:
-                mp = self.program_update_queue.get()
+        self.program_update_progress = ChargingBar(
+            'Updating programs...',
+            max=len(self.matchable_programs)
+        )
 
-                with self.mt_lock:
-                    self.program_update_progress.next()
+        for mp in self.matchable_programs:
+            self.program_update_progress.next()
 
-                catalog_entry = mp.best_match
+            catalog_entry = mp.best_match
 
+            if catalog_entry:
                 # Update the catalog URL of the program
                 mp.program.catalog_url = self.catalog_url.format(
                     catalog_entry.data['academicLevel'],
@@ -635,11 +622,6 @@ Full Descriptions Updated or Created : {self.full_descriptions_updated_created}
                     )
                     description_full.save()
                     self.full_descriptions_updated_created += 1
-
-            except Exception as e:
-                logging.log(logging.ERROR, e)
-            finally:
-                self.program_update_queue.task_done()
 
     def __get_description(self, catalog_entry):
         """
