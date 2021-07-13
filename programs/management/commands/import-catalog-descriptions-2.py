@@ -5,6 +5,7 @@ from programs.utilities.oscar import Oscar
 from programs.models import Program, ProgramDescription, ProgramDescriptionType, Level
 
 from progress.bar import ChargingBar
+from datetime import datetime
 import requests
 import re
 import unicodedata
@@ -192,6 +193,7 @@ class Command(BaseCommand):
             *args (list): A list of arguments from the command line.
             **options (dict): The dictionary list of keyword arguments
         """
+        self.start_time = datetime.now()
         self.path = self.__trailingslashit(options['path'])
         self.key = options['api-key']
         self.catalog_url = self.__trailingslashit(options['catalog-url'])
@@ -236,6 +238,7 @@ class Command(BaseCommand):
         self.program_update_progress = None
 
         # Setup our queues for multithreading
+        self.catalog_match_queue = Queue()
         self.catalog_description_queue = Queue()
         self.catalog_curriculum_queue = Queue()
         # General lock we can use when we need
@@ -248,7 +251,7 @@ class Command(BaseCommand):
         self.__get_catalog_entries()
 
         # Let's do some work
-        self.__match_programs()
+        self.__setup_program_matching()
         self.__setup_description_processing()
         self.__setup_curriculum_processing()
         self.__update_programs()
@@ -272,6 +275,8 @@ Matched {c_with_match}/{len(self.catalog_entries)} of Fetched Catalog Entries to
 
 Short Descriptions Updated or Created : {self.descriptions_updated_created}
 Full Descriptions Updated or Created  : {self.full_descriptions_updated_created}
+
+Finished in {datetime.now() - self.start_time}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))
@@ -453,53 +458,72 @@ Full Descriptions Updated or Created  : {self.full_descriptions_updated_created}
 
             mp = MatchableProgram(p)
             self.matchable_programs.append(mp)
+            self.catalog_match_queue.put(mp)
+
+    def __setup_program_matching(self):
+        """
+        Sets up multiple threads for matching catalog
+        entries to existing programs.
+        """
+        self.catalog_match_progress = ChargingBar(
+            'Matching existing programs to catalog entries...',
+            max=self.catalog_match_queue.qsize()
+        )
+
+        for _ in range(self.max_threads):
+            Thread(target=self.__match_programs, daemon=True).start()
+
+        self.catalog_match_queue.join()
 
     def __match_programs(self):
         """
         Loops through the catalog entries and
         attempts to match them to existing programs.
         """
-        self.catalog_match_progress = ChargingBar(
-            'Matching existing programs to catalog entries...',
-            max=len(self.matchable_programs)
-        )
+        while True:
+            try:
+                mp = self.catalog_match_queue.get()
 
-        for mp in self.matchable_programs:
-            self.catalog_match_progress.next()
+                with self.mt_lock:
+                    self.catalog_match_progress.next()
 
-            # Create a list of CatalogEntry's to match against that
-            # share the same career and level as the program:
-            filtered_entries = [x for x in self.catalog_entries if x.level.name.lower(
-            ) == mp.program.level.name.lower() and x.data['academicLevel'].lower() == mp.program.career.name.lower()]
+                # Create a list of CatalogEntry's to match against that
+                # share the same career and level as the program:
+                filtered_entries = [x for x in self.catalog_entries if x.level.name.lower(
+                ) == mp.program.level.name.lower() and x.data['academicLevel'].lower() == mp.program.career.name.lower()]
 
-            # Determine all potential catalog entry matches for the program:
-            for entry in filtered_entries:
-                match_score = fuzz.token_sort_ratio(
-                    mp.name_clean, entry.name_clean)
-                if match_score >= self.__get_match_threshold(mp, entry):
-                    mp.matches.append((match_score, entry))
+                # Determine all potential catalog entry matches for the program:
+                for entry in filtered_entries:
+                    match_score = fuzz.token_sort_ratio(
+                        mp.name_clean, entry.name_clean)
+                    if match_score >= self.__get_match_threshold(mp, entry):
+                        mp.matches.append((match_score, entry))
 
-            if mp.has_matches:
-                # Send the MatchableProgram off for further processing
-                self.catalog_description_queue.put(mp)
+                if mp.has_matches:
+                    # Send the MatchableProgram off for further processing
+                    self.catalog_description_queue.put(mp)
 
-                # Get the best match and save it for later
-                match = mp.get_best_match()
-                mp.best_match = matched_entry = match[1]
+                    # Get the best match and save it for later
+                    match = mp.get_best_match()
+                    mp.best_match = matched_entry = match[1]
 
-                # Increment match counts
-                self.program_match_count += 1
-                matched_entry.match_count += 1
+                    # Increment match counts
+                    self.program_match_count += 1
+                    matched_entry.match_count += 1
 
-                logging.log(
-                    logging.INFO,
-                    f"MATCH \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n Catalog entry full name: {matched_entry.data['title']} \n Cleaned catalog entry name: {matched_entry.name_clean} \n Match score: {match[0]} \n"
-                )
-            else:
-                logging.log(
-                    logging.INFO,
-                    f"FAILURE \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n"
-                )
+                    logging.log(
+                        logging.INFO,
+                        f"MATCH \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n Catalog entry full name: {matched_entry.data['title']} \n Cleaned catalog entry name: {matched_entry.name_clean} \n Match score: {match[0]} \n"
+                    )
+                else:
+                    logging.log(
+                        logging.INFO,
+                        f"FAILURE \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n"
+                    )
+            except Exception as e:
+                logging.log(logging.ERROR, e)
+            finally:
+                self.catalog_match_queue.task_done()
 
     def __setup_description_processing(self):
         """
