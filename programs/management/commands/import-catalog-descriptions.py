@@ -60,6 +60,40 @@ class CatalogEntry(object):
         self.match_count = 0
 
     @property
+    def description(self):
+        """
+        Returns an unmodified catalog program description
+
+        Returns:
+            (str): Catalog description string
+        """
+        desc = ''
+
+        if 'programDescription' in self.data:
+            # Catalog programs store this value in `programDescription`
+            desc = self.data['programDescription']
+        elif 'description' in self.data:
+            # Catalog tracks store this value in `description`
+            desc = self.data['description']
+
+        return desc
+
+    @property
+    def curriculum(self):
+        """
+        Returns an unmodified catalog curriculum
+
+        Returns:
+            (str): Catalog curriculum string
+        """
+        curriculum = ''
+
+        if 'requiredCoreCourses' in self.data:
+            curriculum = self.data['requiredCoreCourses']
+
+        return curriculum
+
+    @property
     def level(self):
         try:
             temp_level = Level.objects.get(name=self.type)
@@ -430,9 +464,9 @@ class Command(BaseCommand):
         """
         retval = ''
 
-        if 'programDescription' in catalog_entry.data:
+        if catalog_entry.description:
             retval = self.sanitize_description(
-                description_str=catalog_entry.data['programDescription'],
+                description_str=catalog_entry.description,
                 strip_tables=True
             )
 
@@ -448,16 +482,16 @@ class Command(BaseCommand):
         """
         retval = ''
 
-        if 'programDescription' in catalog_entry.data:
+        if catalog_entry.description:
             retval += self.sanitize_description(
-                description_str=catalog_entry.data['programDescription'],
+                description_str=catalog_entry.description,
                 unwrap_links=True,
                 strip_tables=True
             )
 
-        if 'requiredCoreCourses' in catalog_entry.data:
+        if catalog_entry.curriculum:
             retval += self.sanitize_description(
-                description_str=catalog_entry.data['requiredCoreCourses'],
+                description_str=catalog_entry.curriculum,
                 unwrap_links=True
             )
 
