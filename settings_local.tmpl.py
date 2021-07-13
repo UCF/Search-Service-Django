@@ -275,17 +275,10 @@ GRADUATE_SLATE_ENDPOINTS = {
 # The base URL to use when building catalog URLs during the catalog import
 CATALOG_URL_BASE = 'https://www.ucf.edu/'
 
-# The base URL of the Acalog API
-CATALOG_API_BASE = ''
+# KUALI Catalog Settings
+KUALI_BASE_URL = ''
 
-# The API key used to connect to Acalog
-CATALOG_API_KEY = ''
-
-# The ID of the current active undergraduate catalog in Acalog
-CATALOG_UNDERGRADUATE_ID = 18
-
-# The ID of the current active graduate catalog in Acalog
-CATALOG_GRADUATE_ID = 17
+KUALI_API_TOKEN = ''
 
 # ORCID API Settings
 ORCID_BASE_API_URL = 'https://pub.orcid.org/v2.1/'
@@ -382,8 +375,3 @@ UNIT_NAME_UPPERCASE_REPLACEMENTS = [
     'LETTR', 'LINK', 'NASA', 'RESTORES', 'ROTC', 'STAT', 'TV',
     'TV/FM', 'UCF', 'WUCF',
 ]
-
-# KUALI Catalog Settings
-KUALI_BASE_URL = ''
-
-KUALI_API_TOKEN = ''
