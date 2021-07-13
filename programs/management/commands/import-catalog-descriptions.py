@@ -58,9 +58,17 @@ class Command(BaseCommand):
             required=False
         )
         parser.add_argument(
+            '--force-desc-updates',
+            action='store_true',
+            dest='force-desc-updates',
+            help='If true, forces all catalog descriptions to be updated, regardless of whether or not they\'ve changed since the last import',
+            default=False,
+            required=False
+        )
+        parser.add_argument(
             '--fast',
             action='store_true',
-            dest='skip_oscar',
+            dest='skip-oscar',
             help='Skips calling Amazon Comprehend for full text analysis (do not feed Oscar)',
             default=False,
             required=False
@@ -68,7 +76,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--threads',
             type=int,
-            dest='max_threads',
+            dest='max-threads',
             help='The number of concurrent threads to use',
             default=5,
             required=False
@@ -96,8 +104,9 @@ class Command(BaseCommand):
         self.key = options['api-key']
         self.catalog_url = self.__trailingslashit(options['catalog-url'])
         self.program_ids = options['program-ids']
-        self.skip_oscar = options['skip_oscar']
-        self.max_threads = options['max_threads']
+        self.force_desc_updates = options['force-desc-updates']
+        self.skip_oscar = options['skip-oscar']
+        self.max_threads = options['max-threads']
         self.loglevel = options['loglevel']
 
         # Set logging level
@@ -298,25 +307,47 @@ Finished in {datetime.now() - self.start_time}
         """
         Ensures our description types are created
         """
-        self.description_type, created = ProgramDescriptionType.objects.get_or_create(
+        self.description_type_desc, created_desc = ProgramDescriptionType.objects.get_or_create(
             name='Catalog Description'
         )
 
-        if created:
+        if created_desc:
             self.stdout.write(
                 self.style.NOTICE(
                     "Created \"Catalog Description\" description type"
                 )
             )
 
-        self.description_type_full, created_full = ProgramDescriptionType.objects.get_or_create(
+        self.description_type_desc_full, created_desc_full = ProgramDescriptionType.objects.get_or_create(
             name='Full Catalog Description'
         )
 
-        if created_full:
+        if created_desc_full:
             self.stdout.write(
                 self.style.NOTICE(
                     "Created \"Full Catalog Description\" description type"
+                )
+            )
+
+        self.description_type_source_desc, created_source_desc = ProgramDescriptionType.objects.get_or_create(
+            name='Source Catalog Description'
+        )
+
+        if created_source_desc:
+            self.stdout.write(
+                self.style.NOTICE(
+                    "Created \"Source Catalog Description\" description type"
+                )
+            )
+
+        self.description_type_source_curriculum, created_source_curriculum = ProgramDescriptionType.objects.get_or_create(
+            name='Source Catalog Curriculum'
+        )
+
+        if created_source_curriculum:
+            self.stdout.write(
+                self.style.NOTICE(
+                    "Created \"Source Catalog Curriculum\" description type"
                 )
             )
 
@@ -337,24 +368,6 @@ Finished in {datetime.now() - self.start_time}
 
         for p in programs:
             self.program_prep_progress.next()
-
-            # Wipe out existing catalog URL
-            p.catalog_url = None
-            p.save()
-
-            # Wipe out existing catalog descriptions
-            try:
-                description = p.descriptions.get(
-                    description_type=self.description_type)
-                description.delete()
-            except ProgramDescription.DoesNotExist:
-                pass
-            try:
-                description_full = p.descriptions.get(
-                    description_type=self.description_type_full)
-                description_full.delete()
-            except ProgramDescription.DoesNotExist:
-                pass
 
             mp = MatchableProgram(p)
             self.matchable_programs.append(mp)
@@ -440,6 +453,10 @@ Finished in {datetime.now() - self.start_time}
     def __process_descriptions(self):
         """
         Performs sanitization of catalog program descriptions.
+
+        Will only perform sanitization when changes to existing
+        descriptions are detected, or when the --force-desc-updates
+        flag is True.
         """
         while True:
             try:
@@ -449,13 +466,26 @@ Finished in {datetime.now() - self.start_time}
                     self.catalog_description_progress.next()
 
                 catalog_entry = mp.best_match
-                try:
-                    catalog_desc = catalog_entry.data['programDescription']
-                except:
-                    catalog_desc = None
+                catalog_desc = catalog_entry.description
 
-                if catalog_desc and not catalog_entry.program_description_clean:
-                    catalog_entry.program_description_clean = self.__sanitize_description(catalog_desc)
+                try:
+                    source_desc_obj = mp.program.descriptions.get(
+                        description_type=self.description_type_source_desc
+                    )
+                    source_desc = source_desc_obj.description if source_desc_obj.description else ''
+                except ProgramDescription.DoesNotExist:
+                    source_desc = ''
+
+                if self.force_desc_updates or not source_desc or source_desc != catalog_desc:
+                    # Sanitize/process the incoming catalog description if
+                    # we don't already have an existing original catalog
+                    # description to compare against, or if we do and it
+                    # changed since the last time it was imported
+                    # (or if we're forcing description updates)
+                    if catalog_entry.program_description_clean is None:
+                        catalog_entry.program_description_clean = self.__sanitize_description(
+                            catalog_desc
+                        )
 
                 # Pass along to the curriculum queue next
                 self.catalog_curriculum_queue.put(mp)
@@ -483,6 +513,10 @@ Finished in {datetime.now() - self.start_time}
     def __process_curriculums(self):
         """
         Performs sanitization of catalog curriculum content.
+
+        Will only perform sanitization when changes to existing
+        curriculums are detected, or when the --force-desc-updates
+        flag is True.
         """
         while True:
             try:
@@ -492,13 +526,26 @@ Finished in {datetime.now() - self.start_time}
                     self.catalog_curriculum_progress.next()
 
                 catalog_entry = mp.best_match
-                try:
-                    catalog_curriculum = catalog_entry.data['requiredCoreCourses']
-                except:
-                    catalog_curriculum = None
+                catalog_curriculum = catalog_entry.curriculum
 
-                if catalog_curriculum and not catalog_entry.program_curriculum_clean:
-                    catalog_entry.program_curriculum_clean = self.__sanitize_description(catalog_curriculum, True)
+                try:
+                    source_curriculum_obj = mp.program.descriptions.get(
+                        description_type=self.description_type_source_curriculum
+                    )
+                    source_curriculum = source_curriculum_obj.description if source_curriculum_obj.description else ''
+                except ProgramDescription.DoesNotExist:
+                    source_curriculum = ''
+
+                if self.force_desc_updates or not source_curriculum or source_curriculum != catalog_curriculum:
+                    # Sanitize/process the incoming catalog curriculum if
+                    # we don't already have an existing original catalog
+                    # curriculum to compare against, or if we do and it
+                    # changed since the last time it was imported
+                    # (or if we're forcing description updates)
+                    if catalog_entry.program_curriculum_clean is None:
+                        catalog_entry.program_curriculum_clean = self.__sanitize_description(
+                            catalog_curriculum
+                        )
 
             except Exception as e:
                 logging.log(logging.ERROR, e)
@@ -518,6 +565,8 @@ Finished in {datetime.now() - self.start_time}
         for mp in self.matchable_programs:
             self.program_update_progress.next()
 
+            # Update the program with catalog data from
+            # the best catalog entry match available:
             catalog_entry = mp.best_match
 
             if catalog_entry:
@@ -528,27 +577,65 @@ Finished in {datetime.now() - self.start_time}
                 )
                 mp.program.save()
 
-                # Create new program descriptions with the description
-                # and curriculum info provided in the matched catalog entry
-                description_str = self.__get_description(catalog_entry)
-                if description_str:
+                if catalog_entry.program_description_clean is not None or catalog_entry.program_curriculum_clean is not None:
+                    # We processed a program description or curriculum
+                    # for this catalog entry, so, remove all existing
+                    # ProgramDescriptions related to the Program and
+                    # create new ones:
+                    self.__delete_program_descriptions(mp.program)
+
+                    # Create new short and full program descriptions with the
+                    # description and curriculum info provided in the matched
+                    # catalog entry
+                    description_str = self.__get_description(catalog_entry)
                     description = ProgramDescription(
-                        description_type=self.description_type,
+                        description_type=self.description_type_desc,
                         description=description_str,
                         program=mp.program
                     )
                     description.save()
                     self.descriptions_updated_created += 1
 
-                description_full_str = self.__get_full_description(catalog_entry)
-                if description_full_str:
+                    description_full_str = self.__get_full_description(
+                        catalog_entry
+                    )
                     description_full = ProgramDescription(
-                        description_type=self.description_type_full,
+                        description_type=self.description_type_desc_full,
                         description=description_full_str,
                         program=mp.program
                     )
                     description_full.save()
                     self.full_descriptions_updated_created += 1
+
+                    # Create new ProgramDescriptions to store
+                    # source program descriptions and curriculums
+                    source_desc_str = catalog_entry.description
+                    source_description = ProgramDescription(
+                        description_type=self.description_type_source_desc,
+                        description=source_desc_str,
+                        program=mp.program
+                    )
+                    source_description.save()
+
+                    source_curriculum_str = catalog_entry.curriculum
+                    source_curriculum = ProgramDescription(
+                        description_type=self.description_type_source_curriculum,
+                        description=source_curriculum_str,
+                        program=mp.program
+                    )
+                    source_curriculum.save()
+                else:
+                    # We did not process a program description or curriculum
+                    # for this catalog entry, meaning we had existing,
+                    # unchanged source data to reference.  Keep it intact.
+                    pass
+            else:
+                # Remove any existing catalog URL on the program
+                mp.program.catalog_url = None
+                mp.program.save()
+
+                # Delete any ProgramDescriptions assigned to the program
+                self.__delete_program_descriptions(mp.program)
 
     def __get_description(self, catalog_entry):
         """
@@ -560,7 +647,12 @@ Finished in {datetime.now() - self.start_time}
         Returns:
             (str): The cleaned string
         """
-        return catalog_entry.program_description_clean
+        desc = ''
+
+        if catalog_entry.program_description_clean is not None:
+            desc = catalog_entry.program_description_clean
+
+        return desc
 
     def __get_full_description(self, catalog_entry):
         """
@@ -572,7 +664,51 @@ Finished in {datetime.now() - self.start_time}
         Returns:
             (str): The cleaned string
         """
-        return catalog_entry.program_description_clean + catalog_entry.program_curriculum_clean
+        desc = ''
+
+        if catalog_entry.program_description_clean is not None:
+            desc += catalog_entry.program_description_clean
+        if catalog_entry.program_curriculum_clean is not None:
+            desc += catalog_entry.program_curriculum_clean
+
+        return desc
+
+    def __delete_program_descriptions(self, program):
+        """
+        Deletes all ProgramDescriptions associated with the
+        given Program
+
+        Args:
+            program (obj): Program object
+        """
+        # Delete any existing "short"/"full" catalog descriptions
+        try:
+            description_short = program.descriptions.get(
+                description_type=self.description_type_desc)
+            description_short.delete()
+        except ProgramDescription.DoesNotExist:
+            pass
+        try:
+            description_full = program.descriptions.get(
+                description_type=self.description_type_desc_full)
+            description_full.delete()
+        except ProgramDescription.DoesNotExist:
+            pass
+
+        # Delete any existing original catalog descriptions
+        # and curriculum content
+        try:
+            source_description = program.descriptions.get(
+                description_type=self.description_type_source_desc)
+            source_description.delete()
+        except ProgramDescription.DoesNotExist:
+            pass
+        try:
+            source_curriculum = program.descriptions.get(
+                description_type=self.description_type_source_curriculum)
+            source_curriculum.delete()
+        except ProgramDescription.DoesNotExist:
+            pass
 
     def __sanitize_description(self, description_str, strip_links=False):
         """
@@ -587,6 +723,9 @@ Finished in {datetime.now() - self.start_time}
         Returns:
             (str): The cleaned string
         """
+        if description_str == '':
+            return description_str
+
         tag_whitelist = [
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
             'p', 'br', 'pre', 'sup', 'sub',

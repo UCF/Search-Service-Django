@@ -13,8 +13,42 @@ class CatalogEntry(object):
         self.data = json
         self.type = program_type
         self.match_count = 0
-        self.program_description_clean = ''
-        self.program_curriculum_clean = ''
+        self.program_description_clean = None
+        self.program_curriculum_clean = None
+
+    @property
+    def description(self):
+        """
+        Returns an unmodified catalog program description
+
+        Returns:
+            (str): Catalog description string
+        """
+        desc = ''
+
+        if 'programDescription' in self.data:
+            # Catalog programs store this value in `programDescription`
+            desc = self.data['programDescription']
+        elif 'description' in self.data:
+            # Catalog tracks store this value in `description`
+            desc = self.data['description']
+
+        return desc
+
+    @property
+    def curriculum(self):
+        """
+        Returns an unmodified catalog curriculum
+
+        Returns:
+            (str): Catalog curriculum string
+        """
+        curriculum = ''
+
+        if 'requiredCoreCourses' in self.data:
+            curriculum = self.data['requiredCoreCourses']
+
+        return curriculum
 
     @property
     def level(self):
