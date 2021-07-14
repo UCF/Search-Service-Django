@@ -484,7 +484,8 @@ Finished in {datetime.now() - self.start_time}
                     # (or if we're forcing description updates)
                     if catalog_entry.program_description_clean is None:
                         catalog_entry.program_description_clean = self.__sanitize_description(
-                            catalog_desc
+                            description_str=catalog_desc,
+                            strip_tables=True
                         )
 
                 # Pass along to the curriculum queue next
@@ -544,7 +545,8 @@ Finished in {datetime.now() - self.start_time}
                     # (or if we're forcing description updates)
                     if catalog_entry.program_curriculum_clean is None:
                         catalog_entry.program_curriculum_clean = self.__sanitize_description(
-                            catalog_curriculum
+                            description_str=catalog_curriculum,
+                            unwrap_links=True
                         )
 
             except Exception as e:
@@ -710,7 +712,7 @@ Finished in {datetime.now() - self.start_time}
         except ProgramDescription.DoesNotExist:
             pass
 
-    def __sanitize_description(self, description_str, strip_links=False):
+    def __sanitize_description(self, description_str, unwrap_links=False, strip_tables=False):
         """
         Modifies the provided catalog description string
         to clean up markup and strip undesired tags/content.
@@ -729,12 +731,13 @@ Finished in {datetime.now() - self.start_time}
         tag_whitelist = [
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
             'p', 'br', 'pre', 'sup', 'sub',
-            'table', 'tbody', 'thead', 'tr', 'td',
             'ul', 'li', 'ol', 'dl', 'dt', 'dd',
             'b', 'em', 'i', 'strong', 'u'
         ]
-        if not strip_links:
+        if not unwrap_links:
             tag_whitelist.append('a')
+        if not strip_tables:
+            tag_whitelist.extend(['table', 'tbody', 'thead', 'tr', 'td'])
 
         # Tags that should not allow nesting of the same
         # tag type (e.g. <em><em>...</em></em>),
@@ -758,13 +761,19 @@ Finished in {datetime.now() - self.start_time}
         for empty_tag in empty_tags:
             empty_tag.decompose()
 
+        # Strip tables, if enabled:
+        if strip_tables:
+            table_tags = description_html.find_all('table')
+            for table_tag in table_tags:
+                table_tag.decompose()
+
         for match in description_html.descendants:
             if isinstance(match, NavigableString) == False:
                 # Transform <u> tags to <em>
                 if match.name == 'u':
                     match.name = 'em'
 
-                # Strip <p> tags within <li>s
+                # Unwrap <p> tags within <li>s
                 if match.name == 'p' and match.parent.name == 'li':
                     match.name = 'span'
                     match.attrs = []
@@ -777,14 +786,14 @@ Finished in {datetime.now() - self.start_time}
                         nested_tag.name = 'span'
                         nested_tag.attrs = []
 
-                # Remove relative links, and links with no href
-                if not strip_links and match.name == 'a':
+                # Unwrap relative links, and links with no href
+                if not unwrap_links and match.name == 'a':
                     href = match.get('href')
                     if not href or not href.startswith(('http', 'mailto', 'tel')):
                         match.name = 'span'
                         match.attrs = []
 
-                # Remove inline tags in nested_tag_blacklist that
+                # Unwrap inline tags in nested_tag_blacklist that
                 # surround all content within headings
                 if match.name in heading_tags:
                     inner_tag = match.find(nested_tag_blacklist)
