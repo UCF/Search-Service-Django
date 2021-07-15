@@ -9,9 +9,10 @@ class CatalogEntry(object):
     Describes a catalog program or track and
     its associated data.
     """
-    def __init__(self, json, program_type):
+    def __init__(self, json, program_type, college_short):
         self.data = json
         self.type = program_type
+        self.college_short = college_short
         self.match_count = 0
         self.program_description_clean = None
         self.program_curriculum_clean = None
@@ -179,7 +180,10 @@ class MatchableProgram(object):
         word_count_mp = len(self.name_clean.split())
         word_count_e = len(catalog_entry.name_clean.split())
         word_counts = [word_count_mp, word_count_e]
-        word_count_mean = float(sum(word_counts)) / max(len(word_counts), 1)
+        try:
+            word_count_mean = float(sum(word_counts)) / max(len(word_counts), 1)
+        except ZeroDivisionError:
+            pass
 
         # Enforce a stricter threshold between program names with a lower
         # mean word count

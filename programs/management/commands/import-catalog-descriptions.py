@@ -123,6 +123,7 @@ class Command(BaseCommand):
         self.catalog_tracks_url = f"{self.path}api/cm/specializations/queryAll/"
         self.catalog_entries = []
         self.catalog_program_types = {}
+        self.catalog_colleges = {}
         self.client = None
         if not self.skip_oscar:
             self.client = boto3.client(
@@ -243,7 +244,16 @@ Finished in {datetime.now() - self.start_time}
         """
         catalog_program_data = self.__get_json_response(self.catalog_programs_url)
         catalog_tracks_data = self.__get_json_response(self.catalog_tracks_url)
-        data = catalog_program_data['res'] + catalog_tracks_data['res']
+        data = []
+
+        try:
+            data.extend(catalog_program_data['res'])
+        except KeyError:
+            pass
+        try:
+            data.extend(catalog_tracks_data['res'])
+        except KeyError:
+            pass
 
         self.catalog_prep_progress = ChargingBar(
             'Prepping catalog entries...',
@@ -256,15 +266,73 @@ Finished in {datetime.now() - self.start_time}
             # Catalog data must be active and have a title, academicLevel,
             # and programType field assigned to it for us to be able to
             # work with it. Additionally, we want to avoid nondegree programs:
-            if 'status' in result and result['status'] == 'active' and 'title' in result and 'academicLevel' in result and ('programTypeUndergrad' in result or 'programTypeGrad' in result):
+            if (
+                'status' in result and result['status'] == 'active'
+                and 'includeInCatalog' in result and result['includeInCatalog'] == True
+                and 'title' in result
+                and 'academicLevel' in result
+                and ('programTypeUndergrad' in result or 'programTypeGrad' in result)
+            ):
                 catalog_program_type = self.__get_catalog_program_type(result)
                 if catalog_program_type != 'Nondegree':
+                    catalog_college_short = self.__get_catalog_college_short(result)
                     self.catalog_entries.append(
                         CatalogEntry(
                             result,
-                            catalog_program_type
+                            catalog_program_type,
+                            catalog_college_short
                         )
                     )
+
+    def __get_catalog_college_short(self, catalog_entry_data):
+        """
+        Returns a college's short name string for the
+        provided catalog entry.
+
+        Args:
+            catalog_entry_data (dict): The catalog entry JSON dictionary
+
+        Returns:
+            (str): The catalog short name string
+        """
+        college_short = None
+
+        if 'groupFilter1' in catalog_entry_data:
+            college_id = catalog_entry_data['groupFilter1']
+
+            try:
+                college_short = self.catalog_colleges[college_id]
+            except KeyError:
+                try:
+                    college_data = self.__get_json_response(
+                        f"{self.path}api/v1/groups/{college_id}/"
+                    )
+                    # NOTE: not sure if I completely trust this ID
+                    # to not change in the future...
+                    college_short_data = next(
+                        (item for item in college_data['fields']
+                         if item['id'] == 'M2RCHsENP'),
+                        None
+                    )
+                    if college_short_data:
+                        college_short = college_short_data['value']
+                except:
+                    pass
+
+            # Save it for reference later, even if it's None
+            self.catalog_colleges[college_id] = college_short
+        elif 'inheritedFrom' in catalog_entry_data:
+            # This is a track; try to get the parent plan's college short name.
+            # NOTE: assumes that top-level catalog programs were requested
+            # first and have already been added to self.catalog_entries.
+            parent_program_catalog_entry = next(
+                (entry for entry in self.catalog_entries if entry.data['pid'] == catalog_entry_data['inheritedFrom']),
+                None
+            )
+            if parent_program_catalog_entry:
+                college_short = parent_program_catalog_entry.college_short
+
+        return college_short
 
     def __get_catalog_program_type(self, catalog_entry_data):
         """
@@ -279,27 +347,27 @@ Finished in {datetime.now() - self.start_time}
             (str): The program type name string
         """
         program_type = None
+        program_type_id = None
 
         if 'programTypeUndergrad' in catalog_entry_data:
-            try:
-                program_type = self.catalog_program_types[catalog_entry_data['programTypeUndergrad']]
-            except KeyError:
-                program_type_data = self.__get_json_response(
-                    f"{self.path}api/cm/options/{catalog_entry_data['programTypeUndergrad']}/")
-                program_type = program_type_data['name']
-                # Save it for reference later
-                self.catalog_program_types[program_type_data['id']
-                                           ] = program_type
+            program_type_id = catalog_entry_data['programTypeUndergrad']
         elif 'programTypeGrad' in catalog_entry_data:
+            program_type_id = catalog_entry_data['programTypeGrad']
+
+        if program_type_id:
             try:
-                program_type = self.catalog_program_types[catalog_entry_data['programTypeGrad']]
+                program_type = self.catalog_program_types[program_type_id]
             except KeyError:
-                program_type_data = self.__get_json_response(
-                    f"{self.path}api/cm/options/{catalog_entry_data['programTypeGrad']}/")
-                program_type = program_type_data['name']
-                # Save it for reference later
-                self.catalog_program_types[program_type_data['id']
-                                           ] = program_type
+                try:
+                    program_type_data = self.__get_json_response(
+                        f"{self.path}api/cm/options/{program_type_id}/"
+                    )
+                    program_type = program_type_data['name']
+                except:
+                    pass
+
+            # Save it for reference later (even if it's None)
+            self.catalog_program_types[program_type_id] = program_type
 
         return program_type
 
@@ -401,9 +469,18 @@ Finished in {datetime.now() - self.start_time}
                     self.catalog_match_progress.next()
 
                 # Create a list of CatalogEntry's to match against that
-                # share the same career and level as the program:
-                filtered_entries = [x for x in self.catalog_entries if x.level.name.lower(
-                ) == mp.program.level.name.lower() and x.data['academicLevel'].lower() == mp.program.career.name.lower()]
+                # share the same career and level as the program, and
+                # that share a college:
+                filtered_entries = [
+                    x for x in self.catalog_entries
+                    if x.level == mp.program.level
+                    and x.data['academicLevel'].lower() == mp.program.career.name.lower()
+                    and (
+                        x.college_short in mp.program.colleges.values_list('short_name', flat=True)
+                        if x.college_short is not None
+                        else True
+                    )
+                ]
 
                 # Determine all potential catalog entry matches for the program:
                 for entry in filtered_entries:
