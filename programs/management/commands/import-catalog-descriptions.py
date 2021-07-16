@@ -146,7 +146,6 @@ class Command(BaseCommand):
         self.program_update_progress = None
 
         # Setup our queues for multithreading
-        self.catalog_match_queue = Queue()
         self.catalog_description_queue = Queue()
         self.catalog_curriculum_queue = Queue()
         # General lock we can use when we need
@@ -159,7 +158,7 @@ class Command(BaseCommand):
         self.__get_catalog_entries()
 
         # Let's do some work
-        self.__setup_program_matching()
+        self.__match_programs()
         self.__setup_description_processing()
         self.__setup_curriculum_processing()
         self.__update_programs()
@@ -240,7 +239,8 @@ Finished in {datetime.now() - self.start_time}
 
     def __get_catalog_entries(self):
         """
-        Requests programs/tracks from Kuali
+        Requests programs/tracks from Kuali, and prepares
+        retrieved data for matching
         """
         catalog_program_data = self.__get_json_response(self.catalog_programs_url)
         catalog_tracks_data = self.__get_json_response(self.catalog_tracks_url)
@@ -293,7 +293,7 @@ Finished in {datetime.now() - self.start_time}
             catalog_entry_data (dict): The catalog entry JSON dictionary
 
         Returns:
-            (str): The catalog short name string
+            (str): The college short name string
         """
         college_short = None
 
@@ -439,78 +439,59 @@ Finished in {datetime.now() - self.start_time}
 
             mp = MatchableProgram(p)
             self.matchable_programs.append(mp)
-            self.catalog_match_queue.put(mp)
-
-    def __setup_program_matching(self):
-        """
-        Sets up multiple threads for matching catalog
-        entries to existing programs.
-        """
-        self.catalog_match_progress = ChargingBar(
-            'Matching existing programs to catalog entries...',
-            max=self.catalog_match_queue.qsize()
-        )
-
-        for _ in range(self.max_threads):
-            Thread(target=self.__match_programs, daemon=True).start()
-
-        self.catalog_match_queue.join()
 
     def __match_programs(self):
         """
         Loops through the catalog entries and
         attempts to match them to existing programs.
         """
-        while True:
-            try:
-                mp = self.catalog_match_queue.get()
+        self.catalog_match_progress = ChargingBar(
+            'Matching existing programs to catalog entries...',
+            max=len(self.matchable_programs)
+        )
 
-                with self.mt_lock:
-                    self.catalog_match_progress.next()
+        for mp in self.matchable_programs:
+            self.catalog_match_progress.next()
 
-                # Create a list of CatalogEntry's to match against that
-                # share the same career and level as the program, and
-                # that share a college:
-                filtered_entries = [
-                    x for x in self.catalog_entries
-                    if x.level == mp.program.level
-                    and x.data['academicLevel'].lower() == mp.program.career.name.lower()
-                    and (
-                        x.college_short in mp.program.colleges.values_list('short_name', flat=True)
-                        if x.college_short is not None
-                        else True
-                    )
-                ]
+            # Create a list of CatalogEntry's to match against that
+            # share the same career and level as the program, and
+            # that share a college:
+            filtered_entries = [
+                x for x in self.catalog_entries
+                if x.level == mp.program.level
+                and x.data['academicLevel'].lower() == mp.program.career.name.lower()
+                and (
+                    x.college_short in mp.program.colleges.values_list('short_name', flat=True)
+                    if x.college_short is not None
+                    else True
+                )
+            ]
 
-                # Determine all potential catalog entry matches for the program:
-                for entry in filtered_entries:
-                    mp.match(entry)
+            # Determine all potential catalog entry matches for the program:
+            for entry in filtered_entries:
+                mp.match(entry)
 
-                if mp.has_matches:
-                    # Send the MatchableProgram off for further processing
-                    self.catalog_description_queue.put(mp)
+            if mp.has_matches:
+                # Send the MatchableProgram off for further processing
+                self.catalog_description_queue.put(mp)
 
-                    # Get the best match and save it for later
-                    match = mp.get_best_match()
-                    mp.best_match = match[1]
+                # Get the best match and save it for later
+                match = mp.get_best_match()
+                mp.best_match = match[1]
 
-                    # Increment match counts
-                    self.program_match_count += 1
-                    mp.best_match.match_count += 1
+                # Increment match counts
+                self.program_match_count += 1
+                mp.best_match.match_count += 1
 
-                    logging.log(
-                        logging.INFO,
-                        f"MATCH \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n Catalog entry full name: {mp.best_match.data['title']} \n Cleaned catalog entry name: {mp.best_match.name_clean} \n Match score: {match[0]} \n"
-                    )
-                else:
-                    logging.log(
-                        logging.INFO,
-                        f"FAILURE \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n"
-                    )
-            except Exception as e:
-                logging.log(logging.ERROR, e)
-            finally:
-                self.catalog_match_queue.task_done()
+                logging.log(
+                    logging.INFO,
+                    f"MATCH \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n Catalog entry full name: {mp.best_match.data['title']} \n Cleaned catalog entry name: {mp.best_match.name_clean} \n Match score: {match[0]} \n"
+                )
+            else:
+                logging.log(
+                    logging.INFO,
+                    f"FAILURE \n Matched program name: {mp.program.name} \n Cleaned program name: {mp.name_clean} \n"
+                )
 
     def __setup_description_processing(self):
         """
