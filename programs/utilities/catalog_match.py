@@ -1,7 +1,7 @@
 from operator import itemgetter
 from fuzzywuzzy import fuzz
 
-from programs.models import Level
+from programs.models import Level, Career
 
 
 class CatalogEntry(object):
@@ -17,6 +17,8 @@ class CatalogEntry(object):
         self.program_description_clean = None
         self.program_curriculum_clean = None
         self.level_pk = self.level.pk
+        self.career_pk = self.career.pk
+
     @property
     def description(self):
         """
@@ -78,6 +80,26 @@ class CatalogEntry(object):
         return Level.objects.get(name='Bachelors')
 
     @property
+    def career(self):
+        """
+        Translates a catalog entry's "academic level" to an
+        equivalent search service program's "Career".
+
+        Returns:
+            (object): Career object
+        """
+        career = None
+
+        try:
+            career = Career.objects.get(
+                name__iexact=self.data['academicLevel']
+            )
+        except Career.DoesNotExist:
+            career = Career.objects.get(name='Undergraduate')
+
+        return career
+
+    @property
     def name_clean(self):
         """
         Returns the title of the program/track,
@@ -110,6 +132,7 @@ class MatchableProgram(object):
         self.matches = []  # List of tuples containing score, CatalogEntry object
         self.best_match = None
         self.level_pk = self.program.level.pk
+        self.career_pk = self.program.career.pk
 
     @property
     def name_clean(self):

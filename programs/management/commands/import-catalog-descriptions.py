@@ -459,7 +459,7 @@ Finished in {datetime.now() - self.start_time}
             filtered_entries = [
                 x for x in self.catalog_entries
                 if x.level_pk == mp.level_pk
-                and x.data['academicLevel'].lower() == mp.program.career.name.lower()
+                and x.career_pk == mp.career_pk
                 and (
                     x.college_short in mp.program.colleges.values_list('short_name', flat=True)
                     if x.college_short is not None
