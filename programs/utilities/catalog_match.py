@@ -16,7 +16,7 @@ class CatalogEntry(object):
         self.match_count = 0
         self.program_description_clean = None
         self.program_curriculum_clean = None
-
+        self.level_pk = self.level.pk
     @property
     def description(self):
         """
@@ -109,6 +109,7 @@ class MatchableProgram(object):
         self.program = program
         self.matches = []  # List of tuples containing score, CatalogEntry object
         self.best_match = None
+        self.level_pk = self.program.level.pk
 
     @property
     def name_clean(self):
