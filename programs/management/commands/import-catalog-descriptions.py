@@ -458,7 +458,7 @@ Finished in {datetime.now() - self.start_time}
             # that share a college:
             filtered_entries = [
                 x for x in self.catalog_entries
-                if x.level == mp.program.level
+                if x.level_pk == mp.level_pk
                 and x.data['academicLevel'].lower() == mp.program.career.name.lower()
                 and (
                     x.college_short in mp.program.colleges.values_list('short_name', flat=True)
