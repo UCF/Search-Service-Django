@@ -815,8 +815,7 @@ Finished in {datetime.now() - self.start_time}
         description_html = BeautifulSoup(description_str, 'html.parser')
 
         # Strip empty tags:
-        empty_tags = description_html.find_all(lambda tag: (not tag.contents or len(
-            tag.get_text(strip=True)) <= 0) and not tag.name == 'br')
+        empty_tags = description_html.find_all(lambda tag: (not tag.contents or len(tag.get_text(strip=True)) <= 0) and not tag.name in ['br', 'td', 'th'])
         for empty_tag in empty_tags:
             empty_tag.decompose()
 
