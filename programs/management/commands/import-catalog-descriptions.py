@@ -3,7 +3,7 @@ from django.conf import settings
 from programs.utilities.oscar import Oscar
 from programs.utilities.catalog_match import CatalogEntry, MatchableProgram
 
-from programs.models import Program, ProgramDescription, ProgramDescriptionType, Level
+from programs.models import Program, ProgramDescription, ProgramDescriptionType
 
 from progress.bar import ChargingBar
 from datetime import datetime
@@ -293,7 +293,7 @@ Finished in {datetime.now() - self.start_time}
             catalog_entry_data (dict): The catalog entry JSON dictionary
 
         Returns:
-            (str): The college short name string
+            (str|None): The college short name string, or None
         """
         college_short = None
 
@@ -547,7 +547,8 @@ Finished in {datetime.now() - self.start_time}
                         )
 
                 # Pass along to the curriculum queue next
-                self.catalog_curriculum_queue.put(mp)
+                with self.mt_lock:
+                    self.catalog_curriculum_queue.put(mp)
 
             except Exception as e:
                 logging.log(logging.ERROR, e)
