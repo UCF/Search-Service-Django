@@ -59,7 +59,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--force-desc-updates',
-            type='store_true',
+            action='store_true',
             dest='force-desc-updates',
             help='Force all catalog descriptions to be updated, regardless of whether or not they\'ve changed since the last import',
             default=False,
