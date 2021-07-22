@@ -41,6 +41,7 @@ setup(
         'pybtex',
         'pybtex-apa-style',
         'python-dateutil',
+        'python-Levenshtein',
         'raven',
         'requests',
         'tabulate',
