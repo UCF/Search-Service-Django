@@ -231,7 +231,8 @@ Finished in {datetime.now() - self.start_time}
             response = requests.get(
                 path,
                 params=params,
-                headers=headers
+                headers=headers,
+                timeout=15 # courses request can be slow
             )
 
             data = response.json()
@@ -262,7 +263,7 @@ Finished in {datetime.now() - self.start_time}
         for result in data:
             self.catalog_courses_prep_progress.next()
             if 'pid' in result:
-                self.catalog_courses[result.pid] = result
+                self.catalog_courses[result['pid']] = result
 
     def __get_catalog_entries(self):
         """
