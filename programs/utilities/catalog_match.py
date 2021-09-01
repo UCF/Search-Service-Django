@@ -48,7 +48,37 @@ class CatalogEntry(object):
         """
         curriculum = ''
 
-        if 'requiredCoreCourses' in self.data:
+        # Determine if the structured `degreeRequirements` field is
+        # actively in use.  Assume this field is in use if at least one
+        # object under `groupings` is present, and that it has a non-empty
+        # `label` and `rules`:
+        hasDegreeRequirements = False
+        try:
+            firstGrouping = self.data['degreeRequirements']['groupings'][0]
+            firstGroupingLabel = firstGrouping['label']
+            if firstGroupingLabel != '' and 'rules' in firstGrouping:
+                hasDegreeRequirements = True
+        except KeyError:
+            pass
+
+        if hasDegreeRequirements:
+            # This program is now utilizing dedicated fields
+            # for portions of the larger "curriculum" content.
+            # Piece them all together:
+            if 'programPrerequisites' in self.data:
+                curriculum += f"<h2>Program Prerequisites</h2>{self.data['programPrerequisites']}"
+
+            # TODO degree requirements
+
+            if 'applicationRequirements' in self.data:
+                curriculum += f"<h2>Application Requirements</h2>{self.data['applicationRequirements']}"
+            if 'applicationDeadlineText' in self.data:
+                curriculum += f"<h2>Application Deadlines</h2>{self.data['applicationDeadlineText']}"
+            if 'financialInformation' in self.data:
+                curriculum += f"<h2>Financial Information</h2>{self.data['financialInformation']}"
+            if 'licensureDisclosureNotes' in self.data and 'licensureDisclosure' in self.data and self.data['licensureDisclosure'] == True:
+                curriculum += f"<h2>Licensure Disclosure</h2>{self.data['licensureDisclosureNotes']}"
+        elif 'requiredCoreCourses' in self.data:
             curriculum = self.data['requiredCoreCourses']
 
         return curriculum
