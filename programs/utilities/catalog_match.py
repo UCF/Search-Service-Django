@@ -53,16 +53,16 @@ class CatalogEntry(object):
         # actively in use.  Assume this field is in use if at least one
         # object under `groupings` is present, and that it has a non-empty
         # `label` and `rules`:
-        has_degree_requirements = False
+        has_structured_degree_requirements = False
         try:
             first_grouping = self.data['degreeRequirements']['groupings'][0]
             first_grouping_label = first_grouping['label']
             if first_grouping_label != '' and 'rules' in first_grouping:
-                has_degree_requirements = True
+                has_structured_degree_requirements = True
         except KeyError:
             pass
 
-        if has_degree_requirements:
+        if has_structured_degree_requirements:
             # This program is now utilizing dedicated fields
             # for portions of the larger "curriculum" content.
             # Piece them all together:
@@ -70,15 +70,28 @@ class CatalogEntry(object):
 
             if 'programPrerequisites' in self.data:
                 curriculum += f"<h2>Program Prerequisites</h2>{self.data['programPrerequisites']}"
+            elif 'trackPrerequisites' in self.data:
+                curriculum += f"<h2>Track Prerequisites</h2>{self.data['trackPrerequisites']}"
 
             curriculum += f"<h2>Degree Requirements</h2>{degree_requirements}"
 
             if 'applicationRequirements' in self.data:
                 curriculum += f"<h2>Application Requirements</h2>{self.data['applicationRequirements']}"
+
             if 'applicationDeadlineText' in self.data:
                 curriculum += f"<h2>Application Deadlines</h2>{self.data['applicationDeadlineText']}"
+
+            if 'applicationDeadlinesNotes' in self.data:
+                curriculum += self.data['applicationDeadlinesNotes']
+            elif 'applicationNotesTrack' in self.data:
+                curriculum += self.data['applicationNotesTrack']
+
             if 'financialInformation' in self.data:
                 curriculum += f"<h2>Financial Information</h2>{self.data['financialInformation']}"
+
+            if 'fellowshipInformation' in self.data:
+                curriculum += f"<h2>Fellowship Information</h2>{self.data['fellowshipInformation']}"
+
             if 'licensureDisclosureNotes' in self.data and 'licensureDisclosure' in self.data and self.data['licensureDisclosure'] == True:
                 curriculum += f"<h2>Licensure Disclosure</h2>{self.data['licensureDisclosureNotes']}"
         elif 'requiredCoreCourses' in self.data:
@@ -161,7 +174,9 @@ class CatalogEntry(object):
         entry's curriculum HTML to describe degree requirements.
         """
         # TODO
-        return ''
+        html = ''
+
+        return html
 
 
 class MatchableProgram(object):
