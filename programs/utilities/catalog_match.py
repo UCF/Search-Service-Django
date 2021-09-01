@@ -73,7 +73,8 @@ class CatalogEntry(object):
             elif 'trackPrerequisites' in self.data:
                 curriculum += f"<h2>Track Prerequisites</h2>{self.data['trackPrerequisites']}"
 
-            curriculum += f"<h2>Degree Requirements</h2>{degree_requirements}"
+            if degree_requirements:
+                curriculum += f"<h2>Degree Requirements</h2>{degree_requirements}"
 
             if 'applicationRequirements' in self.data:
                 curriculum += f"<h2>Application Requirements</h2>{self.data['applicationRequirements']}"
@@ -81,10 +82,10 @@ class CatalogEntry(object):
             if 'applicationDeadlineText' in self.data:
                 curriculum += f"<h2>Application Deadlines</h2>{self.data['applicationDeadlineText']}"
 
-            if 'applicationDeadlinesNotes' in self.data:
-                curriculum += self.data['applicationDeadlinesNotes']
-            elif 'applicationNotesTrack' in self.data:
-                curriculum += self.data['applicationNotesTrack']
+                if 'applicationDeadlinesNotes' in self.data:
+                    curriculum += self.data['applicationDeadlinesNotes']
+                elif 'applicationNotesTrack' in self.data:
+                    curriculum += self.data['applicationNotesTrack']
 
             if 'financialInformation' in self.data:
                 curriculum += f"<h2>Financial Information</h2>{self.data['financialInformation']}"
