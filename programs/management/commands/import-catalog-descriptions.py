@@ -681,9 +681,14 @@ Finished in {datetime.now() - self.start_time}
 
             if catalog_entry:
                 # Update the catalog URL of the program
+                catalog_id_path = catalog_entry.data['pid']
+                if 'inheritedFrom' in catalog_entry.data:
+                    # Tracks use a path that looks like
+                    # /programs/[parent pid]/[track pid]:
+                    catalog_id_path = f"{catalog_entry.data['inheritedFrom']}/{catalog_id_path}"
                 mp.program.catalog_url = self.catalog_url.format(
                     catalog_entry.data['academicLevel'],
-                    catalog_entry.data['pid']
+                    catalog_id_path
                 )
                 mp.program.save()
 
