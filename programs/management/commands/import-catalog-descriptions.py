@@ -1002,6 +1002,13 @@ Finished in {datetime.now() - self.start_time}
         # BS seems to have a hard time with doing this in-place, so perform
         # a second loop to remove the garbage tags
         for span_match in description_html.find_all('span'):
+            # If this span is followed by another subsequent span,
+            # add a space to the end of its inner contents (to avoid
+            # awkward abutting contents)
+            if span_match.next_sibling and span_match.next_sibling.name == 'span':
+                span_match.insert_after(' ')
+
+            # Finally, unwrap the tag:
             span_match.unwrap()
 
         # Split paragraph tag contents by subsequent <br> tags (<br><br>)
