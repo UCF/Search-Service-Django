@@ -9,8 +9,9 @@ class CatalogEntry(object):
     Describes a catalog program or track and
     its associated data.
     """
-    def __init__(self, json, program_type, college_short, curriculum_courses):
+    def __init__(self, json, html_data, program_type, college_short, curriculum_courses):
         self.data = json
+        self.html_data = html_data
         self.type = program_type
         self.college_short = college_short
         self.curriculum_courses = curriculum_courses
@@ -49,32 +50,16 @@ class CatalogEntry(object):
         """
         curriculum = ''
 
-        # Determine if the structured `degreeRequirements` field is
-        # actively in use.  Assume this field is in use if at least one
-        # object under `groupings` is present, and that it has a non-empty
-        # `label` and `rules`:
-        has_structured_degree_requirements = False
-        try:
-            first_grouping = self.data['degreeRequirements']['groupings'][0]
-            first_grouping_label = first_grouping['label']
-            if first_grouping_label != '' and 'rules' in first_grouping:
-                has_structured_degree_requirements = True
-        except KeyError:
-            pass
-
-        if has_structured_degree_requirements:
-            # This program is now utilizing dedicated fields
-            # for portions of the larger "curriculum" content.
-            # Piece them all together:
-            degree_requirements = self.__get_degree_requirements_html()
-
+        # Assume dedicated fields for extended curriculum-related
+        # data are in use if `degreeRequirements` is present in
+        # self.html_data and is not empty:
+        if 'degreeRequirements' in self.html_data and self.html_data['degreeRequirements'] != '':
             if 'programPrerequisites' in self.data:
                 curriculum += f"<h2>Program Prerequisites</h2>{self.data['programPrerequisites']}"
             elif 'trackPrerequisites' in self.data:
                 curriculum += f"<h2>Track Prerequisites</h2>{self.data['trackPrerequisites']}"
 
-            if degree_requirements:
-                curriculum += f"<h2>Degree Requirements</h2>{degree_requirements}"
+            curriculum += f"<h2>Degree Requirements</h2>{self.html_data['degreeRequirements']}"
 
             if 'applicationRequirements' in self.data:
                 curriculum += f"<h2>Application Requirements</h2>{self.data['applicationRequirements']}"
@@ -94,7 +79,7 @@ class CatalogEntry(object):
                 curriculum += f"<h2>Fellowship Information</h2>{self.data['fellowshipInformation']}"
 
             if 'licensureDisclosureNotes' in self.data and 'licensureDisclosure' in self.data and self.data['licensureDisclosure'] == True:
-                curriculum += f"<h2>Licensure Disclosure</h2>{self.data['licensureDisclosureNotes']}"
+                curriculum += f"<h2>UCF Online</h2>{self.data['licensureDisclosureNotes']}"
         elif 'requiredCoreCourses' in self.data:
             curriculum = self.data['requiredCoreCourses']
 
@@ -168,16 +153,6 @@ class CatalogEntry(object):
                 MatchableProgram match exists
         """
         return self.match_count > 0
-
-    def __get_degree_requirements_html(self):
-        """
-        Returns a content string suitable for use in this
-        entry's curriculum HTML to describe degree requirements.
-        """
-        # TODO
-        html = ''
-
-        return html
 
 
 class MatchableProgram(object):
