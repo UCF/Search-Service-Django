@@ -927,6 +927,8 @@ Finished in {datetime.now() - self.start_time}
         # (e.g. <h2><strong>...</strong></h2>)
         nested_tag_blacklist = ['b', 'em', 'i', 'strong']
 
+        # Attributes on tags that should always be removed.
+        # NOTE: data attributes are always removed.
         attr_blacklist = [
             'class', 'style',
             'border', 'cellpadding', 'cellspacing'
@@ -992,10 +994,10 @@ Finished in {datetime.now() - self.start_time}
                     match.name = 'span'
                     match.attrs = []
                 else:
-                    # Remove unused attrs from elements
-                    for bad_attr in attr_blacklist:
-                        if bad_attr in match.attrs:
-                            match.attrs.pop(bad_attr)
+                    # Remove unused attrs, including all data-* attributes
+                    for attr_key in match.attrs.copy().keys():
+                        if attr_key.startswith('data-') or attr_key in attr_blacklist:
+                            match.attrs.pop(attr_key)
 
         # BS seems to have a hard time with doing this in-place, so perform
         # a second loop to remove the garbage tags
@@ -1007,7 +1009,8 @@ Finished in {datetime.now() - self.start_time}
         # NOTE: These p tags _shouldn't_ have nested elements like
         # these, but just in case, make sure we ignore them:
         p_tags = description_html.find_all(
-            lambda tag: tag.name == 'p' and not tag.find(['ul', 'ol', 'dl', 'table']))
+            lambda tag: tag.name == 'p' and not tag.find(['ul', 'ol', 'dl', 'table'])
+        )
         for p_tag in p_tags:
             p_str = str(p_tag).replace('<p>', '').replace('</p>', '')
             substrings = re.split(r'(?:<br[\s]?[\/]?>[\s]*){2}', p_str)
@@ -1015,7 +1018,8 @@ Finished in {datetime.now() - self.start_time}
                 substring_inserted = False
                 for substring in substrings:
                     new_p = BeautifulSoup(
-                        '<p>{0}</p>'.format(substring), 'html.parser')
+                        '<p>{0}</p>'.format(substring), 'html.parser'
+                    )
                     new_p = new_p.find('p')
                     # Make sure new paragraphs aren't empty:
                     if len(new_p.get_text(strip=True)) > 0:
@@ -1047,6 +1051,7 @@ Finished in {datetime.now() - self.start_time}
             r'^(Program|Track) Description<p>', '<p>', description_html)
         description_html = re.sub('1Active-Visible.*', '', description_html)
         description_html = re.sub(r'[\♦\►]', '', description_html)
+        description_html = description_html.replace('<!-- -->', '')
         description_html = description_html.replace('<!--StartFragment-->', '')
         description_html = description_html.replace('<!--EndFragment-->', '')
 

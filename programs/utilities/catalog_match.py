@@ -54,18 +54,22 @@ class CatalogEntry(object):
         # data are in use if `degreeRequirements` is present in
         # self.html_data and is not empty:
         if 'degreeRequirements' in self.html_data and self.html_data['degreeRequirements'] != '':
+            # NOTE: Headings starting at h1 are intentional here.
+            # Headings in fields in `data_html` tend to start at h2,
+            # so by using h1s here, we allow Oscar to determine
+            # proper heading order and fix things later:
             if 'programPrerequisites' in self.data:
-                curriculum += f"<h2>Program Prerequisites</h2>{self.data['programPrerequisites']}"
+                curriculum += f"<h1>Program Prerequisites</h1>{self.data['programPrerequisites']}"
             elif 'trackPrerequisites' in self.data:
-                curriculum += f"<h2>Track Prerequisites</h2>{self.data['trackPrerequisites']}"
+                curriculum += f"<h1>Track Prerequisites</h1>{self.data['trackPrerequisites']}"
 
-            curriculum += f"<h2>Degree Requirements</h2>{self.html_data['degreeRequirements']}"
+            curriculum += f"<h1>Degree Requirements</h1>{self.html_data['degreeRequirements']}"
 
             if 'applicationRequirements' in self.data:
-                curriculum += f"<h2>Application Requirements</h2>{self.data['applicationRequirements']}"
+                curriculum += f"<h1>Application Requirements</h1>{self.data['applicationRequirements']}"
 
             if 'applicationDeadlineText' in self.data:
-                curriculum += f"<h2>Application Deadlines</h2>{self.data['applicationDeadlineText']}"
+                curriculum += f"<h1>Application Deadlines</h1>{self.data['applicationDeadlineText']}"
 
                 if 'applicationDeadlinesNotes' in self.data:
                     curriculum += self.data['applicationDeadlinesNotes']
@@ -73,13 +77,13 @@ class CatalogEntry(object):
                     curriculum += self.data['applicationNotesTrack']
 
             if 'financialInformation' in self.data:
-                curriculum += f"<h2>Financial Information</h2>{self.data['financialInformation']}"
+                curriculum += f"<h1>Financial Information</h1>{self.data['financialInformation']}"
 
             if 'fellowshipInformation' in self.data:
-                curriculum += f"<h2>Fellowship Information</h2>{self.data['fellowshipInformation']}"
+                curriculum += f"<h1>Fellowship Information</h1>{self.data['fellowshipInformation']}"
 
             if 'licensureDisclosureNotes' in self.data and 'licensureDisclosure' in self.data and self.data['licensureDisclosure'] == True:
-                curriculum += f"<h2>UCF Online</h2>{self.data['licensureDisclosureNotes']}"
+                curriculum += f"<h1>UCF Online</h1>{self.data['licensureDisclosureNotes']}"
         elif 'requiredCoreCourses' in self.data:
             curriculum = self.data['requiredCoreCourses']
 
