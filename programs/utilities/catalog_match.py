@@ -9,12 +9,11 @@ class CatalogEntry(object):
     Describes a catalog program or track and
     its associated data.
     """
-    def __init__(self, json, html_data, program_type, college_short, curriculum_courses):
+    def __init__(self, json, html_data, program_type, college_short):
         self.data = json
         self.html_data = html_data
         self.type = program_type
         self.college_short = college_short
-        self.curriculum_courses = curriculum_courses
         self.match_count = 0
         self.program_description_clean = None
         self.program_curriculum_clean = None

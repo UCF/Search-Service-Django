@@ -123,10 +123,8 @@ class Command(BaseCommand):
         self.catalogs_url = f"{self.path}api/v1/catalog/public/catalogs/"
         self.catalog_programs_url = f"{self.path}api/cm/programs/queryAll/"
         self.catalog_tracks_url = f"{self.path}api/cm/specializations/queryAll/"
-        self.catalog_courses_url = f"{self.path}api/cm/courses/queryAll/"
         self.catalog_program_html_url = self.path + 'api/v1/catalog/program/{0}/{1}'
         self.catalog_entries = []
-        self.catalog_courses = {}
         self.catalogs = {}
         self.catalog_html_data = {}
         self.catalog_program_types = {}
@@ -146,7 +144,6 @@ class Command(BaseCommand):
         self.full_descriptions_updated_created = 0
 
         self.program_prep_progress = None
-        self.catalog_courses_prep_progress = None
         self.catalog_prep_progress = None
         self.catalog_match_progress = None
         self.catalog_description_progress = None
@@ -164,7 +161,6 @@ class Command(BaseCommand):
         self.__get_description_types()
         self.__get_programs()
         self.__get_catalogs()
-        self.__get_catalog_courses()
         self.__get_catalog_entries()
 
         # Let's do some work
@@ -237,8 +233,7 @@ Finished in {datetime.now() - self.start_time}
             response = requests.get(
                 path,
                 params=params,
-                headers=headers,
-                timeout=15 # courses request can be slow
+                headers=headers
             )
 
             data = response.json()
@@ -263,29 +258,6 @@ Finished in {datetime.now() - self.start_time}
             raise Exception(
                 'Unable to retrieve catalog IDs.'
             )
-
-    def __get_catalog_courses(self):
-        """
-        Requests all courses from Kuali and stores each in
-        a dict (self.catalog_courses) for easy lookup by `pid`
-        """
-        catalog_courses_data = self.__get_json_response(self.catalog_courses_url)
-        data = []
-
-        try:
-            data.extend(catalog_courses_data['res'])
-        except KeyError:
-            pass
-
-        self.catalog_courses_prep_progress = ChargingBar(
-            'Prepping catalog course data...',
-            max=len(data)
-        )
-
-        for result in data:
-            self.catalog_courses_prep_progress.next()
-            if 'pid' in result:
-                self.catalog_courses[result['pid']] = result
 
     def __get_catalog_entries(self):
         """
@@ -327,14 +299,12 @@ Finished in {datetime.now() - self.start_time}
                 if catalog_program_type != 'Nondegree':
                     catalog_html_data = self.__get_catalog_html_data(result)
                     catalog_college_short = self.__get_catalog_college_short(result)
-                    catalog_curriculum_courses = self.__get_catalog_curriculum_courses(result)
                     self.catalog_entries.append(
                         CatalogEntry(
                             result,
                             catalog_html_data,
                             catalog_program_type,
-                            catalog_college_short,
-                            catalog_curriculum_courses
+                            catalog_college_short
                         )
                     )
 
@@ -432,25 +402,6 @@ Finished in {datetime.now() - self.start_time}
                 college_short = parent_program_catalog_entry.college_short
 
         return college_short
-
-    def __get_catalog_curriculum_courses(self, catalog_entry_data):
-        """
-        Returns data for all courses included in this entry's curriculum data.
-        """
-        courses = {}
-
-        try:
-            for grouping in catalog_entry_data['degreeRequirements']['groupings']:
-                try:
-                    for rule in grouping['rules']['rules']:
-                        for course in rule['data']['courses']:
-                            courses[course] = self.catalog_courses[course]
-                except KeyError:
-                    continue
-        except KeyError:
-            pass
-
-        return courses
 
     def __get_catalog_program_type(self, catalog_entry_data):
         """
