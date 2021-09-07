@@ -9,8 +9,9 @@ class CatalogEntry(object):
     Describes a catalog program or track and
     its associated data.
     """
-    def __init__(self, json, program_type, college_short):
+    def __init__(self, json, html_data, program_type, college_short):
         self.data = json
+        self.html_data = html_data
         self.type = program_type
         self.college_short = college_short
         self.match_count = 0
@@ -41,14 +42,48 @@ class CatalogEntry(object):
     @property
     def curriculum(self):
         """
-        Returns an unmodified catalog curriculum
+        Returns an original catalog curriculum string
 
         Returns:
             (str): Catalog curriculum string
         """
         curriculum = ''
 
-        if 'requiredCoreCourses' in self.data:
+        # Assume dedicated fields for extended curriculum-related
+        # data are in use if `degreeRequirements` is present in
+        # self.html_data and is not empty:
+        if 'degreeRequirements' in self.html_data and self.html_data['degreeRequirements'] != '':
+            # NOTE: Headings starting at h1 are intentional here.
+            # Headings in fields in `data_html` tend to start at h2,
+            # so by using h1s here, we allow Oscar to determine
+            # proper heading order and fix things later:
+            if 'programPrerequisites' in self.data:
+                curriculum += f"<h1>Program Prerequisites</h1>{self.data['programPrerequisites']}"
+            elif 'trackPrerequisites' in self.data:
+                curriculum += f"<h1>Track Prerequisites</h1>{self.data['trackPrerequisites']}"
+
+            curriculum += f"<h1>Degree Requirements</h1>{self.html_data['degreeRequirements']}"
+
+            if 'applicationRequirements' in self.data:
+                curriculum += f"<h1>Application Requirements</h1>{self.data['applicationRequirements']}"
+
+            if 'applicationDeadlineText' in self.data:
+                curriculum += f"<h1>Application Deadlines</h1>{self.data['applicationDeadlineText']}"
+
+                if 'applicationDeadlinesNotes' in self.data:
+                    curriculum += self.data['applicationDeadlinesNotes']
+                elif 'applicationNotesTrack' in self.data:
+                    curriculum += self.data['applicationNotesTrack']
+
+            if 'financialInformation' in self.data:
+                curriculum += f"<h1>Financial Information</h1>{self.data['financialInformation']}"
+
+            if 'fellowshipInformation' in self.data:
+                curriculum += f"<h1>Fellowship Information</h1>{self.data['fellowshipInformation']}"
+
+            if 'licensureDisclosureNotes' in self.data and 'licensureDisclosure' in self.data and self.data['licensureDisclosure'] == True:
+                curriculum += f"<h1>UCF Online</h1>{self.data['licensureDisclosureNotes']}"
+        elif 'requiredCoreCourses' in self.data:
             curriculum = self.data['requiredCoreCourses']
 
         return curriculum
