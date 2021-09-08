@@ -21,6 +21,7 @@ class ContentCategory(Enum):
     ADMISSIONS = 'Admissions Info'
     COURSES = 'Course Info'
     CONTACT_INFO = 'Contact Info'
+    DISPLAY = 'Display-related Content'
 
 #endregion
 
@@ -251,6 +252,8 @@ class ContentNode(object):
         # Finally, assign a content category:
         if contact_info_avg > 30:
             self.content_category = ContentCategory.CONTACT_INFO
+        elif any([x in self.cleaned_str.lower() for x in ['scroll to', 'scroll down', 'scroll up']]):
+            self.content_category = ContentCategory.DISPLAY
         elif any([x in self.cleaned_str.lower() for x in ['credit hour', 'course', 'elective']]):
             self.content_category = ContentCategory.COURSES
         elif any([x in self.cleaned_str.lower() for x in ['admission']]):

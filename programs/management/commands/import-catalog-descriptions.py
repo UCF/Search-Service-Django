@@ -209,7 +209,7 @@ Finished in {datetime.now() - self.start_time}
         else:
             return f"{path}/"
 
-    def __get_json_response(self, path, params={}, use_auth=True):
+    def __get_json_response(self, path, params={}, use_auth=True, retry=True):
         """
         Requests content from a Kuali endpoint using a GET request
         and returns a serialized JSON object
@@ -218,13 +218,15 @@ Finished in {datetime.now() - self.start_time}
             path (str): The URL path to request
             params (dict): GET parameters to add to the request
             use_auth (bool): Whether the request requires the Authorization header
+            retry (bool): Whether or not a request should be re-attempted if the first try fails
 
         Returns:
-            (dict|array): The serialized JSON object as a dictionary (or array of dictionaries)
+            (dict|array|None): The serialized JSON object as a dictionary (or array of dictionaries), or None
         """
         headers = {
             'content-type': 'application/json'
         }
+        timeout = 15  # seconds
 
         if use_auth:
             headers['Authorization'] = f'Bearer {self.key}'
@@ -233,15 +235,32 @@ Finished in {datetime.now() - self.start_time}
             response = requests.get(
                 path,
                 params=params,
-                headers=headers
+                headers=headers,
+                timeout=timeout
             )
+            response.raise_for_status()
 
             data = response.json()
-
-            return data
-
+        except requests.exceptions.HTTPError as e:
+            if retry:
+                # Kuali occasionally returns 502s for no apparent reason;
+                # try one more time if we got a bad response:
+                return self.__get_json_response(
+                    path=path,
+                    params=params,
+                    use_auth=use_auth,
+                    retry=False
+                )
+            else:
+                self.stderr.write(self.style.ERROR(str(e)))
+                data = None
         except Exception as e:
+            # Something went wrong that wasn't related to
+            # the request--note it and move on:
             self.stderr.write(self.style.ERROR(str(e)))
+            data = None
+
+        return data
 
     def __get_catalogs(self):
         """
@@ -312,6 +331,13 @@ Finished in {datetime.now() - self.start_time}
         """
         Returns frontend-ready HTML for catalog data
         per field in Kuali.
+
+        Args:
+            catalog_entry_data (dict): The catalog entry JSON dictionary
+
+        Returns:
+            (dict|None): HTML data for the provided catalog entry, or None
+            if data could not be fetched
         """
         html_data = None
 
@@ -328,12 +354,17 @@ Finished in {datetime.now() - self.start_time}
                 # already be present in self.catalog_html_data.
                 # (Assumes self.__get_catalog_entries() always processes
                 # programs before tracks.)
-                parent_html_data = self.catalog_html_data[catalog_entry_data['inheritedFrom']]
-                track_html_data = next(
-                    (item for item in parent_html_data['specializations']
-                        if item['pid'] == pid),
-                    None
-                )
+                try:
+                    parent_html_data = self.catalog_html_data[catalog_entry_data['inheritedFrom']]
+                    track_html_data = next(
+                        (item for item in parent_html_data['specializations']
+                            if item['pid'] == pid),
+                        None
+                    )
+                except KeyError:
+                    # Initial fetch for parent program HTML data failed/
+                    # no data available in self.catalog_html_data
+                    track_html_data = None
 
                 if track_html_data:
                     html_data = track_html_data
