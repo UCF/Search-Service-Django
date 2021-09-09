@@ -388,7 +388,8 @@ Finished in {datetime.now() - self.start_time}
                 # (Assumes self.__get_catalog_entries() always processes
                 # programs before tracks.)
                 try:
-                    parent_html_data = self.catalog_html_data[catalog_entry_data['inheritedFrom']]
+                    with self.mt_lock:
+                        parent_html_data = self.catalog_html_data[catalog_entry_data['inheritedFrom']]
 
                     track_html_data = next(
                         (item for item in parent_html_data['specializations']
@@ -462,10 +463,12 @@ Finished in {datetime.now() - self.start_time}
             # This is a track; try to get the parent plan's college short name.
             # NOTE: assumes that top-level catalog programs were requested
             # first and have already been added to self.catalog_entries.
-            parent_program_catalog_entry = next(
-                (entry for entry in self.catalog_entries if entry.data['pid'] == catalog_entry_data['inheritedFrom']),
-                None
-            )
+            with self.mt_lock:
+                parent_program_catalog_entry = next(
+                    (entry for entry in self.catalog_entries if entry.data['pid'] == catalog_entry_data['inheritedFrom']),
+                    None
+                )
+
             if parent_program_catalog_entry:
                 college_short = parent_program_catalog_entry.college_short
 
