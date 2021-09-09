@@ -389,6 +389,7 @@ Finished in {datetime.now() - self.start_time}
                 # programs before tracks.)
                 try:
                     parent_html_data = self.catalog_html_data[catalog_entry_data['inheritedFrom']]
+
                     track_html_data = next(
                         (item for item in parent_html_data['specializations']
                             if item['pid'] == pid),
@@ -410,7 +411,8 @@ Finished in {datetime.now() - self.start_time}
 
                 if program_html_data:
                     # Store for reference for tracks
-                    self.catalog_html_data[pid] = program_html_data
+                    with self.mt_lock:
+                        self.catalog_html_data[pid] = program_html_data
 
                     html_data = program_html_data
 
@@ -434,7 +436,8 @@ Finished in {datetime.now() - self.start_time}
             college_id = catalog_entry_data['groupFilter1']
 
             try:
-                college_short = self.catalog_colleges[college_id]
+                with self.mt_lock:
+                    college_short = self.catalog_colleges[college_id]
             except KeyError:
                 try:
                     college_data = self.__get_json_response(
@@ -453,7 +456,8 @@ Finished in {datetime.now() - self.start_time}
                     pass
 
             # Save it for reference later, even if it's None
-            self.catalog_colleges[college_id] = college_short
+            with self.mt_lock:
+                self.catalog_colleges[college_id] = college_short
         elif 'inheritedFrom' in catalog_entry_data:
             # This is a track; try to get the parent plan's college short name.
             # NOTE: assumes that top-level catalog programs were requested
