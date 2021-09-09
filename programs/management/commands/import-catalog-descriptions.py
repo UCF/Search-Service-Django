@@ -153,6 +153,7 @@ class Command(BaseCommand):
         # Setup our queues for multithreading
         self.catalog_description_queue = Queue()
         self.catalog_curriculum_queue = Queue()
+        self.catalog_entry_data_queue = Queue()
         # General lock we can use when we need
         # to talk to the main thread
         self.mt_lock = Lock()
@@ -314,18 +315,50 @@ Finished in {datetime.now() - self.start_time}
                 and 'academicLevel' in result
                 and ('programTypeUndergrad' in result or 'programTypeGrad' in result)
             ):
+                self.catalog_entry_data_queue.put(result)
+
+        self.catalog_entry_data_progress = ChargingBar(
+            'Processing Kuali Results...',
+            max=self.catalog_entry_data_queue.qsize()
+        )
+
+        for _ in range(self.max_threads):
+            Thread(target=self.__get_catalog_entry_data, daemon=True).start()
+
+        self.catalog_entry_data_queue.join()
+
+
+    def __get_catalog_entry_data(self):
+        """
+        Performs a number of data gathering steps to pull
+        the necessary data from Kuali to put into a `CatalogEntry`
+        object for further processing.
+        """
+        while True:
+            try:
+                result = self.catalog_entry_data_queue.get()
+
+                with self.mt_lock:
+                    self.catalog_entry_data_progress.next()
+
                 catalog_program_type = self.__get_catalog_program_type(result)
                 if catalog_program_type != 'Nondegree':
                     catalog_html_data = self.__get_catalog_html_data(result)
                     catalog_college_short = self.__get_catalog_college_short(result)
-                    self.catalog_entries.append(
-                        CatalogEntry(
-                            result,
-                            catalog_html_data,
-                            catalog_program_type,
-                            catalog_college_short
+                    with self.mt_lock:
+                        self.catalog_entries.append(
+                            CatalogEntry(
+                                result,
+                                catalog_html_data,
+                                catalog_program_type,
+                                catalog_college_short
+                            )
                         )
-                    )
+            except Exception as e:
+                logging.log(logging.ERROR, e)
+            finally:
+                self.catalog_entry_data_queue.task_done()
+
 
     def __get_catalog_html_data(self, catalog_entry_data):
         """
