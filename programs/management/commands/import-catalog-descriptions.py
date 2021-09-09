@@ -497,7 +497,8 @@ Finished in {datetime.now() - self.start_time}
 
         if program_type_id:
             try:
-                program_type = self.catalog_program_types[program_type_id]
+                with self.mt_lock:
+                    program_type = self.catalog_program_types[program_type_id]
             except KeyError:
                 try:
                     program_type_data = self.__get_json_response(
@@ -508,7 +509,8 @@ Finished in {datetime.now() - self.start_time}
                     pass
 
             # Save it for reference later (even if it's None)
-            self.catalog_program_types[program_type_id] = program_type
+            with self.mt_lock:
+                self.catalog_program_types[program_type_id] = program_type
 
         return program_type
 
