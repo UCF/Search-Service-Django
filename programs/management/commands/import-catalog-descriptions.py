@@ -146,6 +146,7 @@ class Command(BaseCommand):
         self.program_prep_progress = None
         self.catalog_prep_progress = None
         self.catalog_match_progress = None
+        self.catalog_entry_data_progress = None
         self.catalog_description_progress = None
         self.catalog_curriculum_progress = None
         self.program_update_progress = None
