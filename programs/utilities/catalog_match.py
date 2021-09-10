@@ -80,7 +80,10 @@ class CatalogEntry(object):
                 curriculum += f"<h1>Track Prerequisites</h1>{self.data['trackPrerequisites']}"
 
             # Degree requirements (course listings)
-            curriculum += f"<h1>Degree Requirements</h1>{self.html_data['degreeRequirements']}"
+            # NOTE: must check for "course not found" here; Kuali can
+            # cache bad content like this, which we don't want to inherit
+            if 'course not found' not in self.html_data['degreeRequirements'].lower():
+                curriculum += f"<h1>Degree Requirements</h1>{self.html_data['degreeRequirements']}"
 
             # Application requirements
             if 'applicationRequirements' in self.data:
