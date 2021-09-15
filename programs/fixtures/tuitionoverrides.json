@@ -1,0 +1,189 @@
+[
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 1,
+        "fields": {
+            "tuition_code": "DPT",
+            "plan_code": "PT-DPT",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 2,
+        "fields": {
+            "tuition_code": "MD",
+            "plan_code": "MEDICIN-MD",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 3,
+        "fields": {
+            "tuition_code": "FIEA",
+            "plan_code": "DIGMED-MS",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 4,
+        "fields": {
+            "tuition_code": "EMBA",
+            "plan_code": "BUS-MBA",
+            "subplan_code": "EXEC-MBA",
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 5,
+        "fields": {
+            "tuition_code": "PMBA",
+            "plan_code": "BUS-MBA",
+            "subplan_code": "PROF-MBA",
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 6,
+        "fields": {
+            "tuition_code": "PMSM",
+            "plan_code": "BUS-MS",
+            "subplan_code": "BUSHR-MS",
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 7,
+        "fields": {
+            "tuition_code": "PMRE",
+            "plan_code": "RLESTAT-MS",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 8,
+        "fields": {
+            "tuition_code": "EHSA",
+            "plan_code": "HLTHSCI-MS",
+            "subplan_code": "ZMRHLEXECH",
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 9,
+        "fields": {
+            "tuition_code": "MRA",
+            "plan_code": "RCHADM-MRA",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 10,
+        "fields": {
+            "tuition_code": "MNM",
+            "plan_code": "NONPRFTMNM",
+            "subplan_code": "MNM-COHORT",
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 11,
+        "fields": {
+            "tuition_code": "GCRA",
+            "plan_code": "RCHADM-CRT",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 12,
+        "fields": {
+            "tuition_code": "GCRA",
+            "plan_code": "RCHADM-CRT",
+            "subplan_code": "ZCRRCHADMC",
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 13,
+        "fields": {
+            "tuition_code": "GCIA",
+            "plan_code": "HCIADMCRT",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 14,
+        "fields": {
+            "tuition_code": "MSEM",
+            "plan_code": "ENGRMGT-MS",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 15,
+        "fields": {
+            "tuition_code": "MSAN",
+            "plan_code": "BUSAN-MS",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 16,
+        "fields": {
+            "tuition_code": "MSD",
+            "plan_code": "DATAANAMS",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": []
+        }
+    },
+    {
+        "model": "programs.tuitionoverride",
+        "pk": 17,
+        "fields": {
+            "tuition_code": "MHI",
+            "plan_code": "HLCINFO-MS",
+            "subplan_code": null,
+            "skip": false,
+            "required_fees": [1]
+        }
+    }
+]
