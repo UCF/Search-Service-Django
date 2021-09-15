@@ -463,75 +463,80 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
         orgs  = Organization.objects.all()
         depts = Department.objects.all()
 
-        self.all().delete()
+        existing = self.all()
+        if existing.count():
+            existing.delete()
 
-        for s in staff:
-            record = CombinedTeledata(
-                id=s.id,
-                alpha=s.alpha,
-                name=s.name,
-                first_name=s.first_name,
-                last_name=s.last_name,
-                sort_name=s.sort_name,
-                email=s.email,
-                phone=s.phone,
-                postal=s.postal,
-                job_position=s.job_position,
-                department=s.dept.name,
-                dept_id=s.dept.id,
-                organization=s.dept.org.name,
-                org_id=s.dept.org.id,
-                building=s.bldg.name,
-                bldg_id=s.bldg.import_id,
-                room=s.room,
-                from_table='staff'
-            )
+        if staff.count():
+            for s in staff:
+                record = CombinedTeledata(
+                    id=s.id,
+                    alpha=s.alpha,
+                    name=s.name,
+                    first_name=s.first_name,
+                    last_name=s.last_name,
+                    sort_name=s.sort_name,
+                    email=s.email,
+                    phone=s.phone,
+                    postal=s.postal,
+                    job_position=s.job_position,
+                    department=s.dept.name,
+                    dept_id=s.dept.id,
+                    organization=s.dept.org.name,
+                    org_id=s.dept.org.id,
+                    building=s.bldg.name,
+                    bldg_id=s.bldg.import_id,
+                    room=s.room,
+                    from_table='staff'
+                )
 
-            try:
-                record.save(doing_import=True)
-                record.keywords_combined.set(s.keywords.all())
-            except Exception as e:
-                logger.error(str(e))
+                try:
+                    record.save(doing_import=True)
+                    record.keywords_combined.set(s.keywords.all())
+                except Exception as e:
+                    logger.error(str(e))
 
-        for o in orgs:
-            record = CombinedTeledata(
-                id=o.id,
-                name=o.name,
-                sort_name=o.name,
-                phone=o.phone,
-                fax=o.fax,
-                building=o.bldg.name,
-                bldg_id=o.bldg.import_id,
-                room=o.room,
-                from_table='organizations'
-            )
+        if orgs.count():
+            for o in orgs:
+                record = CombinedTeledata(
+                    id=o.id,
+                    name=o.name,
+                    sort_name=o.name,
+                    phone=o.phone,
+                    fax=o.fax,
+                    building=o.bldg.name,
+                    bldg_id=o.bldg.import_id,
+                    room=o.room,
+                    from_table='organizations'
+                )
 
-            try:
-                record.save(doing_import=True)
-                record.keywords_combined.set(o.keywords.all())
-            except Exception as e:
-                logger.error(str(e))
+                try:
+                    record.save(doing_import=True)
+                    record.keywords_combined.set(o.keywords.all())
+                except Exception as e:
+                    logger.error(str(e))
 
-        for d in depts:
-            record = CombinedTeledata(
-                id=d.id,
-                name=d.name,
-                sort_name=d.name,
-                phone=d.phone,
-                fax=d.fax,
-                organization=d.org.name,
-                org_id=d.org.id,
-                building=d.bldg.name,
-                bldg_id=d.bldg.import_id,
-                room=d.room,
-                from_table='departments'
-            )
+        if depts.count():
+            for d in depts:
+                record = CombinedTeledata(
+                    id=d.id,
+                    name=d.name,
+                    sort_name=d.name,
+                    phone=d.phone,
+                    fax=d.fax,
+                    organization=d.org.name,
+                    org_id=d.org.id,
+                    building=d.bldg.name,
+                    bldg_id=d.bldg.import_id,
+                    room=d.room,
+                    from_table='departments'
+                )
 
-            try:
-                record.save(doing_import=True)
-                record.keywords_combined.set(d.keywords.all())
-            except Exception as e:
-                logger.error(str(e))
+                try:
+                    record.save(doing_import=True)
+                    record.keywords_combined.set(d.keywords.all())
+                except Exception as e:
+                    logger.error(str(e))
 
 
 class CombinedTeledata(models.Model):
