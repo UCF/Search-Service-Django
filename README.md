@@ -25,7 +25,7 @@ A Django based application that provides a REST API, as well as manual and autom
     b. `python manage.py collectstatic -l`
 10. Once deployment steps have run successfully, comment out `STATIC_ROOT` and add a static root path to `STATICFILES_DIRS` in settings_local.py.
 11. Create a superuser to access the Django admin with: `python manage.py createsuperuser`
-12. Optionally, load fixtures: `python manage.py loadfixtures fixture-name`. Fixtures, if available, are included per-app in a `fixtures` directory.
+12. Optionally, load fixtures: `python manage.py loaddata fixture-name`. Fixtures, if available, are included per-app in a `fixtures` directory.
     - Note: if loading in fixtures for Programs, make sure the `colleges` fixture is loaded _before_ loading the `collegeoverrides` fixture.
 13. Run the local server to debug and test: `python manage.py runserver`
 
