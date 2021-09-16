@@ -1,0 +1,9 @@
+[
+    {
+        "model": "programs.fee",
+        "pk": 1,
+        "fields": {
+            "fee_name": "Distance Learning Course Fee"
+        }
+    }
+]

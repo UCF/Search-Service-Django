@@ -69,6 +69,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static") # Comment out when using locally
 STATICFILES_DIRS = [
     # Add static root path when debugging locally
+    # os.path.join(BASE_DIR, "static")
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
