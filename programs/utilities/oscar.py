@@ -23,7 +23,8 @@ class Oscar:
     #region Shared Class Variables
 
     SKIP = [
-        ContentCategory.CONTACT_INFO
+        ContentCategory.CONTACT_INFO,
+        ContentCategory.DISPLAY
     ]
 
     #endregion

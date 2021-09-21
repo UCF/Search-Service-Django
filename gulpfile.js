@@ -16,4 +16,8 @@ if (fs.existsSync('./gulp-config.json')) {
 /* eslint-enable no-sync */
 
 
-gulp.task('default', '');
+//
+// Default task
+// NOTE: Update with actual tasks once we have some
+//
+gulp.task('default', (done) => { done(); });

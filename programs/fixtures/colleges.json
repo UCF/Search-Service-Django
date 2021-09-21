@@ -1,0 +1,86 @@
+[
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Community Innovation and Education",
+            "short_name": "CCIE"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Sciences",
+            "short_name": "COS"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Engineering and Computer Science",
+            "short_name": "ENGR"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Arts and Humanities",
+            "short_name": "CAH"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Health Professions and Sciences",
+            "short_name": "CHPS"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Medicine",
+            "short_name": "COM"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Undergraduate Studies",
+            "short_name": "UGST"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Nursing",
+            "short_name": "CON"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "Rosen College of Hospitality Management",
+            "short_name": "HSPMG"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Graduate Studies",
+            "short_name": "GRDST"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Optics and Photonics",
+            "short_name": "OPTIC"
+        }
+    },
+    {
+        "model": "programs.college",
+        "fields": {
+            "full_name": "College of Business",
+            "short_name": "CBA"
+        }
+    }
+]

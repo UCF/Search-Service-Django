@@ -9,8 +9,9 @@ class CatalogEntry(object):
     Describes a catalog program or track and
     its associated data.
     """
-    def __init__(self, json, program_type, college_short):
+    def __init__(self, json, html_data, program_type, college_short):
         self.data = json
+        self.html_data = html_data
         self.type = program_type
         self.college_short = college_short
         self.match_count = 0
@@ -29,26 +30,84 @@ class CatalogEntry(object):
         """
         desc = ''
 
+        # Short description
         if 'programDescription' in self.data:
-            # Catalog programs store this value in `programDescription`
-            desc = self.data['programDescription']
+            # Catalog programs:
+            desc += self.data['programDescription']
         elif 'description' in self.data:
-            # Catalog tracks store this value in `description`
-            desc = self.data['description']
+            # Catalog tracks:
+            desc += self.data['description']
+
+        # Licensure Disclosure
+        if 'licensureDisclosureNotes' in self.data and 'licensureDisclosure' in self.data and self.data['licensureDisclosure'] == True:
+            desc += self.data['licensureDisclosureNotes']
+
+        # UCF Online blurb
+        if 'ucfOnlineContent' in self.data and 'fullyOnline' in self.data and self.data['fullyOnline'] == 'yes':
+            # Catalog programs:
+            desc += self.data['ucfOnlineContent']
+        elif 'ucfOnlineContentTrack' in self.data and 'onlineAvailability' in self.data and self.data['onlineAvailability'] == 'yes':
+            # Catalog tracks:
+            desc += self.data['ucfOnlineContentTrack']
 
         return desc
 
     @property
     def curriculum(self):
         """
-        Returns an unmodified catalog curriculum
+        Returns an original catalog curriculum string
 
         Returns:
             (str): Catalog curriculum string
         """
         curriculum = ''
 
-        if 'requiredCoreCourses' in self.data:
+        # Assume dedicated fields for extended curriculum-related
+        # data are in use if `degreeRequirements` is present in
+        # self.html_data and is not empty:
+        if 'degreeRequirements' in self.html_data and self.html_data['degreeRequirements'] != '':
+            # NOTE: Headings starting at h1 are intentional here.
+            # Headings in fields in `data_html` tend to start at h2,
+            # so by using h1s here, we allow Oscar to determine
+            # proper heading order and fix things later:
+
+            # Prerequisites
+            if 'programPrerequisites' in self.data:
+                # Catalog programs:
+                curriculum += f"<h1>Program Prerequisites</h1>{self.data['programPrerequisites']}"
+            elif 'trackPrerequisites' in self.data:
+                # Catalog tracks:
+                curriculum += f"<h1>Track Prerequisites</h1>{self.data['trackPrerequisites']}"
+
+            # Degree requirements (course listings)
+            # NOTE: must check for "course not found" here; Kuali can
+            # cache bad content like this, which we don't want to inherit
+            if 'course not found' not in self.html_data['degreeRequirements'].lower():
+                curriculum += f"<h1>Degree Requirements</h1>{self.html_data['degreeRequirements']}"
+
+            # Application requirements
+            if 'applicationRequirements' in self.data:
+                curriculum += f"<h1>Application Requirements</h1>{self.data['applicationRequirements']}"
+
+            # Application deadlines
+            if 'applicationDeadlineText' in self.data:
+                curriculum += f"<h1>Application Deadlines</h1>{self.data['applicationDeadlineText']}"
+
+                if 'applicationDeadlinesNotes' in self.data:
+                    # Catalog programs:
+                    curriculum += self.data['applicationDeadlinesNotes']
+                elif 'applicationNotesTrack' in self.data:
+                    # Catalog tracks:
+                    curriculum += self.data['applicationNotesTrack']
+
+            # Financial info
+            if 'financialInformation' in self.data:
+                curriculum += f"<h1>Financial Information</h1>{self.data['financialInformation']}"
+
+            # Fellowship info
+            if 'fellowshipInformation' in self.data:
+                curriculum += f"<h1>Fellowship Information</h1>{self.data['fellowshipInformation']}"
+        elif 'requiredCoreCourses' in self.data:
             curriculum = self.data['requiredCoreCourses']
 
         return curriculum

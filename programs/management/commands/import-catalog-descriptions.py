@@ -115,13 +115,18 @@ class Command(BaseCommand):
         # Make sure these are actually set before continuing
         if not self.path or not self.key or not self.catalog_url:
             raise Exception(
-                'Catalog URL base, API URL base and API key are required. Add these args to the import command or update settings_local.py.')
+                'Catalog URL base, API URL base and API key are required. Add these args to the import command or update settings_local.py.'
+            )
 
         self.matchable_programs = []
         self.catalog_url += 'catalog/{0}/#/programs/{1}'
+        self.catalogs_url = f"{self.path}api/v1/catalog/public/catalogs/"
         self.catalog_programs_url = f"{self.path}api/cm/programs/queryAll/"
         self.catalog_tracks_url = f"{self.path}api/cm/specializations/queryAll/"
+        self.catalog_program_html_url = self.path + 'api/v1/catalog/program/{0}/{1}'
         self.catalog_entries = []
+        self.catalogs = {}
+        self.catalog_html_data = {}
         self.catalog_program_types = {}
         self.catalog_colleges = {}
         self.client = None
@@ -141,6 +146,7 @@ class Command(BaseCommand):
         self.program_prep_progress = None
         self.catalog_prep_progress = None
         self.catalog_match_progress = None
+        self.catalog_entry_data_progress = None
         self.catalog_description_progress = None
         self.catalog_curriculum_progress = None
         self.program_update_progress = None
@@ -148,6 +154,7 @@ class Command(BaseCommand):
         # Setup our queues for multithreading
         self.catalog_description_queue = Queue()
         self.catalog_curriculum_queue = Queue()
+        self.catalog_entry_data_queue = Queue()
         # General lock we can use when we need
         # to talk to the main thread
         self.mt_lock = Lock()
@@ -155,6 +162,7 @@ class Command(BaseCommand):
         # Get everything prepped/fetched
         self.__get_description_types()
         self.__get_programs()
+        self.__get_catalogs()
         self.__get_catalog_entries()
 
         # Let's do some work
@@ -203,7 +211,7 @@ Finished in {datetime.now() - self.start_time}
         else:
             return f"{path}/"
 
-    def __get_json_response(self, path, params={}, use_auth=True):
+    def __get_json_response(self, path, params={}, use_auth=True, retry=True):
         """
         Requests content from a Kuali endpoint using a GET request
         and returns a serialized JSON object
@@ -212,13 +220,15 @@ Finished in {datetime.now() - self.start_time}
             path (str): The URL path to request
             params (dict): GET parameters to add to the request
             use_auth (bool): Whether the request requires the Authorization header
+            retry (bool): Whether or not a request should be re-attempted if the first try fails
 
         Returns:
-            (dict|array): The serialized JSON object as a dictionary (or array of dictionaries)
+            (dict|array|None): The serialized JSON object as a dictionary (or array of dictionaries), or None
         """
         headers = {
             'content-type': 'application/json'
         }
+        timeout = 15  # seconds
 
         if use_auth:
             headers['Authorization'] = f'Bearer {self.key}'
@@ -227,15 +237,48 @@ Finished in {datetime.now() - self.start_time}
             response = requests.get(
                 path,
                 params=params,
-                headers=headers
+                headers=headers,
+                timeout=timeout
             )
+            response.raise_for_status()
 
             data = response.json()
-
-            return data
-
+        except requests.exceptions.HTTPError as e:
+            if retry:
+                # Kuali occasionally returns 502s for no apparent reason;
+                # try one more time if we got a bad response:
+                return self.__get_json_response(
+                    path=path,
+                    params=params,
+                    use_auth=use_auth,
+                    retry=False
+                )
+            else:
+                self.stderr.write(self.style.ERROR(str(e)))
+                data = None
         except Exception as e:
+            # Something went wrong that wasn't related to
+            # the request--note it and move on:
             self.stderr.write(self.style.ERROR(str(e)))
+            data = None
+
+        return data
+
+    def __get_catalogs(self):
+        """
+        Requests all (2) available catalogs from Kuali, and
+        stores their IDs by career type/"academicLevel"
+        """
+        catalogs_data = self.__get_json_response(self.catalogs_url)
+
+        try:
+            for catalog in catalogs_data:
+                academic_level = 'undergraduate' if 'undergraduate' in catalog['title'].lower() else 'graduate'
+                self.catalogs[academic_level] = catalog['_id']
+        except KeyError:
+            raise Exception(
+                'Unable to retrieve catalog IDs.'
+            )
 
     def __get_catalog_entries(self):
         """
@@ -273,16 +316,110 @@ Finished in {datetime.now() - self.start_time}
                 and 'academicLevel' in result
                 and ('programTypeUndergrad' in result or 'programTypeGrad' in result)
             ):
+                self.catalog_entry_data_queue.put(result)
+
+        self.catalog_entry_data_progress = ChargingBar(
+            'Processing Kuali Results...',
+            max=self.catalog_entry_data_queue.qsize()
+        )
+
+        for _ in range(self.max_threads):
+            Thread(target=self.__get_catalog_entry_data, daemon=True).start()
+
+        self.catalog_entry_data_queue.join()
+
+
+    def __get_catalog_entry_data(self):
+        """
+        Performs a number of data gathering steps to pull
+        the necessary data from Kuali to put into a `CatalogEntry`
+        object for further processing.
+        """
+        while True:
+            try:
+                result = self.catalog_entry_data_queue.get()
+
+                with self.mt_lock:
+                    self.catalog_entry_data_progress.next()
+
                 catalog_program_type = self.__get_catalog_program_type(result)
                 if catalog_program_type != 'Nondegree':
+                    catalog_html_data = self.__get_catalog_html_data(result)
                     catalog_college_short = self.__get_catalog_college_short(result)
-                    self.catalog_entries.append(
-                        CatalogEntry(
-                            result,
-                            catalog_program_type,
-                            catalog_college_short
+                    with self.mt_lock:
+                        self.catalog_entries.append(
+                            CatalogEntry(
+                                result,
+                                catalog_html_data,
+                                catalog_program_type,
+                                catalog_college_short
+                            )
                         )
+            except Exception as e:
+                logging.log(logging.ERROR, e)
+            finally:
+                self.catalog_entry_data_queue.task_done()
+
+
+    def __get_catalog_html_data(self, catalog_entry_data):
+        """
+        Returns frontend-ready HTML for catalog data
+        per field in Kuali.
+
+        Args:
+            catalog_entry_data (dict): The catalog entry JSON dictionary
+
+        Returns:
+            (dict|None): HTML data for the provided catalog entry, or None
+            if data could not be fetched
+        """
+        html_data = None
+
+        if 'programTypeUndergrad' in catalog_entry_data:
+            catalog_id = self.catalogs['undergraduate']
+        elif 'programTypeGrad' in catalog_entry_data:
+            catalog_id = self.catalogs['graduate']
+
+        if catalog_id:
+            pid = catalog_entry_data['pid']
+
+            if 'inheritedFrom' in catalog_entry_data:
+                # This is a track, so, its parent's HTML data should
+                # already be present in self.catalog_html_data.
+                # (Assumes self.__get_catalog_entries() always processes
+                # programs before tracks.)
+                try:
+                    with self.mt_lock:
+                        parent_html_data = self.catalog_html_data[catalog_entry_data['inheritedFrom']]
+
+                    track_html_data = next(
+                        (item for item in parent_html_data['specializations']
+                            if item['pid'] == pid),
+                        None
                     )
+                except KeyError:
+                    # Initial fetch for parent program HTML data failed/
+                    # no data available in self.catalog_html_data
+                    track_html_data = None
+
+                if track_html_data:
+                    html_data = track_html_data
+            else:
+                # This is a program.  Always go perform
+                # a data fetch here:
+                program_html_data = self.__get_json_response(
+                    self.catalog_program_html_url.format(catalog_id, pid)
+                )
+
+                if program_html_data:
+                    # Store for reference for tracks
+                    with self.mt_lock:
+                        self.catalog_html_data[pid] = program_html_data
+
+                    html_data = program_html_data
+
+
+        return html_data
 
     def __get_catalog_college_short(self, catalog_entry_data):
         """
@@ -301,7 +438,8 @@ Finished in {datetime.now() - self.start_time}
             college_id = catalog_entry_data['groupFilter1']
 
             try:
-                college_short = self.catalog_colleges[college_id]
+                with self.mt_lock:
+                    college_short = self.catalog_colleges[college_id]
             except KeyError:
                 try:
                     college_data = self.__get_json_response(
@@ -320,15 +458,18 @@ Finished in {datetime.now() - self.start_time}
                     pass
 
             # Save it for reference later, even if it's None
-            self.catalog_colleges[college_id] = college_short
+            with self.mt_lock:
+                self.catalog_colleges[college_id] = college_short
         elif 'inheritedFrom' in catalog_entry_data:
             # This is a track; try to get the parent plan's college short name.
             # NOTE: assumes that top-level catalog programs were requested
             # first and have already been added to self.catalog_entries.
-            parent_program_catalog_entry = next(
-                (entry for entry in self.catalog_entries if entry.data['pid'] == catalog_entry_data['inheritedFrom']),
-                None
-            )
+            with self.mt_lock:
+                parent_program_catalog_entry = next(
+                    (entry for entry in self.catalog_entries if entry.data['pid'] == catalog_entry_data['inheritedFrom']),
+                    None
+                )
+
             if parent_program_catalog_entry:
                 college_short = parent_program_catalog_entry.college_short
 
@@ -356,7 +497,8 @@ Finished in {datetime.now() - self.start_time}
 
         if program_type_id:
             try:
-                program_type = self.catalog_program_types[program_type_id]
+                with self.mt_lock:
+                    program_type = self.catalog_program_types[program_type_id]
             except KeyError:
                 try:
                     program_type_data = self.__get_json_response(
@@ -367,7 +509,8 @@ Finished in {datetime.now() - self.start_time}
                     pass
 
             # Save it for reference later (even if it's None)
-            self.catalog_program_types[program_type_id] = program_type
+            with self.mt_lock:
+                self.catalog_program_types[program_type_id] = program_type
 
         return program_type
 
@@ -632,9 +775,14 @@ Finished in {datetime.now() - self.start_time}
 
             if catalog_entry:
                 # Update the catalog URL of the program
+                catalog_id_path = catalog_entry.data['pid']
+                if 'inheritedFrom' in catalog_entry.data:
+                    # Tracks use a path that looks like
+                    # /programs/[parent pid]/[track pid]:
+                    catalog_id_path = f"{catalog_entry.data['inheritedFrom']}/{catalog_id_path}"
                 mp.program.catalog_url = self.catalog_url.format(
                     catalog_entry.data['academicLevel'],
-                    catalog_entry.data['pid']
+                    catalog_id_path
                 )
                 mp.program.save()
 
@@ -804,6 +952,8 @@ Finished in {datetime.now() - self.start_time}
         # (e.g. <h2><strong>...</strong></h2>)
         nested_tag_blacklist = ['b', 'em', 'i', 'strong']
 
+        # Attributes on tags that should always be removed.
+        # NOTE: data attributes are always removed.
         attr_blacklist = [
             'class', 'style',
             'border', 'cellpadding', 'cellspacing'
@@ -869,14 +1019,21 @@ Finished in {datetime.now() - self.start_time}
                     match.name = 'span'
                     match.attrs = []
                 else:
-                    # Remove unused attrs from elements
-                    for bad_attr in attr_blacklist:
-                        if bad_attr in match.attrs:
-                            match.attrs.pop(bad_attr)
+                    # Remove unused attrs, including all data-* attributes
+                    for attr_key in match.attrs.copy().keys():
+                        if attr_key.startswith('data-') or attr_key in attr_blacklist:
+                            match.attrs.pop(attr_key)
 
         # BS seems to have a hard time with doing this in-place, so perform
         # a second loop to remove the garbage tags
         for span_match in description_html.find_all('span'):
+            # If this span is followed by another subsequent span,
+            # add a space to the end of its inner contents (to avoid
+            # awkward abutting contents)
+            if span_match.next_sibling and span_match.next_sibling.name == 'span':
+                span_match.insert_after(' ')
+
+            # Finally, unwrap the tag:
             span_match.unwrap()
 
         # Split paragraph tag contents by subsequent <br> tags (<br><br>)
@@ -884,7 +1041,8 @@ Finished in {datetime.now() - self.start_time}
         # NOTE: These p tags _shouldn't_ have nested elements like
         # these, but just in case, make sure we ignore them:
         p_tags = description_html.find_all(
-            lambda tag: tag.name == 'p' and not tag.find(['ul', 'ol', 'dl', 'table']))
+            lambda tag: tag.name == 'p' and not tag.find(['ul', 'ol', 'dl', 'table'])
+        )
         for p_tag in p_tags:
             p_str = str(p_tag).replace('<p>', '').replace('</p>', '')
             substrings = re.split(r'(?:<br[\s]?[\/]?>[\s]*){2}', p_str)
@@ -892,7 +1050,8 @@ Finished in {datetime.now() - self.start_time}
                 substring_inserted = False
                 for substring in substrings:
                     new_p = BeautifulSoup(
-                        '<p>{0}</p>'.format(substring), 'html.parser')
+                        '<p>{0}</p>'.format(substring), 'html.parser'
+                    )
                     new_p = new_p.find('p')
                     # Make sure new paragraphs aren't empty:
                     if len(new_p.get_text(strip=True)) > 0:
@@ -924,6 +1083,7 @@ Finished in {datetime.now() - self.start_time}
             r'^(Program|Track) Description<p>', '<p>', description_html)
         description_html = re.sub('1Active-Visible.*', '', description_html)
         description_html = re.sub(r'[\♦\►]', '', description_html)
+        description_html = description_html.replace('<!-- -->', '')
         description_html = description_html.replace('<!--StartFragment-->', '')
         description_html = description_html.replace('<!--EndFragment-->', '')
 
