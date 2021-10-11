@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from teledata.models import *
 import settings
 import logging
+import re
 
 import logging
 from django.utils import timezone
@@ -290,6 +291,8 @@ FROM
                     self.dept_error += 1
 
     def import_staff(self, data):
+        emplid_re = re.compile(r"\d{7}")
+
         for item in data:
             if item[1] is None or item[4] is None:
                 self.staff_skipped += 1
@@ -318,6 +321,11 @@ FROM
                 email = None
                 email_machine = None
 
+            if item[6] is not None:
+                employee_id = (item[6].strip()
+                    if emplid_re.fullmatch(item[6].strip()) is not None
+                    else None)
+
             try:
                 existing = Staff.objects.get(import_id=item[0])
                 existing.alpha = alpha
@@ -326,6 +334,7 @@ FROM
                 existing.name_title = item[3]
                 existing.first_name = item[4]
                 existing.middle = item[5]
+                existing.employee_id = employee_id
                 existing.dept = dept
                 existing.job_position = item[8]
                 existing.bldg = bldg
@@ -353,6 +362,7 @@ FROM
                     name_title=item[3],
                     first_name=item[4],
                     middle=item[5],
+                    employee_id=employee_id,
                     dept=dept,
                     job_position=item[8],
                     bldg=bldg,
