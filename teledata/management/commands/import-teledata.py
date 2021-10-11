@@ -318,6 +318,16 @@ FROM
                 email = None
                 email_machine = None
 
+            if item[6] is not None:
+                # Get all the unique characters in the employee ID
+                empl_characters = list(set(list(item[6].strip())))
+
+                # Ensure any employee IDs set to 'XX' are set to None instead
+                employee_id = (None
+                    if len(empl_characters) == 1
+                    and empl_characters[0].lower() == 'x'
+                    else item[6])
+
             try:
                 existing = Staff.objects.get(import_id=item[0])
                 existing.alpha = alpha
@@ -326,6 +336,7 @@ FROM
                 existing.name_title = item[3]
                 existing.first_name = item[4]
                 existing.middle = item[5]
+                existing.employee_id = employee_id
                 existing.dept = dept
                 existing.job_position = item[8]
                 existing.bldg = bldg
@@ -353,6 +364,7 @@ FROM
                     name_title=item[3],
                     first_name=item[4],
                     middle=item[5],
+                    employee_id=employee_id,
                     dept=dept,
                     job_position=item[8],
                     bldg=bldg,
