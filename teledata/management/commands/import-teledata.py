@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from teledata.models import *
 import settings
 import logging
+import re
 
 import logging
 from django.utils import timezone
@@ -290,6 +291,8 @@ FROM
                     self.dept_error += 1
 
     def import_staff(self, data):
+        emplid_re = re.compile(r"\d{7}")
+
         for item in data:
             if item[1] is None or item[4] is None:
                 self.staff_skipped += 1
@@ -319,14 +322,9 @@ FROM
                 email_machine = None
 
             if item[6] is not None:
-                # Get all the unique characters in the employee ID
-                empl_characters = list(set(list(item[6].strip())))
-
-                # Ensure any employee IDs set to 'XX' are set to None instead
-                employee_id = (None
-                    if len(empl_characters) == 1
-                    and empl_characters[0].lower() == 'x'
-                    else item[6])
+                employee_id = (item[6].strip()
+                    if emplid_re.fullmatch(item[6].strip()) is not None
+                    else None)
 
             try:
                 existing = Staff.objects.get(import_id=item[0])
