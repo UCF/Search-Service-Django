@@ -14,9 +14,4 @@ class ResearcherEducationAdmin(admin.ModelAdmin):
 
 @admin.register(ResearchWork)
 class ResearchWorkAdmin(admin.ModelAdmin):
-    search_fields = ('title', 'researcher__orcid_id')
-    list_filter = ('work_type',)
-    readonly_fields = ['citation',]
-
-    def citation(self, obj):
-        return mark_safe(obj.citation)
+    pass

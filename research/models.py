@@ -2,15 +2,10 @@ from django.db import models
 
 from teledata.models import Staff
 
-from pybtex.plugin import find_plugin
-from pybtex.database import parse_string
-
-APA = find_plugin('pybtex.style.formatting', 'apa')()
-HTML = find_plugin('pybtex.backends', 'html')()
-
 # Create your models here.
 class Researcher(models.Model):
-    orcid_id = models.CharField(max_length=19, unique=True, blank=False, null=False)
+    orcid_id = models.CharField(max_length=19, unique=False, blank=True, null=True)
+    aa_person_id = models.IntegerField(null=True, blank=True)
     teledata_record = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='researcher_records')
     biography = models.TextField(null=True, blank=True)
 
@@ -40,13 +35,6 @@ class Researcher(models.Model):
     @property
     def name_formatted_no_title(self):
         return f"{self.teledata_record.first_name} {self.teledata_record.last_name}"
-
-    @property
-    def featured_works_count(self):
-        return self.works.filter(
-            work_type__in=['BOOK', 'JOURNAL_ARTICLE'],
-            bibtex_string__isnull=False
-        ).count()
 
 class ResearcherEducation(models.Model):
     researcher = models.ForeignKey(Researcher, on_delete=models.CASCADE, related_name='education')
@@ -90,49 +78,90 @@ class ResearcherEducation(models.Model):
 
 class ResearchWork(models.Model):
     researcher = models.ForeignKey(Researcher, on_delete=models.CASCADE, related_name='works')
-    title = models.CharField(max_length=1000, blank=False, null=False)
-    subtitle = models.CharField(max_length=1000, blank=True, null=True)
-    abstract = models.TextField(blank=True, null=True)
-    publish_date = models.DateField(blank=False, null=False)
-    bibtex_string = models.TextField(blank=True, null=True)
-    work_type = models.CharField(max_length=255, blank=False, null=False)
-    work_put_code = models.IntegerField(unique=True, blank=False, null=False,
-        help_text='Primary key within ORCID work records. Uniquely identified the work within their system.')
-
-    def __unicode__(self):
-        return self.title
-
-    def __str__(self):
-        return self.title
-
-    @property
-    def bibtex(self):
-        if self.bibtex_string:
-            try:
-                return parse_string(self.bibtex_string, 'bibtex')
-            except:
-                pass
-
-        return None
 
     @property
     def citation(self):
-        if self.bibtex:
-            try:
-                return self.bib2html(self.bibtex)
-            except:
-                pass
+        return ""
 
-        return None
+    def __str__(self):
+        return self.citation
 
-    def bib2html(self, bibliography, exclude_fields=None):
-        exclude_fields = exclude_fields or []
-        if exclude_fields:
-            bibliography = parse_string(bibliography.to_string('bibtex'), 'bibtex')
-            for entry in bibliography.entries.values():
-                for ef in exclude_fields:
-                    if ef in entry.fields.__dict__['_dict']:
-                        del entry.fields.__dict__['_dict'][ef]
+class Article(ResearchWork):
+    aa_article_id = models.IntegerField(null=False, blank=False)
+    article_title = models.CharField(max_length=1024, null=False, blank=False)
+    journal_name = models.CharField(max_length=512, null=False, blank=False)
+    article_year = models.IntegerField(null=False, blank=False)
+    journal_volume = models.CharField(max_length=50, null=True, blank=True)
+    journal_issue = models.CharField(max_length=50, null=True, blank=True)
+    first_page = models.CharField(max_length=26, null=True, blank=True)
+    last_page = models.CharField(max_length=26, null=True, blank=True)
 
-        formattedBib = APA.format_bibliography(bibliography)
-        return '<br>'.join(entry.text.render(HTML) for entry in formattedBib)
+
+class Book(ResearchWork):
+    aa_book_id = models.IntegerField(null=False, blank=False)
+    isbn = models.CharField(max_length=16, null=False, blank=False)
+    book_title = models.CharField(max_length=320, null=False, blank=False)
+    bisac = models.CharField(max_length=50, null=True, blank=True)
+    publisher_name = models.CharField(max_length=40, null=True, blank=True)
+    publish_date = models.DateField(null=True, blank=True)
+
+class BookChapter(ResearchWork):
+    aa_book_id = models.IntegerField(null=False, blank=False)
+    isbn = models.CharField(max_length=16, null=False, blank=False)
+    book_title = models.CharField(max_length=320, null=False, blank=False)
+    chapter_title = models.CharField(max_length=320, null=False, blank=False)
+    bisac = models.CharField(max_length=50, null=True, blank=True)
+    publisher_name = models.CharField(max_length=40, null=True, blank=True)
+    publish_year = models.DateField(null=True, blank=True)
+
+class ConferenceProceeding(ResearchWork):
+    aa_article_id = models.IntegerField(null=False, blank=False)
+    proceeding_title = models.CharField(max_length=1024, null=False, blank=False)
+    journal_name = models.CharField(max_length=512, null=False, blank=False)
+    article_year = models.DateField(null=True, blank=True)
+    journal_volume = models.CharField(max_length=50, null=True, blank=True)
+    journal_issue = models.CharField(max_length=50, null=True, blank=True)
+    first_page = models.CharField(max_length=26, null=True, blank=True)
+    last_page = models.CharField(max_length=26, null=True, blank=True)
+
+class Grant(ResearchWork):
+    aa_grant_id = models.IntegerField(null=False, blank=False)
+    agency_name = models.CharField(max_length=64, null=False, blank=False)
+    grant_name = models.CharField(max_length=256, null=False, blank=False)
+    duration_years = models.FloatField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    full_name = models.CharField(max_length=64, null=True, blank=True)
+    total_dollars = models.IntegerField(null=False, blank=False)
+    is_research = models.BooleanField(null=False, blank=False)
+    principle_investigator = models.BooleanField(null=False, blank=False)
+
+
+class HonorificAward(ResearchWork):
+    aa_award_id = models.IntegerField(null=False, blank=False)
+    governing_society_name = models.CharField(max_length=1024, null=False, blank=False)
+    award_name = models.CharField(max_length=255, null=False, blank=False)
+    award_received_name = models.CharField(max_length=128, null=False, blank=False)
+    award_received_year = models.DateField(null=False, blank=False)
+
+class Patent(ResearchWork):
+    patent_id = models.IntegerField(null=False, blank=False)
+    patent_type = models.CharField(max_length=40, null=False, blank=False)
+    patent_kind = models.CharField(max_length=3, null=False, blank=False)
+    patent_date = models.DateField(null=False, blank=False)
+    country = models.CharField(max_length=2, null=False, blank=False)
+    claims = models.IntegerField(null=False, blank=False)
+    abstract = models.TextField(null=True, blank=True)
+
+class ClinicalTrial(ResearchWork):
+    nct_id = models.CharField(max_length=16, null=False, blank=False)
+    title = models.CharField(max_length=2048, null=False, blank=False)
+    start_date = models.DateField(null=False, blank=False)
+    completion_date = models.DateField(null=True, blank=True)
+    study_type = models.CharField(max_length=64, null=False, blank=False)
+    sponsor = models.CharField(max_length=256, null=False, blank=False)
+    allocation = models.CharField(max_length=32, null=True, blank=True)
+    phase = models.CharField(max_length=32, null=True, blank=True)
+    recruitment_status = models.CharField(max_length=32, null=True, blank=True)
+    investigators = models.TextField(null=True, blank=True)
+

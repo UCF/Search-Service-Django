@@ -288,6 +288,11 @@ INSTITUTION_GRID_ID = ''
 
 RESEARCH_MAX_THREADS = 10
 
+# Academic Analytics Settings
+ACADEMIC_ANALYTICS_API_URL = 'https://api.academicanalytics.com/'
+
+ACADEMIC_ANALYTICS_API_KEY = ''
+
 # Full name replacements to be performed on college, department and
 # organization names for Units generated via map-units.py.
 # Full name replacements are case-sensitive. Replacements are performed
