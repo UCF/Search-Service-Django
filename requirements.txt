@@ -18,7 +18,7 @@ certifi==2021.5.30
     # via requests
 chardet==4.0.0
     # via requests
-django==3.2.4
+django==3.2.5
     # via
     #   UCF-Search-Service-Django (setup.py)
     #   django-cors-headers
