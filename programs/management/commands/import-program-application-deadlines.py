@@ -321,22 +321,22 @@ class Command(BaseCommand):
                         admission_term = None
                         deadline_type = None
 
-                        if key == 'SpringDomesticApplicationDeadline':
+                        if key == 'Spring-DomesticApplicationDeadline':
                             admission_term = term_spring
                             deadline_type = type_domestic
-                        elif key == 'SummerDomesticApplicationDeadline':
+                        elif key == 'Summer-DomesticApplicationDeadline':
                             admission_term = term_summer
                             deadline_type = type_domestic
-                        elif key == 'FallDomesticApplicationDeadline':
+                        elif key == 'Fall-DomesticApplicationDeadline':
                             admission_term = term_fall
                             deadline_type = type_domestic
-                        elif key == 'SpringInternationalApplicationDeadline':
+                        elif key == 'Spring-InternationalApplicationDeadline':
                             admission_term = term_spring
                             deadline_type = type_international
-                        elif key == 'SummerInternationalApplicationDeadline':
+                        elif key == 'Summer-InternationalApplicationDeadline':
                             admission_term = term_summer
                             deadline_type = type_international
-                        elif key == 'FallInternationalApplicationDeadline':
+                        elif key == 'Fall-InternationalApplicationDeadline':
                             admission_term = term_fall
                             deadline_type = type_international
 
