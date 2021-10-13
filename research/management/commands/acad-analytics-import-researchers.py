@@ -85,10 +85,12 @@ class Command(BaseCommand):
 
         self.__get_researchers()
         self.__process_research()
+        self.__print_stats()
 
     def __get_researchers(self):
         url = 'person/list/'
         people = self.__request_resource(url)
+        processed_records = []
 
         for person in people:
             self.processed += 1
@@ -108,25 +110,27 @@ class Command(BaseCommand):
 
             researcher = None
 
-            researcher = Researcher.objects.filter(
-                Q(aa_person_id=aa_person_id)|
-                Q(teledata_record=staff)
-            )
-
-            if researcher.count() > 1:
-                # Remove those extra records
-                extra_records = researcher[1:]
-                for record in extra_records:
-                    record.delete()
-                    self.removed += 1
-
-                researcher = researcher.first()
-                researcher.aa_person_id = aa_person_id
-                researcher.ordid_id = orcid
+            try:
+                researcher = Researcher.objects.get(aa_person_id=aa_person_id)
+                researcher.orcid_id = orcid
                 researcher.teledata_record = staff
                 researcher.save()
+
                 self.updated += 1
-            else:
+            except Researcher.DoesNotExist:
+                researcher = Researcher(
+                    aa_person_id=aa_person_id,
+                    orcid_id=orcid,
+                    teledata_record=staff
+                )
+                researcher.save()
+                self.created += 1
+            except Researcher.MultipleObjectsReturned:
+                # Delete all the matching records and start new
+                researchers = Researcher.objects.filter(aa_person_id=aa_person_id)
+                self.removed += researchers.count()
+                researchers.delete()
+
                 researcher = Researcher(
                     aa_person_id=aa_person_id,
                     orcid_id=orcid,
@@ -135,7 +139,12 @@ class Command(BaseCommand):
                 researcher.save()
                 self.created += 1
 
+            processed_records.append(researcher.id)
             self.researchers_to_process.put(researcher)
+
+        stale_records = Researcher.objects.filter(~Q(pk__in=processed_records))
+        self.removed += stale_records.count()
+        stale_records.delete()
 
     def __process_research(self):
         self.progress_bar = ChargingBar(
@@ -164,8 +173,7 @@ class Command(BaseCommand):
 
                 for article in articles:
                     try:
-                        existing_article = Article(aa_article_id=article['ArticleId'])
-                        existing_article.researcher = researcher
+                        existing_article = Article(aa_article_id=article['ArticleId'], researcher=researcher)
                         existing_article.article_title = article['ArticleTitle']
                         existing_article.journal_name = article['JournalName']
                         existing_article.article_year = article['ArticleYear']
@@ -179,7 +187,7 @@ class Command(BaseCommand):
                             self.articles_updated += 1
 
                     except Article.DoesNotExist:
-                        article = Article(
+                        new_article = Article(
                             researcher=researcher,
                             aa_article_id=article['ArticleId'],
                             article_title=article['ArticleTitle'],
@@ -191,7 +199,7 @@ class Command(BaseCommand):
                             last_page=article['JournalLastPage'] or None
                         )
 
-                        article.save()
+                        new_article.save()
 
                         with self.mt_lock:
                             self.articles_created += 1
@@ -216,7 +224,7 @@ class Command(BaseCommand):
                         with self.mt_lock:
                             self.books_updated += 1
                     except Book.DoesNotExist:
-                        book = Book(
+                        new_book = Book(
                             researcher=researcher,
                             aa_book_id=book['BookId'],
                             isbn=book['Isbn'],
@@ -225,15 +233,81 @@ class Command(BaseCommand):
                             publisher_name=book['PublisherName'],
                             publish_date=parser.parse(book['PublishDate'])
                         )
-                        book.save()
+                        new_book.save()
 
                         with self.mt_lock:
                             self.books_created += 1
                     except:
                         self.stderr.write(f'There was an error creating the book {book["BookTitle"]}')
 
+
+                request_url = f'person/{researcher.aa_person_id}/bookchapters/'
+                chapters = self.__request_resource(request_url)
+
+                for chapter in chapters:
+                    try:
+                        existing_chapter = BookChapter.objects.get(aa_book_id=chapter['BookId'], researcher=researcher)
+                        existing_chapter.isbn = chapter['Isbn']
+                        existing_chapter.book_title = chapter['BookTitle']
+                        existing_chapter.chapter_title = chapter['ChapterTitle']
+                        existing_chapter.bisac = chapter['Bisac']
+                        existing_chapter.publisher_name = chapter['PublisherName']
+                        existing_chapter.publish_year = chapter['PublishYear']
+                        existing_chapter.publish_date = parser.parse(chapter['PublishDate'])
+                        existing_chapter.save()
+
+                        with self.mt_lock:
+                            self.chapters_updated += 1
+                    except BookChapter.DoesNotExist:
+                        new_chapter = BookChapter(
+                            researcher=researcher,
+                            aa_book_id=chapter['BookId'],
+                            isbn=chapter['Isbn'],
+                            book_title=chapter['BookTitle'],
+                            chapter_title=chapter['ChapterTitle'],
+                            bisac=chapter['Bisac'],
+                            publisher_name=chapter['PublisherName'],
+                            publish_year=chapter['PublishYear'],
+                            publish_date=parser.parse(chapter['PublishDate'])
+                        )
+                        new_chapter.save()
+
+                        with self.mt_lock:
+                            self.chapters_created += 1
+                    except Exception as e:
+                        self.stderr.write(e)
+                        self.stderr.write(f'There was an error creating the book chapter {chapter["ChapterTitle"]}')
+
             finally:
                 self.researchers_to_process.task_done()
+
+    def __print_stats(self):
+        msg = f"""
+Researchers
+---------------------
+
+Records Processed: {self.processed}
+Records Created  : {self.created}
+Records Updated  : {self.updated}
+Records Removed  : {self.removed}
+
+Records with no EmplId: {self.skipped_no_empl}
+Records with no Match : {self.skipped_no_match}
+
+Research
+----------------------
+
+Books Created        : {self.books_created}
+Books Updated        : {self.books_updated}
+
+Book Chapters Created: {self.chapters_created}
+Book Chapters Updated: {self.chapters_updated}
+
+Articles Created     : {self.articles_created}
+Articles Updated     : {self.articles_updated}
+        """
+
+        self.stdout.write(self.style.SUCCESS(msg))
 
     def __trailingslashit(self, url):
         """

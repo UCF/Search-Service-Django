@@ -112,7 +112,8 @@ class BookChapter(ResearchWork):
     chapter_title = models.CharField(max_length=320, null=False, blank=False)
     bisac = models.CharField(max_length=50, null=True, blank=True)
     publisher_name = models.CharField(max_length=40, null=True, blank=True)
-    publish_year = models.DateField(null=True, blank=True)
+    publish_year = models.IntegerField(null=True, blank=True)
+    publish_date = models.DateField(null=True, blank=True)
 
 class ConferenceProceeding(ResearchWork):
     aa_article_id = models.IntegerField(null=False, blank=False)
