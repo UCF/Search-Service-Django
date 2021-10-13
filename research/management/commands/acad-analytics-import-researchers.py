@@ -14,6 +14,7 @@ from teledata.models import Staff
 
 import settings
 import requests
+from dateutil import parser
 
 import threading, queue
 
@@ -157,7 +158,7 @@ class Command(BaseCommand):
                 with self.mt_lock:
                     self.progress_bar.next()
 
-                # Get some books!
+                # Let's get some articles!
                 request_url = f'person/{researcher.aa_person_id}/articles/'
                 articles = self.__request_resource(request_url)
 
@@ -194,11 +195,43 @@ class Command(BaseCommand):
 
                         with self.mt_lock:
                             self.articles_created += 1
-                        self.researchers_to_process.task_done()
 
                     except:
                         self.stderr.write(f'There was an error creating the article {article["ArticleTitle"]}')
-                        self.researchers_to_process.task_done()
+
+                # Let's get some books!
+                request_url = f'person/{researcher.aa_person_id}/books/'
+                books = self.__request_resource(request_url)
+
+                for book in books:
+                    try:
+                        existing_book = Book.objects.get(aa_book_id=book['BookId'], researcher=researcher)
+                        existing_book.isbn = book['Isbn']
+                        existing_book.book_title = book['BookTitle']
+                        existing_book.bisac = book['Bisac']
+                        existing_book.publisher_name = book['PublisherName']
+                        existing_book.publish_date = parser.parse(book['PublishDate'])
+                        existing_book.save()
+
+                        with self.mt_lock:
+                            self.books_updated += 1
+                    except Book.DoesNotExist:
+                        book = Book(
+                            researcher=researcher,
+                            aa_book_id=book['BookId'],
+                            isbn=book['Isbn'],
+                            book_title=book['BookTitle'],
+                            bisac=book['Bisac'],
+                            publisher_name=book['PublisherName'],
+                            publish_date=parser.parse(book['PublishDate'])
+                        )
+                        book.save()
+
+                        with self.mt_lock:
+                            self.books_created += 1
+                    except:
+                        self.stderr.write(f'There was an error creating the book {book["BookTitle"]}')
+
             finally:
                 self.researchers_to_process.task_done()
 
