@@ -424,6 +424,47 @@ class Command(BaseCommand):
                     except:
                         self.stderr.write(f'There was an error creating the patent {patent["PatentTitle"]}')
 
+                # Let's get some patents!
+                request_url = f'person/{researcher.aa_person_id}/clinicaltrials/'
+                trials = self.__request_resource(request_url)
+
+                for trial in trials:
+                    try:
+                        existing_trial = ClinicalTrial.objects.get(nct_id=trial['NCTId'], researcher=researcher)
+                        existing_trial.title = trial['Title']
+                        existing_trial.start_date = parser.parse(trial['StartDate'])
+                        existing_trial.completion_date = parser.parse(trial['CompletionDate']) if trial['CompletionDate'] != '' else None
+                        existing_trial.study_type = trial['StudyType']
+                        existing_trial.sponsor = trial['Sponsor']
+                        existing_trial.allocation = trial['Allocation']
+                        existing_trial.phase = trial['Phase']
+                        existing_trial.recruitment_status = trial['RecruitmentStatus']
+                        existing_trial.investigators = trial['Investigators']
+                        existing_trial.save()
+
+                        with self.mt_lock:
+                            self.trials_updated += 1
+                    except ClinicalTrial.DoesNotExist:
+                        new_trial = ClinicalTrial(
+                            researcher=researcher,
+                            nct_id=trial['NCTId'],
+                            title=trial['Title'],
+                            start_date=parser.parse(trial['StartDate']),
+                            completion_date=parser.parse(trial['CompletionDate']) if trial['CompletionDate'] != '' else None,
+                            study_type=trial['StudyType'],
+                            sponsor=trial['Sponsor'],
+                            allocation=trial['Allocation'],
+                            phase=trial['Phase'],
+                            recruitment_status=trial['RecruitmentStatus'],
+                            investigators=trial['Investigators']
+                        )
+                        new_trial.save()
+
+                        with self.mt_lock:
+                            self.trials_created += 1
+                    except:
+                        self.stderr.write(f'There was an error creating the clinical trial {trial["Title"]}')
+
             finally:
                 self.researchers_to_process.task_done()
 
@@ -467,6 +508,9 @@ Awards Updated       : {self.awards_updated}
 
 Patents Created      : {self.patents_created}
 Patents Updated      : {self.patents_updated}
+
+Trials Created       : {self.trials_created}
+Trials Updated       : {self.trials_updated}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))
