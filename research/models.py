@@ -119,7 +119,7 @@ class ConferenceProceeding(ResearchWork):
     aa_article_id = models.IntegerField(null=False, blank=False)
     proceeding_title = models.CharField(max_length=1024, null=False, blank=False)
     journal_name = models.CharField(max_length=512, null=False, blank=False)
-    article_year = models.DateField(null=True, blank=True)
+    article_year = models.IntegerField(null=True, blank=True)
     journal_volume = models.CharField(max_length=50, null=True, blank=True)
     journal_issue = models.CharField(max_length=50, null=True, blank=True)
     first_page = models.CharField(max_length=26, null=True, blank=True)

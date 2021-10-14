@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 
-from research.models import Researcher
+from research.models import ConferenceProceeding, Researcher
 from research.models import Article
 from research.models import Book
 from research.models import BookChapter
@@ -240,7 +240,7 @@ class Command(BaseCommand):
                     except:
                         self.stderr.write(f'There was an error creating the book {book["BookTitle"]}')
 
-
+                # Let's get some book chapters!
                 request_url = f'person/{researcher.aa_person_id}/bookchapters/'
                 chapters = self.__request_resource(request_url)
 
@@ -274,14 +274,54 @@ class Command(BaseCommand):
 
                         with self.mt_lock:
                             self.chapters_created += 1
-                    except Exception as e:
-                        self.stderr.write(e)
+                    except:
                         self.stderr.write(f'There was an error creating the book chapter {chapter["ChapterTitle"]}')
+
+                # Let's get some conference proceedings!
+                request_url = f'person/{researcher.aa_person_id}/proceedings/'
+                proceedings = self.__request_resource(request_url)
+
+                for proceeding in proceedings:
+                    try:
+                        existing_pro = ConferenceProceeding.objects.get(aa_article_id=proceeding['ArticleId'], researcher=researcher)
+                        existing_pro.proceeding_title = proceeding['ProceedingTitle']
+                        existing_pro.journal_name = proceeding['JournalName']
+                        existing_pro.article_year = proceeding['ArticleYear']
+                        existing_pro.journal_volume = proceeding['JournalVolume']
+                        existing_pro.journal_issue = proceeding['JournalIssue']
+                        existing_pro.first_page = proceeding['JournalFirstPage']
+                        existing_pro.last_page = proceeding['JournalLastPage']
+                        existing_pro.save()
+
+                        with self.mt_lock:
+                            self.confs_updated += 1
+                    except ConferenceProceeding.DoesNotExist:
+                        new_pro = ConferenceProceeding(
+                            researcher=researcher,
+                            aa_article_id=proceeding['ArticleId'],
+                            proceeding_title=proceeding['ProceedingTitle'],
+                            journal_name=proceeding['JournalName'],
+                            article_year=proceeding['ArticleYear'],
+                            journal_volume=proceeding['JournalVolume'],
+                            journal_issue=proceeding['JournalIssue'],
+                            first_page=proceeding['JournalFirstPage'],
+                            last_page=proceeding['JournalLastPage']
+                        )
+                        new_pro.save()
+
+                        with self.mt_lock:
+                            self.confs_created += 1
+                    except:
+                        self.stderr.write(f'There was an error creating the conference proceeding {proceeding["ProceedingTitle"]}')
 
             finally:
                 self.researchers_to_process.task_done()
 
     def __print_stats(self):
+        """
+        Prints the stats from the import to the console
+        """
+
         msg = f"""
 Researchers
 ---------------------
@@ -305,6 +345,9 @@ Book Chapters Updated: {self.chapters_updated}
 
 Articles Created     : {self.articles_created}
 Articles Updated     : {self.articles_updated}
+
+Proceedings Created  : {self.confs_created}
+Proceedings Updated  : {self.confs_updated}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))
