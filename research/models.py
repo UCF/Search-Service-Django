@@ -96,6 +96,9 @@ class Article(ResearchWork):
     first_page = models.CharField(max_length=26, null=True, blank=True)
     last_page = models.CharField(max_length=26, null=True, blank=True)
 
+    def __str__(self):
+        return self.article_title
+
 
 class Book(ResearchWork):
     aa_book_id = models.IntegerField(null=False, blank=False)
@@ -104,6 +107,9 @@ class Book(ResearchWork):
     bisac = models.CharField(max_length=50, null=True, blank=True)
     publisher_name = models.CharField(max_length=40, null=True, blank=True)
     publish_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return self.book_title
 
 class BookChapter(ResearchWork):
     aa_book_id = models.IntegerField(null=False, blank=False)
@@ -115,6 +121,9 @@ class BookChapter(ResearchWork):
     publish_year = models.IntegerField(null=True, blank=True)
     publish_date = models.DateField(null=True, blank=True)
 
+    def __str__(self):
+        return f'{self.book_title}: {self.chapter_title}'
+
 class ConferenceProceeding(ResearchWork):
     aa_article_id = models.IntegerField(null=False, blank=False)
     proceeding_title = models.CharField(max_length=1024, null=False, blank=False)
@@ -124,6 +133,9 @@ class ConferenceProceeding(ResearchWork):
     journal_issue = models.CharField(max_length=50, null=True, blank=True)
     first_page = models.CharField(max_length=26, null=True, blank=True)
     last_page = models.CharField(max_length=26, null=True, blank=True)
+
+    def __str_(self):
+        return self.proceeding_title
 
 class Grant(ResearchWork):
     aa_grant_id = models.IntegerField(null=False, blank=False)
@@ -136,6 +148,9 @@ class Grant(ResearchWork):
     total_dollars = models.IntegerField(null=False, blank=False)
     is_research = models.BooleanField(null=False, blank=False)
     principle_investigator = models.BooleanField(null=False, blank=False)
+
+    def __str__(self):
+        return self.grant_name
 
 
 class HonorificAward(ResearchWork):
@@ -155,6 +170,9 @@ class Patent(ResearchWork):
     claims = models.IntegerField(null=False, blank=False)
     abstract = models.TextField(null=True, blank=True)
 
+    def __str__(self):
+        return self.patent_title
+
 class ClinicalTrial(ResearchWork):
     nct_id = models.CharField(max_length=16, null=False, blank=False)
     title = models.CharField(max_length=2048, null=False, blank=False)
@@ -166,4 +184,7 @@ class ClinicalTrial(ResearchWork):
     phase = models.CharField(max_length=32, null=True, blank=True)
     recruitment_status = models.CharField(max_length=32, null=True, blank=True)
     investigators = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.title
 
