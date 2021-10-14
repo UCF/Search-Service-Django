@@ -314,6 +314,48 @@ class Command(BaseCommand):
                     except:
                         self.stderr.write(f'There was an error creating the conference proceeding {proceeding["ProceedingTitle"]}')
 
+                # Let's get some grants!
+                request_url = f'person/{researcher.aa_person_id}/grants/'
+                grants = self.__request_resource(request_url)
+
+                for grant in grants:
+                    try:
+                        existing_grant = Grant.objects.get(aa_grant_id=grant['GrantId'], researcher=researcher)
+                        existing_grant.agency_name = grant['AgencyName']
+                        existing_grant.grant_name = grant['GrantName']
+                        existing_grant.duration_years = grant['DurationInYears']
+                        existing_grant.start_date = parser.parse(grant['StartDate'])
+                        existing_grant.end_date = parser.parse(grant['EndDate'])
+                        existing_grant.full_name = grant['FullName']
+                        existing_grant.total_dollars = grant['TotalDollars']
+                        existing_grant.is_research = bool(grant['IsResearch'])
+                        existing_grant.principle_investigator = True if grant['AwardeeTypeCode'] == 'PI' else False
+                        existing_grant.save()
+
+                        with self.mt_lock:
+                            self.grants_updated += 1
+
+                    except Grant.DoesNotExist:
+                        new_grant = Grant(
+                            researcher=researcher,
+                            aa_grant_id=grant['GrantId'],
+                            agency_name=grant['AgencyName'],
+                            grant_name=grant['GrantName'],
+                            duration_years=grant['DurationInYears'],
+                            start_date=parser.parse(grant['StartDate']),
+                            end_date=parser.parse(grant['EndDate']),
+                            full_name=grant['FullName'],
+                            total_dollars=grant['TotalDollars'],
+                            is_research=bool(grant['IsResearch']),
+                            principle_investigator=True if grant['AwardeeTypeCode'] == 'PI' else False
+                        )
+                        new_grant.save()
+
+                        with self.mt_lock:
+                            self.grants_created += 1
+                    except:
+                        self.stderr.write(f'There was an error creating the grant {grant["GrantTitle"]}')
+
             finally:
                 self.researchers_to_process.task_done()
 
@@ -348,6 +390,9 @@ Articles Updated     : {self.articles_updated}
 
 Proceedings Created  : {self.confs_created}
 Proceedings Updated  : {self.confs_updated}
+
+Grants Created       : {self.grants_created}
+Grants Update        : {self.grants_updated}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))
