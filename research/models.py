@@ -147,6 +147,7 @@ class HonorificAward(ResearchWork):
 
 class Patent(ResearchWork):
     patent_id = models.IntegerField(null=False, blank=False)
+    patent_title = models.CharField(max_length=1024, null=False, blank=True)
     patent_type = models.CharField(max_length=40, null=False, blank=False)
     patent_kind = models.CharField(max_length=3, null=False, blank=False)
     patent_date = models.DateField(null=False, blank=False)

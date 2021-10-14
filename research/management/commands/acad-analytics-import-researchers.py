@@ -387,6 +387,43 @@ class Command(BaseCommand):
                     except:
                         self.stderr.write(f'There was an error creating the award {award["AwardName"]}')
 
+                # Let's get some patents!
+                request_url = f'person/{researcher.aa_person_id}/patents/'
+                patents = self.__request_resource(request_url)
+
+                for patent in patents:
+                    try:
+                        existing_patent = Patent.objects.get(patent_id=patent['PatentId'], researcher=researcher)
+                        existing_patent.patent_title = patent['PatentTitle']
+                        existing_patent.patent_type = patent['PatentType']
+                        existing_patent.patent_kind = patent['PatentKind']
+                        existing_patent.patent_date = parser.parse(patent['PatentDate'])
+                        existing_patent.country = patent['Country']
+                        existing_patent.claims = patent['NumClaims']
+                        existing_patent.abstract = patent['Abstract']
+                        existing_patent.save()
+
+                        with self.mt_lock:
+                            self.patents_updated += 1
+                    except Patent.DoesNotExist:
+                        new_patent = Patent(
+                            researcher=researcher,
+                            patent_id=patent['PatentId'],
+                            patent_title=patent['PatentTitle'],
+                            patent_type=patent['PatentType'],
+                            patent_kind=patent['PatentKind'],
+                            patent_date=parser.parse(patent['PatentDate']),
+                            country=patent['Country'],
+                            claims=patent['NumClaims'],
+                            abstract=patent['Abstract']
+                        )
+                        new_patent.save()
+
+                        with self.mt_lock:
+                            self.patents_created
+                    except:
+                        self.stderr.write(f'There was an error creating the patent {patent["PatentTitle"]}')
+
             finally:
                 self.researchers_to_process.task_done()
 
@@ -427,6 +464,9 @@ Grants Updated       : {self.grants_updated}
 
 Awards Created       : {self.awards_created}
 Awards Updated       : {self.awards_updated}
+
+Patents Created      : {self.patents_created}
+Patents Updated      : {self.patents_updated}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))
