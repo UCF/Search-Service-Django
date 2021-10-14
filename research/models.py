@@ -143,7 +143,7 @@ class HonorificAward(ResearchWork):
     governing_society_name = models.CharField(max_length=1024, null=False, blank=False)
     award_name = models.CharField(max_length=255, null=False, blank=False)
     award_received_name = models.CharField(max_length=128, null=False, blank=False)
-    award_received_year = models.DateField(null=False, blank=False)
+    award_received_year = models.IntegerField(null=False, blank=False)
 
 class Patent(ResearchWork):
     patent_id = models.IntegerField(null=False, blank=False)

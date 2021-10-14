@@ -356,6 +356,37 @@ class Command(BaseCommand):
                     except:
                         self.stderr.write(f'There was an error creating the grant {grant["GrantTitle"]}')
 
+                # Let's get some awards!
+                request_url = f'person/{researcher.aa_person_id}/awards/'
+                awards = self.__request_resource(request_url)
+
+                for award in awards:
+                    try:
+                        existing_award = HonorificAward.objects.get(aa_award_id=award['AwardId'], researcher=researcher)
+                        existing_award.governing_society_name = award['AwardGoverningSocietyName']
+                        existing_award.award_name = award['AwardName']
+                        existing_award.award_received_name = award['AwardReceivedName']
+                        existing_award.award_received_year = award['AwardReceivedAwardYear']
+                        existing_award.save()
+
+                        with self.mt_lock:
+                            self.awards_updated += 1
+                    except HonorificAward.DoesNotExist:
+                        new_award = HonorificAward(
+                            researcher=researcher,
+                            aa_award_id=award['AwardId'],
+                            governing_society_name=award['AwardGoverningSocietyName'],
+                            award_name=award['AwardName'],
+                            award_received_name=award['AwardReceivedName'],
+                            award_received_year=award['AwardReceivedAwardYear']
+                        )
+                        new_award.save()
+
+                        with self.mt_lock:
+                            self.awards_created += 1
+                    except:
+                        self.stderr.write(f'There was an error creating the award {award["AwardName"]}')
+
             finally:
                 self.researchers_to_process.task_done()
 
@@ -392,7 +423,10 @@ Proceedings Created  : {self.confs_created}
 Proceedings Updated  : {self.confs_updated}
 
 Grants Created       : {self.grants_created}
-Grants Update        : {self.grants_updated}
+Grants Updated       : {self.grants_updated}
+
+Awards Created       : {self.awards_created}
+Awards Updated       : {self.awards_updated}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))
