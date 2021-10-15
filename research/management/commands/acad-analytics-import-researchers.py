@@ -424,7 +424,7 @@ class Command(BaseCommand):
                     except:
                         self.stderr.write(f'There was an error creating the patent {patent["PatentTitle"]}')
 
-                # Let's get some patents!
+                # Let's get some trials!
                 request_url = f'person/{researcher.aa_person_id}/clinicaltrials/'
                 trials = self.__request_resource(request_url)
 
