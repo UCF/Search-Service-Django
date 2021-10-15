@@ -173,7 +173,7 @@ class Command(BaseCommand):
 
                 for article in articles:
                     try:
-                        existing_article = Article(aa_article_id=article['ArticleId'], researcher=researcher)
+                        existing_article = Article.objects.get(aa_article_id=article['ArticleId'], researcher=researcher)
                         existing_article.article_title = article['ArticleTitle']
                         existing_article.journal_name = article['JournalName']
                         existing_article.article_year = article['ArticleYear']
