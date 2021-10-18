@@ -77,7 +77,6 @@ class Command(BaseCommand):
         self.books_created = 0
         self.articles_updated = 0
         self.articles_created = 0
-        self.articles_removed = 0
         self.chapters_updated = 0
         self.chapters_created = 0
         self.confs_updated = 0
@@ -227,10 +226,6 @@ class Command(BaseCommand):
 
                         with self.mt_lock:
                             self.articles_created += 1
-
-                    except Article.MultipleObjectsReturned:
-                        self.stdout.write(f"Researcher: {researcher}")
-                        self.stdout.write(f"ArticleId: {article['ArticleId']}")
 
                     except Exception as e:
                         self.stderr.write(f'There was an error creating the article {article["ArticleTitle"]}, {e}')
