@@ -448,7 +448,7 @@ class Command(BaseCommand):
                         new_patent.save()
 
                         with self.mt_lock:
-                            self.patents_created
+                            self.patents_created += 1
                     except:
                         self.stderr.write(f'There was an error creating the patent {patent["PatentTitle"]}')
 
