@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 
-from research.models import ConferenceProceeding, Researcher
+from research.models import ConferenceProceeding, ResearchWork, Researcher
 from research.models import Article
 from research.models import Book
 from research.models import BookChapter
@@ -47,6 +47,14 @@ class Command(BaseCommand):
             required=False
         )
 
+        parser.add_argument(
+            '--force-update',
+            action='store_true',
+            dest='force_update',
+            help='Forces all researchers and research to be reimported',
+            default=False
+        )
+
 
     def handle(self, *args, **options):
         """
@@ -55,6 +63,7 @@ class Command(BaseCommand):
         """
         self.aa_api_url = self.__trailingslashit(options['aa_api_url'])
         self.aa_api_key = options['aa_api_key']
+        self.force_update = options['force_update']
         self.max_threads = settings.RESEARCH_MAX_THREADS
 
         self.processed = 0
@@ -83,9 +92,22 @@ class Command(BaseCommand):
 
         self.researchers_to_process = queue.Queue()
 
+        if self.force_update:
+            self.__remove_all_records()
+
         self.__get_researchers()
         self.__process_research()
         self.__print_stats()
+
+    def __remove_all_records(self):
+        """
+        Deletes all researchers
+        """
+        self.stdout.write(self.style.WARNING(f"Removing {Researcher.objects.count()} researchers"))
+        Researcher.objects.all().delete()
+
+        self.stdout.write(self.style.WARNING(f"Removing {ResearchWork.objects.count()} research objects"))
+        ResearchWork.objects.all().delete()
 
     def __get_researchers(self):
         url = 'person/list/'
@@ -100,7 +122,8 @@ class Command(BaseCommand):
                 continue
 
             try:
-                staff = Staff.objects.get(employee_id=person['ClientFacultyId'].strip())
+                employee_id = person['ClientFacultyId'].zfill(7)
+                staff = Staff.objects.get(employee_id=employee_id)
             except:
                 self.skipped_no_match += 1
                 continue
@@ -204,7 +227,7 @@ class Command(BaseCommand):
                         with self.mt_lock:
                             self.articles_created += 1
 
-                    except:
+                    except Exception:
                         self.stderr.write(f'There was an error creating the article {article["ArticleTitle"]}')
 
                 # Let's get some books!
@@ -420,7 +443,7 @@ class Command(BaseCommand):
                         new_patent.save()
 
                         with self.mt_lock:
-                            self.patents_created
+                            self.patents_created += 1
                     except:
                         self.stderr.write(f'There was an error creating the patent {patent["PatentTitle"]}')
 
