@@ -77,9 +77,6 @@ class ResearcherEducation(models.Model):
         )
 
 class ResearchWork(models.Model):
-    class Meta:
-        default_related_name = '%(class)s'
-
     researchers = models.ManyToManyField(Researcher, related_name='works')
 
     @property
