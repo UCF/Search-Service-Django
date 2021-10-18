@@ -1,3 +1,4 @@
+import logging
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 
@@ -19,6 +20,8 @@ from dateutil import parser
 import threading, queue
 
 from progress.bar import ChargingBar
+
+logger = logging.getLogger()
 
 class Command(BaseCommand):
     help = 'Imports researchers from Academic Analytics'
@@ -72,6 +75,27 @@ class Command(BaseCommand):
         self.removed = 0
         self.skipped_no_empl = 0
         self.skipped_no_match = 0
+
+        # Sets for tracking unique works
+        self.books = set()
+        self.articles = set()
+        self.chapters = set()
+        self.proceedings = set()
+        self.grants = set()
+        self.awards = set()
+        self.patents = set()
+        self.trials = set()
+
+        # Locks for updating the above sets
+        # and for DB calls to avoid race conditions
+        self.book_lock = threading.Lock()
+        self.article_lock = threading.Lock()
+        self.chapter_lock = threading.Lock()
+        self.proceeding_lock = threading.Lock()
+        self.grant_lock = threading.Lock()
+        self.award_lock = threading.Lock()
+        self.patent_lock = threading.Lock()
+        self.trial_lock = threading.Lock()
 
         self.books_updated = 0
         self.books_created = 0
@@ -196,39 +220,42 @@ class Command(BaseCommand):
 
                 for article in articles:
                     try:
-                        existing_article = Article.objects.get(aa_article_id=article['ArticleId'], researcher=researcher)
-                        existing_article.article_title = article['ArticleTitle']
-                        existing_article.journal_name = article['JournalName']
-                        existing_article.article_year = article['ArticleYear']
-                        existing_article.journal_volume = article['JournalVolume'] or None
-                        existing_article.journal_issue = article['JournalIssue'] or None
-                        existing_article.first_page = article['JournalFirstPage'] or None
-                        existing_article.last_page = article['JournalLastPage'] or None
-                        existing_article.save()
+                        with self.article_lock:
+                            existing_article = Article.objects.get(aa_article_id=article['ArticleId'])
+                            existing_article.researchers.add(researcher)
+                            existing_article.article_title = article['ArticleTitle']
+                            existing_article.journal_name = article['JournalName']
+                            existing_article.article_year = article['ArticleYear']
+                            existing_article.journal_volume = article['JournalVolume'] or None
+                            existing_article.journal_issue = article['JournalIssue'] or None
+                            existing_article.first_page = article['JournalFirstPage'] or None
+                            existing_article.last_page = article['JournalLastPage'] or None
+                            existing_article.save()
 
-                        with self.mt_lock:
+                            self.articles.add(existing_article.id)
                             self.articles_updated += 1
 
                     except Article.DoesNotExist:
-                        new_article = Article(
-                            researcher=researcher,
-                            aa_article_id=article['ArticleId'],
-                            article_title=article['ArticleTitle'],
-                            journal_name=article['JournalName'],
-                            article_year=article['ArticleYear'],
-                            journal_volume=article['JournalVolume'] or None,
-                            journal_issue=article['JournalIssue'] or None,
-                            first_page=article['JournalFirstPage'] or None,
-                            last_page=article['JournalLastPage'] or None
-                        )
+                        with self.article_lock:
+                            new_article = Article(
+                                aa_article_id=article['ArticleId'],
+                                article_title=article['ArticleTitle'],
+                                journal_name=article['JournalName'],
+                                article_year=article['ArticleYear'],
+                                journal_volume=article['JournalVolume'] or None,
+                                journal_issue=article['JournalIssue'] or None,
+                                first_page=article['JournalFirstPage'] or None,
+                                last_page=article['JournalLastPage'] or None
+                            )
 
-                        new_article.save()
+                            new_article.save()
+                            new_article.researchers.add(researcher)
 
-                        with self.mt_lock:
+                            self.articles.add(new_article.id)
                             self.articles_created += 1
 
-                    except Exception:
-                        self.stderr.write(f'There was an error creating the article {article["ArticleTitle"]}')
+                    except Exception as e:
+                        logger.error(f'There was an error importing an article: {e}')
 
                 # Let's get some books!
                 request_url = f'person/{researcher.aa_person_id}/books/'
@@ -236,32 +263,36 @@ class Command(BaseCommand):
 
                 for book in books:
                     try:
-                        existing_book = Book.objects.get(aa_book_id=book['BookId'], researcher=researcher)
-                        existing_book.isbn = book['Isbn']
-                        existing_book.book_title = book['BookTitle']
-                        existing_book.bisac = book['Bisac']
-                        existing_book.publisher_name = book['PublisherName']
-                        existing_book.publish_date = parser.parse(book['PublishDate'])
-                        existing_book.save()
+                        with self.book_lock:
+                            existing_book = Book.objects.get(aa_book_id=book['BookId'])
+                            existing_book.researchers.add(researcher)
+                            existing_book.isbn = book['Isbn']
+                            existing_book.book_title = book['BookTitle']
+                            existing_book.bisac = book['Bisac']
+                            existing_book.publisher_name = book['PublisherName']
+                            existing_book.publish_date = parser.parse(book['PublishDate'])
+                            existing_book.save()
 
-                        with self.mt_lock:
+                            self.books.add(existing_book.id)
                             self.books_updated += 1
-                    except Book.DoesNotExist:
-                        new_book = Book(
-                            researcher=researcher,
-                            aa_book_id=book['BookId'],
-                            isbn=book['Isbn'],
-                            book_title=book['BookTitle'],
-                            bisac=book['Bisac'],
-                            publisher_name=book['PublisherName'],
-                            publish_date=parser.parse(book['PublishDate'])
-                        )
-                        new_book.save()
 
-                        with self.mt_lock:
+                    except Book.DoesNotExist:
+                        with self.book_lock:
+                            new_book = Book(
+                                aa_book_id=book['BookId'],
+                                isbn=book['Isbn'],
+                                book_title=book['BookTitle'],
+                                bisac=book['Bisac'],
+                                publisher_name=book['PublisherName'],
+                                publish_date=parser.parse(book['PublishDate'])
+                            )
+                            new_book.save()
+                            new_book.researchers.add(researcher)
+
+                            self.books.add(new_book.id)
                             self.books_created += 1
-                    except:
-                        self.stderr.write(f'There was an error creating the book {book["BookTitle"]}')
+                    except Exception as e:
+                        logger.error(f'There was an error importing a book: {e}')
 
                 # Let's get some book chapters!
                 request_url = f'person/{researcher.aa_person_id}/bookchapters/'
@@ -269,36 +300,40 @@ class Command(BaseCommand):
 
                 for chapter in chapters:
                     try:
-                        existing_chapter = BookChapter.objects.get(aa_book_id=chapter['BookId'], researcher=researcher)
-                        existing_chapter.isbn = chapter['Isbn']
-                        existing_chapter.book_title = chapter['BookTitle']
-                        existing_chapter.chapter_title = chapter['ChapterTitle']
-                        existing_chapter.bisac = chapter['Bisac']
-                        existing_chapter.publisher_name = chapter['PublisherName']
-                        existing_chapter.publish_year = chapter['PublishYear']
-                        existing_chapter.publish_date = parser.parse(chapter['PublishDate'])
-                        existing_chapter.save()
+                        with self.chapter_lock:
+                            existing_chapter = BookChapter.objects.get(aa_book_id=chapter['BookId'])
+                            existing_chapter.researchers.add(researcher)
+                            existing_chapter.isbn = chapter['Isbn']
+                            existing_chapter.book_title = chapter['BookTitle']
+                            existing_chapter.chapter_title = chapter['ChapterTitle']
+                            existing_chapter.bisac = chapter['Bisac']
+                            existing_chapter.publisher_name = chapter['PublisherName']
+                            existing_chapter.publish_year = chapter['PublishYear']
+                            existing_chapter.publish_date = parser.parse(chapter['PublishDate'])
+                            existing_chapter.save()
 
-                        with self.mt_lock:
+                            self.chapters.add(existing_chapter.id)
                             self.chapters_updated += 1
-                    except BookChapter.DoesNotExist:
-                        new_chapter = BookChapter(
-                            researcher=researcher,
-                            aa_book_id=chapter['BookId'],
-                            isbn=chapter['Isbn'],
-                            book_title=chapter['BookTitle'],
-                            chapter_title=chapter['ChapterTitle'],
-                            bisac=chapter['Bisac'],
-                            publisher_name=chapter['PublisherName'],
-                            publish_year=chapter['PublishYear'],
-                            publish_date=parser.parse(chapter['PublishDate'])
-                        )
-                        new_chapter.save()
 
-                        with self.mt_lock:
+                    except BookChapter.DoesNotExist:
+                        with self.chapter_lock:
+                            new_chapter = BookChapter(
+                                aa_book_id=chapter['BookId'],
+                                isbn=chapter['Isbn'],
+                                book_title=chapter['BookTitle'],
+                                chapter_title=chapter['ChapterTitle'],
+                                bisac=chapter['Bisac'],
+                                publisher_name=chapter['PublisherName'],
+                                publish_year=chapter['PublishYear'],
+                                publish_date=parser.parse(chapter['PublishDate'])
+                            )
+                            new_chapter.save()
+                            new_chapter.researchers.add(researcher)
+
+                            self.chapters.add(new_chapter.id)
                             self.chapters_created += 1
-                    except:
-                        self.stderr.write(f'There was an error creating the book chapter {chapter["ChapterTitle"]}')
+                    except Exception as e:
+                        logger.error(f'There was an error importing a book chapter: {e}')
 
                 # Let's get some conference proceedings!
                 request_url = f'person/{researcher.aa_person_id}/proceedings/'
@@ -306,36 +341,40 @@ class Command(BaseCommand):
 
                 for proceeding in proceedings:
                     try:
-                        existing_pro = ConferenceProceeding.objects.get(aa_article_id=proceeding['ArticleId'], researcher=researcher)
-                        existing_pro.proceeding_title = proceeding['ProceedingTitle']
-                        existing_pro.journal_name = proceeding['JournalName']
-                        existing_pro.article_year = proceeding['ArticleYear']
-                        existing_pro.journal_volume = proceeding['JournalVolume']
-                        existing_pro.journal_issue = proceeding['JournalIssue']
-                        existing_pro.first_page = proceeding['JournalFirstPage']
-                        existing_pro.last_page = proceeding['JournalLastPage']
-                        existing_pro.save()
+                        with self.proceeding_lock:
+                            existing_pro = ConferenceProceeding.objects.get(aa_article_id=proceeding['ArticleId'])
+                            existing_pro.researchers.add(researcher)
+                            existing_pro.proceeding_title = proceeding['ProceedingTitle']
+                            existing_pro.journal_name = proceeding['JournalName']
+                            existing_pro.article_year = proceeding['ArticleYear']
+                            existing_pro.journal_volume = proceeding['JournalVolume']
+                            existing_pro.journal_issue = proceeding['JournalIssue']
+                            existing_pro.first_page = proceeding['JournalFirstPage']
+                            existing_pro.last_page = proceeding['JournalLastPage']
+                            existing_pro.save()
 
-                        with self.mt_lock:
+                            self.proceedings.add(existing_pro.id)
                             self.confs_updated += 1
-                    except ConferenceProceeding.DoesNotExist:
-                        new_pro = ConferenceProceeding(
-                            researcher=researcher,
-                            aa_article_id=proceeding['ArticleId'],
-                            proceeding_title=proceeding['ProceedingTitle'],
-                            journal_name=proceeding['JournalName'],
-                            article_year=proceeding['ArticleYear'],
-                            journal_volume=proceeding['JournalVolume'],
-                            journal_issue=proceeding['JournalIssue'],
-                            first_page=proceeding['JournalFirstPage'],
-                            last_page=proceeding['JournalLastPage']
-                        )
-                        new_pro.save()
 
-                        with self.mt_lock:
+                    except ConferenceProceeding.DoesNotExist:
+                        with self.proceeding_lock:
+                            new_pro = ConferenceProceeding(
+                                aa_article_id=proceeding['ArticleId'],
+                                proceeding_title=proceeding['ProceedingTitle'],
+                                journal_name=proceeding['JournalName'],
+                                article_year=proceeding['ArticleYear'],
+                                journal_volume=proceeding['JournalVolume'],
+                                journal_issue=proceeding['JournalIssue'],
+                                first_page=proceeding['JournalFirstPage'],
+                                last_page=proceeding['JournalLastPage']
+                            )
+                            new_pro.save()
+                            new_pro.researchers.add(researcher)
+
+                            self.proceedings.add(new_pro.id)
                             self.confs_created += 1
-                    except:
-                        self.stderr.write(f'There was an error creating the conference proceeding {proceeding["ProceedingTitle"]}')
+                    except Exception as e:
+                        logger.error(f'There was an error importing a conference proceeding: {e}')
 
                 # Let's get some grants!
                 request_url = f'person/{researcher.aa_person_id}/grants/'
@@ -343,41 +382,44 @@ class Command(BaseCommand):
 
                 for grant in grants:
                     try:
-                        existing_grant = Grant.objects.get(aa_grant_id=grant['GrantId'], researcher=researcher)
-                        existing_grant.agency_name = grant['AgencyName']
-                        existing_grant.grant_name = grant['GrantName']
-                        existing_grant.duration_years = grant['DurationInYears']
-                        existing_grant.start_date = parser.parse(grant['StartDate'])
-                        existing_grant.end_date = parser.parse(grant['EndDate'])
-                        existing_grant.full_name = grant['FullName']
-                        existing_grant.total_dollars = grant['TotalDollars']
-                        existing_grant.is_research = bool(grant['IsResearch'])
-                        existing_grant.principle_investigator = True if grant['AwardeeTypeCode'] == 'PI' else False
-                        existing_grant.save()
+                        with self.grant_lock:
+                            existing_grant = Grant.objects.get(aa_grant_id=grant['GrantId'])
+                            existing_grant.researchers.add(researcher)
+                            existing_grant.agency_name = grant['AgencyName']
+                            existing_grant.grant_name = grant['GrantName']
+                            existing_grant.duration_years = grant['DurationInYears']
+                            existing_grant.start_date = parser.parse(grant['StartDate'])
+                            existing_grant.end_date = parser.parse(grant['EndDate'])
+                            existing_grant.full_name = grant['FullName']
+                            existing_grant.total_dollars = grant['TotalDollars']
+                            existing_grant.is_research = bool(grant['IsResearch'])
+                            existing_grant.principle_investigator = True if grant['AwardeeTypeCode'] == 'PI' else False
+                            existing_grant.save()
 
-                        with self.mt_lock:
+                            self.grants.add(existing_grant.id)
                             self.grants_updated += 1
 
                     except Grant.DoesNotExist:
-                        new_grant = Grant(
-                            researcher=researcher,
-                            aa_grant_id=grant['GrantId'],
-                            agency_name=grant['AgencyName'],
-                            grant_name=grant['GrantName'],
-                            duration_years=grant['DurationInYears'],
-                            start_date=parser.parse(grant['StartDate']),
-                            end_date=parser.parse(grant['EndDate']),
-                            full_name=grant['FullName'],
-                            total_dollars=grant['TotalDollars'],
-                            is_research=bool(grant['IsResearch']),
-                            principle_investigator=True if grant['AwardeeTypeCode'] == 'PI' else False
-                        )
-                        new_grant.save()
+                        with self.grant_lock:
+                            new_grant = Grant(
+                                aa_grant_id=grant['GrantId'],
+                                agency_name=grant['AgencyName'],
+                                grant_name=grant['GrantName'],
+                                duration_years=grant['DurationInYears'],
+                                start_date=parser.parse(grant['StartDate']),
+                                end_date=parser.parse(grant['EndDate']),
+                                full_name=grant['FullName'],
+                                total_dollars=grant['TotalDollars'],
+                                is_research=bool(grant['IsResearch']),
+                                principle_investigator=True if grant['AwardeeTypeCode'] == 'PI' else False
+                            )
+                            new_grant.save()
+                            new_grant.researchers.add(researcher)
 
-                        with self.mt_lock:
+                            self.grants.add(new_grant.id)
                             self.grants_created += 1
-                    except:
-                        self.stderr.write(f'There was an error creating the grant {grant["GrantTitle"]}')
+                    except Exception as e:
+                        logger.error(f'There was an error importing a grant: {e}')
 
                 # Let's get some awards!
                 request_url = f'person/{researcher.aa_person_id}/awards/'
@@ -385,30 +427,34 @@ class Command(BaseCommand):
 
                 for award in awards:
                     try:
-                        existing_award = HonorificAward.objects.get(aa_award_id=award['AwardId'], researcher=researcher)
-                        existing_award.governing_society_name = award['AwardGoverningSocietyName']
-                        existing_award.award_name = award['AwardName']
-                        existing_award.award_received_name = award['AwardReceivedName']
-                        existing_award.award_received_year = award['AwardReceivedAwardYear']
-                        existing_award.save()
+                        with self.award_lock:
+                            existing_award = HonorificAward.objects.get(aa_award_id=award['AwardId'])
+                            existing_award.researchers.add(researcher)
+                            existing_award.governing_society_name = award['AwardGoverningSocietyName']
+                            existing_award.award_name = award['AwardName']
+                            existing_award.award_received_name = award['AwardReceivedName']
+                            existing_award.award_received_year = award['AwardReceivedAwardYear']
+                            existing_award.save()
 
-                        with self.mt_lock:
+                            self.awards.add(existing_award.id)
                             self.awards_updated += 1
                     except HonorificAward.DoesNotExist:
-                        new_award = HonorificAward(
-                            researcher=researcher,
-                            aa_award_id=award['AwardId'],
-                            governing_society_name=award['AwardGoverningSocietyName'],
-                            award_name=award['AwardName'],
-                            award_received_name=award['AwardReceivedName'],
-                            award_received_year=award['AwardReceivedAwardYear']
-                        )
-                        new_award.save()
+                        with self.award_lock:
+                            new_award = HonorificAward(
+                                aa_award_id=award['AwardId'],
+                                governing_society_name=award['AwardGoverningSocietyName'],
+                                award_name=award['AwardName'],
+                                award_received_name=award['AwardReceivedName'],
+                                award_received_year=award['AwardReceivedAwardYear']
+                            )
+                            new_award.save()
+                            new_award.researchers.add(researcher)
 
-                        with self.mt_lock:
+                            self.awards.add(new_award.id)
                             self.awards_created += 1
+
                     except:
-                        self.stderr.write(f'There was an error creating the award {award["AwardName"]}')
+                        logger.error(f'There was an error importing an award: {e}')
 
                 # Let's get some patents!
                 request_url = f'person/{researcher.aa_person_id}/patents/'
@@ -416,36 +462,40 @@ class Command(BaseCommand):
 
                 for patent in patents:
                     try:
-                        existing_patent = Patent.objects.get(patent_id=patent['PatentId'], researcher=researcher)
-                        existing_patent.patent_title = patent['PatentTitle']
-                        existing_patent.patent_type = patent['PatentType']
-                        existing_patent.patent_kind = patent['PatentKind']
-                        existing_patent.patent_date = parser.parse(patent['PatentDate'])
-                        existing_patent.country = patent['Country']
-                        existing_patent.claims = patent['NumClaims']
-                        existing_patent.abstract = patent['Abstract']
-                        existing_patent.save()
+                        with self.patent_lock:
+                            existing_patent = Patent.objects.get(patent_id=patent['PatentId'])
+                            existing_patent.researchers.add(researcher)
+                            existing_patent.patent_title = patent['PatentTitle']
+                            existing_patent.patent_type = patent['PatentType']
+                            existing_patent.patent_kind = patent['PatentKind']
+                            existing_patent.patent_date = parser.parse(patent['PatentDate'])
+                            existing_patent.country = patent['Country']
+                            existing_patent.claims = patent['NumClaims']
+                            existing_patent.abstract = patent['Abstract']
+                            existing_patent.save()
 
-                        with self.mt_lock:
+                            self.patents.add(existing_patent.id)
                             self.patents_updated += 1
-                    except Patent.DoesNotExist:
-                        new_patent = Patent(
-                            researcher=researcher,
-                            patent_id=patent['PatentId'],
-                            patent_title=patent['PatentTitle'],
-                            patent_type=patent['PatentType'],
-                            patent_kind=patent['PatentKind'],
-                            patent_date=parser.parse(patent['PatentDate']),
-                            country=patent['Country'],
-                            claims=patent['NumClaims'],
-                            abstract=patent['Abstract']
-                        )
-                        new_patent.save()
 
-                        with self.mt_lock:
+                    except Patent.DoesNotExist:
+                        with self.patent_lock:
+                            new_patent = Patent(
+                                patent_id=patent['PatentId'],
+                                patent_title=patent['PatentTitle'],
+                                patent_type=patent['PatentType'],
+                                patent_kind=patent['PatentKind'],
+                                patent_date=parser.parse(patent['PatentDate']),
+                                country=patent['Country'],
+                                claims=patent['NumClaims'],
+                                abstract=patent['Abstract']
+                            )
+                            new_patent.save()
+                            new_patent.researchers.add(researcher)
+
+                            self.patents.add(new_patent.id)
                             self.patents_created += 1
-                    except:
-                        self.stderr.write(f'There was an error creating the patent {patent["PatentTitle"]}')
+                    except Exception as e:
+                        logger.error(f'There was an error importing a patent: {e}')
 
                 # Let's get some trials!
                 request_url = f'person/{researcher.aa_person_id}/clinicaltrials/'
@@ -453,40 +503,44 @@ class Command(BaseCommand):
 
                 for trial in trials:
                     try:
-                        existing_trial = ClinicalTrial.objects.get(nct_id=trial['NCTId'], researcher=researcher)
-                        existing_trial.title = trial['Title']
-                        existing_trial.start_date = parser.parse(trial['StartDate'])
-                        existing_trial.completion_date = parser.parse(trial['CompletionDate']) if trial['CompletionDate'] != '' else None
-                        existing_trial.study_type = trial['StudyType']
-                        existing_trial.sponsor = trial['Sponsor']
-                        existing_trial.allocation = trial['Allocation']
-                        existing_trial.phase = trial['Phase']
-                        existing_trial.recruitment_status = trial['RecruitmentStatus']
-                        existing_trial.investigators = trial['Investigators']
-                        existing_trial.save()
+                        with self.trial_lock:
+                            existing_trial = ClinicalTrial.objects.get(nct_id=trial['NCTId'])
+                            existing_trial.researchers.add(researcher)
+                            existing_trial.title = trial['Title']
+                            existing_trial.start_date = parser.parse(trial['StartDate'])
+                            existing_trial.completion_date = parser.parse(trial['CompletionDate']) if trial['CompletionDate'] != '' else None
+                            existing_trial.study_type = trial['StudyType']
+                            existing_trial.sponsor = trial['Sponsor']
+                            existing_trial.allocation = trial['Allocation']
+                            existing_trial.phase = trial['Phase']
+                            existing_trial.recruitment_status = trial['RecruitmentStatus']
+                            existing_trial.investigators = trial['Investigators']
+                            existing_trial.save()
 
-                        with self.mt_lock:
+                            self.trials.add(existing_trial.id)
                             self.trials_updated += 1
-                    except ClinicalTrial.DoesNotExist:
-                        new_trial = ClinicalTrial(
-                            researcher=researcher,
-                            nct_id=trial['NCTId'],
-                            title=trial['Title'],
-                            start_date=parser.parse(trial['StartDate']),
-                            completion_date=parser.parse(trial['CompletionDate']) if trial['CompletionDate'] != '' else None,
-                            study_type=trial['StudyType'],
-                            sponsor=trial['Sponsor'],
-                            allocation=trial['Allocation'],
-                            phase=trial['Phase'],
-                            recruitment_status=trial['RecruitmentStatus'],
-                            investigators=trial['Investigators']
-                        )
-                        new_trial.save()
 
-                        with self.mt_lock:
+                    except ClinicalTrial.DoesNotExist:
+                        with self.trial_lock:
+                            new_trial = ClinicalTrial(
+                                nct_id=trial['NCTId'],
+                                title=trial['Title'],
+                                start_date=parser.parse(trial['StartDate']),
+                                completion_date=parser.parse(trial['CompletionDate']) if trial['CompletionDate'] != '' else None,
+                                study_type=trial['StudyType'],
+                                sponsor=trial['Sponsor'],
+                                allocation=trial['Allocation'],
+                                phase=trial['Phase'],
+                                recruitment_status=trial['RecruitmentStatus'],
+                                investigators=trial['Investigators']
+                            )
+                            new_trial.save()
+                            new_trial.researchers.add(researcher)
+
+                            self.trials.add(new_trial.id)
                             self.trials_created += 1
-                    except:
-                        self.stderr.write(f'There was an error creating the clinical trial {trial["Title"]}')
+                    except Exception as e:
+                        logger.error(f'There was an error importing a clinical trial: {e}')
 
             finally:
                 self.researchers_to_process.task_done()
@@ -512,28 +566,36 @@ Research
 ----------------------
 
 Books Created        : {self.books_created}
-Books Updated        : {self.books_updated}
+Books Updated        : {len(list(self.books)) - self.books_created}
+Author Updates       : {self.books_created + self.books_updated}
 
 Book Chapters Created: {self.chapters_created}
-Book Chapters Updated: {self.chapters_updated}
+Book Chapters Updated: {len(list(self.chapters)) - self.chapters_created}
+Author Updates       : {self.chapters_created + self.chapters_updated}
 
 Articles Created     : {self.articles_created}
-Articles Updated     : {self.articles_updated}
+Articles Updated     : {len(list(self.articles)) - self.articles_created}
+Author Updates       : {self.articles_created + self.articles_updated}
 
 Proceedings Created  : {self.confs_created}
-Proceedings Updated  : {self.confs_updated}
+Proceedings Updated  : {len(list(self.proceedings)) - self.confs_created}
+Author Updates       : {self.confs_created + self.confs_updated}
 
 Grants Created       : {self.grants_created}
-Grants Updated       : {self.grants_updated}
+Grants Updated       : {len(list(self.grants)) - self.grants_created}
+Author Updates       : {self.grants_created + self.grants_updated}
 
 Awards Created       : {self.awards_created}
-Awards Updated       : {self.awards_updated}
+Awards Updated       : {len(list(self.awards)) - self.awards_created}
+Author Updates       : {self.awards_created + self.awards_updated}
 
 Patents Created      : {self.patents_created}
-Patents Updated      : {self.patents_updated}
+Patents Updated      : {len(list(self.patents)) - self.patents_created}
+Author Updates       : {self.patents_created + self.patents_updated}
 
 Trials Created       : {self.trials_created}
-Trials Updated       : {self.trials_updated}
+Trials Updated       : {len(list(self.trials)) - self.trials_created}
+Author Updates       : {self.trials_created + self.trials_updated}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))

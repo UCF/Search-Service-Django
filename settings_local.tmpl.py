@@ -84,6 +84,7 @@ LOGGING = {
         'django.server': DEFAULT_LOGGING['formatters']['django.server'],
         'programs.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
         'teledata.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
+        'research.management.commands': DEFAULT_LOGGING['formatters']['django.server']
     },
     'handlers': {
         'console': {
@@ -93,6 +94,11 @@ LOGGING = {
         'sentry': {
             'level': 'WARNING',
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR + '%(app)_%(class).log'
         },
         'django.server': DEFAULT_LOGGING['handlers']['django.server'],
         'programs.management.commands': DEFAULT_LOGGING['handlers']['django.server'],
@@ -106,6 +112,11 @@ LOGGING = {
         'django.server': DEFAULT_LOGGING['loggers']['django.server'],
         'programs.management.commands': DEFAULT_LOGGING['loggers']['django.server'],
         'teledata.management.commands': DEFAULT_LOGGING['loggers']['django.server'],
+        'research.management.commands': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True
+        }
     }
 }
 
