@@ -227,8 +227,8 @@ class Command(BaseCommand):
                         with self.mt_lock:
                             self.articles_created += 1
 
-                    except Exception as e:
-                        self.stderr.write(f'There was an error creating the article {article["ArticleTitle"]}, {e}')
+                    except Exception:
+                        self.stderr.write(f'There was an error creating the article {article["ArticleTitle"]}')
 
                 # Let's get some books!
                 request_url = f'person/{researcher.aa_person_id}/books/'
