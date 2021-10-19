@@ -80,7 +80,7 @@ class ResearchWork(models.Model):
     researchers = models.ManyToManyField(Researcher, related_name='works')
 
     @property
-    def citation(self):
+    def simple_citation_html(self):
         return ""
 
     def __str__(self):
@@ -99,6 +99,37 @@ class Article(ResearchWork):
     def __str__(self):
         return self.article_title
 
+    @property
+    def simple_citation_html(self):
+        vol_issue = ''
+
+        if self.journal_volume:
+            vol_issue += self.journal_volume
+
+        if self.journal_issue:
+            vol_issue += f'({self.journal_issue})'
+
+        pages = []
+        if self.first_page:
+            pages.append(self.first_page)
+        if self.last_page:
+            pages.append(self.last_page)
+
+        pages = '-'.join(pages)
+
+        retval = f'&ldquo;{self.article_title}&rdquo;, <em>{self.journal_name}</em>'
+
+        if vol_issue:
+            retval += f', Vol. {vol_issue}'
+
+        if pages:
+            retval += f', {pages}'
+
+        if self.article_year:
+            retval += f', {self.article_year}'
+
+        return retval
+
 
 class Book(ResearchWork):
     aa_book_id = models.IntegerField(null=False, blank=False)
@@ -110,6 +141,10 @@ class Book(ResearchWork):
 
     def __str__(self):
         return self.book_title
+
+    @property
+    def simple_citation_html(self):
+        return f'<em>{self.book_title}</em>, {self.publish_date.year}'
 
 class BookChapter(ResearchWork):
     aa_book_id = models.IntegerField(null=False, blank=False)
@@ -124,6 +159,10 @@ class BookChapter(ResearchWork):
     def __str__(self):
         return f'{self.book_title}: {self.chapter_title}'
 
+    @property
+    def simple_citation_html(self):
+        return f'&ldquo;{self.chapter_title}&rdquo;, <em>{self.book_title}</em>, {self.publish_year}'
+
 class ConferenceProceeding(ResearchWork):
     aa_article_id = models.IntegerField(null=False, blank=False)
     proceeding_title = models.CharField(max_length=1024, null=False, blank=False)
@@ -136,6 +175,10 @@ class ConferenceProceeding(ResearchWork):
 
     def __str_(self):
         return self.proceeding_title
+
+    @property
+    def simple_citation_html(self):
+        return f'&ldquo;{self.proceeding_title}&rdquo;, {self.journal_name}, {self.article_year}'
 
 class Grant(ResearchWork):
     aa_grant_id = models.IntegerField(null=False, blank=False)
@@ -152,6 +195,16 @@ class Grant(ResearchWork):
     def __str__(self):
         return self.grant_name
 
+    @property
+    def simple_citation_html(self):
+        dates = []
+        if self.start_date:
+            dates.append(self.start_date.strftime('%m/%Y'))
+        if self.end_date:
+            dates.append(self.end_date.strftime('%m/%Y'))
+
+        return f'<em>{self.grant_name}</em>, {self.agency_name}, {" - ".join(dates)}'
+
 
 class HonorificAward(ResearchWork):
     aa_award_id = models.IntegerField(null=False, blank=False)
@@ -159,6 +212,13 @@ class HonorificAward(ResearchWork):
     award_name = models.CharField(max_length=255, null=False, blank=False)
     award_received_name = models.CharField(max_length=128, null=False, blank=False)
     award_received_year = models.IntegerField(null=False, blank=False)
+
+    def __str__(self):
+        return self.award_name
+
+    @property
+    def simple_citation_html(self):
+        return f'<em>{self.award_name}</em>, {self.governing_society_name}, {self.award_received_year}'
 
 class Patent(ResearchWork):
     patent_id = models.CharField(max_length=10, null=False, blank=False)
@@ -172,6 +232,10 @@ class Patent(ResearchWork):
 
     def __str__(self):
         return self.patent_title
+
+    @property
+    def simple_citation_html(self):
+        return f'<em>{self.patent_title}</em>, {self.patent_type}, {self.patent_date.year}'
 
 class ClinicalTrial(ResearchWork):
     nct_id = models.CharField(max_length=16, null=False, blank=False)
@@ -187,4 +251,8 @@ class ClinicalTrial(ResearchWork):
 
     def __str__(self):
         return self.title
+
+    @property
+    def simple_citation_html(self):
+        pass
 
