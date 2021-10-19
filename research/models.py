@@ -77,7 +77,7 @@ class ResearcherEducation(models.Model):
         )
 
 class ResearchWork(models.Model):
-    researcher = models.ForeignKey(Researcher, on_delete=models.CASCADE, related_name='works')
+    researchers = models.ManyToManyField(Researcher, related_name='works')
 
     @property
     def citation(self):
@@ -161,7 +161,7 @@ class HonorificAward(ResearchWork):
     award_received_year = models.IntegerField(null=False, blank=False)
 
 class Patent(ResearchWork):
-    patent_id = models.IntegerField(null=False, blank=False)
+    patent_id = models.CharField(max_length=10, null=False, blank=False)
     patent_title = models.CharField(max_length=1024, null=False, blank=True)
     patent_type = models.CharField(max_length=40, null=False, blank=False)
     patent_kind = models.CharField(max_length=3, null=False, blank=False)

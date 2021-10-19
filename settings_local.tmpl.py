@@ -83,7 +83,7 @@ LOGGING = {
         },
         'django.server': DEFAULT_LOGGING['formatters']['django.server'],
         'programs.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
-        'teledata.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
+        'teledata.management.commands': DEFAULT_LOGGING['formatters']['django.server']
     },
     'handlers': {
         'console': {
