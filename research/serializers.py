@@ -7,22 +7,89 @@ class ResearcherEducationSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = ResearcherEducation
 
-class ResearchWorkSerializer(serializers.ModelSerializer):
+class BookSerializer(serializers.ModelSerializer):
+
     class Meta:
-        fields = ('id', 'title', 'publish_date', 'work_type', 'citation',)
-        model = ResearchWork
+        fields = '__all__'
+        model = Book
+
+class ArticleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = Article
+
+class BookChapterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = BookChapter
+
+class ConferenceProceedingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = ConferenceProceeding
+
+class GrantSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = Grant
+
+class HonorificAwardSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = HonorificAward
+
+class PatentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = Patent
+
+class ClinicalTrialSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = ClinicalTrial
 
 class ResearcherSerializer(serializers.ModelSerializer):
     teledata_record = StaffSerializer(many=False, read_only=True)
     education = ResearcherEducationSerializer(many=True, read_only=True)
-    works = serializers.HyperlinkedIdentityField(
-        view_name='api.researcher.works.list',
+    books = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.books.list',
         lookup_field='id'
     )
-    works_count = serializers.SerializerMethodField(read_only=True)
-
-    def get_works_count(self, researcher):
-        return researcher.works.count()
+    articles = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.articles.list',
+        lookup_field='id'
+    )
+    book_chapters = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.bookchapters.list',
+        lookup_field='id'
+    )
+    conference_proceedings = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.proceedings.list',
+        lookup_field='id'
+    )
+    grants = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.grants.list',
+        lookup_field='id'
+    )
+    honorific_awards = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.awards.list',
+        lookup_field='id'
+    )
+    patents = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.patents.list',
+        lookup_field='id'
+    )
+    clinical_trials = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.trials.list',
+        lookup_field='id'
+    )
 
     class Meta:
         fields = (
@@ -33,8 +100,13 @@ class ResearcherSerializer(serializers.ModelSerializer):
             'biography',
             'teledata_record',
             'education',
-            'works',
-            'works_count',
-            'featured_works_count'
+            'books',
+            'articles',
+            'book_chapters',
+            'conference_proceedings',
+            'grants',
+            'honorific_awards',
+            'patents',
+            'clinical_trials'
         )
         model = Researcher
