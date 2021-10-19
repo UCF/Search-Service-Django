@@ -10,49 +10,136 @@ class ResearcherEducationSerializer(serializers.ModelSerializer):
 class BookSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'aa_book_id',
+            'isbn',
+            'book_title',
+            'bisac',
+            'publisher_name',
+            'publish_date',
+            'researchers',
+            'simple_citation_html'
+        ]
         model = Book
 
 class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'aa_article_id',
+            'article_title',
+            'journal_name',
+            'article_year',
+            'journal_volume',
+            'journal_issue',
+            'first_page',
+            'last_page',
+            'researchers',
+            'simple_citation_html'
+        ]
         model = Article
 
 class BookChapterSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'aa_book_id',
+            'isbn',
+            'book_title',
+            'chapter_title',
+            'bisac',
+            'publisher_name',
+            'publish_year',
+            'publish_date',
+            'researchers',
+            'simple_citation_html'
+        ]
         model = BookChapter
 
 class ConferenceProceedingSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'aa_article_id',
+            'proceeding_title',
+            'journal_name',
+            'article_year',
+            'journal_volume',
+            'journal_issue',
+            'first_page',
+            'last_page',
+            'researchers',
+            'simple_citation_html'
+        ]
         model = ConferenceProceeding
 
 class GrantSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'aa_grant_id',
+            'agency_name',
+            'grant_name',
+            'duration_years',
+            'start_date',
+            'end_date',
+            'full_name',
+            'total_dollars',
+            'is_research',
+            'principle_investigator',
+            'researchers',
+            'simple_citation_html'
+        ]
         model = Grant
 
 class HonorificAwardSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'aa_award_id',
+            'governing_society_name',
+            'award_name',
+            'award_received_name',
+            'award_received_year',
+            'researchers',
+            'simple_citation_html'
+        ]
         model = HonorificAward
 
 class PatentSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'patent_id',
+            'patent_title',
+            'patent_type',
+            'patent_kind',
+            'patent_date',
+            'country',
+            'claims',
+            'abstract',
+            'researchers',
+            'simple_citation_html'
+        ]
         model = Patent
 
 class ClinicalTrialSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = [
+            'nct_id',
+            'title',
+            'start_date',
+            'completion_date',
+            'study_type',
+            'sponsor',
+            'allocation',
+            'phase',
+            'recruitment_status',
+            'investigators',
+            'researchers',
+            'simple_citation_html'
+        ]
         model = ClinicalTrial
 
 class ResearcherSerializer(serializers.ModelSerializer):
