@@ -34,23 +34,15 @@ class Command(BaseCommand):
         self.bio_records_skipped = 0
         self.bio_records_error = 0
 
-        self.work_records_processed = 0
-        self.work_records_created = 0
-        self.work_records_updated = 0
-        self.work_records_skipped = 0
-        self.work_records_error = 0
-
         self.max_threads = settings.RESEARCH_MAX_THREADS
 
-        self.records = Researcher.objects.all()
+        self.records = Researcher.objects.filter(orcid_id__isnull=False)
         self.orcid_base_url = settings.ORCID_BASE_API_URL
         self.headers = {
             'Accept': 'application/json'
         }
 
         self.education_queue = queue.Queue()
-        self.works_queue = queue.Queue()
-        self.works_detail_queue = queue.Queue()
 
         self.mt_lock = threading.Lock()
 
@@ -58,16 +50,9 @@ class Command(BaseCommand):
 
     def __update_meta(self):
         self.education_threads = []
-        self.works_threads = []
-        self.work_detail_threads = []
 
         self.education_pb = ChargingBar(
             'Updating researcher education...',
-            max=self.records.count()
-        )
-
-        self.works_pb = ChargingBar(
-            'Gathering researcher works...',
             max=self.records.count()
         )
 
@@ -77,33 +62,9 @@ class Command(BaseCommand):
 
         for researcher in self.records:
             self.education_queue.put(researcher)
-            self.works_queue.put(researcher)
-
-            # Works details get filled up during
-            # the thread work of the __get_works_data
-            # functions.
 
         # Let's take care of all the research at once
         self.education_queue.join()
-
-        for _ in range(self.max_threads):
-            threading.Thread(target=self.__get_works_data, daemon=True).start()
-
-        self.works_queue.join()
-
-        # Everything below is dependent on everything
-        # above finishing. That's why none of the following
-        # is declared until after the second queue.join()
-
-        self.works_details_pb = ChargingBar(
-            'Updating researcher works data...',
-            max=self.works_detail_queue.qsize()
-        )
-
-        for _ in range(self.max_threads):
-            threading.Thread(target=self.__process_works_details, daemon=True).start()
-
-        self.works_detail_queue.join()
 
         self.print_stats()
 
@@ -191,137 +152,6 @@ class Command(BaseCommand):
 
             self.education_queue.task_done()
 
-
-    def __get_works_data(self):
-        while True:
-            researcher = self.works_queue.get()
-
-            with self.mt_lock:
-                self.works_pb.next()
-
-            works_url = '{0}{1}/works'.format(
-                self.orcid_base_url,
-                researcher.orcid_id
-            )
-
-            try:
-                works_data = self.__request_records(works_url)
-            except:
-                works_data = None
-
-            if works_data is None:
-                self.works_queue.task_done()
-                continue
-
-            for work in works_data['group']:
-                self.works_detail_queue.put((researcher, work,))
-
-            self.works_queue.task_done()
-
-
-    def __process_works_details(self):
-        while True:
-            researcher, work = self.works_detail_queue.get()
-
-            with self.mt_lock:
-                self.works_details_pb.next()
-
-            with self.mt_lock:
-                self.work_records_processed += 1
-            # Make sure we have summary data
-            try:
-                summary = work['work-summary'][0]
-            except (KeyError, ValueError, TypeError):
-                # There's no work summary, continue
-                with self.mt_lock:
-                    self.work_records_skipped += 1
-                self.works_detail_queue.task_done()
-                continue
-
-
-
-            # Get all required fields
-            try:
-                title = summary['title']['title']['value']
-                work_type = summary['type']
-                # Let's do some custom work on the publish date for these
-
-                publish_date = self.__format_orcid_date(summary['publication-date'])
-                put_code = summary['put-code']
-            except (KeyError, ValueError, TypeError):
-                with self.mt_lock:
-                    self.work_records_skipped += 1
-                self.works_detail_queue.task_done()
-                continue
-
-            work_details_url = '{0}{1}/works/{2}'.format(
-                self.orcid_base_url,
-                researcher.orcid_id,
-                put_code
-            );
-
-            work_details = self.__request_records(work_details_url)
-
-            if (work_details):
-                try:
-                    bt_str = work_details['bulk'][0]['work']['citation']['citation-value']
-                except:
-                    bt_str = None
-
-            try:
-                subtitle = summary['title']['subtitle']['value'] \
-                    if summary['title']['subtitle'] != 'None' \
-                    else None
-            except:
-                subtitle = None
-
-            if put_code is None or publish_date is None:
-                with self.mt_lock:
-                    self.work_records_skipped += 1
-                self.works_detail_queue.task_done()
-                continue
-
-            try:
-                existing = ResearchWork.objects.get(work_put_code=put_code)
-            except ResearchWork.DoesNotExist:
-                existing = None
-
-            if existing:
-                try:
-                    existing.title = title
-                    existing.subtitle = subtitle
-                    existing.publish_date = publish_date
-                    existing.bibtex_string = bt_str
-                    existing.work_type = work_type
-
-                    existing.save()
-
-                    with self.mt_lock:
-                        self.work_records_updated += 1
-                except:
-                    with self.mt_lock:
-                        self.work_records_error += 1
-            else:
-                try:
-                    ResearchWork.objects.create(
-                        researcher=researcher,
-                        title=title,
-                        subtitle=subtitle,
-                        publish_date=publish_date,
-                        bibtex_string = bt_str,
-                        work_type=work_type,
-                        work_put_code=put_code
-                    )
-
-                    with self.mt_lock:
-                        self.work_records_created += 1
-                except:
-                    with self.mt_lock:
-                        self.work_records_error += 1
-
-            self.works_detail_queue.task_done()
-
-
     def __request_records(self, request_url, params={}):
         """
         Private helper method for retrieving ORCID records
@@ -391,17 +221,6 @@ Created   : {self.edu_records_created}
 Updated   : {self.edu_records_updated}
 Skipped   : {self.edu_records_skipped}
 Errors    : {self.edu_records_error}
-
-
-Research Records
-------------------
-
-Processed : {self.work_records_processed}
-Created   : {self.work_records_created}
-Updated   : {self.work_records_updated}
-Skipped   : {self.work_records_skipped}
-Errors    : {self.work_records_error}
-
-        """
+"""
 
         self.stdout.write(stats)
