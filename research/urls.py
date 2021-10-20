@@ -7,6 +7,10 @@ urlpatterns = [
         ResearcherListView.as_view(),
         name='api.researchers.list'
     ),
+    url(r'^researchers/(?P<pk>\d+)/$',
+        ResearcherDetailView.as_view(),
+        name='api.researcher.detail'
+    ),
     url(r'^researchers/(?P<id>\d+)/books/$',
         BookListView.as_view(),
         name='api.researcher.books.list'

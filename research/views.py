@@ -6,6 +6,10 @@ class ResearcherListView(generics.ListAPIView):
     queryset = Researcher.objects.all()
     serializer_class = ResearcherSerializer
 
+class ResearcherDetailView(generics.RetrieveAPIView):
+    queryset = Researcher.objects.all()
+    serializer_class = ResearcherSerializer
+
 class BookListView(generics.ListAPIView):
     lookup_field = 'id'
     serializer_class = BookSerializer
