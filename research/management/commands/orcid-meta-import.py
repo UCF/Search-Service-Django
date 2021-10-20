@@ -63,10 +63,6 @@ class Command(BaseCommand):
         for researcher in self.records:
             self.education_queue.put(researcher)
 
-            # Works details get filled up during
-            # the thread work of the __get_works_data
-            # functions.
-
         # Let's take care of all the research at once
         self.education_queue.join()
 
