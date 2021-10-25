@@ -25,7 +25,7 @@ setup(
     install_requires=[
         'beautifulsoup4',
         'boto3',
-        'Django==3.2.5',
+        'Django==3.2.8',
         'django-cors-headers',
         'djangorestframework',
         'django-filter',
