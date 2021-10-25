@@ -203,6 +203,7 @@ class Staff(models.Model):
     suffix = models.CharField(max_length=3, null=True, blank=True)
     name_title = models.CharField(max_length=10, null=True, blank=True)
     first_name = models.CharField(max_length=14, null=False, blank=False)
+    employee_id = models.CharField(max_length=8, null=True, blank=True)
     middle = models.CharField(max_length=15, null=True, blank=True)
     dept = models.ForeignKey(Department, on_delete=models.CASCADE)
     job_position = models.CharField(max_length=100, null=True, blank=True)

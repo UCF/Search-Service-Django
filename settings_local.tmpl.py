@@ -83,7 +83,7 @@ LOGGING = {
         },
         'django.server': DEFAULT_LOGGING['formatters']['django.server'],
         'programs.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
-        'teledata.management.commands': DEFAULT_LOGGING['formatters']['django.server'],
+        'teledata.management.commands': DEFAULT_LOGGING['formatters']['django.server']
     },
     'handlers': {
         'console': {
@@ -287,6 +287,11 @@ ORCID_BASE_API_URL = 'https://pub.orcid.org/v2.1/'
 INSTITUTION_GRID_ID = ''
 
 RESEARCH_MAX_THREADS = 10
+
+# Academic Analytics Settings
+ACADEMIC_ANALYTICS_API_URL = 'https://api.academicanalytics.com/'
+
+ACADEMIC_ANALYTICS_API_KEY = ''
 
 # Full name replacements to be performed on college, department and
 # organization names for Units generated via map-units.py.
