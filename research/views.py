@@ -17,7 +17,7 @@ class BookListView(generics.ListAPIView):
     def get_queryset(self):
         researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
         if researcher_id:
-            return Book.objects.filter(researchers=researcher_id)
+            return Book.objects.filter(researchers=researcher_id).order_by('-publish_date')
 
         return None
 
@@ -28,7 +28,7 @@ class ArticleListView(generics.ListAPIView):
     def get_queryset(self):
         researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
         if researcher_id:
-            return Article.objects.filter(researchers=researcher_id)
+            return Article.objects.filter(researchers=researcher_id).order_by('-article_year')
 
         return None
 
@@ -39,7 +39,7 @@ class BookChapterListView(generics.ListAPIView):
     def get_queryset(self):
         researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
         if researcher_id:
-            return BookChapter.objects.filter(researchers=researcher_id)
+            return BookChapter.objects.filter(researchers=researcher_id).order_by('-publish_date')
 
         return None
 
@@ -50,7 +50,7 @@ class ConferenceProceedingListView(generics.ListAPIView):
     def get_queryset(self):
         researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
         if researcher_id:
-            return ConferenceProceeding.objects.filter(researchers=researcher_id)
+            return ConferenceProceeding.objects.filter(researchers=researcher_id).order_by('-article_year')
 
         return None
 
@@ -61,7 +61,7 @@ class GrantListView(generics.ListAPIView):
     def get_queryset(self):
         researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
         if researcher_id:
-            return Grant.objects.filter(researchers=researcher_id)
+            return Grant.objects.filter(researchers=researcher_id).order_by('-start_date')
 
         return None
 
@@ -72,7 +72,7 @@ class HonorificAwardListView(generics.ListAPIView):
     def get_queryset(self):
         researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
         if researcher_id:
-            return HonorificAward.objects.filter(researchers=researcher_id)
+            return HonorificAward.objects.filter(researchers=researcher_id).order_by('-award_received_year')
 
         return None
 
@@ -83,7 +83,7 @@ class PatentListView(generics.ListAPIView):
     def get_queryset(self):
         researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
         if researcher_id:
-            return Patent.objects.filter(researchers=researcher_id)
+            return Patent.objects.filter(researchers=researcher_id).order_by('-patent_date')
 
         return None
 
@@ -94,6 +94,6 @@ class ClinicalTrialListView(generics.ListAPIView):
     def get_queryset(self):
         researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
         if researcher_id:
-            return ClinicalTrial.objects.filter(researchers=researcher_id)
+            return ClinicalTrial.objects.filter(researchers=researcher_id).order_by('-start_date')
 
         return None
