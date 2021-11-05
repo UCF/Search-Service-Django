@@ -110,7 +110,7 @@ class Employee(models.Model):
     full_name = models.CharField(max_length=255, null=False, blank=False)
     first_name = models.CharField(max_length=255, null=False, blank=False)
     last_name = models.CharField(max_length=255, null=False, blank=False)
-    prefix = models.CharField(max_length=10, null=False, blank=False)
+    prefix = models.CharField(max_length=10, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='employees')
     division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='employees')
     college = models.ForeignKey(College, null=True, blank=True, on_delete=models.CASCADE, related_name='employees')
