@@ -1,8 +1,6 @@
 from django.db import models
 
 # Create your models here.
-
-
 class Unit(models.Model):
     """
     A generic 'unit' that represents a college,
@@ -76,3 +74,47 @@ class Unit(models.Model):
 
         return parents
 
+
+class Organization(models.Model):
+    ext_org_id = models.CharField(max_length=10, null=False, blank=False)
+    ext_org_name = models.CharField(max_length=255, null=False, blank=False)
+    display_name = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.ext_org_name
+
+class College(models.Model):
+    ext_college_name = models.CharField(max_length=255, null=False, blank=False)
+    display_name = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.ext_college_name
+
+class Division(models.Model):
+    ext_division_name = models.CharField(max_length=255, null=False, blank=False)
+    display_name = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.ext_division_name
+
+class Department(models.Model):
+    ext_department_id = models.CharField(max_length=10, null=False, blank=False)
+    ext_department_name = models.CharField(max_length=255, null=False, blank=False)
+    display_name = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.ext_department_name
+
+class Employee(models.Model):
+    ext_employee_id = models.CharField(max_length=7, null=False, blank=False)
+    full_name = models.CharField(max_length=255, null=False, blank=False)
+    first_name = models.CharField(max_length=255, null=False, blank=False)
+    last_name = models.CharField(max_length=255, null=False, blank=False)
+    prefix = models.CharField(max_length=10, null=False, blank=False)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='employees')
+    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='employees')
+    college = models.ForeignKey(College, null=True, blank=True, on_delete=models.CASCADE, related_name='employees')
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='employees')
+
+    def __str__(self):
+        return self.full_name
