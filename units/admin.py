@@ -152,3 +152,24 @@ class UnitAdmin(admin.ModelAdmin):
 
     program_depts_list.allow_tags = True
     program_depts_list.short_description = 'Program Department(s)'
+
+
+@admin.register(Employee)
+class EmployeeAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Organization)
+class OrganizationAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(College)
+class CollegeAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Division)
+class DivisionAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    pass
