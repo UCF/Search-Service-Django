@@ -20,6 +20,7 @@ from dateutil import parser
 import threading, queue
 
 from progress.bar import ChargingBar
+from units.models import Employee
 
 logger = logging.getLogger()
 
@@ -145,12 +146,18 @@ class Command(BaseCommand):
                 self.skipped_no_empl += 1
                 continue
 
+            employee_id = person['ClientFacultyId'].zfill(7)
+
             try:
-                employee_id = person['ClientFacultyId'].zfill(7)
-                staff = Staff.objects.get(employee_id=employee_id)
-            except:
+                employee_record = Employee.objects.get(ext_employee_id=employee_id)
+            except Employee.DoesNotExist:
                 self.skipped_no_match += 1
                 continue
+
+            try:
+                staff_record = Staff.objects.get(employee_id=employee_id)
+            except:
+                staff_record = None
 
             orcid = person['ORCID'] if person['ORCID'] != '' else None
             aa_person_id = person['PersonId']
@@ -160,7 +167,8 @@ class Command(BaseCommand):
             try:
                 researcher = Researcher.objects.get(aa_person_id=aa_person_id)
                 researcher.orcid_id = orcid
-                researcher.teledata_record = staff
+                researchers.employee_record = employee_record
+                researcher.teledata_record = staff_record
                 researcher.save()
 
                 self.updated += 1
@@ -168,7 +176,8 @@ class Command(BaseCommand):
                 researcher = Researcher(
                     aa_person_id=aa_person_id,
                     orcid_id=orcid,
-                    teledata_record=staff
+                    employee_record=employee_record,
+                    teledata_record=staff_record
                 )
                 researcher.save()
                 self.created += 1
@@ -181,7 +190,8 @@ class Command(BaseCommand):
                 researcher = Researcher(
                     aa_person_id=aa_person_id,
                     orcid_id=orcid,
-                    teledata_record=staff
+                    employee_record=employee_record,
+                    teledata_record=staff_record
                 )
                 researcher.save()
                 self.created += 1
