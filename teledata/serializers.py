@@ -67,6 +67,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
         model = Department
 
 
+class StaffContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = [
+            'email',
+            'phone'
+        ]
+        model = Staff
+
 class StaffSerializer(serializers.ModelSerializer):
     dept = DepartmentLinkSerializer(
         many=False,

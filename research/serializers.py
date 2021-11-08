@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from research.models import *
-from teledata.serializers import StaffSerializer
+from teledata.serializers import StaffContactSerializer
 
 class ResearcherEducationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -143,7 +143,7 @@ class ClinicalTrialSerializer(serializers.ModelSerializer):
         model = ClinicalTrial
 
 class ResearcherSerializer(serializers.ModelSerializer):
-    teledata_record = StaffSerializer(many=False, read_only=True)
+    teledata_record = StaffContactSerializer(many=False, read_only=True)
     education = ResearcherEducationSerializer(many=True, read_only=True)
     books = serializers.HyperlinkedIdentityField(
         view_name='api.researcher.books.list',
