@@ -27,11 +27,13 @@ class Researcher(models.Model):
 
     @property
     def name_formatted_title(self):
-        title = self.employee_record.prefix.strip()
+        retval = ''
+        if self.employee_record.prefix:
+            title = self.employee_record.prefix.strip()
+            title += '.' if title.endswith('.') == False else ''
 
-        title += '.' if title.endswith('.') == False else ''
+            retval += f"{title} " if 'dr' in title.lower() else ''
 
-        retval = f"{title} " if 'dr' in title.lower() else ''
         retval += f"{self.employee_record.first_name} {self.employee_record.last_name}"
 
         return retval
