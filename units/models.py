@@ -76,8 +76,13 @@ class Unit(models.Model):
 
 
 class Organization(models.Model):
+    """
+    Model representing an organizational unit imported
+    from data received from HR.
+    """
     ext_org_id = models.CharField(max_length=10, null=False, blank=False)
     ext_org_name = models.CharField(max_length=255, null=False, blank=False)
+    sanitized_name = models.CharField(max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
@@ -85,10 +90,16 @@ class Organization(models.Model):
 
     @property
     def name(self):
-        return self.display_name if self.display_name else self.ext_org_name
+        if self.display_name:
+            return self.display_name
+        elif self.sanitized_name:
+            return self.sanitized_name
+        else:
+            return self.ext_org_name
 
 class College(models.Model):
     ext_college_name = models.CharField(max_length=255, null=False, blank=False)
+    sanitized_name = models.CharField(max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
@@ -96,10 +107,16 @@ class College(models.Model):
 
     @property
     def name(self):
-        return self.display_name if self.display_name else self.ext_college_name
+        if self.display_name:
+            return self.display_name
+        elif self.sanitized_name:
+            return self.sanitized_name
+        else:
+            return self.ext_college_name
 
 class Division(models.Model):
     ext_division_name = models.CharField(max_length=255, null=False, blank=False)
+    sanitized_name = models.CharField(max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
@@ -107,11 +124,17 @@ class Division(models.Model):
 
     @property
     def name(self):
-        return self.display_name if self.display_name else self.ext_division_name
+        if self.display_name:
+            return self.display_name
+        elif self.sanitized_name:
+            return self.sanitized_name
+        else:
+            return self.ext_division_name
 
 class Department(models.Model):
     ext_department_id = models.CharField(max_length=10, null=False, blank=False)
     ext_department_name = models.CharField(max_length=255, null=False, blank=False)
+    sanitized_name = models.CharField(max_length=255, null=True, blank=True)
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
@@ -119,7 +142,12 @@ class Department(models.Model):
 
     @property
     def name(self):
-        return self.display_name if self.display_name else self.ext_department_name
+        if self.display_name:
+            return self.display_name
+        elif self.sanitized_name:
+            return self.sanitized_name
+        else:
+            return self.ext_department_name
 
 class Employee(models.Model):
     ext_employee_id = models.CharField(max_length=7, null=False, blank=False)
