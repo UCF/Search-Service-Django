@@ -160,16 +160,56 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('ext_org_id', 'ext_org_name', 'sanitized_name', 'display_name')
+    include_fields = '__all__'
 
 @admin.register(College)
 class CollegeAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('ext_college_name', 'sanitized_name', 'display_name',)
+    readonly_fields = ('ext_college_name', 'programs_college_link',)
+    include_fields = [
+        'ext_college_name',
+        'sanitized_name',
+        'display_name',
+        'programs_college_link'
+    ]
+
+    def programs_college_link(self, obj):
+        return mark_safe(
+            '<a href="{0}">{1}</a>'.format(
+                reverse(
+                    'admin:programs_college_change',
+                    args=(obj.program_college.pk,)
+                ),
+                obj.program_college.full_name
+            )
+        )
+
+    programs_college_link.allow_tags = True
+    programs_college_link.short_description = 'Program College'
+
 
 @admin.register(Division)
 class DivisionAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('ext_division_name', 'sanitized_name', 'display_name')
+    include_fields = '__all__'
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('ext_department_id', 'ext_department_name', 'sanitized_name', 'display_name',)
+    readonly_fields = ('ext_department_id', 'ext_department_name', 'programs_department_link',)
+    include_fields = '__all__'
+
+    def programs_department_link(self, obj):
+        return mark_safe(
+            '<a href="{0}">{1}</a>'.format(
+                reverse(
+                    'admin:programs_department_change',
+                    args=(obj.program_department.pk,)
+                ),
+                obj.program_department.full_name
+            )
+        )
+
+    programs_department_link.allow_tags = True
+    programs_department_link.short_description = 'Program Department'
