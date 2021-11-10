@@ -12,6 +12,8 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
 from units.models import Unit
+from units.models import College as UnitCollege
+from units.models import Department as UnitDepartment
 
 # Create your models here.
 
@@ -72,6 +74,7 @@ class College(models.Model):
     college_url = models.URLField(null=True, blank=True)
     profile_url = models.URLField(null=True, blank=True)
     unit = models.OneToOneField(Unit, related_name='college', blank=True, null=True, on_delete=models.SET_NULL)
+    unit_college = models.OneToOneField(UnitCollege, related_name='program_college', null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.full_name
@@ -88,6 +91,7 @@ class Department(models.Model):
     department_url = models.CharField(max_length=255, null=True, blank=True)
     school = models.BooleanField(default=False, null=False, blank=False)
     unit = models.ForeignKey(Unit, related_name='program_departments', blank=True, null=True, on_delete=models.SET_NULL)
+    unit_department = models.ForeignKey(UnitDepartment, related_name='program_department', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.full_name
