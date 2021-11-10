@@ -81,21 +81,33 @@ class Organization(models.Model):
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return self.ext_org_name
+        return self.name
+
+    @property
+    def name(self):
+        return self.display_name if self.display_name else self.ext_org_name
 
 class College(models.Model):
     ext_college_name = models.CharField(max_length=255, null=False, blank=False)
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return self.ext_college_name
+        return self.name
+
+    @property
+    def name(self):
+        return self.display_name if self.display_name else self.ext_college_name
 
 class Division(models.Model):
     ext_division_name = models.CharField(max_length=255, null=False, blank=False)
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return self.ext_division_name
+        return self.name
+
+    @property
+    def name(self):
+        return self.display_name if self.display_name else self.ext_division_name
 
 class Department(models.Model):
     ext_department_id = models.CharField(max_length=10, null=False, blank=False)
@@ -103,7 +115,11 @@ class Department(models.Model):
     display_name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return self.ext_department_name
+        return self.name
+
+    @property
+    def name(self):
+        return self.display_name if self.display_name else self.ext_department_name
 
 class Employee(models.Model):
     ext_employee_id = models.CharField(max_length=7, null=False, blank=False)

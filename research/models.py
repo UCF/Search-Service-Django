@@ -13,30 +13,34 @@ class Researcher(models.Model):
 
     def __unicode__(self):
         return '{0}, {1} - {2}'.format(
-            self.teledata_record.last_name,
-            self.teledata_record.first_name,
-            self.orcid_id
+            self.employee_record.last_name,
+            self.employee_record.first_name,
+            self.employee_record.ext_employee_id
         )
 
     def __str__(self):
         return '{0}, {1} - {2}'.format(
-            self.teledata_record.last_name,
-            self.teledata_record.first_name,
-            self.orcid_id
+            self.employee_record.last_name,
+            self.employee_record.first_name,
+            self.employee_record.ext_employee_id
         )
 
     @property
     def name_formatted_title(self):
-        title = self.teledata_record.name_title.strip()
+        retval = ''
+        if self.employee_record.prefix:
+            title = self.employee_record.prefix.strip()
+            title += '.' if title.endswith('.') == False else ''
 
-        retval = f"{title} " if title== 'Dr.' else ''
-        retval += f"{self.teledata_record.first_name} {self.teledata_record.last_name}"
+            retval += f"{title} " if 'dr' in title.lower() else ''
+
+        retval += f"{self.employee_record.first_name} {self.employee_record.last_name}"
 
         return retval
 
     @property
     def name_formatted_no_title(self):
-        return f"{self.teledata_record.first_name} {self.teledata_record.last_name}"
+        return f"{self.employee_record.first_name} {self.employee_record.last_name}"
 
 class ResearcherEducation(models.Model):
     researcher = models.ForeignKey(Researcher, on_delete=models.CASCADE, related_name='education')
