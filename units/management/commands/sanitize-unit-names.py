@@ -6,7 +6,7 @@ from units.models import Division
 from units.models import Organization
 from units.utils import Utilities
 
-from programs.models import College as ProgramCollege, Program
+from programs.models import College as ProgramCollege
 from programs.models import Department as ProgramDepartment
 
 class Command(BaseCommand):
@@ -31,7 +31,6 @@ class Command(BaseCommand):
         self.divisions_processed = Division.objects.all()
         self.departments_processed = Department.objects.all()
 
-        self.generate_sanitized_college_names()
         self.generate_sanitized_department_names()
 
         self.colleges_matched = 0
@@ -44,16 +43,6 @@ class Command(BaseCommand):
 
         self.print_stats()
 
-    def generate_sanitized_college_names(self):
-        program_colleges = ProgramCollege.objects.all()
-        self.program_colleges_sanitized = {}
-
-        for program_college in program_colleges:
-            sanitized_name = Utilities.sanitize_unit_name(program_college.full_name)
-            if sanitized_name in self.program_colleges_sanitized.keys():
-                self.program_colleges_sanitized[sanitized_name].append(program_college)
-            else:
-                self.program_colleges_sanitized[sanitized_name] = [program_college]
 
     def generate_sanitized_department_names(self):
         program_departments = ProgramDepartment.objects.all()
@@ -102,18 +91,19 @@ class Command(BaseCommand):
 
 
     def associate_college(self, college):
-        if college.sanitized_name in self.program_colleges_sanitized.keys():
-            for match in self.program_colleges_sanitized[college.sanitized_name]:
-                print(match)
-                match.unit_college = college
-                match.save()
+        try:
+            match = ProgramCollege.objects.get(full_name=college.name)
+            match.unit_college = college
+            match.save()
+
             self.colleges_matched += 1
+        except:
+            pass
 
 
     def associate_department(self, department):
         if department.sanitized_name in self.program_departments_sanitized.keys():
             for match in self.program_departments_sanitized[department.sanitized_name]:
-                print(match)
                 match.unit_department = department
                 match.save()
             self.departments_matched += 1
