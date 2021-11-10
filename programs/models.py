@@ -91,7 +91,7 @@ class Department(models.Model):
     department_url = models.CharField(max_length=255, null=True, blank=True)
     school = models.BooleanField(default=False, null=False, blank=False)
     unit = models.ForeignKey(Unit, related_name='program_departments', blank=True, null=True, on_delete=models.SET_NULL)
-    unit_department = models.OneToOneField(UnitDepartment, related_name='program_department', blank=True, null=True, on_delete=models.SET_NULL)
+    unit_department = models.ForeignKey(UnitDepartment, related_name='program_department', blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.full_name

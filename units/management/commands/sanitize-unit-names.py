@@ -6,7 +6,7 @@ from units.models import Division
 from units.models import Organization
 from units.utils import Utilities
 
-from programs.models import College as ProgramCollege
+from programs.models import College as ProgramCollege, Program
 from programs.models import Department as ProgramDepartment
 
 class Command(BaseCommand):
@@ -31,6 +31,9 @@ class Command(BaseCommand):
         self.divisions_processed = Division.objects.all()
         self.departments_processed = Department.objects.all()
 
+        self.generate_sanitized_college_names()
+        self.generate_sanitized_department_names()
+
         self.colleges_matched = 0
         self.departments_matched = 0
 
@@ -41,6 +44,29 @@ class Command(BaseCommand):
 
         self.print_stats()
 
+    def generate_sanitized_college_names(self):
+        program_colleges = ProgramCollege.objects.all()
+        self.program_colleges_sanitized = {}
+
+        for program_college in program_colleges:
+            sanitized_name = Utilities.sanitize_unit_name(program_college.full_name)
+            if sanitized_name in self.program_colleges_sanitized.keys():
+                self.program_colleges_sanitized[sanitized_name].append(program_college)
+            else:
+                self.program_colleges_sanitized[sanitized_name] = [program_college]
+
+    def generate_sanitized_department_names(self):
+        program_departments = ProgramDepartment.objects.all()
+        self.program_departments_sanitized = {}
+
+        for program_department in program_departments:
+            sanitized_name = Utilities.sanitize_unit_name(program_department.full_name)
+            if sanitized_name in self.program_departments_sanitized.keys():
+                self.program_departments_sanitized[sanitized_name].append(program_department)
+            else:
+                self.program_departments_sanitized[sanitized_name] = [program_department]
+
+
     def sanitize_college_names(self):
         for college in self.colleges_processed:
             sanitized_name = Utilities.sanitize_unit_name(college.ext_college_name)
@@ -50,17 +76,20 @@ class Command(BaseCommand):
             if self.associate_units:
                 self.associate_college(college)
 
+
     def sanitize_org_names(self):
         for org in self.orgs_processed:
             sanitized_name = Utilities.sanitize_unit_name(org.ext_org_name)
             org.sanitized_name = sanitized_name
             org.save()
 
+
     def sanitize_division_names(self):
         for division in self.divisions_processed:
             sanitized_name = Utilities.sanitize_unit_name(division.ext_division_name)
             division.sanitized_name = sanitized_name
             division.save()
+
 
     def sanitize_department_names(self):
         for department in self.departments_processed:
@@ -71,23 +100,24 @@ class Command(BaseCommand):
             if self.associate_units:
                 self.associate_department(department)
 
+
     def associate_college(self, college):
-        try:
-            match = ProgramCollege.objects.get(full_name=college.name)
-            match.unit_college = college;
-            match.save()
+        if college.sanitized_name in self.program_colleges_sanitized.keys():
+            for match in self.program_colleges_sanitized[college.sanitized_name]:
+                print(match)
+                match.unit_college = college
+                match.save()
             self.colleges_matched += 1
-        except:
-            pass
+
 
     def associate_department(self, department):
-        try:
-            match = ProgramDepartment.objects.get(full_name=department.name)
-            match.unit_department = department
-            match.save()
+        if department.sanitized_name in self.program_departments_sanitized.keys():
+            for match in self.program_departments_sanitized[department.sanitized_name]:
+                print(match)
+                match.unit_department = department
+                match.save()
             self.departments_matched += 1
-        except:
-            pass
+
 
     def print_stats(self):
         msg = f"""
