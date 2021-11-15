@@ -130,33 +130,30 @@ class Command(BaseCommand):
                 empl_id = row['Employee ID']
 
                 try:
-                    existing_employee = Employee.objects.get(ext_employee_id=empl_id)
-                    existing_employee.full_name = row['Full Name'].strip()
-                    existing_employee.first_name = row['First Name'].strip()
-                    existing_employee.last_name = row['Last Name'].strip()
-                    existing_employee.prefix = row['Prefix'].strip() if row['Prefix'].strip() != '' else None
-                    existing_employee.department = department
-                    existing_employee.organization = organization
-                    existing_employee.division = division
-                    existing_employee.college = college
-                    existing_employee.save()
+                    emp = Employee.objects.get(ext_employee_id=empl_id)
+                    emp.full_name = row['Full Name'].strip()
+                    emp.first_name = row['First Name'].strip()
+                    emp.last_name = row['Last Name'].strip()
+                    emp.prefix = row['Prefix'].strip() if row['Prefix'].strip() != '' else None
+                    emp.save()
                     self.employees_updated += 1
 
                 except Employee.DoesNotExist:
-                    new_employee = Employee(
+                    emp = Employee(
                         ext_employee_id=empl_id,
                         full_name=row['Full Name'].strip(),
                         first_name=row['First Name'].strip(),
                         last_name=row['Last Name'].strip(),
-                        prefix=row['Prefix'].strip() if row['Prefix'].strip() != '' else None,
-                        department=department,
-                        organization=organization,
-                        division=division,
-                        college=college
+                        prefix=row['Prefix'].strip() if row['Prefix'].strip() != '' else None
                     )
 
-                    new_employee.save()
+                    emp.save()
                     self.employees_created += 1
+
+                emp.departments.add(department)
+                emp.organizations.add(organization)
+                emp.divisions.add(division)
+                emp.colleges.add(college)
 
     def print_stats(self):
         msg = f"""

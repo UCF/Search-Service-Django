@@ -155,10 +155,10 @@ class Employee(models.Model):
     first_name = models.CharField(max_length=255, null=False, blank=False)
     last_name = models.CharField(max_length=255, null=False, blank=False)
     prefix = models.CharField(max_length=10, null=True, blank=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='employees')
-    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='employees')
-    college = models.ForeignKey(College, null=True, blank=True, on_delete=models.CASCADE, related_name='employees')
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='employees')
+    departments = models.ManyToManyField(Department, related_name='employees')
+    divisions = models.ManyToManyField(Division, related_name='employees')
+    colleges = models.ManyToManyField(College, related_name='employees')
+    organizations = models.ManyToManyField(Organization, related_name='employees')
 
     def __str__(self):
         return self.full_name
