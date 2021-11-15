@@ -36,10 +36,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
         model = Department
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    organization = OrganizationSerializer(many=False, read_only=True)
-    college = CollegeSerializer(many=False, read_only=True)
-    division = DivisionSerializer(many=False, read_only=True)
-    department = DepartmentSerializer(many=False, read_only=True)
+    organizations = OrganizationSerializer(many=True, read_only=True)
+    colleges = CollegeSerializer(many=True, read_only=True)
+    divisions = DivisionSerializer(many=True, read_only=True)
+    departments = DepartmentSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
@@ -47,9 +47,9 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'prefix',
-            'department',
-            'organization',
-            'division',
-            'college'
+            'departments',
+            'organizations',
+            'divisions',
+            'colleges'
         ]
         model = Employee
