@@ -1,6 +1,8 @@
 import csv
+import os
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 from units.models import College
 from units.models import Department
@@ -26,20 +28,6 @@ class Command(BaseCommand):
         super().add_arguments(parser)
 
         parser.add_argument(
-            'csv',
-            type=str,
-            help='A CSV file with a list of units, desired sanitized names, and names of objects that should be mapped to in Programs.'
-        )
-
-        parser.add_argument(
-            '--skip-first-row',
-            action='store_true',
-            dest='skip_first',
-            help='Skips the first row of the CSV.',
-            default=False
-        )
-
-        parser.add_argument(
             '--do-not-associate',
             action='store_false',
             dest='associate_units',
@@ -48,8 +36,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        self.filepath = options['csv']
-        self.skip_first = options['skip_first']
+        self.filepath = os.path.join(settings.BASE_DIR, 'units/data/unit-mapping.csv')
+        self.skip_first = True
         self.associate_units = options['associate_units']
 
         self.departments_data = {}
