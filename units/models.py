@@ -149,16 +149,32 @@ class Department(models.Model):
         else:
             return self.ext_department_name
 
+class JobTitle(models.Model):
+    ext_job_id = models.CharField(max_length=10, null=False, blank=False)
+    ext_job_name = models.CharField(max_length=255, null=False, blank=False)
+    display_name = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def name(self):
+        if self.display_name:
+            return self.display_name
+        else:
+            return self.ext_job_name
+
 class Employee(models.Model):
     ext_employee_id = models.CharField(max_length=7, null=False, blank=False)
     full_name = models.CharField(max_length=255, null=False, blank=False)
     first_name = models.CharField(max_length=255, null=False, blank=False)
     last_name = models.CharField(max_length=255, null=False, blank=False)
     prefix = models.CharField(max_length=10, null=True, blank=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='employees')
-    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='employees')
-    college = models.ForeignKey(College, null=True, blank=True, on_delete=models.CASCADE, related_name='employees')
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='employees')
+    job_titles = models.ManyToManyField(JobTitle, related_name='employees')
+    departments = models.ManyToManyField(Department, related_name='employees')
+    divisions = models.ManyToManyField(Division, related_name='employees')
+    colleges = models.ManyToManyField(College, related_name='employees')
+    organizations = models.ManyToManyField(Organization, related_name='employees')
 
     def __str__(self):
         return self.full_name
