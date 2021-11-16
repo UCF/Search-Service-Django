@@ -1,0 +1,159 @@
+﻿unit_type,ext_id,ext_name,programs_mapping,sanitized_name
+Department,10010000,ACADEMIC AFFAIRS VP,,Academic Affairs VP
+Department,13200000,ACCOUNTING,Accounting,Accounting
+Department,20100000,AMPAC MATERIALS CENTER,,Advanced Materials Processing and Analysis Center (AMPAC)
+Department,24140000,ANTHROPOLOGY,Anthropology,Anthropology
+Department,24030000,BIOLOGICAL SCIENCES,Biology,Biology
+Department,14100000,CCIE DEAN,Dean's Office CCIE,Dean's Office CCIE
+Department,14120000,CCIE GRAD AFFAIRS & FAC EXC,,Graduate Affairs CCIE
+Department,14140000,CCIE RESEARCH,,CCIE Research
+Department,14130000,CCIE UNDERGRADUATE AFFAIRS,,Undergraduate Affairs CCIE
+Department,24060000,CHEMISTRY,Chemistry,Chemistry
+Department,16200000,CIVIL ENGINEERING,"Civil, Environ, & Constr Engr","Civil, Environmental, and Construction Engineering"
+Department,18100000,COL OF HLTH PROF AND SCI DEAN,Dean's Office CHPS,Dean's Office CHPS
+Department,22100000,COL OF MED SCH BIOMED SCI DEAN,,Dean's Office COM School of Biomedical Sciences
+Department,23010000,COLLEGE OF ARTS AND HUM DEAN,Dean's Office CAH,Dean's Office CAH
+Department,13100000,COLLEGE OF BUSINESS DEAN,Dean's Office CBA,Dean's Office CBA
+Department,16100000,COLLEGE OF ENGR & COMP SCI DN,Dean's Office ENGR,Dean's Office ENGR
+Department,25010000,COLLEGE OF MEDICINE DEAN,,Dean's Office COM
+Department,24010000,COLLEGE OF SCIENCES DEAN,Dean's Office COS,Dean's Office COS
+Department,25070000,COM CLINICAL SCIENCE,,Clinical Sciences
+Department,25050000,COM FACULTY & ACADEMIC AFFAIR,,Academic Affairs COM
+Department,25080000,COM INTERNAL MEDICINE,,Internal Medicine
+Department,25060000,COM MEDICAL EDUCATION,,Medical Education
+Department,25040000,COM PLNG & KNOWLEDGE MGMT,,Office of Planning and Knowledge Management COM
+Department,25110000,COM POPULATION HEALTH,,Population Health Sciences
+Department,25020000,COM STUDENT AFFAIRS,,Office of Student Affairs COM
+Department,18700000,COMMUNICATIVE DISORDERS,"Comm Sci & Disorders, Schl of",School of Communication Sciences and Disorders
+Department,18700000,COMMUNICATIVE DISORDERS,Comm Sciences & Disorders,School of Communication Sciences and Disorders
+Department,18700000,COMMUNICATIVE DISORDERS,"Communicative Disorders, School of",School of Communication Sciences and Disorders
+Department,16400000,COMPUTER SCIENCE,Computer Science,Computer Science
+Department,14270000,COUNSELOR ED SCHOOL PSYCHOLOGY,Counslr Educ & Schl Psychology,Counselor Education and School Psychology
+Department,20130000,CREOL-COLLEGE OPTICS&PHOTONICS,Optics and Photonics,Optics and Photonics
+Department,18650000,CRIMINAL JUSTICE,Criminal Justice,Criminal Justice
+Department,10720000,DISTRIBUTED LEARNING,,Distributed Learning
+Department,13220000,ECONOMICS,Economics,Economics
+Department,14260000,EDUCATIONAL LEADERSHIP HIGH ED,Ed Ldrshp & Higher Education ,Educational Leadership and Higher Education
+Department,16220000,ELECTRICAL ENGINEERING,Electrical & Computer Engr,Electrical and Computer Engineering
+Department,23210000,ENGLISH,English,English
+Department,16120000,ENGR & COMP SCI ACAD AFFAIRS,,Academic Affairs ENGR
+Department,36010000,EXECUTIVE DEVELOPMENT CENTER,,Executive Development Center
+Department,02020000,FACILITIES & SAFETY,,Facilities and Safety
+Department,10020000,FACULTY EXCELLENCE,,Faculty Excellence
+Department,13240000,FINANCE,Finance,Finance
+Department,14300000,FL CTR STUDENTS UNIQ ABILITIES,,Florida Center for Students with Unique Abilities
+Department,20120000,FLORIDA SOLAR ENERGY CENTER,,Florida Solar Energy Center (FSEC)
+Department,20150000,FLORIDA SPACE INSTITUTE,,Florida Space Institute (FSI)
+Department,12030000,FOOD SVC & LODGE MANAGEMENT,Food Svcs & Lodging Management,Foodservice and Lodging Management
+Department,24070000,FORENSIC SCIENCE,,Forensic Science
+Department,04100000,GOVERNMENT RELATIONS VP,,Government Relations VP
+Department,19100000,GRADUATE STUDIES DEAN,Dean's Office GRDST,Dean's Office GRDST
+Department,18550000,HEALTH MANAGEMENT INFORMATICS,Health Management and Informatics,School of Global Health Management and Informatics
+Department,18550000,HEALTH MANAGEMENT INFORMATICS,Health Mgmt & Informatics ,School of Global Health Management and Informatics
+Department,18880000,HEALTH SCIENCES,Health Sciences,Health Sciences
+Department,23220000,HISTORY,History,History
+Department,15100000,HONORS COLLEGE DEAN,,Dean's Office BHC
+Department,12010000,HOSPITALITY MANAGEMENT DEAN,Dean's Office HSPMG ,Dean's Office HSPMG
+Department,12040000,HOSPITALITY MGMT SERVICES,Hospitality Services,Hospitality Services
+Department,24170000,IN SCIENCE TECH ENG & MATH,,
+Department,16240000,INDUSTRIAL ENGR AND MGMT SYS,Industrial Engr & Mgmt Sys,Industrial Engineering and Management Systems
+Department,13110000,INST FOR ECON COMPETITIVENESS,,Institute for Economic Forecasting
+Department,20110000,INSTITUTE FOR SIM AND TRAIN,,Institute for Simulation and Training (IST)
+Department,13260000,INTEGRATED BUSINESS,Integrated Business,Integrated Business
+Department,18800000,KINESIOLOGY & PHYSICAL THERAPY,"Kinesiology&Phys Thpy, Schl of",School of Kinesiology and Physical Therapy
+Department,14240000,LEARNING SCIENCES ED RESEARCH,Learning Sci & Educ Research,Learning Sciences and Educational Research
+Department,18300000,LEGAL STUDIES,Legal Studies Department,Legal Studies
+Department,18300000,LEGAL STUDIES,Legal Studies,Legal Studies
+Department,13230000,MANAGEMENT,Management,Management
+Department,13210000,MARKETING,Marketing,Marketing
+Department,16270000,MATERIALS SCIENCE AND ENGINEER,Materials Sci & Engineering,Materials Science and Engineering
+Department,24050000,MATHEMATICS,Mathematics,Mathematics
+Department,16260000,MECH MAT AND AEROSPACE ENGR,Mechanical & Aerospace Engr,Mechanical and Aerospace Engineering
+Department,23200000,MODERN LANGUAGES,Modern Languages,Modern Languages
+Department,63010000,NANOSCIENCE TECH CTR OPER,Nanoscience Technology Center,NanoScience Technology Center (NSTC)
+Department,24040000,NICHOLSON SCH OF COMM & MEDIA,"Comm & Media, Nicholson Schl",Nicholson School of Communication and Media
+Department,24040000,NICHOLSON SCH OF COMM & MEDIA,Nicholson Schl of Comm & Media,Nicholson School of Communication and Media
+Department,26020000,NURSING PRACTICE,Nursing Practice,Nursing Practice
+Department,26030000,NURSING SYSTEMS,Nursing Systems,Nursing Systems
+Department,61010000,OFFICE OF RESEARCH OPERATIONS,,Office of Research Operations
+Department,13300000,OFFICE OF STUDENT SUPPORT,,Office of Student Support
+Department,10370000,PE ELI,,
+Department,23230000,PHILOSOPHY,Philosophy,Philosophy
+Department,24080000,PHYSICS,Physics,Physics
+Department,24110000,POLITICAL SCIENCE,,Policial Science
+Department,24090000,PSYCHOLOGY,Psychology,Psychology
+Department,24220000,RESTORES,,UCF RESTORES
+Department,23100000,SCHOOL OF PERFORMING ARTS,,School of Performing Arts
+Department,23250000,SCHOOL OF VISUAL ARTS & DESIGN,"Visual Arts & Design, Schl of ",School of Visual Arts and Design
+Department,18350000,SCHOOL PUBLIC ADMINISTRATION,"Public Administration, Schl of",School of Public Administration
+Department,18350000,SCHOOL PUBLIC ADMINISTRATION,School of Public Administration,School of Public Administration
+Department,14230000,SCHOOL TEACHER EDUCATION,School of Teacher Education,School of Teacher Education
+Department,14230000,SCHOOL TEACHER EDUCATION,"Teacher Education, Schl of",School of Teacher Education
+Department,03210000,SDES COUNSELING CTR,,Counseling and Psychological Services (CAPS)
+Department,03030000,SDES CREATIVE SCHOOL,,Creative School for Children
+Department,03410000,SDES HOUSING & RESIDENCE LIFE,,Housing and Residence Life
+Department,03460000,SDES STU LEADERSHIP DEVELOP,,
+Department,18450000,SOCIAL WORK,,Social Work
+Department,24120000,SOCIOLOGY,Sociology,Sociology
+Department,13270000,SPORT BUSINESS MANAGEMENT,DeVos Sport Bus Mgmt,DeVos Sport Business Management
+Department,13270000,SPORT BUSINESS MANAGEMENT,DeVos Sport Business Management,DeVos Sport Business Management
+Department,24130000,STATISTICS,Statistics & Data Science,Statistics and Data Science
+Department,24130000,STATISTICS,Statistics and Data Science,Statistics and Data Science
+Department,14190000,TJEEI-TONI JENNINGS EX ED INST,,Toni Jennings Exceptional Education Institute
+Department,12020000,TOURISM EVENTS & ATTRACTIONS,Tourism Event and Attractions,"Tourism, Events and Attractions"
+Department,12020000,TOURISM EVENTS & ATTRACTIONS,"Tourism, Events and Attraction ","Tourism, Events and Attractions"
+Department,12020000,TOURISM EVENTS & ATTRACTIONS,"Tourism, Events, and Attractions","Tourism, Events and Attractions"
+Department,10500000,UCF CONNECT,,UCF Connect
+Department,10530000,UCF CONNECT CENTRAL,,
+Department,10310000,UCF GLOBAL,,UCF Global
+Department,10340000,UGRAD STDY EXPER LRNG,,Office of Experiential Learning
+Department,10600000,UNDERGRAD STUDIES ACAD PGMS,,
+Department,10320000,UNDERGRADUATE STUDIES,,College of Undergraduate Studies
+Department,10350000,UNDRGRD STDY INTERDISCIP STDYS,Office of Interdisc Studies,Office of Interdisciplinary Studies
+Department,10350000,UNDRGRD STDY INTERDISCIP STDYS,Office of Interdisciplinary Studies,Office of Interdisciplinary Studies
+Department,09100000,UNIVERSITY LIBRARIES,,University Libraries
+Department,23260000,WRITING & RHETORIC,Writing and Rhetoric,Writing and Rhetoric
+Organization,5B0000,AA-COLLEGE OF ARTS and HUMANIT,,
+Organization,540000,AA-College of Community Innov,,
+Organization,550000,AA-COLLEGE OF ENGR/COMP SCI,,
+Organization,5M1000,AHSC-COM-Sch of Bio Sciences,,
+Organization,5R8000,College of Graduate Stud-IST,,
+Organization,580000,AA-COLLEGE OF OPTICS AND PHOTO,,
+Organization,5U0000,AA-UNDERGRADUATE STUDIES,,
+Organization,560000,AHSC-College of Health Prof,,
+Organization,5E0000,AHSC-College of Nursing,,
+Organization,5C0000,AA-COLLEGE OF SCIENCES,,
+Organization,530000,AA-COLLEGE OF BUSINESS ADMIN,,
+Organization,5M0000,AHSC-College of Medicine,,
+Organization,51D000,AA-Digital Learning,,
+Organization,590000,AA-COLLEGE OF HOSPITALITY MAN,,
+Organization,5TL000,University Libraries,,
+Organization,51G000,AA-UCF GLOBAL,,
+Organization,570000,AA-HONORS COLLEGE,,
+Organization,140000,President-Government Relations,,
+Organization,5R0000,Office of Research,,
+Organization,206000,ADMINISTRATION-PHYSICAL PLANT,,
+Organization,510000,AA-Provost & VP-Operations,,
+Organization,5S0000,Student Dev & Enroll Svcs,,
+Organization,5RA000,Research-Nanoscience,,
+Organization,5R6000,Research-FSEC,,
+Organization,5G0000,College of Graduate Studies,,
+Division,,ACADEMIC AFFAIRS DIVISION,,Academic Affairs Division
+Division,,Academic Health Sciences Center,,Academic Health Sciences Center
+Division,,ADMINISTRATION DIVISION,,Administration Division
+Division,,Office of Research and Graduate St,,Office of Research and Graduate Studies
+Division,,PRESIDENT'S DIVISION,,President's Division
+Division,,Student Development & Enrollment,,Student Development and Enrollment Services
+Division,,University Libraries,,University Libraries
+College,,BURNETT HONORS COLLEGE,Burnett Honors College,Burnett Honors College
+College,,COLLEGE OF ARTS & HUMANITIES,College of Arts and Humanities,College of Arts and Humanities
+College,,COLLEGE OF BUSINESS ADMINISTRATION,College of Business,College of Business
+College,,College of Community Innovation and Educ,College of Community Innovation and Education,College of Community Innovation and Education
+College,,COLLEGE OF ENGINEERING/COMPUTER SCIENCE,College of Engineering and Computer Science,College of Engineering and Computer Science
+College,,COLLEGE OF GRADUATE STUDIES,College of Graduate Studies,College of Graduate Studies
+College,,College of Health Professions and Sci,College of Health Professions and Sciences,College of Health Professions and Sciences
+College,,COLLEGE OF HOSPITALITY MANAGEMENT,Rosen College of Hospitality Management,Rosen College of Hospitality Management
+College,,COLLEGE OF MEDICINE,College of Medicine,College of Medicine
+College,,College of Nursing,College of Nursing,College of Nursing
+College,,COLLEGE OF OPTICS & PHOTONICS,College of Optics and Photonics,College of Optics and Photonics
+College,,COLLEGE OF SCIENCES,College of Sciences,College of Sciences
