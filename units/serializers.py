@@ -35,11 +35,21 @@ class DepartmentSerializer(serializers.ModelSerializer):
         ]
         model = Department
 
+class JobTitleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = [
+            'ext_job_id',
+            'name'
+        ]
+        model = JobTitle
+
 class EmployeeSerializer(serializers.ModelSerializer):
     organizations = OrganizationSerializer(many=True, read_only=True)
     colleges = CollegeSerializer(many=True, read_only=True)
     divisions = DivisionSerializer(many=True, read_only=True)
     departments = DepartmentSerializer(many=True, read_only=True)
+    job_titles = JobTitleSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
@@ -50,6 +60,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'departments',
             'organizations',
             'divisions',
-            'colleges'
+            'colleges',
+            'job_titles'
         ]
         model = Employee

@@ -7,6 +7,7 @@ from units.models import College
 from units.models import Department
 from units.models import Division
 from units.models import Employee
+from units.models import JobTitle
 from units.models import Organization
 
 
@@ -24,7 +25,9 @@ class Command(BaseCommand):
         'VP Org',
         'VP Org Descr',
         'Division',
-        'College'
+        'College',
+        'Job Code',
+        'Job Code Descr/Title'
     ]
 
     def add_arguments(self, parser):
@@ -56,6 +59,7 @@ class Command(BaseCommand):
         self.organizations_created = 0
         self.divisions_created = 0
         self.colleges_created = 0
+        self.job_titles_created = 0
 
         self.import_employees()
         self.print_stats()
@@ -76,6 +80,8 @@ class Command(BaseCommand):
                 org_name = row['VP Org Descr'].strip()
                 division_name = row['Division'].strip()
                 college_name = row['College'].strip()
+                job_code = row['Job Code'].strip()
+                job_name = row['Job Code Descr/Title'].strip()
 
                 department = None
                 organization = None
@@ -127,6 +133,18 @@ class Command(BaseCommand):
                         college.save()
                         self.colleges_created += 1
 
+                # Get or create the job title
+                if job_code:
+                    try:
+                        job_title = JobTitle.objects.get(ext_job_id=job_code)
+                    except:
+                        job_title = JobTitle(
+                            ext_job_id=job_code,
+                            ext_job_name=job_name
+                        )
+                        job_title.save()
+                        self.job_titles_created += 1
+
                 empl_id = row['Employee ID']
 
                 try:
@@ -154,6 +172,7 @@ class Command(BaseCommand):
                 emp.organizations.add(organization)
                 emp.divisions.add(division)
                 emp.colleges.add(college)
+                emp.job_titles.add(job_title)
 
     def print_stats(self):
         msg = f"""
@@ -165,6 +184,7 @@ Departments Created   : {self.departments_created}
 Organizations Created : {self.organizations_created}
 Divisions Created     : {self.divisions_created}
 Colleges Created      : {self.colleges_created}
+Job Titles Created    : {self.job_titles_created}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))
