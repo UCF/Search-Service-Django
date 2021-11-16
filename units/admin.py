@@ -175,15 +175,20 @@ class CollegeAdmin(admin.ModelAdmin):
     ]
 
     def programs_college_link(self, obj):
-        return mark_safe(
-            '<a href="{0}">{1}</a>'.format(
+        retval = '<ul style="margin-left: 0; padding-left: 0;">'
+
+        for college in obj.program_college.all():
+            retval += '<li><a href="{0}">{1}</a></li>'.format(
                 reverse(
                     'admin:programs_college_change',
-                    args=(obj.program_college.pk,)
+                    args=(college.pk,)
                 ),
-                obj.program_college.full_name
+                college.full_name
             )
-        )
+
+        retval += '</ul>'
+
+        return mark_safe(retval)
 
     programs_college_link.allow_tags = True
     programs_college_link.short_description = 'Program College'
@@ -201,15 +206,20 @@ class DepartmentAdmin(admin.ModelAdmin):
     include_fields = '__all__'
 
     def programs_department_link(self, obj):
-        return mark_safe(
-            '<a href="{0}">{1}</a>'.format(
+        retval = '<ul style="margin-left: 0; padding-left: 0;">'
+
+        for dept in obj.program_department.all():
+            retval += '<li><a href="{0}">{1}</a></li>'.format(
                 reverse(
                     'admin:programs_department_change',
-                    args=(obj.program_department.pk,)
+                    args=(dept.pk,)
                 ),
-                obj.program_department.full_name
+                dept.full_name
             )
-        )
+
+        retval += '</ul>'
+
+        return mark_safe(retval)
 
     programs_department_link.allow_tags = True
     programs_department_link.short_description = 'Program Department'
