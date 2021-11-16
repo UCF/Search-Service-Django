@@ -82,6 +82,12 @@ class College(models.Model):
     def __unicode__(self):
         return self.full_name
 
+    @property
+    def name(self):
+        if self.unit_college:
+            return self.unit_college.name
+        return self.full_name
+
 
 class Department(models.Model):
     """
@@ -97,6 +103,12 @@ class Department(models.Model):
         return self.full_name
 
     def __unicode__(self):
+        return self.full_name
+
+    @property
+    def name(self):
+        if self.unit_department:
+            return self.unit_department.name
         return self.full_name
 
 
