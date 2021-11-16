@@ -167,7 +167,7 @@ class Command(BaseCommand):
             try:
                 researcher = Researcher.objects.get(aa_person_id=aa_person_id)
                 researcher.orcid_id = orcid
-                researchers.employee_record = employee_record
+                researcher.employee_record = employee_record
                 researcher.teledata_record = staff_record
                 researcher.save()
 
