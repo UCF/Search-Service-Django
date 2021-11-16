@@ -178,7 +178,7 @@ class CollegeAdmin(admin.ModelAdmin):
         if obj.program_college.count() == 0:
             return mark_safe("<p>0 Program Colleges</p>")
 
-        retval = '<ul style="margin-left: 0; padding-left: 0;">'
+        retval = '<ul style="margin-left: 0; margin-top: 0; padding-left: 0;">'
 
         for college in obj.program_college.all():
             retval += '<li><a href="{0}">{1}</a></li>'.format(
@@ -212,7 +212,7 @@ class DepartmentAdmin(admin.ModelAdmin):
         if obj.program_department.count() == 0:
             return mark_safe("<p>0 Program Departments</p> ")
 
-        retval = '<ul style="margin-left: 0; padding-left: 0;">'
+        retval = '<ul style="margin-left: 0; margin-top: 0; padding-left: 0;">'
 
         for dept in obj.program_department.all():
             retval += '<li><a href="{0}">{1}</a></li>'.format(
