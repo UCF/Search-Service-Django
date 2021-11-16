@@ -175,6 +175,9 @@ class CollegeAdmin(admin.ModelAdmin):
     ]
 
     def programs_college_link(self, obj):
+        if obj.program_college.count() == 0:
+            return mark_safe("<p>0 Program Colleges</p>")
+
         retval = '<ul style="margin-left: 0; padding-left: 0;">'
 
         for college in obj.program_college.all():
@@ -206,6 +209,9 @@ class DepartmentAdmin(admin.ModelAdmin):
     include_fields = '__all__'
 
     def programs_department_link(self, obj):
+        if obj.program_department.count() == 0:
+            return mark_safe("<p>0 Program Departments</p> ")
+
         retval = '<ul style="margin-left: 0; padding-left: 0;">'
 
         for dept in obj.program_department.all():
