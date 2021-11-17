@@ -258,8 +258,11 @@ class Command(BaseCommand):
                                 last_page=article['JournalLastPage'] or None
                             )
 
-                            new_article.save()
-                            new_article.researchers.add(researcher)
+                            try:
+                                new_article.save()
+                                new_article.researchers.add(researcher)
+                            except Exception as e:
+                                logger.error(f'There was an error importing an article: {e}')
 
                             self.articles.add(new_article.id)
                             self.articles_created += 1
@@ -296,8 +299,13 @@ class Command(BaseCommand):
                                 publisher_name=book['PublisherName'],
                                 publish_date=parser.parse(book['PublishDate'])
                             )
-                            new_book.save()
-                            new_book.researchers.add(researcher)
+
+                            try:
+                                new_book.save()
+                                new_book.researchers.add(researcher)
+                            except Exception as e:
+                                logger.error(f'There was an error importing a book: {e}')
+
 
                             self.books.add(new_book.id)
                             self.books_created += 1
@@ -337,8 +345,13 @@ class Command(BaseCommand):
                                 publish_year=chapter['PublishYear'],
                                 publish_date=parser.parse(chapter['PublishDate'])
                             )
-                            new_chapter.save()
-                            new_chapter.researchers.add(researcher)
+
+                            try:
+                                new_chapter.save()
+                                new_chapter.researchers.add(researcher)
+                            except Exception as e:
+                                logger.error(f'There was an error importing a book chapter: {e}')
+
 
                             self.chapters.add(new_chapter.id)
                             self.chapters_created += 1
@@ -378,8 +391,13 @@ class Command(BaseCommand):
                                 first_page=proceeding['JournalFirstPage'],
                                 last_page=proceeding['JournalLastPage']
                             )
-                            new_pro.save()
-                            new_pro.researchers.add(researcher)
+
+                            try:
+                                new_pro.save()
+                                new_pro.researchers.add(researcher)
+                            except Exception as e:
+                                logger.error(f'There was an error importing a conference proceeding: {e}')
+
 
                             self.proceedings.add(new_pro.id)
                             self.confs_created += 1
@@ -423,8 +441,13 @@ class Command(BaseCommand):
                                 is_research=bool(grant['IsResearch']),
                                 principle_investigator=True if grant['AwardeeTypeCode'] == 'PI' else False
                             )
-                            new_grant.save()
-                            new_grant.researchers.add(researcher)
+
+                            try:
+                                new_grant.save()
+                                new_grant.researchers.add(researcher)
+                            except Exception as e:
+                                logger.error(f'There was an error importing a grant: {e}')
+
 
                             self.grants.add(new_grant.id)
                             self.grants_created += 1
@@ -457,8 +480,13 @@ class Command(BaseCommand):
                                 award_received_name=award['AwardReceivedName'],
                                 award_received_year=award['AwardReceivedAwardYear']
                             )
-                            new_award.save()
-                            new_award.researchers.add(researcher)
+
+                            try:
+                                new_award.save()
+                                new_award.researchers.add(researcher)
+                            except Exception as e:
+                                logger.error(f'There was an error importing an award: {e}')
+
 
                             self.awards.add(new_award.id)
                             self.awards_created += 1
@@ -499,8 +527,13 @@ class Command(BaseCommand):
                                 claims=patent['NumClaims'],
                                 abstract=patent['Abstract']
                             )
-                            new_patent.save()
-                            new_patent.researchers.add(researcher)
+
+                            try:
+                                new_patent.save()
+                                new_patent.researchers.add(researcher)
+                            except Exception as e:
+                                logger.error(f'There was an error importing a patent: {e}')
+
 
                             self.patents.add(new_patent.id)
                             self.patents_created += 1
@@ -544,8 +577,13 @@ class Command(BaseCommand):
                                 recruitment_status=trial['RecruitmentStatus'],
                                 investigators=trial['Investigators']
                             )
-                            new_trial.save()
-                            new_trial.researchers.add(researcher)
+
+                            try:
+                                new_trial.save()
+                                new_trial.researchers.add(researcher)
+                            except Exception as e:
+                                logger.error(f'There was an error importing a clinical trial: {e}')
+
 
                             self.trials.add(new_trial.id)
                             self.trials_created += 1
