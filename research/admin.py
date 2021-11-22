@@ -15,7 +15,8 @@ from research.models import ResearcherEducation
 # Register your models here.
 @admin.register(Researcher)
 class ResearcherAdmin(admin.ModelAdmin):
-    search_fields = ('teledata_record__first_name', 'teledata_record__last_name', 'orcid_id')
+    search_fields = ('teledata_record__first_name', 'teledata_record__last_name', 'orcid_id', 'research_terms__term_name')
+    list_filter = ('employee_record__colleges__display_name',)
 
 @admin.register(ResearcherEducation)
 class ResearcherEducationAdmin(admin.ModelAdmin):

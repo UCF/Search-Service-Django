@@ -2,14 +2,17 @@ import logging
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 
-from research.models import ConferenceProceeding, ResearchWork, Researcher
 from research.models import Article
 from research.models import Book
 from research.models import BookChapter
+from research.models import ClinicalTrial
+from research.models import ConferenceProceeding
 from research.models import Grant
 from research.models import HonorificAward
 from research.models import Patent
-from research.models import ClinicalTrial
+from research.models import Researcher
+from research.models import ResearchWork
+from research.models import ResearchTerm
 
 from teledata.models import Staff
 
@@ -97,6 +100,7 @@ class Command(BaseCommand):
         self.award_lock = threading.Lock()
         self.patent_lock = threading.Lock()
         self.trial_lock = threading.Lock()
+        self.term_lock = threading.Lock()
 
         self.books_updated = 0
         self.books_created = 0
@@ -114,6 +118,8 @@ class Command(BaseCommand):
         self.patents_created = 0
         self.trials_updated = 0
         self.trials_created = 0
+        self.terms_created = 0
+        self.terms_assigned = 0
 
         self.researchers_to_process = queue.Queue()
 
@@ -590,6 +596,23 @@ class Command(BaseCommand):
                     except Exception as e:
                         logger.error(f'There was an error importing a clinical trial: {e}')
 
+                # Let's get some terms!
+                request_url = f'person/{researcher.aa_person_id}/relatedterms/'
+                terms = self.__request_resource(request_url)
+
+                for term in terms:
+                    with self.term_lock:
+                        try:
+                            existing_term = ResearchTerm.objects.get(term_name=term['TermName'].strip())
+                            researcher.research_terms.add(existing_term)
+                            self.terms_created += 1
+                            self.terms_assigned +=1
+                        except ResearchTerm.DoesNotExist:
+                            new_term = ResearchTerm(term_name=term['TermName'].strip())
+                            new_term.save()
+                            researcher.research_terms.add(new_term)
+                            self.terms_assigned += 1
+
             finally:
                 self.researchers_to_process.task_done()
 
@@ -644,6 +667,9 @@ Author Updates       : {self.patents_created + self.patents_updated}
 Trials Created       : {self.trials_created}
 Trials Updated       : {len(list(self.trials)) - self.trials_created}
 Author Updates       : {self.trials_created + self.trials_updated}
+
+Terms Created        : {self.terms_created}
+Terms Assigned       : {self.terms_assigned}
         """
 
         self.stdout.write(self.style.SUCCESS(msg))
