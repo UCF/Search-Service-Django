@@ -3,13 +3,21 @@ from django.db import models
 from teledata.models import Staff
 from units.models import Employee
 
-# Create your models here.
+# Create your models here
+
+class ResearchTerm(models.Model):
+    term_name = models.CharField(max_length=128, null=False, blank=False)
+
+    def __str__(self):
+        return self.term_name
+
 class Researcher(models.Model):
     orcid_id = models.CharField(max_length=19, unique=False, blank=True, null=True)
     aa_person_id = models.IntegerField(null=True, blank=True)
     employee_record = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='researcher')
     teledata_record = models.ForeignKey(Staff, null=True, blank=True, on_delete=models.CASCADE, related_name='researcher_records')
     biography = models.TextField(null=True, blank=True)
+    research_terms = models.ManyToManyField(ResearchTerm, related_name='researchers')
 
     def __unicode__(self):
         return '{0}, {1} - {2}'.format(

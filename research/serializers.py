@@ -179,6 +179,7 @@ class ResearcherSerializer(serializers.ModelSerializer):
         view_name='api.researcher.trials.list',
         lookup_field='id'
     )
+    research_terms = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -197,6 +198,18 @@ class ResearcherSerializer(serializers.ModelSerializer):
             'grants',
             'honorific_awards',
             'patents',
-            'clinical_trials'
+            'clinical_trials',
+            'research_terms'
         )
         model = Researcher
+
+
+    def get_research_terms(self, obj):
+        retval = []
+        terms = obj.research_terms.all()
+
+        for term in terms:
+            retval.append(term.term_name)
+
+
+        return retval
