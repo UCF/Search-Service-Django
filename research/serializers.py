@@ -1,3 +1,5 @@
+from django.db.models import Count
+
 from rest_framework import serializers
 from research.models import *
 from teledata.serializers import StaffContactSerializer
@@ -206,7 +208,9 @@ class ResearcherSerializer(serializers.ModelSerializer):
 
     def get_research_terms(self, obj):
         retval = []
-        terms = obj.research_terms.all()
+        terms = obj.research_terms.annotate(
+            researcher_count=Count('researchers')
+        ).order_by('-researcher_count')[:10]
 
         for term in terms:
             retval.append(term.term_name)
