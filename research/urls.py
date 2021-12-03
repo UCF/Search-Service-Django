@@ -42,5 +42,9 @@ urlpatterns = [
     url(r'^researchers/(?P<id>\d+)/trials/$',
         ClinicalTrialListView.as_view(),
         name='api.researcher.trials.list'
+    ),
+    url(r'^researchers/(?P<id>\d+)/terms/$',
+        ResearchTermListView.as_view(),
+        name='api.researcher.terms.list'
     )
 ]

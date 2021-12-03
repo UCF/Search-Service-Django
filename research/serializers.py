@@ -1,9 +1,10 @@
-from django.db.models import Count
-
 from rest_framework import serializers
 from research.models import *
 from teledata.serializers import StaffContactSerializer
 from units.serializers import EmployeeSerializer
+
+from django.db.models import Count
+from django.db.models.functions import Length
 
 class ResearcherEducationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -145,6 +146,11 @@ class ClinicalTrialSerializer(serializers.ModelSerializer):
         ]
         model = ClinicalTrial
 
+class ResearchTermSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = ResearchTerm
+
 class ResearcherSerializer(serializers.ModelSerializer):
     teledata_record = StaffContactSerializer(many=False, read_only=True)
     employee_record = EmployeeSerializer(many=False, read_only=True)
@@ -181,7 +187,11 @@ class ResearcherSerializer(serializers.ModelSerializer):
         view_name='api.researcher.trials.list',
         lookup_field='id'
     )
-    research_terms = serializers.SerializerMethodField()
+    research_terms = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.terms.list',
+        lookup_field='id'
+    )
+    featured_terms = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -201,15 +211,19 @@ class ResearcherSerializer(serializers.ModelSerializer):
             'honorific_awards',
             'patents',
             'clinical_trials',
-            'research_terms'
+            'research_terms',
+            'featured_terms',
         )
         model = Researcher
 
 
-    def get_research_terms(self, obj):
+    def get_featured_terms(self, obj):
         retval = []
         terms = obj.research_terms.annotate(
+            term_name_length=Length('term_name'),
             researcher_count=Count('researchers')
+        ).filter(
+            term_name_length__gte=3
         ).order_by('-researcher_count')[:10]
 
         for term in terms:
