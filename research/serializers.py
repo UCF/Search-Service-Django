@@ -1,4 +1,5 @@
 from django.db.models import Count
+from django.db.models.functions import Length
 
 from rest_framework import serializers
 from research.models import *
@@ -182,6 +183,7 @@ class ResearcherSerializer(serializers.ModelSerializer):
         lookup_field='id'
     )
     research_terms = serializers.SerializerMethodField()
+    research_terms_featured = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -201,7 +203,8 @@ class ResearcherSerializer(serializers.ModelSerializer):
             'honorific_awards',
             'patents',
             'clinical_trials',
-            'research_terms'
+            'research_terms',
+            'research_terms_featured'
         )
         model = Researcher
 
@@ -210,6 +213,21 @@ class ResearcherSerializer(serializers.ModelSerializer):
         retval = []
         terms = obj.research_terms.annotate(
             researcher_count=Count('researchers')
+        ).order_by('-researcher_count')[:10]
+
+        for term in terms:
+            retval.append(term.term_name)
+
+
+        return retval
+
+    def get_research_terms_featured(self, obj):
+        retval = []
+        terms = obj.research_terms.annotate(
+            researcher_count=Count('researchers'),
+            name_length=Length('term_name')
+        ).filter(
+            name_length__gt=1
         ).order_by('-researcher_count')[:10]
 
         for term in terms:
