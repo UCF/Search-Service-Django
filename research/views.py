@@ -105,4 +105,8 @@ class ResearchTermListView(generics.ListAPIView):
     def get_queryset(self):
         researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
         if researcher_id:
-            return ResearchTerm.objects.filter(researchers=researcher_id).order_by('term_name')
+            return ResearchTerm.objects.annotate(
+                researcher_count=Count('researchers')
+            ).filter(
+                researchers=researcher_id
+            ).order_by('-researcher_count')
