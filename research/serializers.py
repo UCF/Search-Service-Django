@@ -211,27 +211,25 @@ class ResearcherSerializer(serializers.ModelSerializer):
 
     def get_research_terms(self, obj):
         retval = []
-        terms = obj.research_terms.annotate(
-            researcher_count=Count('researchers')
-        ).order_by('-researcher_count')[:10]
 
-        for term in terms:
-            retval.append(term.term_name)
-
+        terms = list(obj.research_terms.all())
+        if terms:
+            terms_sorted = sorted(list(terms), key=lambda obj: obj.researchers.count(), reverse=True)[:10]
+            retval = [t.term_name for t in terms_sorted]
 
         return retval
 
     def get_research_terms_featured(self, obj):
         retval = []
-        terms = obj.research_terms.annotate(
-            researcher_count=Count('researchers'),
+
+        terms = list(obj.research_terms.annotate(
             name_length=Length('term_name')
         ).filter(
             name_length__gt=1
-        ).order_by('-researcher_count')[:10]
+        ))
 
-        for term in terms:
-            retval.append(term.term_name)
-
+        if terms:
+            terms_sorted = sorted(list(terms), key=lambda obj: obj.researchers.count(), reverse=True)[:10]
+            retval = [t.term_name for t in terms_sorted]
 
         return retval
