@@ -5,9 +5,6 @@ from research.models import *
 from teledata.serializers import StaffContactSerializer
 from units.serializers import EmployeeSerializer
 
-from django.db.models import Count
-from django.db.models.functions import Length
-
 class ResearcherEducationSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
