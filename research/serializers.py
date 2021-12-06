@@ -145,6 +145,21 @@ class ClinicalTrialSerializer(serializers.ModelSerializer):
         ]
         model = ClinicalTrial
 
+class ResearchTermSerializer(serializers.ModelSerializer):
+    researcher_count = serializers.SerializerMethodField()
+
+    class Meta:
+
+        fields = (
+            'id',
+            'term_name',
+            'researcher_count'
+        )
+        model = ResearchTerm
+
+    def get_researcher_count(self, obj):
+        return obj.researchers.count()
+
 class ResearcherSerializer(serializers.ModelSerializer):
     teledata_record = StaffContactSerializer(many=False, read_only=True)
     employee_record = EmployeeSerializer(many=False, read_only=True)
@@ -181,7 +196,10 @@ class ResearcherSerializer(serializers.ModelSerializer):
         view_name='api.researcher.trials.list',
         lookup_field='id'
     )
-    research_terms = serializers.SerializerMethodField()
+    research_terms = serializers.HyperlinkedIdentityField(
+        view_name='api.researcher.terms.list',
+        lookup_field='id'
+    )
     research_terms_featured = serializers.SerializerMethodField()
 
     class Meta:
@@ -207,16 +225,6 @@ class ResearcherSerializer(serializers.ModelSerializer):
         )
         model = Researcher
 
-
-    def get_research_terms(self, obj):
-        retval = []
-
-        terms = list(obj.research_terms.all())
-        if terms:
-            terms_sorted = sorted(terms, key=lambda obj: obj.researchers.count(), reverse=True)[:10]
-            retval = [t.term_name for t in terms_sorted]
-
-        return retval
 
     def get_research_terms_featured(self, obj):
         retval = []

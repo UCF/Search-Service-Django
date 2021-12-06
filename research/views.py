@@ -97,3 +97,16 @@ class ClinicalTrialListView(generics.ListAPIView):
             return ClinicalTrial.objects.filter(researchers=researcher_id).order_by('-start_date')
 
         return None
+
+class ResearchTermListView(generics.ListAPIView):
+    lookup_field = 'id'
+    serializer_class = ResearchTermSerializer
+
+    def get_queryset(self):
+        researcher_id = self.kwargs['id'] if 'id' in list(self.kwargs.keys()) else None
+        if researcher_id:
+            return ResearchTerm.objects.annotate(
+                researcher_count=Count('researchers')
+            ).filter(
+                researchers=researcher_id
+            ).order_by('-researcher_count')
