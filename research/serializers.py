@@ -1,4 +1,3 @@
-from django.db.models import Count
 from django.db.models.functions import Length
 
 from rest_framework import serializers
@@ -214,7 +213,7 @@ class ResearcherSerializer(serializers.ModelSerializer):
 
         terms = list(obj.research_terms.all())
         if terms:
-            terms_sorted = sorted(list(terms), key=lambda obj: obj.researchers.count(), reverse=True)[:10]
+            terms_sorted = sorted(terms, key=lambda obj: obj.researchers.count(), reverse=True)[:10]
             retval = [t.term_name for t in terms_sorted]
 
         return retval
@@ -229,7 +228,7 @@ class ResearcherSerializer(serializers.ModelSerializer):
         ))
 
         if terms:
-            terms_sorted = sorted(list(terms), key=lambda obj: obj.researchers.count(), reverse=True)[:10]
+            terms_sorted = sorted(terms, key=lambda obj: obj.researchers.count(), reverse=True)[:10]
             retval = [t.term_name for t in terms_sorted]
 
         return retval
