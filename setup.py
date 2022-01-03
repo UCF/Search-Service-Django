@@ -34,7 +34,7 @@ setup(
         'drf-dynamic-fields',
         'fuzzywuzzy',
         'gunicorn',
-        'lxml',
+        'lxml==4.6.5',
         'mysqlclient',
         'Pillow==8.3.2',
         'progress',
