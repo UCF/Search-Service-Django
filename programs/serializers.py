@@ -1,3 +1,4 @@
+from re import L
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from programs.models import *
@@ -371,6 +372,15 @@ class ApplicationDeadlineSerializer(serializers.ModelSerializer):
         )
         model = ApplicationDeadline
 
+class AcademicTermSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = (
+            'full_name',
+            'semester',
+            'semester_index',
+            'year'
+        )
+        model = AcademicTerm
 
 class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
@@ -409,6 +419,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
         view_name='api.programs.deadlines',
         lookup_field='id'
     )
+    start_term = AcademicTermSerializer(many=False, read_only=True)
 
     class Meta:
         fields = (
@@ -439,7 +450,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'graduate_slate_id',
             'valid',
             'has_locations',
-            'active'
+            'active',
+            'start_term'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,cip_code,parent_program",

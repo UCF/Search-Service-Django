@@ -346,15 +346,16 @@ Finished in {datetime.now() - self.start_time}
                 if catalog_program_type != 'Nondegree':
                     catalog_html_data = self.__get_catalog_html_data(result)
                     catalog_college_short = self.__get_catalog_college_short(result)
-                    with self.mt_lock:
-                        self.catalog_entries.append(
-                            CatalogEntry(
-                                result,
-                                catalog_html_data,
-                                catalog_program_type,
-                                catalog_college_short
+                    if catalog_html_data is not None:
+                        with self.mt_lock:
+                            self.catalog_entries.append(
+                                CatalogEntry(
+                                    result,
+                                    catalog_html_data,
+                                    catalog_program_type,
+                                    catalog_college_short
+                                )
                             )
-                        )
             except Exception as e:
                 logging.log(logging.ERROR, e)
             finally:
