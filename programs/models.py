@@ -479,6 +479,7 @@ class Program(models.Model):
     graduate_slate_id = models.CharField(max_length=255, null=True, blank=True)
     valid = models.BooleanField(default=True)
     has_locations = models.BooleanField(default=True)
+    start_term = models.ForeignKey(AcademicTerm, null=True, blank=True, related_name='start_term_programs', on_delete=models.SET_NULL)
 
     class Meta:
         unique_together = ('plan_code', 'subplan_code')

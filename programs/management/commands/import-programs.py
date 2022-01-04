@@ -354,6 +354,20 @@ class Command(BaseCommand):
             except CIP.DoesNotExist:
                 pass
 
+        if data['Meta Data'][0]['TermStart'] is not None:
+            term_start_full = data['Meta Data'][0]['TermStart'];
+            academic_term = None
+
+            try:
+                academic_term = AcademicTerm.objects.get(full_name=term_start_full)
+            except AcademicTerm.DoesNotExist:
+                academic_term = AcademicTerm(full_name=term_start_full)
+                academic_term.save()
+
+            if academic_term is not None:
+                program.start_term = academic_term
+
+
         program.modified = self.new_modified_date
 
         program.save()
@@ -452,6 +466,20 @@ class Command(BaseCommand):
 
         if department_removed:
             self.departments_changed += 1
+
+        if data['Meta Data'][0]['TermStart'] is not None:
+            term_start_full = data['Meta Data'][0]['TermStart'];
+            academic_term = None
+
+            try:
+                academic_term = AcademicTerm.objects.get(full_name=term_start_full)
+            except AcademicTerm.DoesNotExist:
+                academic_term = AcademicTerm(full_name=term_start_full)
+                academic_term.save()
+
+            if academic_term is not None:
+                program.start_term = academic_term
+
 
         program.modified = self.new_modified_date
 
