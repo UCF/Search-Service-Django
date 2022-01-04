@@ -320,6 +320,110 @@ class ApplicationDeadline(models.Model):
             self.day
         )
 
+class AcademicTerm(models.Model):
+    full_name = models.CharField(max_length=15, null=False, blank=False)
+    short_name = models.CharField(max_length=5, null=False, blank=False)
+
+    def __str__(self):
+        return self.full_name
+
+    def __unicode__(self):
+        return self.full_name
+
+    @property
+    def full_name_split(self):
+        return self.full_name.split(' ')
+
+    @property
+    def semester(self):
+        return self.full_name_split[0]
+
+    @property
+    def semester_index(self):
+        if self.semester == 'Spring':
+            return 0
+        elif self.semester == 'Summer':
+            return 1
+        elif self.semester == 'Fall':
+            return 2
+
+        return None
+
+    @property
+    def year_as_str(self):
+        return self.full_name_split[1]
+
+    @property
+    def year(self):
+        return int(self.year_as_str)
+
+    def __eq__(self, other):
+        """
+        Custom equal to operator
+        """
+        return self.semester == other.semester and self.year == other.year
+
+    def __lt__(self, other):
+        """
+        Custom less than operator
+        """
+        if self.year < other.year:
+            return True
+        elif self.year == other.year:
+            return self.semester_index < other.semester_index
+
+        return False
+
+    def __le__(self, other):
+        """
+        Custom less than or equal to operator
+        """
+        if self.year < other.year:
+            return True
+        elif self.year == other.year:
+            return self.semester_index <= other.semester_index
+
+        return False
+
+    def __gt__(self, other):
+        """
+        Custom greater than operator
+        """
+        if self.year > other.year:
+            return True
+        elif self.year == other.year:
+            return self.semester_index > other.semester_index
+
+        return False
+
+    def __ge__(self, other):
+        """
+        Custom greater than or equal to operator
+        """
+        if self.year > other.year:
+            return True
+        elif self.year == other.year:
+            return self.semester_index >= other.semester_index
+
+        return False
+
+    def __ne__(self, other):
+        """
+        Custom not equal operator
+        """
+        return self.year != other.year or self.semester_index != other.semester_index
+
+    def __sub__(self, other):
+        """
+        Custom subtraction operator for terms.
+        Use subtractions to calculate the number of
+        terms between one term and another.
+        """
+        retval = 0
+        retval += (self.year - other.year) * 3
+        retval += (self.semester_index - other.semester_index)
+        return retval
+
 
 class Program(models.Model):
     """
