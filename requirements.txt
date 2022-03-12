@@ -51,7 +51,7 @@ lxml==4.6.5
     # via UCF-Search-Service-Django (setup.py)
 mysqlclient==2.0.3
     # via UCF-Search-Service-Django (setup.py)
-pillow==8.3.2
+pillow==9.0.1
     # via UCF-Search-Service-Django (setup.py)
 progress==1.5
     # via UCF-Search-Service-Django (setup.py)
