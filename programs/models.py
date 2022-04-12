@@ -360,6 +360,8 @@ class AcademicTerm(models.Model):
         """
         Custom equal to operator
         """
+        if not other:
+            return False
         return self.semester == other.semester and self.year == other.year
 
     def __lt__(self, other):
