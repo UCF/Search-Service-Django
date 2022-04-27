@@ -1,0 +1,137 @@
+[
+{
+  "model": "locations.pointtype",
+  "pk": 1,
+  "fields": {
+    "name": "Disabled parking",
+    "created": "2022-04-25T20:33:36.798Z",
+    "modified": "2022-04-25T20:33:36.798Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 2,
+  "fields": {
+    "name": "Motorcycle parking",
+    "created": "2022-04-25T20:33:40.608Z",
+    "modified": "2022-04-25T20:33:40.609Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 3,
+  "fields": {
+    "name": "Metered parking",
+    "created": "2022-04-25T20:33:44.107Z",
+    "modified": "2022-04-25T20:33:44.107Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 4,
+  "fields": {
+    "name": "Bike rack",
+    "created": "2022-04-25T20:33:47.665Z",
+    "modified": "2022-04-25T20:33:47.665Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 5,
+  "fields": {
+    "name": "Emergency (blue light) phone",
+    "created": "2022-04-25T20:33:53.182Z",
+    "modified": "2022-04-25T20:33:53.182Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 6,
+  "fields": {
+    "name": "Electric charging station",
+    "created": "2022-04-25T20:33:58.049Z",
+    "modified": "2022-04-25T20:33:58.049Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 7,
+  "fields": {
+    "name": "Face mask",
+    "created": "2022-04-25T20:34:01.657Z",
+    "modified": "2022-04-25T20:34:01.657Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 8,
+  "fields": {
+    "name": "Baby changing station",
+    "created": "2022-04-25T20:34:04.899Z",
+    "modified": "2022-04-25T20:34:04.899Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 9,
+  "fields": {
+    "name": "Family/all-gender restroom",
+    "created": "2022-04-25T20:34:08.365Z",
+    "modified": "2022-04-25T20:34:08.365Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 10,
+  "fields": {
+    "name": "Lactation room",
+    "created": "2022-04-25T20:34:12.422Z",
+    "modified": "2022-04-25T20:34:12.422Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 11,
+  "fields": {
+    "name": "Fruit tree",
+    "created": "2022-04-25T20:34:15.449Z",
+    "modified": "2022-04-25T20:34:15.449Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 12,
+  "fields": {
+    "name": "Tower garden",
+    "created": "2022-04-25T20:34:18.802Z",
+    "modified": "2022-04-25T20:34:18.802Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 13,
+  "fields": {
+    "name": "Condom dispenser",
+    "created": "2022-04-25T20:34:21.512Z",
+    "modified": "2022-04-25T20:34:21.512Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 14,
+  "fields": {
+    "name": "Knights Pantry donation bin",
+    "created": "2022-04-25T20:34:24.617Z",
+    "modified": "2022-04-25T20:34:24.617Z"
+  }
+},
+{
+  "model": "locations.pointtype",
+  "pk": 15,
+  "fields": {
+    "name": "Public art",
+    "created": "2022-04-25T20:34:28.040Z",
+    "modified": "2022-04-25T20:34:28.040Z"
+  }
+}
+]

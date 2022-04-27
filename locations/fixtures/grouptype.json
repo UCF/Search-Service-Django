@@ -1,0 +1,11 @@
+[
+{
+  "model": "locations.grouptype",
+  "pk": 1,
+  "fields": {
+    "name": "Housing community",
+    "created": "2022-04-25T20:28:50.713Z",
+    "modified": "2022-04-25T20:28:50.713Z"
+  }
+}
+]

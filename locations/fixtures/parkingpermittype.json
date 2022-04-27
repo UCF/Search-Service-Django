@@ -1,0 +1,62 @@
+[
+{
+  "model": "locations.parkingpermittype",
+  "pk": 1,
+  "fields": {
+    "name": "B (Faculty)",
+    "created": "2022-04-25T20:32:43.997Z",
+    "modified": "2022-04-25T20:32:43.997Z",
+    "color": "red"
+  }
+},
+{
+  "model": "locations.parkingpermittype",
+  "pk": 2,
+  "fields": {
+    "name": "D (Students/Visitors)",
+    "created": "2022-04-25T20:32:50.128Z",
+    "modified": "2022-04-25T20:32:50.129Z",
+    "color": "green"
+  }
+},
+{
+  "model": "locations.parkingpermittype",
+  "pk": 3,
+  "fields": {
+    "name": "Event parking",
+    "created": "2022-04-25T20:32:58.309Z",
+    "modified": "2022-04-25T20:32:58.309Z",
+    "color": "beige"
+  }
+},
+{
+  "model": "locations.parkingpermittype",
+  "pk": 4,
+  "fields": {
+    "name": "C (Staff)",
+    "created": "2022-04-25T20:33:04.327Z",
+    "modified": "2022-04-25T20:33:04.327Z",
+    "color": "lightblue"
+  }
+},
+{
+  "model": "locations.parkingpermittype",
+  "pk": 5,
+  "fields": {
+    "name": "R (Residents)",
+    "created": "2022-04-25T20:33:10.165Z",
+    "modified": "2022-04-25T20:33:10.165Z",
+    "color": "orange"
+  }
+},
+{
+  "model": "locations.parkingpermittype",
+  "pk": 6,
+  "fields": {
+    "name": "Towers parking",
+    "created": "2022-04-25T20:33:17.021Z",
+    "modified": "2022-04-25T20:33:17.021Z",
+    "color": "purple"
+  }
+}
+]
