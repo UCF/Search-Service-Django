@@ -8,6 +8,7 @@ from io import BytesIO
 import logging
 import requests
 import json
+import sys
 
 
 class Command(BaseCommand):
@@ -16,7 +17,6 @@ class Command(BaseCommand):
     processed = 0
     created = 0
     updated = 0
-    skipped = 0
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -28,6 +28,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        logging.basicConfig(stream=sys.stdout, level=logging.WARNING)
+
         data_types = options['map_data_types']
         r = requests.get(f"https://map.ucf.edu/locations.json?types={data_types}")
         data = r.json()
@@ -57,71 +59,101 @@ All Finished Importing!
 Processed: {0}
 Created:   {1}
 Updated:   {2}
-Skipped:   {3}
         """.format(
             self.processed,
             self.created,
-            self.updated,
-            self.skipped
+            self.updated
         )
 
         print(stats)
+
+    def get_map_image(self, img_path):
+        '''
+        Fetches and returns a bytes object from map.ucf.edu
+        for the img_path provided.
+        '''
+        photo = None
+
+        if img_path:
+            try:
+                r = requests.get(f"https://map.ucf.edu/media/{img_path}")
+                photo = BytesIO(r.content)
+            except Exception as e:
+                raise
+
+        return photo
+
+    def coords_to_point(self, point_coords):
+        point = None
+
+        if point_coords:
+            try:
+                # This is stupid, but, apparently coordinates that come from
+                # Google Maps put lat/lng coordinates in the reverse order
+                # that we expect. So, we must flip them here:
+                point = Point([point_coords[1], point_coords[0]])
+            except Exception as e:
+                raise
+
+        return point
+
+    def coords_to_polygon(self, poly_coords):
+        poly_list = []
+        poly = None
+
+        for linear_ring in poly_coords:
+            # Make sure this linear ring isn't just a singular point.
+            # Omit it if it doesn't look valid:
+            if len(linear_ring) < 2:
+                continue
+
+            # Somehow some of our existing MapObj coord's don't
+            # always start and end on the same coordinates.
+            # Polygon generation fails if the provided start and
+            # end coords aren't the same, so, try to rectify that here:
+            if linear_ring[0] != linear_ring[-1]:
+                linear_ring.append(linear_ring[0])
+
+            poly_list.append(linear_ring)
+
+        try:
+            poly = GEOSGeometry(json.dumps({
+                "type": "Polygon",
+                "coordinates": poly_list
+            }))
+        except Exception:
+            raise
+
+        return poly
 
     def import_campus(self, row):
         pass
 
     def import_facility(self, row):
         photo = None
-        if row['image']:
-            try:
-                r = requests.get(f"https://map.ucf.edu/media/{row['image']}")
-                photo = BytesIO(r.content)
-            except Exception as e:
-                logging.info('\n Could not download image from map.ucf.edu. Continuing anyway')
+        try:
+            photo = self.get_map_image(row['image'])
+        except:
+            logging.info('\n Could not download image from map.ucf.edu. Continuing anyway')
 
         point = None
-        if row['googlemap_point']:
-            try:
-                # This is stupid, but, apparently coordinates that come from
-                # Google Maps put lat/lng coordinates in the reverse order
-                # that we expect. So, we must flip them here:
-                point = GEOSGeometry(json.dumps({
-                    "type": "Point",
-                    "coordinates": [row['googlemap_point'][1], row['googlemap_point'][0]]
-                }))
-            except Exception as e:
-                print(f"Error while importing facility with bldg ID {row['id']} ({row['name']}): {e}")
-                self.skipped += 1
-                return
+        try:
+            point = self.coords_to_point(row['googlemap_point'])
+        except:
+            logging.warning(f"Could not generate a point with coordinates provided for bldg ID {row['id']} ({row['name']}). Importing facility, but omitting point data.")
+
 
         poly = None
         if row['poly_coords']:
             # Try to catch multipolygons inappropriately stored
             # as polygons in Map.  TODO save these somehow?
             if len(row['poly_coords'][0]) == 1:
-                print(f"Multipolygon coords provided for polygon for bldg ID {row['id']} ({row['name']}). Importing facility, but omitting polygon data.")
+                logging.warning(f"Multipolygon coords provided for polygon for bldg ID {row['id']} ({row['name']}). Importing facility, but omitting polygon data.")
             else:
-                # Somehow some of our existing MapObj coord's don't
-                # always start and end on the same coordinates.
-                # Polygon generation fails if the provided start and
-                # end coords aren't the same, so, try to rectify that here:
-                poly_list = []
-
-                for linear_ring in row['poly_coords']:
-                    if linear_ring[0] != linear_ring[-1]:
-                        linear_ring.append(linear_ring[0])
-
-                    poly_list.append(linear_ring)
-
                 try:
-                    poly = GEOSGeometry(json.dumps({
-                        "type": "Polygon",
-                        "coordinates": poly_list
-                    }))
+                    poly = self.coords_to_polygon(row['poly_coords'])
                 except Exception as e:
-                    print(f"Error while importing facility with bldg ID {row['id']} ({row['name']}): {e}")
-                    self.skipped += 1
-                    return
+                    logging.warning(f"Omitting polygon data--could not generate a polygon for bldg ID {row['id']} ({row['name']}): {e}")
 
         try:
             existing_facility = Facility.objects.get(building_id=row['id'])
