@@ -43,7 +43,7 @@ class Command(BaseCommand):
                 self.import_campus(row)
             elif row['object_type'] == 'building':
                 self.import_facility(row)
-            elif row['object_type'] == 'parking':
+            elif row['object_type'] == 'parkinglot':
                 self.import_parking_lot(row)
             elif row['object_type'] == 'dininglocation':
                 self.import_location(row)
@@ -166,6 +166,11 @@ Updated:   {2}
             existing_facility.poly_coords = poly
 
             if photo:
+                try:
+                    existing_facility.photo.delete()
+                except:
+                    pass
+
                 existing_facility.photo.save(
                     name=Path(row['image']).name,
                     content=File(photo),
@@ -200,10 +205,154 @@ Updated:   {2}
         self.processed += 1
 
     def import_parking_lot(self, row):
-        pass
+        photo = None
+        try:
+            photo = self.get_map_image(row['image'])
+        except:
+            logging.info('\n Could not download image from map.ucf.edu. Continuing anyway')
+
+        point = None
+        try:
+            point = self.coords_to_point(row['googlemap_point'])
+        except:
+            logging.warning(f"Could not generate a point with coordinates provided for bldg ID {row['id']} ({row['name']}). Importing parking lot, but omitting point data.")
+
+
+        poly = None
+        if row['poly_coords']:
+            # Try to catch multipolygons inappropriately stored
+            # as polygons in Map.  TODO save these somehow?
+            if len(row['poly_coords'][0]) == 1:
+                logging.warning(f"Multipolygon coords provided for polygon for bldg ID {row['id']} ({row['name']}). Importing parking lot, but omitting polygon data.")
+            else:
+                try:
+                    poly = self.coords_to_polygon(row['poly_coords'])
+                except Exception as e:
+                    logging.warning(f"Omitting polygon data--could not generate a polygon for bldg ID {row['id']} ({row['name']}): {e}")
+
+        try:
+            existing_parkinglot = ParkingLot.objects.get(building_id=row['id'])
+            existing_parkinglot.name = row['name']
+            existing_parkinglot.building_id = row['id']
+            existing_parkinglot.abbreviation = row['abbreviation']
+            existing_parkinglot.description = row['profile']
+            existing_parkinglot.point_coords = point
+            existing_parkinglot.poly_coords = poly
+
+            if photo:
+                try:
+                    existing_parkinglot.photo.delete()
+                except:
+                    pass
+
+                existing_parkinglot.photo.save(
+                    name=Path(row['image']).name,
+                    content=File(photo),
+                    save=False
+                )
+
+            existing_parkinglot.save()
+
+            self.updated += 1
+        except ParkingLot.DoesNotExist:
+            new_parkinglot = ParkingLot(
+                name = row['name'],
+                building_id = row['id'],
+                abbreviation = row['abbreviation'],
+                description = row['profile'],
+                point_coords = point,
+                poly_coords = poly
+            )
+
+            if photo:
+                new_parkinglot.photo.save(
+                    name=Path(row['image']).name,
+                    content=File(photo),
+                    save=False
+                )
+
+            new_parkinglot.save()
+
+            self.created += 1
+
+        self.processed += 1
 
     def import_location(self, row):
-        pass
+        photo = None
+        try:
+            photo = self.get_map_image(row['image'])
+        except:
+            logging.info('\n Could not download image from map.ucf.edu. Continuing anyway')
+
+        point = None
+        try:
+            point = self.coords_to_point(row['googlemap_point'])
+        except:
+            logging.warning(f"Could not generate a point with coordinates provided for bldg ID {row['id']} ({row['name']}). Importing facility, but omitting point data.")
+
+
+        poly = None
+        if row['poly_coords']:
+            # Try to catch multipolygons inappropriately stored
+            # as polygons in Map.  TODO save these somehow?
+            if len(row['poly_coords'][0]) == 1:
+                logging.warning(f"Multipolygon coords provided for polygon for bldg ID {row['id']} ({row['name']}). Importing facility, but omitting polygon data.")
+            else:
+                try:
+                    poly = self.coords_to_polygon(row['poly_coords'])
+                except Exception as e:
+                    logging.warning(f"Omitting polygon data--could not generate a polygon for bldg ID {row['id']} ({row['name']}): {e}")
+
+        dining_location = LocationType.objects.get(name='Dining')
+
+        try:
+            existing_location = Location.objects.get(import_id=row['id'])
+            existing_location.name = row['name']
+            existing_location.import_id = row['id']
+            existing_location.description = row['profile']
+            existing_location.location_type = dining_location
+            existing_location.profile_url = row['profile_link']
+            existing_location.point_coords = point
+            existing_location.poly_coords = poly
+
+            if photo:
+                try:
+                    existing_location.photo.delete()
+                except:
+                    pass
+
+                existing_location.photo.save(
+                    name=Path(row['image']).name,
+                    content=File(photo),
+                    save=False
+                )
+
+            existing_location.save()
+
+            self.updated += 1
+        except Location.DoesNotExist:
+            new_location = Location(
+                name = row['name'],
+                import_id = row['id'],
+                description = row['profile'],
+                location_type = dining_location,
+                profile_url = row['profile_link'],
+                point_coords = point,
+                poly_coords = poly
+            )
+
+            if photo:
+                new_location.photo.save(
+                    name=Path(row['image']).name,
+                    content=File(photo),
+                    save=False
+                )
+
+            new_location.save()
+
+            self.created += 1
+
+        self.processed += 1
 
     def import_point_of_interest(self, row):
         pass

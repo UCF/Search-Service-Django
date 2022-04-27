@@ -161,6 +161,7 @@ class Location(models.Model):
     name = models.CharField(max_length=255)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    import_id = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     photo = models.ImageField(upload_to='uploads/images', null=True, blank=True)
     location_type = models.ForeignKey(LocationType, on_delete=models.SET_NULL, null=True, blank=True)
