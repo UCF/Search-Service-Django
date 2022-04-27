@@ -38,6 +38,7 @@ setup(
         'mysqlclient',
         'Pillow==9.0.1',
         'progress',
+        # 'psycopg2',
         'python-dateutil',
         'python-Levenshtein',
         'raven',
