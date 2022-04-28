@@ -9,7 +9,10 @@ asgiref==3.3.4
 beautifulsoup4==4.9.3
     # via UCF-Search-Service-Django (setup.py)
 boto3==1.17.85
-    # via UCF-Search-Service-Django (setup.py)
+    # via
+    #   UCF-Search-Service-Django (setup.py)
+    #   django-s3-file-field
+    #   django-storages
 botocore==1.20.85
     # via
     #   boto3
@@ -24,6 +27,8 @@ django==3.2.13
     #   django-cors-headers
     #   django-filter
     #   django-mysql
+    #   django-s3-file-field
+    #   django-storages
     #   djangorestframework
 django-cors-headers==3.7.0
     # via UCF-Search-Service-Django (setup.py)
@@ -31,10 +36,18 @@ django-filter==2.4.0
     # via UCF-Search-Service-Django (setup.py)
 django-mysql==3.11.1
     # via UCF-Search-Service-Django (setup.py)
+django-s3-file-field[boto3]==0.3.0
+    # via UCF-Search-Service-Django (setup.py)
+django-storages[boto3]==1.12.3
+    # via
+    #   UCF-Search-Service-Django (setup.py)
+    #   django-s3-file-field
 django-widget-tweaks==1.4.8
     # via UCF-Search-Service-Django (setup.py)
 djangorestframework==3.12.4
-    # via UCF-Search-Service-Django (setup.py)
+    # via
+    #   UCF-Search-Service-Django (setup.py)
+    #   django-s3-file-field
 drf-dynamic-fields==0.3.1
     # via UCF-Search-Service-Django (setup.py)
 fuzzywuzzy==0.18.0
@@ -54,8 +67,6 @@ mysqlclient==2.0.3
 pillow==9.0.1
     # via UCF-Search-Service-Django (setup.py)
 progress==1.5
-    # via UCF-Search-Service-Django (setup.py)
-# psycopg2==2.9.3
     # via UCF-Search-Service-Django (setup.py)
 python-dateutil==2.8.1
     # via

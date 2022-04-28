@@ -30,6 +30,8 @@ setup(
         'djangorestframework',
         'django-filter',
         'django_mysql',
+        'django-storages',
+        'django-s3-file-field[boto3]',
         'django-widget-tweaks',
         'drf-dynamic-fields',
         'fuzzywuzzy',

@@ -54,7 +54,12 @@ urlpatterns = [
         r'^manager/logout/$',
         LogoutView.as_view(template_name='logout.html'), name='logout'
     ),
-    url(r'^',
+    url(
+        r'^s3-upload/',
+        include('s3_file_field.urls')
+    ),
+    url(
+        r'^',
         include('core.urls')
     )
 ]

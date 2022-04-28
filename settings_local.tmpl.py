@@ -168,14 +168,29 @@ UCF_EVENTS_API = 'https://events.ucf.edu'
 # The URL to the Search Service API
 UCF_SEARCH_SERVICE_API = 'https://search.cm.ucf.edu'
 
-# An AWS Access Key ID with sufficient permissions to access Rekognition.
+# An AWS Access Key ID with sufficient permissions to access
+# Rekognition and S3.
 AWS_ACCESS_KEY = ''
+AWS_ACCESS_KEY_ID = AWS_ACCESS_KEY # for django-storages
 
-# An AWS Secret Key for accessing Rekognition.
+# An AWS Secret Key for accessing Rekognition and S3.
 AWS_SECRET_KEY = ''
+AWS_SECRET_ACCESS_KEY = AWS_SECRET_KEY # for django-storages
 
-# The region name to use when accessing Rekognition.
+# The region name to use when accessing Rekognition and S3.
 AWS_REGION = 'us-east-1'
+S3UPLOAD_REGION = AWS_REGION # for django-storages
+
+# Signature version for generating presigned urls for
+# interfacing with S3.
+# https://github.com/jschneier/django-storages/issues/782#issuecomment-588527860
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+
+# ACL to assign to files uploaded to S3
+AWS_DEFAULT_ACL = 'public-read'
+
+# The bucket name for all files uploaded from this project
+AWS_STORAGE_BUCKET_NAME = ''
 
 # Conditional outcomes for setting the default program profile
 PROGRAM_PROFILE = [

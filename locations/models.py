@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.contrib.gis.db import models as gismodels
+from s3_file_field import S3FileField
 
 
 # Table Models
@@ -36,7 +37,7 @@ class Campus(models.Model):
     site_id = models.CharField(max_length=20, null=True, blank=True)
     import_id = models.CharField(max_length=255, null=True, blank=True)
     campus_type = models.ForeignKey(CampusType, on_delete=models.SET_NULL, null=True, blank=True)
-    photo = models.ImageField(upload_to='uploads/images', null=True, blank=True)
+    photo = S3FileField(upload_to='locations', null=True, blank=True)
     profile_url = models.URLField(blank=True)
     point_coords = gismodels.PointField(blank=True)
 
@@ -63,7 +64,7 @@ class Facility(models.Model):
     building_id = models.CharField(max_length=255, blank=True)
     abbreviation = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    photo = models.ImageField(upload_to='uploads/images', null=True, blank=True)
+    photo = S3FileField(upload_to='locations', null=True, blank=True)
     profile_url = models.URLField(blank=True)
     point_coords = gismodels.PointField(null=True, blank=True)
     poly_coords = gismodels.PolygonField(null=True, blank=True)
@@ -91,7 +92,7 @@ class ParkingLot(models.Model):
     building_id = models.CharField(max_length=255, blank=True)
     abbreviation = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    photo = models.ImageField(upload_to='uploads/images', null=True, blank=True)
+    photo = S3FileField(upload_to='locations', null=True, blank=True)
     point_coords = gismodels.PointField(null=True, blank=True)
     poly_coords = gismodels.PolygonField(null=True, blank=True)
 
@@ -166,7 +167,7 @@ class Location(models.Model):
     modified = models.DateTimeField(auto_now=True)
     import_id = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    photo = models.ImageField(upload_to='uploads/images', null=True, blank=True)
+    photo = S3FileField(upload_to='locations', null=True, blank=True)
     location_type = models.ForeignKey(LocationType, on_delete=models.SET_NULL, null=True, blank=True)
     profile_url = models.URLField(blank=True)
     point_coords = gismodels.PointField(null=True, blank=True)
@@ -207,7 +208,7 @@ class PointOfInterest(models.Model):
     modified = models.DateTimeField(auto_now=True)
     import_id = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    photo = models.ImageField(upload_to='uploads/images', null=True, blank=True)
+    photo = S3FileField(upload_to='locations', null=True, blank=True)
     point_type = models.ForeignKey(PointType, on_delete=models.SET_NULL, null=True, blank=True)
     point_coords = gismodels.PointField(null=True, blank=True)
     poly_coords = gismodels.PolygonField(null=True, blank=True)
