@@ -1,0 +1,197 @@
+[
+{
+  "model": "locations.campus",
+  "pk": 1,
+  "fields": {
+    "name": "Altamonte Springs",
+    "created": "2022-04-27T16:31:31.297Z",
+    "modified": "2022-04-28T20:26:37.899Z",
+    "site_id": "0026",
+    "import_id": "altamonte-springs",
+    "campus_type": 2,
+    "photo": "locations/AltamonteNursing.jpg",
+    "profile_url": "https://map.ucf.edu/locations/altamonte-springs/",
+    "point_coords": "SRID=4326;POINT (-81.41574 28.646597)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 2,
+  "fields": {
+    "name": "Cocoa",
+    "created": "2022-04-27T16:31:31.554Z",
+    "modified": "2022-04-28T20:26:39.708Z",
+    "site_id": "0003",
+    "import_id": "cocoa",
+    "campus_type": 2,
+    "photo": "locations/cocoa.jpg",
+    "profile_url": "https://map.ucf.edu/locations/cocoa/",
+    "point_coords": "SRID=4326;POINT (-80.757025 28.385403)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 3,
+  "fields": {
+    "name": "College of Medicine",
+    "created": "2022-04-27T16:31:31.559Z",
+    "modified": "2022-04-28T20:26:39.715Z",
+    "site_id": "0016",
+    "import_id": "college-of-medicine",
+    "campus_type": 1,
+    "photo": "",
+    "profile_url": "https://www.ucf.edu/location/college-of-medicine",
+    "point_coords": "SRID=4326;POINT (-81.28056450135801 28.367624023869666)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 4,
+  "fields": {
+    "name": "Daytona Beach",
+    "created": "2022-04-27T16:31:31.819Z",
+    "modified": "2022-04-28T20:26:41.458Z",
+    "site_id": "0006",
+    "import_id": "daytona-beach",
+    "campus_type": 2,
+    "photo": "locations/daytona-beach.jpg",
+    "profile_url": "https://map.ucf.edu/locations/daytona-beach/",
+    "point_coords": "SRID=4326;POINT (-81.048013 29.200747)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 5,
+  "fields": {
+    "name": "Downtown",
+    "created": "2022-04-27T16:31:31.825Z",
+    "modified": "2022-04-28T20:26:41.464Z",
+    "site_id": "0017",
+    "import_id": "downtown",
+    "campus_type": 1,
+    "photo": "",
+    "profile_url": "https://www.ucf.edu/location/downtown",
+    "point_coords": "SRID=4326;POINT (-81.38543128967285 28.547222478314342)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 6,
+  "fields": {
+    "name": "Ocala",
+    "created": "2022-04-27T16:31:32.033Z",
+    "modified": "2022-04-28T20:26:42.023Z",
+    "site_id": "0020",
+    "import_id": "ocala",
+    "campus_type": 2,
+    "photo": "locations/ocala.jpg",
+    "profile_url": "https://map.ucf.edu/locations/ocala/",
+    "point_coords": "SRID=4326;POINT (-82.173455 29.163613)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 8,
+  "fields": {
+    "name": "Rosen College of Hospitality Management",
+    "created": "2022-04-27T16:31:32.042Z",
+    "modified": "2022-04-28T20:26:42.036Z",
+    "site_id": "0015",
+    "import_id": "rosen-college",
+    "campus_type": 1,
+    "photo": "",
+    "profile_url": "https://www.ucf.edu/location/rosen-college-of-hospitality-management",
+    "point_coords": "SRID=4326;POINT (-81.4417503015747 28.42823781733697)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 9,
+  "fields": {
+    "name": "Sanford/Lake Mary",
+    "created": "2022-04-27T16:31:32.258Z",
+    "modified": "2022-04-28T20:26:43.070Z",
+    "site_id": "0018",
+    "import_id": "sanford-lake-mary",
+    "campus_type": 2,
+    "photo": "locations/sanford-lake-mary.jpg",
+    "profile_url": "https://map.ucf.edu/locations/sanford-lake-mary/sanfordlake-mary/",
+    "point_coords": "SRID=4326;POINT (-81.304665 28.745686)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 10,
+  "fields": {
+    "name": "South Lake",
+    "created": "2022-04-27T16:31:32.484Z",
+    "modified": "2022-04-28T20:26:43.730Z",
+    "site_id": "0019",
+    "import_id": "south-lake",
+    "campus_type": 2,
+    "photo": "locations/south-lake.jpg",
+    "profile_url": "https://map.ucf.edu/locations/south-lake/",
+    "point_coords": "SRID=4326;POINT (-81.708515 28.551308)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 11,
+  "fields": {
+    "name": "UCF Main Campus",
+    "created": "2022-04-27T16:31:32.489Z",
+    "modified": "2022-04-28T20:26:43.737Z",
+    "site_id": "0001",
+    "import_id": "ucf-main-campus",
+    "campus_type": 1,
+    "photo": "",
+    "profile_url": "https://www.ucf.edu/location/ucf-main-campus",
+    "point_coords": "SRID=4326;POINT (-81.20010137557983 28.60269526019405)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 12,
+  "fields": {
+    "name": "Valencia East",
+    "created": "2022-04-27T16:31:32.702Z",
+    "modified": "2022-04-28T20:26:44.349Z",
+    "site_id": "0021",
+    "import_id": "valencia-east",
+    "campus_type": 2,
+    "photo": "locations/Valencia-East.jpg",
+    "profile_url": "https://map.ucf.edu/locations/valencia-east/",
+    "point_coords": "SRID=4326;POINT (-81.251002 28.553904)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 13,
+  "fields": {
+    "name": "Valencia Osceola",
+    "created": "2022-04-27T16:31:32.935Z",
+    "modified": "2022-04-28T20:26:44.993Z",
+    "site_id": "0023",
+    "import_id": "valencia-osceola",
+    "campus_type": 2,
+    "photo": "locations/valencia-osceola.jpg",
+    "profile_url": "https://map.ucf.edu/locations/valencia-osceola/",
+    "point_coords": "SRID=4326;POINT (-81.381854 28.306583)"
+  }
+},
+{
+  "model": "locations.campus",
+  "pk": 14,
+  "fields": {
+    "name": "Valencia West",
+    "created": "2022-04-27T16:31:33.159Z",
+    "modified": "2022-04-28T20:26:45.475Z",
+    "site_id": "0024",
+    "import_id": "valencia-west",
+    "campus_type": 2,
+    "photo": "locations/valencia-west.jpg",
+    "profile_url": "https://map.ucf.edu/locations/valencia-west/",
+    "point_coords": "SRID=4326;POINT (-81.463461 28.521904)"
+  }
+}
+]
