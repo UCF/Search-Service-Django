@@ -33,8 +33,11 @@ class Campus(models.Model):
     name = models.CharField(max_length=255)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    site_id = models.CharField(max_length=20, blank=True)
+    site_id = models.CharField(max_length=20, null=True, blank=True)
+    import_id = models.CharField(max_length=255, null=True, blank=True)
     campus_type = models.ForeignKey(CampusType, on_delete=models.SET_NULL, null=True, blank=True)
+    photo = models.ImageField(upload_to='uploads/images', null=True, blank=True)
+    profile_url = models.URLField(blank=True)
     point_coords = gismodels.PointField(blank=True)
 
     class Meta:
@@ -202,6 +205,7 @@ class PointOfInterest(models.Model):
     name = models.CharField(max_length=255)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    import_id = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     photo = models.ImageField(upload_to='uploads/images', null=True, blank=True)
     point_type = models.ForeignKey(PointType, on_delete=models.SET_NULL, null=True, blank=True)
@@ -242,10 +246,10 @@ class Group(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     group_type = models.ForeignKey(GroupType, on_delete=models.SET_NULL, null=True, blank=True)
-    facilities = models.ManyToManyField(GroupType, related_name='facility_groups')
-    parking_lots = models.ManyToManyField(GroupType, related_name='parking_lot_groups')
-    locations = models.ManyToManyField(GroupType, related_name='location_groups')
-    points_of_interest = models.ManyToManyField(GroupType, related_name='point_groups')
+    facilities = models.ManyToManyField(Facility, related_name='facility_groups', blank=True)
+    parking_lots = models.ManyToManyField(ParkingLot, related_name='parking_lot_groups', blank=True)
+    locations = models.ManyToManyField(Location, related_name='location_groups', blank=True)
+    points_of_interest = models.ManyToManyField(PointOfInterest, related_name='point_groups', blank=True)
 
     def __unicode__(self):
         return self.name
