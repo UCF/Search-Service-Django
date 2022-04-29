@@ -28,10 +28,6 @@ src/components/*
 node_modules/*
 gulp-config.json
 
-
-# Uploads
-media/*
-
 # Static Files
 static/admin/*
 static/rest_framework/*
