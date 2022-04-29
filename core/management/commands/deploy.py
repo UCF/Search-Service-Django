@@ -5,5 +5,6 @@ class Command(BaseCommand):
     help = 'Runs deployment related tasks.'
 
     def handle(self, *args, **options):
-        call_command('migrate')
+        call_command('migrate', 'locations', '--database=locations')
+        call_command('migrate', '--database=default')
         call_command('collectstatic', '--link', '--no-input')

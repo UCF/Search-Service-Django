@@ -111,7 +111,7 @@ LOGIN_URL = '/manager/login/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-DATABASE_ROUTERS = ['locations.routers.LocationRouter']
+DATABASE_ROUTERS = ['core.routers.LocationRouter']
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
