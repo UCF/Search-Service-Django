@@ -142,6 +142,7 @@ class ParkingLotAdmin(admin.ModelAdmin):
 @admin.register(ParkingZone)
 class ParkingZoneAdmin(admin.ModelAdmin):
     ordering = ['name']
+    autocomplete_fields = ['permit_types']
 
     formfield_overrides = {
         gismodels.PointField: {
@@ -174,6 +175,7 @@ class ParkingZoneAdmin(admin.ModelAdmin):
 @admin.register(ParkingPermitType)
 class ParkingPermitTypeAdmin(admin.ModelAdmin):
     ordering = ['name']
+    search_fields = ['name']
 
 
 @admin.register(Location)
