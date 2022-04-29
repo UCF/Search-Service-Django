@@ -59,6 +59,7 @@ class CampusTypeAdmin(admin.ModelAdmin):
 class FacilityAdmin(admin.ModelAdmin):
     list_display = ('name', 'building_id', 'abbreviation', 'has_point', 'has_polygon')
     ordering = ['name']
+    search_fields = ['name', 'building_id', 'abbreviation']
 
     formfield_overrides = {
         gismodels.PointField: {
@@ -100,6 +101,7 @@ class FacilityAdmin(admin.ModelAdmin):
 class ParkingLotAdmin(admin.ModelAdmin):
     list_display = ('name', 'building_id', 'abbreviation', 'has_point', 'has_polygon')
     ordering = ['name']
+    search_fields = ['name', 'building_id', 'abbreviation']
 
     formfield_overrides = {
         gismodels.PointField: {
@@ -178,6 +180,7 @@ class ParkingPermitTypeAdmin(admin.ModelAdmin):
 class LocationAdmin(admin.ModelAdmin):
     list_display = ('name', 'import_id', 'location_type', 'has_point', 'has_polygon')
     ordering = ['name']
+    search_fields = ['name']
 
     formfield_overrides = {
         gismodels.PointField: {
@@ -236,6 +239,7 @@ class LocationTypeAdmin(admin.ModelAdmin):
 class PointOfInterestAdmin(admin.ModelAdmin):
     list_display = ('name', 'point_type', 'has_point', 'has_polygon')
     ordering = ['name']
+    search_fields = ['name']
 
     formfield_overrides = {
         gismodels.PointField: {
@@ -293,6 +297,7 @@ class PointTypeAdmin(admin.ModelAdmin):
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
     ordering = ['name']
+    autocomplete_fields = ['facilities', 'parking_lots', 'locations', 'points_of_interest']
 
 
 @admin.register(GroupType)
