@@ -192,6 +192,12 @@ AWS_DEFAULT_ACL = 'public-read'
 # The bucket name for all files uploaded from this project
 AWS_STORAGE_BUCKET_NAME = ''
 
+# Settings for OSMWidgets for point, polygon fields
+# in the locations app
+LOCATIONS_OSMWIDGET_DEFAULT_LAT = 28.6025
+LOCATIONS_OSMWIDGET_DEFAULT_LON = -81.20010137557983
+LOCATIONS_OSMWIDGET_DEFAULT_ZOOM = 15
+
 # Conditional outcomes for setting the default program profile
 PROGRAM_PROFILE = [
     {

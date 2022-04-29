@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from django.conf import settings
 from django.urls import reverse
 from django.utils.html import mark_safe
 from django.contrib import admin
@@ -23,9 +24,9 @@ class CampusAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
@@ -65,9 +66,9 @@ class FacilityAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
@@ -77,9 +78,9 @@ class FacilityAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
@@ -106,9 +107,9 @@ class ParkingLotAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
@@ -118,9 +119,9 @@ class ParkingLotAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
@@ -146,9 +147,9 @@ class ParkingZoneAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
@@ -158,9 +159,9 @@ class ParkingZoneAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
@@ -184,9 +185,9 @@ class LocationAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
@@ -196,9 +197,9 @@ class LocationAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
@@ -242,9 +243,21 @@ class PointOfInterestAdmin(admin.ModelAdmin):
                 attrs={
                     'map_width': 800,
                     'map_height': 500,
-                    'default_lat': 28.6025,
-                    'default_lon': -81.20010137557983,
-                    'default_zoom': 15,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
+                    'display_raw': True
+                }
+            )
+        },
+        gismodels.PolygonField: {
+            'widget': gisforms.OSMWidget(
+                attrs={
+                    'map_width': 800,
+                    'map_height': 500,
+                    'default_lat': settings.LOCATIONS_OSMWIDGET_DEFAULT_LAT,
+                    'default_lon': settings.LOCATIONS_OSMWIDGET_DEFAULT_LON,
+                    'default_zoom': settings.LOCATIONS_OSMWIDGET_DEFAULT_ZOOM,
                     'display_raw': True
                 }
             )
