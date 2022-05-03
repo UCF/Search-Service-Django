@@ -32,6 +32,7 @@ INSTALLED_APPS = [
 
     # 3rd party
     'rest_framework',
+    'rest_framework_gis',
     'django_filters',
     'rest_framework.authtoken',
     'drf_dynamic_fields',

@@ -28,6 +28,7 @@ setup(
         'Django==3.2.13',
         'django-cors-headers',
         'djangorestframework',
+        'djangorestframework-gis',
         'django-filter',
         'django_mysql',
         'django-storages',

@@ -48,6 +48,9 @@ djangorestframework==3.12.4
     # via
     #   UCF-Search-Service-Django (setup.py)
     #   django-s3-file-field
+    #   djangorestframework-gis
+djangorestframework-gis==0.18
+    # via UCF-Search-Service-Django (setup.py)
 drf-dynamic-fields==0.3.1
     # via UCF-Search-Service-Django (setup.py)
 fuzzywuzzy==0.18.0
