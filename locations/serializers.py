@@ -4,11 +4,13 @@ from locations.models import *
 
 class CampusTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
+        fields = ['id', 'name']
         model = CampusType
 
 
 class CampusSerializer(serializers.ModelSerializer):
+    campus_type = CampusTypeSerializer()
+
     class Meta:
         fields = '__all__'
         model = Campus
