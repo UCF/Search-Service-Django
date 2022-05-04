@@ -1,4 +1,4 @@
-from django.conf.urls import url, include
+from django.conf.urls import url
 
 from locations.views import *
 
@@ -6,6 +6,10 @@ urlpatterns = [
     url(r'^campuses/$',
         CampusListView.as_view(),
         name='api.campuses.list'
+        ),
+    url(r'^campuses/kml/$',
+        CampusListKMLView.as_view(),
+        name='api.campuses.kml'
         ),
     url(
         r'^campuses/types/$',
@@ -16,9 +20,17 @@ urlpatterns = [
         FacilityListView.as_view(),
         name='api.facilities.list'
         ),
+    url(r'^facilities/kml/$',
+        FacilityListKMLView.as_view(),
+        name='api.facilities.kml'
+        ),
     url(r'^parking/$',
         ParkingLotListView.as_view(),
         name='api.parking.list'
+        ),
+    url(r'^parking/kml/$',
+        ParkingLotListKMLView.as_view(),
+        name='api.parking.kml'
         ),
     url(r'^parking/permit-types/$',
         ParkingPermitTypeListView.as_view(),
@@ -28,9 +40,17 @@ urlpatterns = [
         ParkingZoneListView.as_view(),
         name='api.parking.zones.list'
         ),
+    url(r'^parking/zones/kml/$',
+        ParkingZoneListKMLView.as_view(),
+        name='api.parking.zones.kml'
+        ),
     url(r'^locations/$',
         LocationListView.as_view(),
         name='api.locations.list'
+        ),
+    url(r'^locations/kml/$',
+        LocationListKMLView.as_view(),
+        name='api.locations.kml'
         ),
     url(r'^locations/types/$',
         LocationTypeListView.as_view(),
@@ -40,6 +60,10 @@ urlpatterns = [
         PointOfInterestListView.as_view(),
         name='api.pointsofinterest.list'
         ),
+    url(r'^points-of-interest/kml/$',
+        PointOfInterestListKMLView.as_view(),
+        name='api.pointsofinterest.kml'
+        ),
     url(r'^points-of-interest/types/$',
         PointTypeListView.as_view(),
         name='api.pointsofinterest.types.list'
@@ -47,6 +71,10 @@ urlpatterns = [
     url(r'^groups/$',
         GroupListView.as_view(),
         name='api.groups.list'
+        ),
+    url(r'^groups/kml/$',
+        GroupListKMLView.as_view(),
+        name='api.groups.kml'
         ),
     url(r'^groups/types/$',
         GroupTypeListView.as_view(),

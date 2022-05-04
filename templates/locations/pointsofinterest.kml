@@ -1,0 +1,31 @@
+{% extends 'gis/kml/base.kml' %}
+
+{% block name %}
+<name>UCF Points of Interest - TODO</name>
+
+<Schema name="campus" id="campus">
+  <SimpleField name="site_id" type="string"></SimpleField>
+  <SimpleField name="import_id" type="string"></SimpleField>
+  <SimpleField name="campus_type" type="string"></SimpleField>
+  <SimpleField name="photo" type="string"></SimpleField>
+  <SimpleField name="profile_url" type="string"></SimpleField>
+</Schema>
+{% endblock %}
+
+{% block placemarks %}
+{% for obj in data %}
+<Placemark id="{{ obj.pk }}">
+  <name>{{ obj.name }}</name>
+  {{ obj.point_coords.kml|safe }}
+  <ExtendedData>
+    <SchemaData schemaUrl="#campus">
+      <SimpleField name="site_id" type="string">{{ obj.site_id }}</SimpleField>
+      <SimpleField name="import_id" type="string">{{ obj.import_id }}</SimpleField>
+      <SimpleField name="campus_type" type="string">{{ obj.campus_type.name }}</SimpleField>
+      <SimpleField name="photo" type="string">{% if obj.photo %}{{ obj.photo.url }}{% endif %}</SimpleField>
+      <SimpleField name="profile_url" type="string">{{ obj.profile_url }}</SimpleField>
+    </SchemaData>
+  </ExtendedData>
+</Placemark>
+{% endfor %}
+{% endblock %}
