@@ -5,12 +5,26 @@ from research.models import *
 from teledata.serializers import StaffContactSerializer
 from units.serializers import EmployeeSerializer
 
+class ResearcherSimpleSerializer(serializers.ModelSerializer):
+    employee_id = serializers.CharField(source='employee_record.ext_employee_id')
+
+    class Meta:
+        fields = (
+            'id',
+            'orcid_id',
+            'name_formatted_title',
+            'name_formatted_no_title',
+            'employee_id'
+        )
+        model = Researcher
+
 class ResearcherEducationSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = ResearcherEducation
 
 class BookSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
@@ -26,6 +40,7 @@ class BookSerializer(serializers.ModelSerializer):
         model = Book
 
 class ArticleSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
@@ -43,6 +58,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         model = Article
 
 class BookChapterSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
@@ -60,6 +76,7 @@ class BookChapterSerializer(serializers.ModelSerializer):
         model = BookChapter
 
 class ConferenceProceedingSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
@@ -77,6 +94,7 @@ class ConferenceProceedingSerializer(serializers.ModelSerializer):
         model = ConferenceProceeding
 
 class GrantSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
@@ -96,6 +114,7 @@ class GrantSerializer(serializers.ModelSerializer):
         model = Grant
 
 class HonorificAwardSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
@@ -110,6 +129,7 @@ class HonorificAwardSerializer(serializers.ModelSerializer):
         model = HonorificAward
 
 class PatentSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
@@ -127,6 +147,7 @@ class PatentSerializer(serializers.ModelSerializer):
         model = Patent
 
 class ClinicalTrialSerializer(serializers.ModelSerializer):
+    researchers = ResearcherSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         fields = [
