@@ -11,7 +11,6 @@ class ResearcherSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
             'id',
-            'id',
             'orcid_id',
             'name_formatted_title',
             'name_formatted_no_title',
