@@ -155,7 +155,6 @@ class CIP(models.Model):
             self.version
         )
 
-
 class JobPosition(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
 
@@ -544,7 +543,9 @@ class Program(models.Model):
 
     @property
     def careers(self):
-        return self.current_occupations.filter(jobs__isnull=False).values_list('jobs__name', flat=True).distinct()
+        return JobPosition.objects.filter(
+            pk__in=self.current_occupations.filter(jobs__isnull=False).values_list('jobs', flat=True).distinct()
+        )
 
     @property
     def primary_profile_type(self):
@@ -730,6 +731,15 @@ class CollegeOverride(models.Model):
             return '{0} {1} - {2} Override'.format(self.plan_code, self.subplan_code, self.college.short_name)
 
         return '{0} - {1} Tuition Override'.format(self.plan_code, self.college.short_name)
+
+
+class WeightedJobPosition(models.Model):
+    program = models.ForeignKey(Program, related_name='weighted_jobs', on_delete=models.CASCADE)
+    job = models.ForeignKey(JobPosition, related_name='weighted_positions', on_delete=models.CASCADE)
+    weight = models.FloatField(null=False, blank=False, default=0.0)
+
+    def __str__(self):
+        return f"{self.program.name} - {self.career.name}"
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

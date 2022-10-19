@@ -31,6 +31,11 @@ urlpatterns = [
         name='api.programs.careers'
         ),
     url(
+        r'^programs/(?P<id>\d+)/careers/ranked/$',
+        WeighedProgramView.as_view(),
+        name='api.programs.careers.ranked'
+    ),
+    url(
         r'^programs/(?P<id>\d+)/deadlines/$',
         ApplicationDeadlinesView.as_view(),
         name='api.programs.deadlines'

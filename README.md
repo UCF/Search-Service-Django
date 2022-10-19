@@ -37,6 +37,12 @@ NOTE: to build/test Archimedes, you must set `LOCAL = True` in your settings_loc
 2. Run `ng build --watch` to view app during development.
 3. Run `ng build -c production` to compile angular js for production environment.
 
+## DEV Package Installation
+
+There are some additional libraries necessary to run some of the management command scripts not meant to be run on a server. For example, the `manage.py rank-careers` command uses the `spacy` package and its associated library of words, which can take up around .5GB of space, so we want to avoid installing that on servers.
+
+The install these additional packages, run the following: `pip install -r dev-requirements.txt`.
+
 ## Installation Notes
 The pip dependency `lxml` requires some additional libraries to be installed on the server the application is running on. You can run the following commands to install:
 

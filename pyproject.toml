@@ -1,0 +1,34 @@
+
+[project]
+name = "UCF_Search_Service_Django"
+version = "2.6.2"
+dependencies = [
+    "beautifulsoup4",
+    "boto3",
+    "Django==3.2.13",
+    "django-cors-headers",
+    "djangorestframework",
+    "django-filter",
+    "django_mysql",
+    "django-widget-tweaks",
+    "drf-dynamic-fields",
+    "fuzzywuzzy",
+    "gunicorn",
+    "lxml==4.6.5",
+    "mysqlclient",
+    "Pillow==9.0.1",
+    "progress",
+    "python-dateutil",
+    "python-Levenshtein",
+    "raven",
+    "requests",
+    "sqlparse==0.4.2",
+    "tabulate",
+    "Unidecode"
+]
+
+[project.optional-dependencies]
+dev = [
+    "en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.4.0/en_core_web_lg-3.4.0-py3-none-any.whl",
+    "spacy==3.4.1"
+]
