@@ -190,7 +190,7 @@ PROGRAM_PROFILE = [
     }
 ]
 
-EXCERPT_PROFILE_SOURCE = 'Source Catalog Description'
+EXCERPT_DESCRIPTION_TYPE_SOURCE = 'Source Catalog Description'
 
 # Default program application deadline data to load during the
 # application deadline importer against all programs (by career, level):
