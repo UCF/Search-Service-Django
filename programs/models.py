@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-
 from django.db import models
 from django_mysql.models import ListTextField
 import calendar
 import re
 
 from django.conf import settings
+from django.utils.text import Truncator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
@@ -14,6 +14,8 @@ from rest_framework.authtoken.models import Token
 from units.models import Unit
 from units.models import College as UnitCollege
 from units.models import Department as UnitDepartment
+
+from bs4 import BeautifulSoup
 
 # Create your models here.
 
@@ -221,12 +223,22 @@ class ProgramProfileType(models.Model):
     def __unicode__(self):
         return self.name
 
+class ProgramDescriptionTypeManager(models.Manager):
+
+    @property
+    def excerpt_description_type(self):
+        try:
+            return self.get(name=settings.EXCERPT_DESCRIPTION_TYPE_SOURCE)
+        except ProgramDescription.DoesNotExist:
+            return None
+
 
 class ProgramDescriptionType(models.Model):
     """
     Types of program descriptions, e.g. Main Site, UCF Online, Promotion
     """
     name = models.CharField(max_length=255, null=False, blank=False)
+    objects = ProgramDescriptionTypeManager()
 
     def __str__(self):
         return self.name
@@ -493,6 +505,16 @@ class Program(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @property
+    def excerpt(self) -> str:
+        try:
+            desc = self.descriptions.get(description_type=ProgramDescriptionType.objects.excerpt_description_type)
+            soup = BeautifulSoup(desc.description, features='lxml')
+            return Truncator(soup.get_text()).words(25, ' ...')
+
+        except ProgramDescription.DoesNotExist:
+            return '';
 
     @property
     def program_code(self):
