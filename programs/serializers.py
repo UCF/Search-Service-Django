@@ -421,6 +421,11 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     )
     start_term = AcademicTermSerializer(many=False, read_only=True)
 
+    excerpt = serializers.SerializerMethodField()
+
+    def get_excerpt(self, obj: Program):
+        return obj.excerpt
+
     class Meta:
         fields = (
             'id',
@@ -451,7 +456,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'valid',
             'has_locations',
             'active',
-            'start_term'
+            'start_term',
+            'excerpt'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,cip_code,parent_program",
