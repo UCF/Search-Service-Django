@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
-from pydoc import describe
-from typing import Optional
-from typing_extensions import Self
 from django.db import models
 from django_mysql.models import ListTextField
 import calendar
@@ -230,7 +226,7 @@ class ProgramProfileType(models.Model):
 class ProgramDescriptionTypeManager(models.Manager):
 
     @property
-    def excerpt_description_type(self) -> Optional[Self]:
+    def excerpt_description_type(self):
         try:
             return self.get(name=settings.EXCERPT_PROFILE_SOURCE)
         except ProgramDescription.DoesNotExist:
