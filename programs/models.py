@@ -511,7 +511,7 @@ class Program(models.Model):
         try:
             desc = self.descriptions.get(description_type=ProgramDescriptionType.objects.excerpt_description_type)
             soup = BeautifulSoup(desc.description, features='lxml')
-            return Truncator(soup.get_text()).words(25, ' ...')
+            return Truncator(soup.get_text()).words(25, '...')
 
         except ProgramDescription.DoesNotExist:
             return '';
