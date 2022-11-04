@@ -349,7 +349,9 @@ class AcademicTerm(models.Model):
 
     @property
     def year_as_str(self):
-        return self.full_name_split[1]
+        if len(self.full_name_split) > 1:
+            return self.full_name_split[1]
+        return "9999"
 
     @property
     def year(self):
