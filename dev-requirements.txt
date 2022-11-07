@@ -34,7 +34,7 @@ cymem==2.0.7
     #   preshed
     #   spacy
     #   thinc
-django==3.2.13
+django==3.2.16
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
     #   django-cors-headers
