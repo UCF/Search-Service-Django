@@ -35,7 +35,7 @@ setup(
         'en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.4.0/en_core_web_lg-3.4.0-py3-none-any.whl',
         'fuzzywuzzy',
         'gunicorn',
-        'lxml==4.6.5',
+        'lxml==4.9.1',
         'mysqlclient',
         'Pillow==9.0.1',
         'progress',
