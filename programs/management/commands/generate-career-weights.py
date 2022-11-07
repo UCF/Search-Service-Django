@@ -3,7 +3,6 @@ import os
 
 from typing import List, Optional
 from django.core.management.base import BaseCommand, CommandParser, CommandError
-from programs.models import Program, WeightedJobPosition
 
 from progress.bar import Bar
 
