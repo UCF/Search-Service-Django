@@ -31,6 +31,9 @@ urlpatterns = [
     url(r'^api/v1/research/',
         include('research.urls')
         ),
+    url(f'^api/v1/seo/',
+        include('seo.urls')
+        ),
     url(r'^api-auth/',
         include('rest_framework.urls')
         ),

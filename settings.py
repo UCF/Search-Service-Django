@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'research',
     'images',
     'units',
+    'seo',
     'core'
 ]
 
