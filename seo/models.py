@@ -13,8 +13,14 @@ class InternalLinkManager(models.Manager):
 
 class InternalLink(models.Model):
     url = models.URLField(max_length=255, null=False, blank=False)
+    created_on = models.DateTimeField(null=False, blank=False, auto_now_add=True)
+    updated_on = models.DateTimeField(null=False, blank=False, auto_now=True)
     imported = models.BooleanField(default=False)
     objects = InternalLinkManager()
+
+    def local(self) -> bool:
+        return not self.imported
+    local.boolean = True
 
     def __str__(self):
         return self.url
