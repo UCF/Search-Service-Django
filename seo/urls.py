@@ -4,13 +4,8 @@ from .views import *
 
 urlpatterns = [
     url(
-        r'patterns/$',
-        AutoAnchorListView.as_view(),
+        r'internal-links/$',
+        InternalLinkListView.as_view(),
         name='api.seo.autoanchors'
-    ),
-    url(
-        r'backlinks/$',
-        BackLinkView.as_view(),
-        name='api.seo.backlinks'
     )
 ]

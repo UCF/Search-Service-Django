@@ -1,8 +1,14 @@
 from django.contrib import admin
 
-from .models import AutoAnchor
+from .models import InternalLink, KeywordPhrase
 
 # Register your models here.
-@admin.register(AutoAnchor)
-class AutoAnchorAdmin(admin.ModelAdmin):
-    pass
+
+class KeywordPhraseInline(admin.TabularInline):
+    model = KeywordPhrase
+
+@admin.register(InternalLink)
+class InternalLinkAdmin(admin.ModelAdmin):
+    inlines = [
+        KeywordPhraseInline
+    ]
