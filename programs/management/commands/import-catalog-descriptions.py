@@ -846,7 +846,10 @@ Finished in {datetime.now() - self.start_time}
                     # of this description
                     match = None
                     if mp.program.career.name == 'Undergraduate':
-                        match = self.ugrad_credits_re.search(catalog_entry.required_core_courses)
+                        if mp.program.level.name == 'Bachelors':
+                            match = self.ugrad_credits_re.search(catalog_entry.required_core_courses)
+                        elif mp.program.level.name in ['Certificate', 'Minor']:
+                            match = self.grad_credits_re.search(catalog_entry.curriculum)
                     elif mp.program.career.name == 'Graduate':
                         match = self.grad_credits_re.search(description_full_str)
 
