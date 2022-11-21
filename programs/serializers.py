@@ -431,6 +431,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'id',
             'name',
             'descriptions',
+            'credit_hours',
             'online',
             'has_online',
             'profiles',

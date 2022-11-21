@@ -142,6 +142,7 @@ class Command(BaseCommand):
         self.program_match_count = 0
         self.descriptions_updated_created = 0
         self.full_descriptions_updated_created = 0
+        self.credit_hours_set = 0
 
         self.program_prep_progress = None
         self.catalog_prep_progress = None
@@ -158,6 +159,10 @@ class Command(BaseCommand):
         # General lock we can use when we need
         # to talk to the main thread
         self.mt_lock = Lock()
+
+        # Credits regex
+        self.ugrad_credits_re = re.compile(r'(?:total undergraduate credit hours required)(?:[!\:a-zA-Z\>\<\- ]+)(?P<hours>\d+)', re.IGNORECASE)
+        self.grad_credits_re = re.compile(r'(?:grand total credits)(?:[!\:a-zA-Z\>\<\- ]+)(?P<hours>\d+)', re.IGNORECASE)
 
         # Get everything prepped/fetched
         self.__get_description_types()
@@ -190,6 +195,8 @@ Matched {c_with_match}/{len(self.catalog_entries)} of Fetched Catalog Entries to
 
 Short Descriptions Updated or Created : {self.descriptions_updated_created}
 Full Descriptions Updated or Created  : {self.full_descriptions_updated_created}
+
+Credit Hours Set : {self.credit_hours_set}
 
 Finished in {datetime.now() - self.start_time}
         """
@@ -834,6 +841,24 @@ Finished in {datetime.now() - self.start_time}
                         program=mp.program
                     )
                     source_curriculum.save()
+
+                    # Let's see if we can get credit hours out
+                    # of this description
+                    match = None
+                    if mp.program.career.name == 'Undergraduate':
+                        match = self.ugrad_credits_re.search(description_full_str)
+                    elif mp.program.career.name == 'Graduate':
+                        match = self.grad_credits_re.search(description_full_str)
+
+                    if match:
+                        total_credit_hours = int(match.group('hours'))
+                        mp.program.credit_hours = total_credit_hours
+                        self.credit_hours_set += 1
+                        mp.program.save()
+                    else:
+                        mp.program.credit_hours = None
+                        mp.program.save()
+
                 else:
                     # We did not process a program description or curriculum
                     # for this catalog entry, meaning we had existing,
