@@ -51,7 +51,7 @@ lxml==4.6.5
     # via UCF-Search-Service-Django (pyproject.toml)
 mysqlclient==2.0.3
     # via UCF-Search-Service-Django (pyproject.toml)
-pillow==9.0.1
+pillow==9.3.0
     # via UCF-Search-Service-Django (pyproject.toml)
 progress==1.5
     # via UCF-Search-Service-Django (pyproject.toml)
