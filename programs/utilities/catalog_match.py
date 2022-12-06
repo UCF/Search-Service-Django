@@ -182,6 +182,13 @@ class CatalogEntry(object):
         return self.match_count > 0
 
 
+    @property
+    def required_core_courses(self):
+        if 'requiredCoreCourses' in self.data and self.data['requiredCoreCourses'] is not None:
+            return self.data['requiredCoreCourses']
+        else:
+            return ""
+
 class MatchableProgram(object):
     """
     Describes a Program and its match(es) to CatalogEntries.
