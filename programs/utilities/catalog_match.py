@@ -244,7 +244,10 @@ class MatchableProgram(object):
             (object|None): Highest-scoring CatalogEntry match, or None
         """
         if self.has_matches:
-            return max(self.matches, key=itemgetter(0))
+            max_match = max(self.matches, key=itemgetter(0))
+            code = max_match[1].data['code']
+            similar_matches = [x for x in self.matches if x[1].data['code'] == code]
+            return max(similar_matches, key=lambda x: x[1].data['created'])
         else:
             return None
 
