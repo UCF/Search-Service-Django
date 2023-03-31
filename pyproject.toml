@@ -1,7 +1,7 @@
 
 [project]
 name = "UCF_Search_Service_Django"
-version = "2.6.4"
+version = "2.6.6"
 dependencies = [
     "beautifulsoup4",
     "boto3",
