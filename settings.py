@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'widget_tweaks',
     'django_saml2_auth',
-    'django_extensions',
 
     # Local
     'programs',
