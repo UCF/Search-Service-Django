@@ -383,3 +383,41 @@ UNIT_NAME_UPPERCASE_REPLACEMENTS = [
     'LETTR', 'LINK', 'NASA', 'RESTORES', 'ROTC', 'STAT', 'TV',
     'TV/FM', 'UCF', 'WUCF',
 ]
+
+USE_SAML = False
+
+# SSO Settings
+SAML2_AUTH = {
+    # Login Metadata URL with App ID included as query parameter.
+    'METADATA_AUTO_CONF_URL': '',
+    # Send debug information to a log file
+    'DEBUG': False,
+    # Optional settings below
+    'NEW_USER_PROFILE': {
+        'USER_GROUPS': [],  # The default group name when a new user logs in
+        'ACTIVE_STATUS': True,  # The default active status for new users
+        'STAFF_STATUS': False,  # The staff status for new users
+        'SUPERUSER_STATUS': False,  # The superuser status for new users
+    },
+    # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
+    'ATTRIBUTES_MAP': {
+        'email': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
+        'username': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/NID',
+        'first_name': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname',
+        'last_name': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname',
+        'token': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',  # Mandatory, can be unrequired if TOKEN_REQUIRED is False
+        'groups': 'security_group_attribute_name',  # Optional
+    },
+    'GROUPS_MAP': {},  # Optionally allow mapping SAML2 Groups to Django Groups
+    'ASSERTION_URL': 'https://{domain_name}/sso/acs/',  # Custom URL to validate incoming SAML requests against
+    'ENTITY_ID': '{entity_id}',  # Populates the Issuer element in authn request
+    'NAME_ID_FORMAT': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',  # Sets the Format property of authn NameIDPolicy element, e.g. 'user.email'
+    'LOGIN_CASE_SENSITIVE': True,  # whether of not to get the user in case_sentive mode
+    'AUTHN_REQUESTS_SIGNED': True, # Require each authentication request to be signed
+    'LOGOUT_REQUESTS_SIGNED': True,  # Require each logout request to be signed
+    'WANT_ASSERTIONS_SIGNED': True,  # Require each assertion to be signed
+    'WANT_RESPONSE_SIGNED': True,  # Require response to be signed
+    'ACCEPTED_TIME_DIFF': None,  # Accepted time difference between your server and the Identity Provider
+    'ALLOWED_REDIRECT_HOSTS': ["{allows_redirect_hosts}"], # Allowed hosts to redirect to using the ?next parameter
+    'TOKEN_REQUIRED': True,  # Whether or not to require the token parameter in the SAML assertion
+}
