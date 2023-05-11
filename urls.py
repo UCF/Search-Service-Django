@@ -46,7 +46,7 @@ urlpatterns = [
         ),
     url(
         r'^manager/$',
-        RedirectView.as_view(pattern_name='login'), name='manager'
+        RedirectView.as_view(pattern_name='search'), name='manager'
     ),
     url(
         r'^manager/login/$',
@@ -70,7 +70,7 @@ if settings.USE_SAML:
     )
     urlpatterns.insert(
         1,
-        url(r'^accounts/login/$',
+        url(r'^manager/login/$',
             django_saml2_auth.views.signin
         )
     )
