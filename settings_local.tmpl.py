@@ -388,36 +388,33 @@ USE_SAML = False
 
 # SSO Settings
 SAML2_AUTH = {
-    # Login Metadata URL with App ID included as query parameter.
-    'METADATA_AUTO_CONF_URL': '',
-    # Send debug information to a log file
-    'DEBUG': False,
+    # Required setting
+    'SAML_CLIENT_SETTINGS': { # Pysaml2 Saml client settings (https://pysaml2.readthedocs.io/en/latest/howto/config.html)
+        'entityid': '{entity_id}', # The optional entity ID string to be passed in the 'Issuer' element of authn request, if required by the IDP.
+        'metadata': {
+            'remote': [
+                {
+                    "url": '{metadata_url}', # The auto(dynamic) metadata configuration URL of SAML2
+                },
+            ],
+        },
+    },
+
     # Optional settings below
+    'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
     'NEW_USER_PROFILE': {
         'USER_GROUPS': [],  # The default group name when a new user logs in
         'ACTIVE_STATUS': True,  # The default active status for new users
         'STAFF_STATUS': False,  # The staff status for new users
         'SUPERUSER_STATUS': False,  # The superuser status for new users
     },
-    # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
     'ATTRIBUTES_MAP': {
         'email': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
         'username': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/NID',
         'first_name': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname',
         'last_name': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname',
         'token': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',  # Mandatory, can be unrequired if TOKEN_REQUIRED is False
-        'groups': 'security_group_attribute_name',  # Optional
+        'groups': 'search_service_security_groups',  # Optional
     },
-    'GROUPS_MAP': {},  # Optionally allow mapping SAML2 Groups to Django Groups
-    'ASSERTION_URL': 'https://{domain_name}/sso/acs/',  # Custom URL to validate incoming SAML requests against
-    'ENTITY_ID': '{entity_id}',  # Populates the Issuer element in authn request
-    'NAME_ID_FORMAT': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',  # Sets the Format property of authn NameIDPolicy element, e.g. 'user.email'
-    'LOGIN_CASE_SENSITIVE': True,  # whether of not to get the user in case_sentive mode
-    'AUTHN_REQUESTS_SIGNED': True, # Require each authentication request to be signed
-    'LOGOUT_REQUESTS_SIGNED': True,  # Require each logout request to be signed
-    'WANT_ASSERTIONS_SIGNED': True,  # Require each assertion to be signed
-    'WANT_RESPONSE_SIGNED': True,  # Require response to be signed
-    'ACCEPTED_TIME_DIFF': None,  # Accepted time difference between your server and the Identity Provider
-    'ALLOWED_REDIRECT_HOSTS': ["{allows_redirect_hosts}"], # Allowed hosts to redirect to using the ?next parameter
-    'TOKEN_REQUIRED': True,  # Whether or not to require the token parameter in the SAML assertion
+    'ASSERTION_URL': '{assertion_url}', # Custom URL to validate incoming SAML requests against
 }

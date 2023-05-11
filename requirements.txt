@@ -26,8 +26,6 @@ cryptography==40.0.2
     #   pysaml2
 defusedxml==0.7.1
     # via pysaml2
-dictor==0.1.10
-    # via grafana-django-saml2-auth
 django==3.2.19
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
@@ -41,6 +39,8 @@ django-filter==2.4.0
     # via UCF-Search-Service-Django (pyproject.toml)
 django-mysql==3.11.1
     # via UCF-Search-Service-Django (pyproject.toml)
+django-saml2-auth-ai==2.1.6
+    # via UCF-Search-Service-Django (pyproject.toml)
 django-widget-tweaks==1.4.8
     # via UCF-Search-Service-Django (pyproject.toml)
 djangorestframework==3.12.4
@@ -50,8 +50,6 @@ drf-dynamic-fields==0.3.1
 elementpath==4.1.1
     # via xmlschema
 fuzzywuzzy==0.18.0
-    # via UCF-Search-Service-Django (pyproject.toml)
-grafana-django-saml2-auth==3.9.0
     # via UCF-Search-Service-Django (pyproject.toml)
 gunicorn==20.1.0
     # via UCF-Search-Service-Django (pyproject.toml)
@@ -73,12 +71,12 @@ progress==1.5
     # via UCF-Search-Service-Django (pyproject.toml)
 pycparser==2.21
     # via cffi
-pyjwt==2.5.0
-    # via grafana-django-saml2-auth
 pyopenssl==23.1.1
     # via pysaml2
 pysaml2==7.2.1
-    # via grafana-django-saml2-auth
+    # via
+    #   UCF-Search-Service-Django (pyproject.toml)
+    #   django-saml2-auth-ai
 python-dateutil==2.8.1
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
