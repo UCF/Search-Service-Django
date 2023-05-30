@@ -416,7 +416,7 @@ SAML2_AUTH = {
         'token': 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',  # Mandatory, can be unrequired if TOKEN_REQUIRED is False
         'groups': 'search_service_security_groups',  # Optional
     },
-    'TRIGGERS': {
+    'TRIGGER': {
         'CREATE_USER': 'core.saml_hooks.on_saml_user_create',
         'BEFORE_LOGIN': 'core.saml_hooks.on_saml_before_login',
     },
