@@ -541,6 +541,7 @@ class CombinedTeledataManager(models.Manager, QuerySetMixin):
 
 
 class CombinedTeledata(models.Model):
+
     pkid = models.AutoField(primary_key=True)
     id = models.IntegerField(auto_created=False, null=True, blank=True)
     alpha = models.BooleanField(default=True, null=True, blank=True)

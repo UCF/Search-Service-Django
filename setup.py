@@ -25,7 +25,7 @@ setup(
     install_requires=[
         'beautifulsoup4',
         'boto3',
-        'Django==3.2.13',
+        'Django==3.2.19',
         'django-cors-headers',
         'djangorestframework',
         'django-filter',
@@ -43,7 +43,7 @@ setup(
         'python-Levenshtein',
         'raven',
         'requests',
-        'sqlparse==0.4.2',
+        'sqlparse',
         'spacy==3.4.1',
         'tabulate',
         'Unidecode',

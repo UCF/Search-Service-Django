@@ -5,11 +5,12 @@ version = "2.6.6"
 dependencies = [
     "beautifulsoup4",
     "boto3",
-    "Django==3.2.13",
+    "Django==3.2.*",
     "django-cors-headers",
     "djangorestframework",
     "django-filter",
     "django_mysql",
+    "django-saml2-auth-ai",
     "django-widget-tweaks",
     "drf-dynamic-fields",
     "fuzzywuzzy",
@@ -19,16 +20,17 @@ dependencies = [
     "Pillow==9.0.1",
     "progress",
     "python-dateutil",
+    "pysaml2",
     "python-Levenshtein",
     "raven",
     "requests",
-    "sqlparse==0.4.2",
+    "sqlparse",
     "tabulate",
     "Unidecode"
 ]
 
 [project.optional-dependencies]
 dev = [
-    "en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.4.0/en_core_web_lg-3.4.0-py3-none-any.whl",
-    "spacy==3.4.1"
+    "django-extensions",
+    "Werkzeug"
 ]

@@ -1,4 +1,4 @@
-"""src URL Configuration
+"""URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.11/topics/http/urls/
@@ -13,10 +13,12 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import RedirectView
+import django_saml2_auth.views
 
 urlpatterns = [
     url(r'^api/v1/teledata/',
@@ -44,7 +46,7 @@ urlpatterns = [
         ),
     url(
         r'^manager/$',
-        RedirectView.as_view(pattern_name='login'), name='manager'
+        RedirectView.as_view(pattern_name='search'), name='manager'
     ),
     url(
         r'^manager/login/$',
@@ -58,3 +60,23 @@ urlpatterns = [
         include('core.urls')
     )
 ]
+
+if settings.USE_SAML:
+    urlpatterns.insert(
+        0,
+        url(r'^sso/',
+            include('django_saml2_auth.urls')
+        )
+    )
+    urlpatterns.insert(
+        1,
+        url(r'^manager/login/$',
+            django_saml2_auth.views.signin
+        )
+    )
+    urlpatterns.insert(
+        2,
+        url(r'^admin/login/$',
+            django_saml2_auth.views.signin
+        )
+    )
