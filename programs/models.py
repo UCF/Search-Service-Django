@@ -544,7 +544,7 @@ class Program(models.Model):
         return False
 
     @property
-    def current_cip(self):
+    def current_cip(self) -> CIP:
         try:
             return self.cip.get(version=settings.CIP_CURRENT_VERSION)
         except CIP.DoesNotExist:

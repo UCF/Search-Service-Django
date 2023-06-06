@@ -423,8 +423,18 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
 
     excerpt = serializers.SerializerMethodField()
 
+    area_of_interest = serializers.SerializerMethodField()
+
     def get_excerpt(self, obj: Program):
         return obj.excerpt
+
+    def get_area_of_interest(self, obj: Program):
+        try:
+            top_level_cip = CIP.objects.get(code=obj.current_cip.area, version=settings.CIP_CURRENT_VERSION)
+            cip_name = top_level_cip.name.title()
+            return cip_name
+        except CIP.DoesNotExist:
+            return None
 
     class Meta:
         fields = (
@@ -458,7 +468,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'has_locations',
             'active',
             'start_term',
-            'excerpt'
+            'excerpt',
+            'area_of_interest'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,cip_code,parent_program",
