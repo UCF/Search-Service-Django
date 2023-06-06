@@ -102,7 +102,7 @@ six==1.16.0
     #   python-dateutil
 soupsieve==2.2.1
     # via beautifulsoup4
-sqlparse==0.4.2
+sqlparse==0.4.4
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
     #   django
