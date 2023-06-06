@@ -90,7 +90,7 @@ pytz==2021.1
     #   pysaml2
 raven==6.10.0
     # via UCF-Search-Service-Django (pyproject.toml)
-requests==2.25.1
+requests==2.31.0
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
     #   pysaml2
