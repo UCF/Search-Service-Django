@@ -429,6 +429,9 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
         return obj.excerpt
 
     def get_area_of_interest(self, obj: Program):
+        if obj.current_cip is None:
+            return None
+
         try:
             top_level_cip = CIP.objects.get(code=obj.current_cip.area, version=settings.CIP_CURRENT_VERSION)
             cip_name = top_level_cip.name.title()
