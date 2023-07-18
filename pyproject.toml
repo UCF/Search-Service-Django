@@ -5,11 +5,11 @@ version = "3.1.0"
 dependencies = [
     "beautifulsoup4",
     "boto3",
-    "Django==3.2.*",
+    "Django~=3.2.0",
     "django-cors-headers",
     "djangorestframework",
     "django-filter",
-    "django_mysql",
+    "django_mysql~=3.12.0",
     "django-saml2-auth-ai",
     "django-widget-tweaks",
     "drf-dynamic-fields",
