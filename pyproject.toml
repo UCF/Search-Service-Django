@@ -32,5 +32,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "django-extensions",
+    "spacy",
     "Werkzeug"
 ]

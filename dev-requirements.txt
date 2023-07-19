@@ -8,22 +8,38 @@ asgiref==3.7.2
     # via django
 beautifulsoup4==4.12.2
     # via UCF-Search-Service-Django (pyproject.toml)
+blis==0.7.9
+    # via thinc
 boto3==1.28.4
     # via UCF-Search-Service-Django (pyproject.toml)
 botocore==1.31.4
     # via
     #   boto3
     #   s3transfer
+catalogue==2.0.8
+    # via
+    #   spacy
+    #   srsly
+    #   thinc
 certifi==2023.5.7
     # via requests
 cffi==1.15.1
     # via cryptography
 charset-normalizer==3.2.0
     # via requests
+click==8.1.6
+    # via typer
+confection==0.1.0
+    # via thinc
 cryptography==41.0.2
     # via
     #   pyopenssl
     #   pysaml2
+cymem==2.0.7
+    # via
+    #   preshed
+    #   spacy
+    #   thinc
 defusedxml==0.7.1
     # via pysaml2
 django==3.2.20
@@ -58,26 +74,56 @@ gunicorn==21.1.0
     # via UCF-Search-Service-Django (pyproject.toml)
 idna==3.4
     # via requests
+jinja2==3.1.2
+    # via spacy
 jmespath==1.0.1
     # via
     #   boto3
     #   botocore
+langcodes==3.3.0
+    # via spacy
 levenshtein==0.21.1
     # via python-levenshtein
 lxml==4.9.3
     # via UCF-Search-Service-Django (pyproject.toml)
 markupsafe==2.1.3
-    # via werkzeug
+    # via
+    #   jinja2
+    #   werkzeug
+murmurhash==1.0.9
+    # via
+    #   preshed
+    #   spacy
+    #   thinc
 mysqlclient==2.2.0
     # via UCF-Search-Service-Django (pyproject.toml)
+numpy==1.25.1
+    # via
+    #   blis
+    #   spacy
+    #   thinc
 packaging==23.1
-    # via gunicorn
+    # via
+    #   gunicorn
+    #   spacy
+    #   thinc
+pathy==0.10.2
+    # via spacy
 pillow==10.0.0
     # via UCF-Search-Service-Django (pyproject.toml)
+preshed==3.0.8
+    # via
+    #   spacy
+    #   thinc
 progress==1.6
     # via UCF-Search-Service-Django (pyproject.toml)
 pycparser==2.21
     # via cffi
+pydantic==1.10.11
+    # via
+    #   confection
+    #   spacy
+    #   thinc
 pyopenssl==23.2.0
     # via pysaml2
 pysaml2==7.4.2
@@ -104,25 +150,60 @@ requests==2.31.0
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
     #   pysaml2
+    #   spacy
 s3transfer==0.6.1
     # via boto3
 six==1.16.0
     # via python-dateutil
+smart-open==6.3.0
+    # via
+    #   pathy
+    #   spacy
 soupsieve==2.4.1
     # via beautifulsoup4
+spacy==3.6.0
+    # via UCF-Search-Service-Django (pyproject.toml)
+spacy-legacy==3.0.12
+    # via spacy
+spacy-loggers==1.0.4
+    # via spacy
 sqlparse==0.4.4
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
     #   django
+srsly==2.4.7
+    # via
+    #   confection
+    #   spacy
+    #   thinc
 tabulate==0.9.0
     # via UCF-Search-Service-Django (pyproject.toml)
+thinc==8.1.10
+    # via spacy
+tqdm==4.65.0
+    # via spacy
+typer==0.9.0
+    # via
+    #   pathy
+    #   spacy
+typing-extensions==4.7.1
+    # via
+    #   pydantic
+    #   typer
 unidecode==1.3.6
     # via UCF-Search-Service-Django (pyproject.toml)
 urllib3==1.26.16
     # via
     #   botocore
     #   requests
+wasabi==1.1.2
+    # via
+    #   spacy
+    #   thinc
 werkzeug==2.3.6
     # via UCF-Search-Service-Django (pyproject.toml)
 xmlschema==2.3.1
     # via pysaml2
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

@@ -8,10 +8,16 @@ import mimetypes
 class Command(BaseCommand):
     help = 'Imports the generated weighed jobs'
 
-    fieldnames = [
+    program_fieldnames = [
         'program_id',
         'career',
         'weight'
+    ]
+
+    code_fieldnames = [
+        'plan_code',
+        'subplan_code',
+        'career'
     ]
 
     def add_arguments(self, parser: CommandParser):
@@ -21,9 +27,38 @@ class Command(BaseCommand):
             help='The file path of the csv file'
         )
 
+        parser.add_argument(
+            '--code-fields',
+            type=bool,
+            dest='code_fields',
+            help='Flag indicating the CSV provided uses the fields plan_code, subplan_code and career.',
+            default=False
+        )
+
+        parser.add_argument(
+            '--force-weight',
+            type=float,
+            dest='force_weight',
+            help='When provided, will set all career weights to the value provided.',
+            default=None,
+            required=False
+        )
+
+        parser.add_argument(
+            '--keep-existing',
+            action='store_true',
+            dest='keep_existing',
+            default=False,
+            help='When present, weight job positions will not be deleted prior to import',
+        )
+
     def handle(self, *args, **options):
         self.programs = {}
         self.file = options['file']
+        self.using_codefields = options['code_fields']
+        self.fieldnames = self.code_fieldnames if self.using_codefields == True else self.program_fieldnames
+        self.force_weight = float(options['force_weight']) if options['force_weight'] is not None else None
+        self.keep_existing = options['keep_existing']
 
         mime_type, _ = mimetypes.guess_type(self.file.name)
 
@@ -31,7 +66,8 @@ class Command(BaseCommand):
             raise CommandError('File provided is not a CSV file')
 
         # Remove existing records
-        self.__remove_existing_data()
+        if not self.keep_existing:
+            self.__remove_existing_data()
 
         # Import new data
         self.__import_data(self.file)
@@ -53,22 +89,35 @@ class Command(BaseCommand):
 
 
     def __add_weighted_job(self, weighted_job):
-        program_id = weighted_job['program_id']
+        if not self.using_codefields:
+            program_id = weighted_job['program_id']
+        else:
+            plan_code = weighted_job['plan_code']
+            subplan_code = weighted_job['subplan_code'] if weighted_job['subplan_code'] != '' else None
+
         career_name = weighted_job['career']
-        weight = weighted_job['weight']
+        weight = self.force_weight if self.force_weight is not None else weighted_job['weight']
 
         program = None
         job = None
 
         try:
-            program = Program.objects.get(id=program_id)
+            if not self.using_codefields:
+                program = Program.objects.get(id=program_id)
+            else:
+                program = Program.objects.get(plan_code=plan_code, subplan_code=subplan_code)
+                
         except Program.DoesNotExist:
             self.stderr.write(self.style.ERROR(f"Program with id {program_id} does not exist."))
 
         try:
             job = JobPosition.objects.get(name=career_name)
         except JobPosition.DoesNotExist:
-            self.stderr.write(self.style.ERROR(f"JobPosition with name {career_name} does not exist."))
+            if self.using_codefields:
+                job = JobPosition(name=career_name)
+                job.save()
+            else:
+                self.stderr.write(self.style.ERROR(f"JobPosition with name {career_name} does not exist."))
 
         if program and job:
             try:
