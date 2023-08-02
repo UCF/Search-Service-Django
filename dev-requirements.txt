@@ -31,7 +31,7 @@ click==8.1.6
     # via typer
 confection==0.1.0
     # via thinc
-cryptography==41.0.2
+cryptography==41.0.3
     # via
     #   pyopenssl
     #   pysaml2
