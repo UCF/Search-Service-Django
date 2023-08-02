@@ -71,10 +71,12 @@ class CatalogEntry(object):
             # so by using h1s here, we allow Oscar to determine
             # proper heading order and fix things later:
 
-            # Let's go ahead and pull in requiredCoreCourses at the very
-            # beginning of descriptions.
-            if 'requiredCoreCourses' in self.data and self.data['requiredCoreCourses'] != '':
-                curriculum += self.data['requiredCoreCourses']
+            # For undergrad programs, pull in the prerequisite admission field
+            if self.career.name == 'Undergraduate' \
+                and 'prerequisiteAdmissionUg' in self.html_data and \
+                isinstance(self.html_data['prerequisiteAdmissionUg'], str):
+                curriculum += self.html_data['prerequisiteAdmissionUg']
+
 
             # Prerequisites
             if 'programPrerequisites' in self.data:
@@ -112,6 +114,11 @@ class CatalogEntry(object):
             # Fellowship info
             if 'fellowshipInformation' in self.data:
                 curriculum += f"<h1>Fellowship Information</h1>{self.data['fellowshipInformation']}"
+
+            # Let's go ahead and pull in requiredCoreCourses at the very
+            # beginning of descriptions.
+            if 'requiredCoreCourses' in self.data and self.data['requiredCoreCourses'] != '':
+                curriculum += self.data['requiredCoreCourses']
         elif 'requiredCoreCourses' in self.data:
             curriculum = self.data['requiredCoreCourses']
 
