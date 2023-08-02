@@ -71,6 +71,11 @@ class CatalogEntry(object):
             # so by using h1s here, we allow Oscar to determine
             # proper heading order and fix things later:
 
+            # Let's go ahead and pull in requiredCoreCourses at the very
+            # beginning of descriptions.
+            if 'requiredCoreCourses' in self.data and self.data['requiredCoreCourses'] != '':
+                curriculum += self.data['requiredCoreCourses']
+
             # Prerequisites
             if 'programPrerequisites' in self.data:
                 # Catalog programs:
