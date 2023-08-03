@@ -35,7 +35,7 @@ django==3.2.20
     #   djangorestframework
 django-cors-headers==4.2.0
     # via UCF-Search-Service-Django (pyproject.toml)
-django-filter==23.2
+django-filter==21.1
     # via UCF-Search-Service-Django (pyproject.toml)
 django-mysql==3.12.0
     # via UCF-Search-Service-Django (pyproject.toml)
@@ -59,8 +59,6 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-levenshtein==0.21.1
-    # via python-levenshtein
 lxml==4.9.3
     # via UCF-Search-Service-Django (pyproject.toml)
 mysqlclient==2.2.0
@@ -84,15 +82,13 @@ python-dateutil==2.8.2
     #   UCF-Search-Service-Django (pyproject.toml)
     #   botocore
     #   pysaml2
-python-levenshtein==0.21.1
+python-levenshtein==0.12.2
     # via UCF-Search-Service-Django (pyproject.toml)
 pytz==2023.3
     # via
     #   django
     #   djangorestframework
     #   pysaml2
-rapidfuzz==3.1.1
-    # via levenshtein
 raven==6.10.0
     # via UCF-Search-Service-Django (pyproject.toml)
 requests==2.31.0
@@ -119,3 +115,6 @@ urllib3==1.26.16
     #   requests
 xmlschema==2.3.1
     # via pysaml2
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
