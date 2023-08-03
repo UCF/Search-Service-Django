@@ -117,7 +117,7 @@ class CatalogEntry(object):
 
             # Let's go ahead and pull in requiredCoreCourses at the very
             # beginning of descriptions.
-            if 'requiredCoreCourses' in self.data and self.data['requiredCoreCourses'] != '':
+            if 'requiredCoreCourses' in self.data:
                 curriculum += self.data['requiredCoreCourses']
         elif 'requiredCoreCourses' in self.data:
             curriculum = self.data['requiredCoreCourses']
