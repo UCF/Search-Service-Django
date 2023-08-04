@@ -75,7 +75,7 @@ class CatalogEntry(object):
             if self.career.name == 'Undergraduate' \
                 and 'prerequisiteAdmissionUg' in self.html_data and \
                 isinstance(self.html_data['prerequisiteAdmissionUg'], str):
-                curriculum += f"<h1>Program Prerequisites<h1>{self.html_data['prerequisiteAdmissionUg']}"
+                curriculum += f"<h1>Program Prerequisites</h1>{self.html_data['prerequisiteAdmissionUg']}"
 
 
             # Prerequisites
