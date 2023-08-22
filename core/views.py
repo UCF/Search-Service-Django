@@ -37,10 +37,27 @@ class SearchView(LoginRequiredMixin, TitleContextMixin, TemplateView):
     heading = 'UCF Search Service'
     local = settings.LOCAL
 
-class SettingsAPIView(APIView):
-    def get(request, format=None, **kwargs):
+class CurrentUserView(APIView):
+    def get(self, request, format=None, **kwargs):
+        if self.request.user is None:
+            return Response({
+                'error': 'You must login to view this endpoint'
+            }, status=403)
+        
+        return Response({
+            'id': self.request.user.id,
+            'username': self.request.user.username,
+            'is_staff': self.request.user.is_staff,
+            'is_superuser': self.request.user.is_superuser
+        })
+
+class SettingsAPIView(LoginRequiredMixin, APIView):
+    def get(self, request, format=None, **kwargs):
         return Response({
             'ucf_news_api': settings.UCF_NEWS_API,
             'ucf_events_api': settings.UCF_EVENTS_API,
-            'ucf_search_service_api': settings.UCF_SEARCH_SERVICE_API
+            'ucf_search_service_api': settings.UCF_SEARCH_SERVICE_API,
+            'ucf_mediagraph_api_url': settings.UCF_MEDIAGRAPH_API_URL,
+            'ucf_mediagraph_api_key': settings.UCF_MEDIAGRAPH_API_KEY,
+            'ucf_mediagraph_org_id': settings.UCF_MEDIAGRAPH_ORG_ID
         })

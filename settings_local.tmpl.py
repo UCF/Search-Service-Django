@@ -164,6 +164,15 @@ UCF_EVENTS_API = 'https://events.ucf.edu'
 # The URL to the Search Service API
 UCF_SEARCH_SERVICE_API = 'https://search.cm.ucf.edu'
 
+# The URL to the MediaGraph API
+UCF_MEDIAGRAPH_API_URL = 'https://api.mediagraph.io/api'
+
+# The API key for MediaGraph
+UCF_MEDIAGRAPH_API_KEY = ''
+
+# The Org ID for MediaGraph
+UCF_MEDIAGRAPH_ORG_ID = ''
+
 # An AWS Access Key ID with sufficient permissions to access Rekognition.
 AWS_ACCESS_KEY = ''
 
