@@ -39,8 +39,7 @@ class Command(BaseCommand):
 
     def set_fee_schedules(self, path):
         query = urlencode({
-            'schoolYear': 'current',
-            'feeName': 'Tuition'
+            'schoolYear': 'current'
         })
 
         request_url = '{0}?{1}'.format(path, query)
@@ -50,7 +49,8 @@ class Command(BaseCommand):
         schedules = response.json()
 
         for schedule in schedules:
-            if schedule['Program'] not in list(self.fee_schedules.keys()):
+            if schedule['Program'] not in list(self.fee_schedules.keys()) \
+                and any(x for x in ["Tuition", "(e)"] if x in schedule['FeeName']):
                 self.fee_schedules[schedule['Program']] = {
                     'code': schedule['Program'],
                     'type': schedule['FeeType'],
