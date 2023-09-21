@@ -1,0 +1,17 @@
+<div class="row" *ngIf="eventDetails">
+    <div class="col-8 col-sm-9 push-4 push-sm-3">
+        <h3 [innerHTML]="eventDetails.title" class="h6"></h3>
+        <small class="text-muted d-block mt-2">
+        {{ eventDetails.starts | date: 'MMMM d, y' }} at {{ eventDetails.starts | date: 'h:mm a' }}
+        </small>
+        <small class="text-muted d-block">
+        until {{ eventDetails.ends | date: 'MMMM d, y' }}, {{ eventDetails.ends | date: 'h:mm a' }}
+        </small>
+    </div>
+    <div class="col-4 col-sm-3 pull-8 pull-sm-9">
+        <div class="d-flex flex-column text-center">
+        <span class="small text-uppercase">{{ eventDetails.starts | date: 'MMMM' }}</span>
+        <span class="h1">{{ eventDetails.starts | date: 'd' }}</span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,10 @@
+<section *ngIf="query" class="mb-4">
+    <h2>Programs</h2>
+    <app-loading-icon *ngIf="loading"></app-loading-icon>
+    <div *ngIf="hasResults && !loading">
+        <app-program-item [program]="program" class="list-group-item" *ngFor="let program of programItems"></app-program-item>
+    </div>
+    <div class="alert alert-info" *ngIf="!hasResults && !loading">
+        <p>No programs found for &ldquo;{{ query }}&rdquo;.</p>
+    </div>
+</section>

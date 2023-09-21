@@ -1,0 +1,13 @@
+<section *ngIf="query" class="mb-4">
+    <h2>Images</h2>
+    <app-loading-icon *ngIf="loading"></app-loading-icon>
+    <div class="row justify-content-start" *ngIf="hasResults && !loading">
+        <div class="col" *ngFor="let image of imageItems|slice:0:5">
+            <app-image-item
+                [image]="image"></app-image-item>
+        </div>
+    </div>
+    <div class="alert alert-info" *ngIf="!hasResults && !loading">
+        <p>No images found for &ldquo;{{ query }}&rdquo;.</p>
+    </div>
+</section>

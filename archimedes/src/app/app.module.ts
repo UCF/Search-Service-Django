@@ -1,37 +1,37 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
-import { AppComponent } from './app.component';
-import { FormsModule } from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
-import { ProgramComponent } from './component/program/program.component';
-import { SearchBoxComponent } from './component/search-box/search-box.component';
-import { NewsComponent } from './component/news/news.component';
-import { EventsComponent } from './component/events/events.component';
-import { LoadingIconComponent } from './component/loading-icon/loading-icon.component';
-import { SafeHtmlPipe } from './pipe/safe-html.pipe';
-import { ProgramItemComponent } from './component/program-item/program-item.component';
-import { ShowMoreComponent } from './component/show-more/show-more.component';
-import { ImageComponent } from './component/image/image.component';
-import { EventDetailsComponent } from './component/event-details/event-details.component';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { SearchBoxComponent } from './components/search-box/search-box.component';
+import { EventResultsComponent } from './components/event-results/event-results.component';
+import { EventItemComponent } from './components/event-item/event-item.component';
+import { NewsResultsComponent } from './components/news-results/news-results.component';
+import { NewsItemComponent } from './components/news-item/news-item.component';
+import { ProgramResultsComponent } from './components/program-results/program-results.component';
+import { ProgramItemComponent } from './components/program-item/program-item.component';
+import { ImageResultsComponent } from './components/image-results/image-results.component';
+import { ImageItemComponent } from './components/image-item/image-item.component';
+import { LoadingIconComponent } from './components/loading-icon/loading-icon.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    ProgramComponent,
     SearchBoxComponent,
-    NewsComponent,
-    EventsComponent,
-    LoadingIconComponent,
-    SafeHtmlPipe,
+    EventResultsComponent,
+    EventItemComponent,
+    NewsResultsComponent,
+    NewsItemComponent,
+    ProgramResultsComponent,
     ProgramItemComponent,
-    ShowMoreComponent,
-    ImageComponent,
-    EventDetailsComponent
+    ImageResultsComponent,
+    ImageItemComponent,
+    LoadingIconComponent
   ],
   imports: [
     BrowserModule,
-    FormsModule,
+    AppRoutingModule,
     HttpClientModule
   ],
   providers: [],
