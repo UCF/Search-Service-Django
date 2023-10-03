@@ -51,7 +51,6 @@ The pip dependency `lxml` requires some additional libraries to be installed on 
 sudo apt-get install -y libxml2-dev libxslt1-dev
 ```
 
-
 *RHEL*
 ```
 sudo yum install libxml2 libxml2-devel libxml2-python libxslt libxslt-devel
