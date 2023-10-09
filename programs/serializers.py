@@ -450,7 +450,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             return cip_name
         except CIP.DoesNotExist:
             return None
-        pass
+            
     class Meta:
         fields = (
             'id',
