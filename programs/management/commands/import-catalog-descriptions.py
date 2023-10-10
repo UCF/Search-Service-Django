@@ -235,7 +235,7 @@ Finished in {datetime.now() - self.start_time}
         headers = {
             'content-type': 'application/json'
         }
-        timeout = 15  # seconds
+        timeout = 30  # seconds
 
         if use_auth:
             headers['Authorization'] = f'Bearer {self.key}'
