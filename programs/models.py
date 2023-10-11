@@ -143,6 +143,34 @@ class CIP(models.Model):
 
         super(CIP, self).save(*args, **kwargs)
 
+    @property
+    def area_code_str(self) -> str:
+        """
+        Returns the CIP area code as a string with a
+        leading zero if necessary. Returns an empty
+        string if the code is not set.
+        """
+        return str(self.area).zfill(2) if self.area is not None else ""
+    
+    @property
+    def subarea_code_str(self) -> str:
+        """
+        Returns the CIP subarea code as a string with a
+        leading zero if necessary. Returns an empty
+        string if the code is not set.
+        """
+        return str(self.subarea).zfill(2) if self.subarea is not None else ""
+    
+    @property
+    def precise_code_str(self) -> str:
+        """
+        Returns the CIP precise code as a string with a
+        leading zero if necessary. Returns an empty
+        string if the code is not set.
+        """
+        return str(self.precise).zfill(2) if self.precise is not None else ""
+
+
     def __unicode__(self):
         return "{0} - {1} ({2})".format(
             str(self.code),

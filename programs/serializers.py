@@ -434,7 +434,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             return None
 
         try:
-            top_level_cip = CIP.objects.get(code=obj.current_cip.area, version=settings.CIP_CURRENT_VERSION)
+            top_level_cip = CIP.objects.get(code=obj.current_cip.area_code_str, version=settings.CIP_CURRENT_VERSION)
             cip_name = top_level_cip.name.title()
             return cip_name
         except CIP.DoesNotExist:
@@ -445,7 +445,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             return None
 
         try:
-            subarea_cip = CIP.objects.get(code=f"{obj.current_cip.area}.{str(obj.current_cip.subarea).zfill(2)}", version=settings.CIP_CURRENT_VERSION)
+            subarea_cip = CIP.objects.get(code=f"{obj.current_cip.area_code_str}.{obj.current_cip.subarea_code_str}", version=settings.CIP_CURRENT_VERSION)
             cip_name = subarea_cip.name.title()
             return cip_name
         except CIP.DoesNotExist:
