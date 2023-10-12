@@ -197,6 +197,20 @@ class Command(BaseCommand):
 
         return True
 
+    def set_program_name(self, program) -> str:
+        """
+        Appends any additional information onto the program
+        name based on its level.
+        """
+        retval = program.name
+        if program.level.name == 'Minor' and 'Minor' not in program.name:
+            retval = f"{program.name} Minor"
+        elif program.level.name == 'Certificate' and f'{program.career.name} Certificate' not in program.name:
+            retval = f"{program.name.rstrip(' Certificate')} {program.career.name} Certificate"
+
+        return retval
+
+
     def add_program(self, data):
         program = None
         self.programs_processed += 1
@@ -269,6 +283,8 @@ class Command(BaseCommand):
 
         if self.program_is_online(data):
             program.online = True
+
+        program.name = self.set_program_name(program)
 
         program.save()
 
