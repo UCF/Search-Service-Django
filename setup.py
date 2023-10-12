@@ -37,7 +37,7 @@ setup(
         'gunicorn',
         'lxml==4.6.5',
         'mysqlclient',
-        'Pillow==9.0.1',
+        'Pillow==10.0.1',
         'progress',
         'python-dateutil',
         'python-Levenshtein',

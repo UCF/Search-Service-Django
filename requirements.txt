@@ -65,7 +65,7 @@ mysqlclient==2.2.0
     # via UCF-Search-Service-Django (pyproject.toml)
 packaging==23.1
     # via gunicorn
-pillow==10.0.0
+pillow==10.0.1
     # via UCF-Search-Service-Django (pyproject.toml)
 progress==1.6
     # via UCF-Search-Service-Django (pyproject.toml)
