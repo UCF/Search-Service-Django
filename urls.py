@@ -43,10 +43,6 @@ urlpatterns = [
         r'^favicon.ico$',
         RedirectView.as_view(url='/static/favicon.ico'),
         name='favicon'
-        ),
-    url(
-        r'^manager/$',
-        RedirectView.as_view(pattern_name='search'), name='manager'
     ),
     url(
         r'^manager/login/$',

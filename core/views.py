@@ -44,3 +44,19 @@ class SettingsAPIView(APIView):
             'ucf_events_api': settings.UCF_EVENTS_API,
             'ucf_search_service_api': settings.UCF_SEARCH_SERVICE_API
         })
+
+# Communicator Dashboard Views
+class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView):
+    template_name = 'dashboard/home.html'
+    title = ''
+    heading = 'Communicator Dashboard'
+    local = settings.LOCAL
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        ctx['meta'] = {
+            'program_count': user.meta.editable_programs.count(),
+            'missing_desc_count': user.meta.programs_missing_descriptions_count
+        }
+        return ctx
