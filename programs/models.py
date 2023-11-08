@@ -662,6 +662,8 @@ class ProgramProfile(models.Model):
         related_name='profiles',
         on_delete=models.CASCADE
     )
+    created = models.DateTimeField(auto_now_add=True, null=False)
+    modified = models.DateTimeField(auto_now=True, null=False)
 
     class Meta:
         unique_together = ('profile_type', 'program')

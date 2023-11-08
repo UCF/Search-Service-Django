@@ -1,27 +1,27 @@
 {% extends 'base.html' %}
 {% block body %}
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-12 col-lg-6">
-                <div class="card">
-                    <div class="card-block">
-                        <div class="row">
-                            <div class="col-6 col-sm-4">
-                                <a href=".">
-                                    <span class="h4 d-block">{{ meta.program_count }}</span>
-                                    <p>Programs</p>
-                                </a>
-                            </div>
-                            <div class="col-6 col-sm-4">
-                                <a href=".">
-                                    <span class="h4 d-block">{{ meta.missing_desc_count }}</span>
-                                    <p>Programs Missing Descriptions</p>
-                                </a>
-                            </div>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-block">
+                    <div class="row">
+                        <div class="col-6 col-sm-4">
+                            <a href=".">
+                                <span class="h4 d-block">{{ meta.program_count }}</span>
+                                <p>Programs</p>
+                            </a>
+                        </div>
+                        <div class="col-6 col-sm-4">
+                            <a href=".">
+                                <span class="h4 d-block">{{ meta.missing_desc_count }}</span>
+                                <p>Programs Missing Descriptions</p>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}

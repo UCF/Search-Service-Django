@@ -5,9 +5,12 @@ from django.conf import settings
 
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
+from django.views.generic import ListView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from programs.models import Program
 
 import settings
 
@@ -31,7 +34,7 @@ class HomeView(TitleContextMixin, TemplateView):
     local = settings.LOCAL
 
 
-class SearchView(LoginRequiredMixin, TitleContextMixin, TemplateView):
+class SearchView(LoginRequiredMixin, TitleContextMixin, ListView):
     template_name = 'search.html'
     title = ''
     heading = 'UCF Search Service'
@@ -60,3 +63,51 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
             'missing_desc_count': user.meta.programs_missing_descriptions_count
         }
         return ctx
+
+
+class ProgramListing(LoginRequiredMixin, TitleContextMixin, ListView):
+    template_name = 'dashboard/program-list.html'
+    title = 'Programs'
+    heading = 'Programs'
+    local = settings.LOCAL
+    paginate_by = 20
+
+    def get_queryset(self):
+        return self.request.user.meta.editable_programs
+    
+class ProgramEditView(LoginRequiredMixin, TitleContextMixin, UpdateView):
+    template_name = 'dashboard/program-edit.html'
+    title = 'Edit Program'
+    heading = 'Edit Program'
+    local = settings.LOCAL
+    fields = ('name',)
+
+    def get_queryset(self):
+        return self.request.user.meta.editable_programs
+    
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        obj: Program = ctx['object']
+        ctx['read_only_fields'] = {
+            'Name': obj.name,
+            'Credit Hours': obj.credit_hours,
+            'Plan Code': obj.plan_code,
+            'Subplan Code': obj.subplan_code,
+            'CIP': obj.cip,
+            'Catalog URL': obj.catalog_url,
+            'Colleges': obj.colleges,
+            'Departments': obj.departments,
+            'Level': obj.level,
+            'Career': obj.career,
+            'Degree': obj.degree,
+            'Online': obj.online,
+            'Created': obj.created,
+            'Last Modified': obj.modified,
+            'Resident Tuition': obj.resident_tuition,
+            'Non-Resident Tuition': obj.nonresident_tuition,
+            'Active': obj.active,
+            'Graduate Slate ID': obj.graduate_slate_id,
+            'Valid': obj.valid
+        }
+        return ctx
+    
