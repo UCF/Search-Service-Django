@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import Any
 from django.conf import settings
 
 from django.shortcuts import render
@@ -11,6 +12,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from programs.models import Program
+
+from core.filters import ProgramListFilterSet
 
 import settings
 
@@ -24,6 +27,20 @@ class TitleContextMixin(object):
         context['heading'] = self.heading
         context['local'] = self.local
 
+        return context
+
+class FilteredListView(ListView):
+    filterset = None
+
+    def get_queryset(self, queryset=None):
+        if not queryset:
+            queryset = super().get_queryset()
+        self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
+        return self.filterset.qs.distinct()
+    
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['filterset'] = self.filterset
         return context
 
 # Create your views here.
@@ -58,6 +75,8 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
+        ctx['most_recent_import'] = user.meta.editable_programs.latest('modified').modified
+        ctx['recently_added'] = user.meta.editable_programs.order_by('-created')[:10]
         ctx['meta'] = {
             'program_count': user.meta.editable_programs.count(),
             'missing_desc_count': user.meta.programs_missing_descriptions_count
@@ -65,15 +84,16 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
         return ctx
 
 
-class ProgramListing(LoginRequiredMixin, TitleContextMixin, ListView):
+class ProgramListing(LoginRequiredMixin, TitleContextMixin, FilteredListView):
     template_name = 'dashboard/program-list.html'
     title = 'Programs'
     heading = 'Programs'
     local = settings.LOCAL
+    filterset_class = ProgramListFilterSet
     paginate_by = 20
 
     def get_queryset(self):
-        return self.request.user.meta.editable_programs
+        return super().get_queryset(self.request.user.meta.editable_programs)
     
 class ProgramEditView(LoginRequiredMixin, TitleContextMixin, UpdateView):
     template_name = 'dashboard/program-edit.html'
@@ -93,7 +113,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, UpdateView):
             'Credit Hours': obj.credit_hours,
             'Plan Code': obj.plan_code,
             'Subplan Code': obj.subplan_code,
-            'CIP': obj.cip,
+            'CIP': obj.current_cip,
             'Catalog URL': obj.catalog_url,
             'Colleges': obj.colleges,
             'Departments': obj.departments,

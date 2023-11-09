@@ -35,16 +35,24 @@
     <h2>Read-only Fields</h2>
     <dl class="row">
         {% for field, value in read_only_fields.items %}
-        <dt class="col-6 col-sm-4">{{ field|title }}: </dt>
-        <dd class="col-6 col-sm-8">
+        <dt class="col-6 col-sm-3">{{ field }}: </dt>
+        <dd class="col-6 col-sm-9">
             {% if field in 'Colleges,Departments' %}
-            <ul class="list-unstyled">
-            {% for v in value.all %}
-                <li class="list-item">{{ v }}</li>
-            {% endfor %}
-            </ul>
+                <ul class="list-unstyled">
+                {% for v in value.all %}
+                    <li class="list-item">{{ v }}</li>
+                {% endfor %}
+                </ul>
+            {% elif field == 'Catalog URL' %}
+                <a href="{{ value }}" target="_blank" rel="nofollow">{{ value }}</a>
+            {% elif field in 'Active,Valid' %}
+                {% if value == 'True' %}
+                <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
+                {% else %}
+                <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
+                {% endif %}
             {% else %}
-            {{ value }}
+                {{ value }}
             {% endif %}
         </dd>
         {% endfor %}
