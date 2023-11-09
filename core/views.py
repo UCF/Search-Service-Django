@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Any
 from django.conf import settings
 
 from django.shortcuts import render
@@ -38,7 +37,7 @@ class FilteredListView(ListView):
         self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
         return self.filterset.qs.distinct()
     
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    def get_context_data(self, **kwargs: Any):
         context = super().get_context_data(**kwargs)
         context['filterset'] = self.filterset
         return context
