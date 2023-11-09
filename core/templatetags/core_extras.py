@@ -29,4 +29,4 @@ def sortable_field_header(context, **kwargs):
         retval['order'] = 'up' if current_order.startswith('-') else 'down'
         retval['show_caret'] = True
 
-    return context.flatten() | retval
+    return {**context.flatten(), **retval}
