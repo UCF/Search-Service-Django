@@ -17,3 +17,4 @@ class ProgramListFilterSet(django_filters.FilterSet):
     def __init__(self, data, *args, **kwargs):
         data = data.copy()
         super().__init__(data, *args, **kwargs)
+        
