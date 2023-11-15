@@ -50,7 +50,7 @@ class HomeView(TitleContextMixin, TemplateView):
     local = settings.LOCAL
 
 
-class SearchView(LoginRequiredMixin, TitleContextMixin, ListView):
+class SearchView(LoginRequiredMixin, TitleContextMixin, TemplateView):
     template_name = 'search.html'
     title = ''
     heading = 'UCF Search Service'
