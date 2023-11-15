@@ -38,7 +38,7 @@ class ExtendedUser(models.Model):
                 models.Q(colleges__in=self.colleges_can_edit) |
                 models.Q(departments__in=self.departments_can_edit)
             )
-        
+
     @property
     def programs_missing_descriptions_count(self) -> int:
         """

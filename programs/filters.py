@@ -57,4 +57,3 @@ class TuitionOverrideFilter(django_filters.FilterSet):
             'plan_code',
             'subplan_code'
         )
-

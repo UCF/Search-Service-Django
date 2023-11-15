@@ -151,7 +151,7 @@ class CIP(models.Model):
         string if the code is not set.
         """
         return str(self.area).zfill(2) if self.area is not None else ""
-    
+
     @property
     def subarea_code_str(self) -> str:
         """
@@ -160,7 +160,7 @@ class CIP(models.Model):
         string if the code is not set.
         """
         return str(self.subarea).zfill(2) if self.subarea is not None else ""
-    
+
     @property
     def precise_code_str(self) -> str:
         """
@@ -800,4 +800,3 @@ class WeightedJobPosition(models.Model):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
-

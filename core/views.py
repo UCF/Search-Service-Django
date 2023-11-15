@@ -36,7 +36,7 @@ class FilteredListView(ListView):
             queryset = super().get_queryset()
         self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
         return self.filterset.qs.distinct()
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['filterset'] = self.filterset
@@ -93,7 +93,7 @@ class ProgramListing(LoginRequiredMixin, TitleContextMixin, FilteredListView):
 
     def get_queryset(self):
         return super().get_queryset(self.request.user.meta.editable_programs)
-    
+
 class ProgramEditView(LoginRequiredMixin, TitleContextMixin, UpdateView):
     template_name = 'dashboard/program-edit.html'
     title = 'Edit Program'
@@ -103,7 +103,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, UpdateView):
 
     def get_queryset(self):
         return self.request.user.meta.editable_programs
-    
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         obj: Program = ctx['object']
@@ -129,4 +129,3 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, UpdateView):
             'Valid': obj.valid
         }
         return ctx
-    
