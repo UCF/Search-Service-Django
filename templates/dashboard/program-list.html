@@ -16,6 +16,12 @@
                     {% sortable_field_header fieldname='Name' field='name' %}
                 </th>
                 <th scope="col">
+                  Descriptions
+                </th>
+                <th>
+                  Custom Description
+                </th>
+                <th scope="col">
                     {% sortable_field_header fieldname='Modified' field='modified' %}
                 </th>
             </tr>
@@ -26,6 +32,8 @@
                 <td>
                     <a href="{% url 'dashboard.programs.edit' obj.pk %}">{{ obj.name }}</a>
                 </td>
+                <td>{{ obj.has_descriptions|check|safe }}</td>
+                <td>{{ obj.has_custom_description|check|safe }}</td>
                 <td>{{ obj.modified|date:"F j, Y"  }}</td>
             </tr>
         {% endfor %}

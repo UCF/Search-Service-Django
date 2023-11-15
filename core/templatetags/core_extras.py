@@ -11,6 +11,16 @@ def param_replace(context, **kwargs):
         del ctx[key]
     return ctx.urlencode()
 
+
+@register.filter(is_safe=True)
+def check(value):
+    if value == True:
+        return f'<span class="fa fa-check-circle text-success" aria-hidden="true"><span><span class="sr-only">{ value }</span>'
+    elif value == False:
+        return f'<span class="fa fa-times-circle text-danger" aria-hidden="true"><span><span class="sr-only">{ value }</span>'
+
+    return ''
+
 @register.inclusion_tag('templatetags/sortable-field-heading.html', takes_context=True)
 def sortable_field_header(context, **kwargs):
     ctx = context['request'].GET.copy()

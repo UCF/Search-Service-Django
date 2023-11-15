@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from django.db import models
 from django_mysql.models import ListTextField
 import calendar
@@ -14,6 +13,9 @@ from rest_framework.authtoken.models import Token
 from units.models import Unit
 from units.models import College as UnitCollege
 from units.models import Department as UnitDepartment
+
+from auditlog.registry import auditlog
+from auditlog.models import AuditlogHistoryField
 
 from bs4 import BeautifulSoup
 
@@ -523,6 +525,7 @@ class Program(models.Model):
     valid = models.BooleanField(default=True)
     has_locations = models.BooleanField(default=True)
     start_term = models.ForeignKey(AcademicTerm, null=True, blank=True, related_name='start_term_programs', on_delete=models.SET_NULL)
+    history = AuditlogHistoryField()
 
     class Meta:
         unique_together = ('plan_code', 'subplan_code')
@@ -647,6 +650,14 @@ class Program(models.Model):
 
         return None
 
+    @property
+    def has_descriptions(self):
+        return self.descriptions.count() > 0
+
+    @property
+    def has_custom_description(self):
+        return self.descriptions.filter(description_type=settings.CUSTOM_DESCRIPTION_TYPE_ID).count() > 0
+
 
 class ProgramProfile(models.Model):
     """
@@ -689,6 +700,7 @@ class ProgramDescription(models.Model):
         related_name='descriptions',
         on_delete=models.CASCADE
     )
+    history = AuditlogHistoryField()
 
     class Meta:
         unique_together = ('description_type', 'program')
@@ -795,6 +807,9 @@ class WeightedJobPosition(models.Model):
     def __str__(self):
         return f"{self.program.name} - {self.career.name}"
 
+
+auditlog.register(Program, serialize_data=True)
+auditlog.register(ProgramDescription, serialize_data=True)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):

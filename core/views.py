@@ -6,13 +6,16 @@ from django.conf import settings
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView, UpdateView
+from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from programs.models import Program
+from programs.models import Program, ProgramDescription
 
 from core.filters import ProgramListFilterSet
+from django.contrib.contenttypes.models import ContentType
+from auditlog.models import LogEntry
 
 import settings
 
@@ -74,12 +77,26 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
-        ctx['most_recent_import'] = user.meta.editable_programs.latest('modified').modified
-        ctx['recently_added'] = user.meta.editable_programs.order_by('-created')[:10]
+        program_content_type = ContentType.objects.get_for_model(Program)
+        program_description_content_type = ContentType.objects.get_for_model(ProgramDescription)
+        user_events = LogEntry.objects.filter(
+            Q(content_type=program_content_type)|Q(content_type=program_description_content_type),
+            actor=user,
+        )[:5]
+
+        global_events = LogEntry.objects.filter(
+            Q(content_type=program_content_type)|Q(content_type=program_description_content_type)
+        ).exclude(
+            actor=user
+        )[:5]
+
         ctx['meta'] = {
             'program_count': user.meta.editable_programs.count(),
-            'missing_desc_count': user.meta.programs_missing_descriptions_count
+            'missing_desc_count': user.meta.programs_missing_descriptions_count,
+            'missing_custom_desc_count': user.meta.programs_missing_custom_descriptions_count
         }
+        ctx['user_events'] = user_events
+        ctx['global_events'] = global_events
         return ctx
 
 
