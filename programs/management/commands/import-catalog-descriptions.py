@@ -286,22 +286,48 @@ Finished in {datetime.now() - self.start_time}
             raise Exception(
                 'Unable to retrieve catalog IDs.'
             )
+        
+    def __get_paged_results(self, url):
+        retval = []
+        params = {
+            'limit': 100
+        }
+
+        initial_response = self.__get_json_response(url, params=params)
+        iter_limit = initial_response['count'] // 100 + 2
+        iter_count = 0
+        retval.extend(initial_response['res'])
+
+        while True:
+            params['skip'] = len(retval)
+            resp = self.__get_json_response(url, params)
+            retval.extend(resp['res'])
+            if len(resp['res']) < 100 or len(resp['res']) == 0:
+                break
+            iter_count += 1
+
+            # Emergency break in case we're in an
+            # endless loop
+            if iter_count >= iter_limit:
+                break
+
+        return retval
 
     def __get_catalog_entries(self):
         """
         Requests programs/tracks from Kuali, and prepares
         retrieved data for matching
         """
-        catalog_program_data = self.__get_json_response(self.catalog_programs_url)
-        catalog_tracks_data = self.__get_json_response(self.catalog_tracks_url)
+        catalog_program_data = self.__get_paged_results(self.catalog_programs_url)
+        catalog_tracks_data = self.__get_paged_results(self.catalog_tracks_url)
         data = []
 
         try:
-            data.extend(catalog_program_data['res'])
+            data.extend(catalog_program_data)
         except KeyError:
             pass
         try:
-            data.extend(catalog_tracks_data['res'])
+            data.extend(catalog_tracks_data)
         except KeyError:
             pass
 
