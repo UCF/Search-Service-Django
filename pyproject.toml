@@ -21,7 +21,7 @@ dependencies = [
     "Pillow==10.0.0",
     "progress",
     "python-dateutil",
-    "pysaml2",
+    "pysaml2~=7.3.0",
     "python-Levenshtein==0.12.2",
     "raven",
     "requests",

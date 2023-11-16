@@ -76,7 +76,7 @@ pycparser==2.21
     # via cffi
 pyopenssl==23.2.0
     # via pysaml2
-pysaml2==7.4.2
+pysaml2==7.3.1
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
     #   django-saml2-auth-ai
