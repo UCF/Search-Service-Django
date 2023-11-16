@@ -29,10 +29,13 @@ defusedxml==0.7.1
 django==3.2.20
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
+    #   django-auditlog
     #   django-cors-headers
     #   django-filter
     #   django-mysql
     #   djangorestframework
+django-auditlog==2.3.0
+    # via UCF-Search-Service-Django (pyproject.toml)
 django-cors-headers==4.2.0
     # via UCF-Search-Service-Django (pyproject.toml)
 django-filter==21.1
@@ -81,6 +84,7 @@ python-dateutil==2.8.2
     # via
     #   UCF-Search-Service-Django (pyproject.toml)
     #   botocore
+    #   django-auditlog
     #   pysaml2
 python-levenshtein==0.12.2
     # via UCF-Search-Service-Django (pyproject.toml)
