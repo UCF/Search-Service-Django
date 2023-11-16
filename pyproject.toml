@@ -9,6 +9,7 @@ dependencies = [
     "django-cors-headers",
     "djangorestframework",
     "django-filter==21.1",
+    "django-auditlog==2.3.0",
     "django_mysql~=3.12.0",
     "django-saml2-auth-ai",
     "django-widget-tweaks",

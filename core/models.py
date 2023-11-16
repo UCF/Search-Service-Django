@@ -42,6 +42,7 @@ class ExtendedUser(models.Model):
                 models.Q(departments__in=self.departments_can_edit)
             )
 
+
     @property
     def programs_missing_descriptions(self):
         """

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load core_extras %}
 {% block body %}
 <div class="container mt-5">
   <div class="row">
@@ -20,12 +21,12 @@
                 <tr>
                   <td><span class="fa fa-warning fa-lg text-warning mr-2"></span> Missing Program Descriptions</td>
                   <td>{{ meta.missing_desc_count }}</td>
-                  <td><a href="{% url 'dashboard.programs.list' %}">View Programs</a></td>
+                  <td><a href="{% url 'dashboard.programs.list' %}?missing=missing">View Programs</a></td>
                 </tr>
                 <tr>
                   <td><span class="fa fa-warning fa-lg text-warning mr-2"></span> Missing Custom Description</td>
                   <td>{{ meta.missing_custom_desc_count }}</td>
-                  <td><a href="{% url 'dashboard.programs.list' %}">View Programs</a></td>
+                  <td><a href="{% url 'dashboard.programs.list' %}?missing=missing_custom">View Programs</a></td>
                 </tr>
                 <tr>
                   <td><span class="fa fa-warning fa-lg text-warning mr-2"></span> Missing Career Paths</td>
@@ -55,7 +56,7 @@
             {% for event in user_events %}
               <tr>
                 <td>{{ event.actor }}</td>
-                <td>{{ event }}</td>
+                <td>{% auditlog_event event=event %}</td>
               </tr>
             {% endfor %}
             </tbody>

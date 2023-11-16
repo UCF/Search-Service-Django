@@ -40,3 +40,28 @@ def sortable_field_header(context, **kwargs):
         retval['show_caret'] = True
 
     return {**context.flatten(), **retval}
+
+@register.inclusion_tag('templatetags/auditlog-event.html')
+def auditlog_event(**kwargs):
+    event = kwargs.get('event', None)
+
+    if event is None:
+        return None
+
+    action = ''
+    if event.action == 0:
+        action = 'Created'
+    elif event.action == 1:
+        action = 'Updated'
+    elif event.action == 2:
+        action = 'Deleted'
+
+    content_type = event.content_type.name
+
+    ctx = {
+        'action': action,
+        'content_type': content_type,
+        'name': event.object_repr
+    }
+
+    return ctx

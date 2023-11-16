@@ -70,15 +70,17 @@ class SettingsAPIView(APIView):
 # Communicator Dashboard Views
 class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView):
     template_name = 'dashboard/home.html'
-    title = ''
+    title = 'Dashboard'
     heading = 'Communicator Dashboard'
     local = settings.LOCAL
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
+
         program_content_type = ContentType.objects.get_for_model(Program)
         program_description_content_type = ContentType.objects.get_for_model(ProgramDescription)
+
         user_events = LogEntry.objects.filter(
             Q(content_type=program_content_type)|Q(content_type=program_description_content_type),
             actor=user,
