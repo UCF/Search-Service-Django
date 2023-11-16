@@ -5,7 +5,7 @@ A Django based application that provides a REST API, as well as manual and autom
 ## Requirements
 - python 3.8+
 - pip
-- node
+- node@14
 - gulp-cli
 - angular-cli
 
