@@ -1,0 +1,7 @@
+{% load core_extras %}
+<a href="?{% param_replace order=field %}">
+    {{ fieldname }}
+    {% if show_caret %}
+        <span class="fa fa-caret-{{order}}" aria-hidden="true"></span>
+    {% endif %}
+</a>

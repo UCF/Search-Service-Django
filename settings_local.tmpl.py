@@ -141,6 +141,9 @@ PROJ_AVAILABLE_REPORTS = [
 # Set the current employment projection report year range
 PROJ_CURRENT_REPORT = '1828'
 
+# The ID of the "Custom" description type for programs
+CUSTOM_DESCRIPTION_TYPE_ID = 5
+
 # The default year + month + day limit of how old imported images can be.
 # NOTE: increasing this value could cause older images to be removed
 # during a future image import!

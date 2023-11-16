@@ -151,7 +151,7 @@ class CIP(models.Model):
         string if the code is not set.
         """
         return str(self.area).zfill(2) if self.area is not None else ""
-    
+
     @property
     def subarea_code_str(self) -> str:
         """
@@ -160,7 +160,7 @@ class CIP(models.Model):
         string if the code is not set.
         """
         return str(self.subarea).zfill(2) if self.subarea is not None else ""
-    
+
     @property
     def precise_code_str(self) -> str:
         """
@@ -662,6 +662,8 @@ class ProgramProfile(models.Model):
         related_name='profiles',
         on_delete=models.CASCADE
     )
+    created = models.DateTimeField(auto_now_add=True, null=False)
+    modified = models.DateTimeField(auto_now=True, null=False)
 
     class Meta:
         unique_together = ('profile_type', 'program')

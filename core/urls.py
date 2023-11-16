@@ -15,6 +15,21 @@ urlpatterns = [
         name='home'
     ),
     url(
+        r'manager/dashboard/$',
+        CommunicatorDashboard.as_view(),
+        name='dashboard'
+    ),
+    url(
+        r'manager/dashboard/programs/$',
+        ProgramListing.as_view(),
+        name='dashboard.programs.list'
+    ),
+    url(
+        r'manager/dashboard/programs/(?P<pk>\d+)/$',
+        ProgramEditView.as_view(),
+        name='dashboard.programs.edit'
+    ),
+    url(
         r'^manager/search/$',
         SearchView.as_view(template_name='search.html'),
         name='search'

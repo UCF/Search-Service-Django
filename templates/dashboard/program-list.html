@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load core_extras %}
+{% block body %}
+<div class="container mt-4">
+    <!-- <form class="mb-4" action="" method="get">
+        <div class="form-group">
+            <label for="{{ filterset.form.name.label }}" class="form-label">Name: </label>
+            <input class="form-control" id="name" name="name" type="text" />
+        </div>
+        <input class="btn btn-primary" type="submit" />
+    </form> -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">
+                    {% sortable_field_header fieldname='Name' field='name' %}
+                </th>
+                <th scope="col">
+                    {% sortable_field_header fieldname='Modified' field='modified' %}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for obj in object_list %}
+            <tr>
+                <td>
+                    <a href="{% url 'dashboard.programs.edit' obj.pk %}">{{ obj.name }}</a>
+                </td>
+                <td>{{ obj.modified|date:"F j, Y"  }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="btn-group mb-5">
+        {% if page_obj.has_previous %}
+        <a class="btn btn-default" href="?{% param_replace page=1 %}">&laquo; <span class="sr-only">First</span></a>
+        <a class="btn btn-default" href="?{% param_replace page=page_obj.previous_page_number %}">&lt; <span class="sr-only">Previous</span></a>
+        {% endif %}
+        <span class="btn btn-default">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        {% if page_obj.has_next %}
+        <a class="btn btn-default" href="?{% param_replace page=page_obj.next_page_number %}"><span class="sr-only">Next</span> &gt;</a>
+        <a class="btn btn-default" href="?{% param_replace page=page_obj.paginator.num_pages %}"><span class="sr-only">Last</span> &raquo;</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

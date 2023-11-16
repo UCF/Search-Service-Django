@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12 col-lg-6">
+            <h2 class="mb-4">Quick Links</h2>
+            <div class="card">
+                <div class="card-block">
+                    <div class="row d-flex justify-items-between">
+                        <div class="col">
+                            <a class="text-center text-decoration-none" href="{% url 'dashboard.programs.list' %}">
+                                <span class="fa fa-3x fa-file d-block mb-2 text-success" aria-hidden="true"></span>
+                                <span class="h6 text-secondary d-block">{{ meta.program_count }}</span>
+                                <p class="small text-muted mb-0">All Programs</p>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <a class="text-center text-decoration-none" href="{% url 'dashboard.programs.list' %}">
+                                <span class="fa fa-3x fa-warning d-block mb-2 text-warning" aria-hidden="true"></span>
+                                <span class="h6 text-secondary d-block">{{ meta.missing_desc_count }}</span>
+                                <p class="small text-muted mb-0">Programs Needing Custom Descriptions</p>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <div class="text-center">
+                                <span class="fa fa-3x fa-clock d-block mb-2 text-secondary"></span>
+                                <span class="h6 text-secondary d-block">{{ most_recent_import|date:'M j, Y' }}</span>
+                                <p class="small text-muted mb-0">Most Recent Import</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 offset-lg-2 col-lg-4">
+            <h2 class="mb-4">Recently Added Programs</h2>
+            <ul class="list-unstyled">
+            {% for program in recently_added %}
+            <li class="list-item mb-2">
+                <a href="{% url 'dashboard.programs.edit' program.pk %}">{{ program.name }}</a>
+            </li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
