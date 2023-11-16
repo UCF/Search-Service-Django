@@ -24,7 +24,7 @@ let config = {
   dist: {
     cssPath: './static/css',
     jsPath: './static/js',
-    fontPath: './static/fonts'
+    fontPath: './static/webfonts'
   },
   devPath: './dev',
   packagesPath: './node_modules',
@@ -139,7 +139,7 @@ gulp.task('move-components-fontawesome-6', (done) => {
 
   // Move font files
   gulp.src(`${config.packagesPath}/@fortawesome/fontawesome-free/webfonts/**/*`)
-    .pipe(gulp.dest(`${config.dist.fontPath}/font-awesome/`));
+    .pipe(gulp.dest(`${config.dist.fontPath}/`));
 
   done();
 });

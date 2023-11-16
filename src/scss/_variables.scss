@@ -1,0 +1,36 @@
+//
+// Colors
+//
+// Grayscale and brand colors for use across Bootstrap.
+
+$primary: #fc0;
+$blue-dark: #0262b6 !default; // custom
+
+$link-color:            $blue-dark !default; // modified
+$link-decoration:       underline !default; // modified
+$link-hover-color:      darken($link-color, 15%) !default;
+$link-hover-decoration: underline !default;
+
+//
+// Border Radii
+//
+$btn-border-radius:              0 !default; // modified
+$btn-border-radius-lg:           0 !default; // modified
+$btn-border-radius-sm:           0 !default; // modified
+
+$input-border-radius:            0 !default; // modified
+$input-border-radius-lg:         0 !default; // modified
+$input-border-radius-sm:         0 !default; // modified
+
+$card-border-radius:       0 !default; // modified
+$card-border-radius-inner: 0 !default; // modified
+
+$alert-border-radius:         0 !default; // modified
+$alert-border-width:          0 !default; // modified
+
+//
+// Font Awesome Variables
+//
+
+$fa-font-path: '../webfonts';
+

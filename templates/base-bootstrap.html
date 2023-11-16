@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <title>UCF Search Service{% if title %} | {{ title }}{% endif %}</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Athena CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
+  </head>
+  <body data-spy="scroll" data-target="#sidebar">
+    <header>
+      <div class="media-background-container bg-default">
+        <picture class="media-background-picture">
+          <source srcset="{% static 'img/dark-lines.jpg' %}" media="(min-width: 576px)">
+          <source srcset="{% static 'img/dark-lines-xs.jpg' %}" media="(max-width: 575px)">
+          <img class="media-background object-fit-cover" src="{% static 'img/dark-lines.jpg' %}" alt="" data-object-fit="cover">
+        </picture>
+        <div class="container my-5">
+          {% block header_content %}
+          <h1 class="display-4 text-light">
+            {% block heading_text %}{{ heading }}{% endblock %}
+          </h1>
+          {% endblock %}
+        </div>
+      </div>
+    </header>
+
+    <main>
+      {% block body %}{% endblock %}
+    </main>
+
+    <!-- jQuery first, then Tether, then Athena JS. -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="{% static 'js/script.min.js' %}"></script>
+    <script type="text/javascript" id="ucfhb-script" src="//universityheader.ucf.edu/bar/js/university-header.js?use-1200-breakpoint=1"></script>
+  </body>
+</html>
