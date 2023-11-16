@@ -2,6 +2,7 @@
 
 
 from django.db import models
+from django.db.models import Count
 from django.contrib.auth.models import User
 from django.conf import settings
 
@@ -41,10 +42,49 @@ class ExtendedUser(models.Model):
                 models.Q(departments__in=self.departments_can_edit)
             )
 
+
+    @property
+    def programs_missing_descriptions(self):
+        """
+        Returns the programs missing a description
+        """
+        return self.editable_programs.annotate(
+            num_descriptions=Count('descriptions')
+        ).filter(num_descriptions=0)
+
+
     @property
     def programs_missing_descriptions_count(self) -> int:
+        """
+        Returns the number of programs that have
+        no programs.
+        """
+        return self.programs_missing_descriptions.count()
+
+
+    @property
+    def programs_with_custom_descriptions(self):
+        """
+        Returns all programs the user has access to edit
+        that have custom descriptions
+        """
+        return self.editable_programs.filter(
+            descriptions__description_type=settings.CUSTOM_DESCRIPTION_TYPE_ID
+        )
+
+
+    @property
+    def programs_missing_custom_description(self):
+        """
+        Returns the programs missing custom descriptions
+        """
+        return self.editable_programs.exclude(id__in=self.programs_with_custom_descriptions)
+
+
+    @property
+    def programs_missing_custom_descriptions_count(self) -> int:
         """
         Returns the number of programs missing
         custom descriptions
         """
-        return self.editable_programs.count() - self.editable_programs.filter(descriptions__description_type=settings.CUSTOM_DESCRIPTION_TYPE_ID).count()
+        return self.programs_missing_custom_description.count()

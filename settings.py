@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'widget_tweaks',
     'django_saml2_auth',
+    'auditlog',
 
     # Local
     'programs',
@@ -57,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'auditlog.middleware.AuditlogMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'

@@ -1,47 +1,103 @@
 {% extends 'base.html' %}
+{% load core_extras %}
 {% block body %}
 <div class="container mt-5">
-    <div class="row">
-        <div class="col-12 col-lg-6">
-            <h2 class="mb-4">Quick Links</h2>
-            <div class="card">
-                <div class="card-block">
-                    <div class="row d-flex justify-items-between">
-                        <div class="col">
-                            <a class="text-center text-decoration-none" href="{% url 'dashboard.programs.list' %}">
-                                <span class="fa fa-3x fa-file d-block mb-2 text-success" aria-hidden="true"></span>
-                                <span class="h6 text-secondary d-block">{{ meta.program_count }}</span>
-                                <p class="small text-muted mb-0">All Programs</p>
-                            </a>
-                        </div>
-                        <div class="col">
-                            <a class="text-center text-decoration-none" href="{% url 'dashboard.programs.list' %}">
-                                <span class="fa fa-3x fa-warning d-block mb-2 text-warning" aria-hidden="true"></span>
-                                <span class="h6 text-secondary d-block">{{ meta.missing_desc_count }}</span>
-                                <p class="small text-muted mb-0">Programs Needing Custom Descriptions</p>
-                            </a>
-                        </div>
-                        <div class="col">
-                            <div class="text-center">
-                                <span class="fa fa-3x fa-clock d-block mb-2 text-secondary"></span>
-                                <span class="h6 text-secondary d-block">{{ most_recent_import|date:'M j, Y' }}</span>
-                                <p class="small text-muted mb-0">Most Recent Import</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 offset-lg-2 col-lg-4">
-            <h2 class="mb-4">Recently Added Programs</h2>
-            <ul class="list-unstyled">
-            {% for program in recently_added %}
-            <li class="list-item mb-2">
-                <a href="{% url 'dashboard.programs.edit' program.pk %}">{{ program.name }}</a>
-            </li>
-            {% endfor %}
-            </ul>
-        </div>
+  <div class="row">
+    <div class="col-12 col-lg-8">
+        <div class="card mb-4">
+          <div class="card-header">
+            Quick Glance
+          </div>
+          <div class="card-block">
+            <table class="table">
+              <thead>
+                <tr class="font-size-sm">
+                  <th scope="col">Type of Issue</th>
+                  <th scope="col">Number of Issues</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="fa fa-warning fa-lg text-warning mr-2"></span> Missing Program Descriptions</td>
+                  <td>{{ meta.missing_desc_count }}</td>
+                  <td><a href="{% url 'dashboard.programs.list' %}?missing=missing">View Programs</a></td>
+                </tr>
+                <tr>
+                  <td><span class="fa fa-warning fa-lg text-warning mr-2"></span> Missing Custom Description</td>
+                  <td>{{ meta.missing_custom_desc_count }}</td>
+                  <td><a href="{% url 'dashboard.programs.list' %}?missing=missing_custom">View Programs</a></td>
+                </tr>
+                <tr>
+                  <td><span class="fa fa-warning fa-lg text-warning mr-2"></span> Missing Career Paths</td>
+                  <td>{{ 22 }}</td>
+                  <td><a href="{% url 'dashboard.programs.list' %}">View Programs</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+      </div>
     </div>
+    <div class="col-12 col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header">
+          My Recent Activity
+        </div>
+        <div class="card-block">
+          {% if user_events.count > 0 %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">User</th>
+                <th scope="col">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for event in user_events %}
+              <tr>
+                <td>{{ event.actor }}</td>
+                <td>{% auditlog_event event=event %}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="alert alert-info">
+            <p>You have no recent activity.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card mb-4">
+        <div class="card-header">
+          Recent Activity (Global)
+        </div>
+        <div class="card-block">
+          {% if global_events.count > 0 %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">User</th>
+                <th scope="col">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for event in global_events %}
+              <tr>
+                <td>{{ event.actor }}</td>
+                <td>{{ event }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="alert alert-info">
+            <p>There is no recent activity to display.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
