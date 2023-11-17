@@ -35,7 +35,7 @@ class FilteredListView(ListView):
     filterset = None
 
     def get_queryset(self, queryset=None):
-        if not queryset:
+        if queryset is None:
             queryset = super().get_queryset()
         self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
         return self.filterset.qs.distinct()
