@@ -5,10 +5,12 @@
     "@babel/core": "^7.17.7",
     "@babel/eslint-parser": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
+    "@fortawesome/fontawesome-free": "^6.4.2",
     "babel-plugin-transform-es2015-modules-strip": "^0.1.2",
+    "bootstrap": "^5.3.2",
     "browser-sync": "^2.27.9",
-    "eslint": "^8.11.0",
     "del": "^6.0.0",
+    "eslint": "^8.11.0",
     "gulp": "^4.0.2",
     "gulp-autoprefixer": "^8.0.0",
     "gulp-babel": "^8.0.0",
@@ -24,13 +26,10 @@
     "gulp-sourcemaps": "^3.0.0",
     "gulp-uglify": "^3.0.2",
     "merge": "^2.1.1",
-    "sass": "^1.49.9"
+    "sass": "^1.49.9",
+    "ucf-athena-framework": "^1.2.0"
   },
   "browserslist": [
     "last 2 versions"
-  ],
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "^6.4.2",
-    "bootstrap": "^5.3.2"
-  }
+  ]
 }
