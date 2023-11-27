@@ -806,6 +806,56 @@ class WeightedJobPosition(models.Model):
         return f"{self.program.name} - {self.career.name}"
 
 
+class ProgramImportRecord(models.Model):
+    """
+    Model for storing the stats for each import
+    """
+    start_date_time = models.DateTimeField(null=False, blank=False)
+    end_date_time = models.DateTimeField(null=False, blank=False)
+    programs_processed = models.IntegerField(null=False, blank=False)
+    programs_created = models.ManyToManyField(Program, related_name='created_import')
+    programs_modified = models.ManyToManyField(Program, related_name='last_modified_import')
+    programs_invalidated = models.ManyToManyField(Program, related_name='invalidated_import')
+    programs_revalidated = models.ManyToManyField(Program, related_name='revalidated_import')
+
+
+    @property
+    def import_time(self):
+        """
+        Returns the amount of time it took
+        for the import to run.
+        """
+        return self.end_date_time - self.start_date_time
+
+    @property
+    def programs_created_count(self):
+        """
+        Returns the count of programs created
+        """
+        return self.programs_created.count()
+
+    @property
+    def programs_modified_count(self):
+        """
+        Returns the count of programs modified
+        """
+        return self.programs_modified.count()
+
+    @property
+    def programs_invalidated_count(self):
+        """
+        Returns the count of programs invalidated
+        """
+        return self.programs_invalidated.count()
+
+    @property
+    def programs_revalidated_count(self):
+        """
+        Returns the count of programs revalidated
+        """
+        return self.programs_revalidated.count()
+
+
 auditlog.register(Program, serialize_data=True)
 auditlog.register(ProgramDescription, serialize_data=True)
 

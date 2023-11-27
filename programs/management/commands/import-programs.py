@@ -1,9 +1,10 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
+from django.conf import settings
 from programs.models import *
 
 import requests
-import json
+from auditlog.context import set_actor
 import re
 from tabulate import tabulate
 
@@ -93,6 +94,7 @@ class Command(BaseCommand):
         self.list_inactive = options['list_inactive']
         self.cip_version = options['cip_version']
         response = requests.get(path)
+        self.actor_id = getattr(settings, 'IMPORT_USER_ID', 1)
 
         if mapping_path and not self.use_internal_mapping:
             mapping_resp = requests.get(mapping_path)
@@ -102,26 +104,62 @@ class Command(BaseCommand):
         else:
             self.mappings = None
 
-        data = response.json()
+        with set_actor(self.actor_id):
+            data = response.json()
 
-        # Create/update programs from feed data
-        for d in data:
-            if self.program_is_valid(d):
-                program = self.add_program(d)
+            # Create/update programs from feed data
+            for d in data:
+                if self.program_is_valid(d):
+                    program = self.add_program(d)
 
-                if len(d['SubPlans']) > 0:
-                    for sp in d['SubPlans']:
-                        if self.subplan_is_valid(sp):
-                            self.add_subplan(sp, program)
-                        else:
-                            self.programs_skipped += 1
-            else:
-                self.programs_skipped += 1
+                    if len(d['SubPlans']) > 0:
+                        for sp in d['SubPlans']:
+                            if self.subplan_is_valid(sp):
+                                self.add_subplan(sp, program)
+                            else:
+                                self.programs_skipped += 1
+                else:
+                    self.programs_skipped += 1
 
-        self.invalidate_stale_programs()
-        self.print_results()
+            self.invalidate_stale_programs()
+            self.__create_import_record()
+            self.print_results()
 
-        return 0
+            return 0
+
+    def __create_import_record(self):
+        """
+        Creates a record of the import and stats
+        for use in the Communicator Dashboard
+        """
+        try:
+            record = ProgramImportRecord.objects.create(
+                start_date_time = self.new_modified_date,
+                end_date_time = timezone.now(),
+                programs_processed = self.programs_processed,
+            )
+
+            record.save()
+
+            record.programs_created.set(Program.objects.filter(
+                created__gte=self.new_modified_date
+            ))
+
+            record.programs_modified.set(Program.objects.filter(
+                created__lt=self.new_modified_date,
+                modified__gte=self.new_modified_date
+            ))
+
+            record.programs_invalidated.set(self.invalidated_programs)
+            record.programs_revalidated.set(self.revalidated_programs)
+
+            self.stdout.write(self.style.SUCCESS("Successfully wrote import record!"))
+
+        except Exception as e:
+            self.stderr.write(self.style.ERROR(
+                f"There was an error writing the Import Record: {e}"
+            ))
+
 
     def program_is_valid(self, data):
         """
