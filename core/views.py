@@ -11,7 +11,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from programs.models import Program, ProgramDescription
+from programs.models import Program, ProgramDescription, ProgramImportRecord
 
 from core.filters import ProgramListFilterSet
 from django.contrib.contenttypes.models import ContentType
@@ -78,6 +78,14 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
 
+        last_import = ProgramImportRecord.objects.order_by('-start_date_time').first()
+
+        ctx['import'] = {
+            'last_import_date': last_import.start_date_time,
+            'programs_created': last_import.programs_created_count,
+            'programs_processed': last_import.programs_processed,
+        }
+
         program_content_type = ContentType.objects.get_for_model(Program)
         program_description_content_type = ContentType.objects.get_for_model(ProgramDescription)
 
@@ -95,7 +103,8 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
         ctx['meta'] = {
             'program_count': user.meta.editable_programs.count(),
             'missing_desc_count': user.meta.programs_missing_descriptions_count,
-            'missing_custom_desc_count': user.meta.programs_missing_custom_descriptions_count
+            'missing_custom_desc_count': user.meta.programs_missing_custom_descriptions_count,
+            'missing_career_paths': user.meta.programs_missing_career_paths_count
         }
         ctx['user_events'] = user_events
         ctx['global_events'] = global_events
