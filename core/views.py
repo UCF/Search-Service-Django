@@ -80,11 +80,18 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
 
         last_import = ProgramImportRecord.objects.order_by('-start_date_time').first()
 
-        ctx['import'] = {
-            'last_import_date': last_import.start_date_time,
-            'programs_created': last_import.programs_created_count,
-            'programs_processed': last_import.programs_processed,
-        }
+        if last_import is not None:
+            ctx['import'] = {
+                'last_import_date': last_import.start_date_time,
+                'programs_created': last_import.programs_created_count,
+                'programs_processed': last_import.programs_processed,
+            }
+        else:
+            ctx['import'] = {
+                'last_import_date': None,
+                'programs_created': None,
+                'programs_processed': None,
+            }
 
         program_content_type = ContentType.objects.get_for_model(Program)
         program_description_content_type = ContentType.objects.get_for_model(ProgramDescription)
