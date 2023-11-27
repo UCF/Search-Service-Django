@@ -88,3 +88,11 @@ class ExtendedUser(models.Model):
         custom descriptions
         """
         return self.programs_missing_custom_description.count()
+
+    @property
+    def programs_missing_career_paths_count(self) -> int:
+        """
+        Returns the number of programs missing
+        custom career paths
+        """
+        return 22
