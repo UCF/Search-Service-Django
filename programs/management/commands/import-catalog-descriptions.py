@@ -3,10 +3,16 @@ from django.conf import settings
 from programs.utilities.oscar import Oscar
 from programs.utilities.catalog_match import CatalogEntry, MatchableProgram
 
-from programs.models import Program, ProgramDescription, ProgramDescriptionType
+from programs.models import (
+    Program,
+    ProgramDescription,
+    ProgramDescriptionType,
+    ProgramImportRecord
+)
 
 from progress.bar import ChargingBar
 from datetime import datetime
+from auditlog.context import set_actor
 import requests
 import re
 import unicodedata
@@ -164,19 +170,22 @@ class Command(BaseCommand):
         self.ugrad_credits_re = re.compile(r'(?:total undergraduate credit hours required)(?:[!\:a-zA-Z\>\<\- ]+)(?P<hours>\d+)', re.IGNORECASE)
         self.grad_credits_re = re.compile(r'(?:grand total credits)(?:[!\:a-zA-Z\>\<\- ]+)(?P<hours>\d+)', re.IGNORECASE)
 
-        # Get everything prepped/fetched
-        self.__get_description_types()
-        self.__get_programs()
-        self.__get_catalogs()
-        self.__get_catalog_entries()
+        self.actor_id = getattr(settings, 'IMPORT_USER_ID', 1)
 
-        # Let's do some work
-        self.__match_programs()
-        self.__setup_description_processing()
-        self.__setup_curriculum_processing()
-        self.__update_programs()
+        with set_actor(self.actor_id):
+            # Get everything prepped/fetched
+            self.__get_description_types()
+            self.__get_programs()
+            self.__get_catalogs()
+            self.__get_catalog_entries()
 
-        self.__print_stats()
+            # Let's do some work
+            self.__match_programs()
+            self.__setup_description_processing()
+            self.__setup_curriculum_processing()
+            self.__update_programs()
+
+            self.__print_stats()
 
     def __print_stats(self):
         """
@@ -286,7 +295,7 @@ Finished in {datetime.now() - self.start_time}
             raise Exception(
                 'Unable to retrieve catalog IDs.'
             )
-        
+
     def __get_paged_results(self, url):
         retval = []
         params = {
@@ -1148,3 +1157,4 @@ Finished in {datetime.now() - self.start_time}
             description_html = oscar.get_updated_description()
 
         return description_html
+

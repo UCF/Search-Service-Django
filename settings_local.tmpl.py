@@ -298,6 +298,10 @@ ACADEMIC_ANALYTICS_API_URL = 'https://api.academicanalytics.com/'
 
 ACADEMIC_ANALYTICS_API_KEY = ''
 
+# The User ID to use when logging changes during a
+# Program or Catalog import
+IMPORT_USER_ID = 1
+
 # Full name replacements to be performed on college, department and
 # organization names for Units generated via map-units.py.
 # Full name replacements are case-sensitive. Replacements are performed
