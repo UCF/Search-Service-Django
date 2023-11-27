@@ -45,29 +45,8 @@
         width: 48%;
         } 
  }
-
 /* Medium devices (tablets, less than 992px) */
 // @media (max-width: 991.98px) {  }
 
 /* Large devices (desktops, less than 1200px) */
 // @media (max-width: 1199.98px) {  }
-
-
-
-// ---------------> SCSS
-
-.small-card-style {
-    @extend .card, .m-1, .border-0, .custom-shadow-box, .text-center, .d-flex, .align-items-center, .justify-content-center, .custom-sm-card;
-}
-
-.small-card-title {
-    @extend .p-2, .h4;
-}
-
-.small-card-desc {
-    @extend .p-2, .fs-5;
-}
-
-.t-cell-style {
-    @extend .p-3, .custom-t-cell;
-}
