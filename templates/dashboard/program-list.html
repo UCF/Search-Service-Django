@@ -44,23 +44,23 @@
         </div>
     </div>
   </div>
-  <div class="custom-shadow-box card-block p-4">
+  <div class="custom-shadow-box card-block p-4 lv-mob-table">
     <table class="table table-borderless">
-        <thead>
+        <thead class="text-center">
             <tr class="font-size-sm border-bottom">
-                <th scope="col">
+                <th scope="col lv-cell-p">
                     {% sortable_field_header fieldname='Name' field='name' %}
                 </th>
-                <th scope="col">
+                <th scope="col lv-cell-p">
                   Descriptions
                 </th>
-                <th scope="col">
+                <th scope="col lv-cell-p">
                   Career Path
                 </th>
                 <th>
                   Custom Description
                 </th>
-                <th scope="col">
+                <th scope="col lv-cell-p">
                     {% sortable_field_header fieldname='Modified' field='modified' %}
                 </th>
             </tr>
@@ -68,13 +68,13 @@
         <tbody>
         {% for obj in object_list %}
             <tr>
-                <td class="p-3">
+                <td class="p-3 lv-cell-p">
                     <a href="{% url 'dashboard.programs.edit' obj.pk %}">{{ obj.name }}</a>
                 </td>
-                <td class="p-3">{{ obj.has_descriptions|check|safe }}</td>
-                <td class="p-3"><span class="fa fa-times-circle text-danger"></span></td>
-                <td class="p-3">{{ obj.has_custom_description|check|safe }}</td>
-                <td class="p-3">{{ obj.modified|date:"F j, Y"  }}</td>
+                <td class="p-3 lv-cell-p text-center">{{ obj.has_descriptions|check|safe }}</td>
+                <td class="p-3 lv-cell-p text-center"><span class="fa fa-times-circle text-danger"></span></td>
+                <td class="p-3 lv-cell-p text-center">{{ obj.has_custom_description|check|safe }}</td>
+                <td class="p-3 lv-cell-p text-center">{{ obj.modified|date:"F j, Y"  }}</td>
             </tr>
         {% endfor %}
         </tbody>
