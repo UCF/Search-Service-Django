@@ -1,0 +1,36 @@
+//---------------> Static CSS
+/* General CSS */
+
+/* Mobile extra small */
+    @media (max-width: 374.98px) {
+      .custom-t-cell {
+          padding:20px 0!important;
+          text-align: center !important;
+      }
+    }
+
+/* Mobile */
+    @media (max-width: 575.98px) {
+      .custom-t-cell {
+          padding: 10px;
+          text-align: center !important;
+      }
+      .lv-cell-p{
+          padding: 20px 0 !important;
+          font-size: 0.5rem !important;
+      }
+      .lv-mob-table {
+          padding: 20px 10px !important;
+          font-size: 0.5rem !important;
+      }
+    }
+
+/* Small devices (landscape phones, less than 768px) */
+    // @media (max-width: 768.98px) {
+    // }
+
+/* Medium devices (tablets, less than 992px) */
+    // @media (max-width: 991.98px) {  }
+
+/* Large devices (desktops, less than 1200px) */
+    // @media (max-width: 1199.98px) {  }

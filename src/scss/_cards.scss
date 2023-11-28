@@ -1,0 +1,47 @@
+//---------------> Static CSS
+/* General CSS */
+    .custom-shadow-box {
+      box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+    }
+    .custom-row-sm-cards{
+      height: 180px;
+    }
+    .custom-sm-card {
+      width: 22%;
+      padding: 10px;
+    }
+
+/* Mobile extra small */
+    // @media (max-width: 374.98px) {
+    // }
+
+/* Mobile */
+    @media (max-width: 575.98px) {
+      .custom-row-sm-cards{
+          margin-bottom: 10px;
+      }
+      .custom-sm-card{
+      width: 45% !important;
+      }
+    }
+
+/* Small devices (landscape phones, less than 768px) */
+    @media (max-width: 768.98px) {
+      .custom-row-sm-cards{
+          height: 340px;
+      }
+      .custom-sm-card{
+          width: 48%;
+          }
+      .custom-sm-card span {
+        font-size: 1rem !important;
+      }
+      .custom-sm-card i {
+        font-size: 2rem !important;
+      }
+}
+/* Medium devices (tablets, less than 992px) */
+    // @media (max-width: 991.98px) {  }
+
+/* Large devices (desktops, less than 1200px) */
+    // @media (max-width: 1199.98px) {  }
