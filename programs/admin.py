@@ -10,11 +10,6 @@ from .models import *
 
 # Register your models here.
 
-
-@admin.register(WeightedJobPosition)
-class WeightedJobPositionAdmin(admin.ModelAdmin):
-    pass
-
 @admin.register(JobPosition)
 class JobPositionAdmin(admin.ModelAdmin):
     pass

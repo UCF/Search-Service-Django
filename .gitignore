@@ -30,6 +30,7 @@ node_modules/*
 gulp-config.json
 
 # Static Files
+build/*
 static/admin/*
 static/rest_framework/*
 static/archimedes/index.html

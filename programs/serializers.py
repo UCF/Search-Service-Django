@@ -503,13 +503,3 @@ class TuitionOverrideSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = TuitionOverride
-
-class WeightedJobSerializer(serializers.ModelSerializer):
-    job = serializers.StringRelatedField(many=False)
-
-    class Meta:
-        fields = [
-            'job',
-            'weight'
-        ]
-        model = WeightedJobPosition
