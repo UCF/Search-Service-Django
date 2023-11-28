@@ -13,6 +13,6 @@ indent_style = space
 [*.php]
 indent_style = tab
 
-[*.{js,ts,css,scss,sass,html}]
+[*.{js,css,scss,sass,html}]
 indent_style = space
 indent_size = 2
