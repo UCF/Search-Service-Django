@@ -525,6 +525,7 @@ class Program(models.Model):
     valid = models.BooleanField(default=True)
     has_locations = models.BooleanField(default=True)
     start_term = models.ForeignKey(AcademicTerm, null=True, blank=True, related_name='start_term_programs', on_delete=models.SET_NULL)
+    jobs = models.ManyToManyField(JobPosition, related_name='programs')
     history = AuditlogHistoryField()
 
     class Meta:
@@ -795,15 +796,6 @@ class CollegeOverride(models.Model):
             return '{0} {1} - {2} Override'.format(self.plan_code, self.subplan_code, self.college.short_name)
 
         return '{0} - {1} Tuition Override'.format(self.plan_code, self.college.short_name)
-
-
-class WeightedJobPosition(models.Model):
-    program = models.ForeignKey(Program, related_name='weighted_jobs', on_delete=models.CASCADE)
-    job = models.ForeignKey(JobPosition, related_name='weighted_positions', on_delete=models.CASCADE)
-    weight = models.FloatField(null=False, blank=False, default=0.0)
-
-    def __str__(self):
-        return f"{self.program.name} - {self.career.name}"
 
 
 class ProgramImportRecord(models.Model):
