@@ -9,19 +9,58 @@
         </div>
         <input class="btn btn-primary" type="submit" />
     </form> -->
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col">
+  <div class="pb-3">
+    <p class="fs-5">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.
+    </p>
+  </div>
+  <div class="row custom-row-sm-cards">
+    <div class="d-flex flex-wrap justify-content-start mb-4">
+        <div class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card">
+            <div class="py-2">
+                <i class="fa fa-warning fa-3x text-warning mr-2"></i>
+            </div>
+            <div class="d-flex">
+                <span class="p-2 h5">Missing program Description</span>
+                <span class="p-2 fs-2">45</span>
+            </div>
+        </div>
+        <div class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card">
+            <div class="py-2">
+                <i class="fa fa-warning fa-3x text-warning mr-2"></i>
+            </div>
+            <div class="d-flex">
+                <span class="p-2 h5">Missing Custom Description</span>
+                <span class="p-2 fs-2">22</span>
+            </div>
+        </div>
+        <div class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card">
+            <div class="py-2">
+              <i class="fa fa-check-circle fa-3x text-success"></i>
+            </div>
+            <div class="d-flex">
+                <span class="p-2 h5">Missing Career path Description</span>
+                <span class="p-2 fs-2">0</span>
+            </div>
+        </div>
+    </div>
+  </div>
+  <div class="custom-shadow-box card-block p-4 lv-mob-table">
+    <table class="table table-borderless">
+        <thead class="text-center">
+            <tr class="font-size-sm border-bottom">
+                <th scope="col lv-cell-p">
                     {% sortable_field_header fieldname='Name' field='name' %}
                 </th>
-                <th scope="col">
+                <th scope="col lv-cell-p">
                   Descriptions
+                </th>
+                <th scope="col lv-cell-p">
+                  Career Path
                 </th>
                 <th>
                   Custom Description
                 </th>
-                <th scope="col">
+                <th scope="col lv-cell-p">
                     {% sortable_field_header fieldname='Modified' field='modified' %}
                 </th>
             </tr>
@@ -29,12 +68,13 @@
         <tbody>
         {% for obj in object_list %}
             <tr>
-                <td>
+                <td class="p-3 lv-cell-p">
                     <a href="{% url 'dashboard.programs.edit' obj.pk %}">{{ obj.name }}</a>
                 </td>
-                <td>{{ obj.has_descriptions|check|safe }}</td>
-                <td>{{ obj.has_custom_description|check|safe }}</td>
-                <td>{{ obj.modified|date:"F j, Y"  }}</td>
+                <td class="p-3 lv-cell-p text-center">{{ obj.has_descriptions|check|safe }}</td>
+                <td class="p-3 lv-cell-p text-center"><span class="fa fa-times-circle text-danger"></span></td>
+                <td class="p-3 lv-cell-p text-center">{{ obj.has_custom_description|check|safe }}</td>
+                <td class="p-3 lv-cell-p text-center">{{ obj.modified|date:"F j, Y"  }}</td>
             </tr>
         {% endfor %}
         </tbody>
@@ -52,5 +92,6 @@
         <a class="btn btn-default" href="?{% param_replace page=page_obj.paginator.num_pages %}"><span class="sr-only">Last</span> &raquo;</a>
         {% endif %}
     </div>
+  </div>
 </div>
 {% endblock %}

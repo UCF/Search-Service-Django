@@ -65,3 +65,10 @@ def auditlog_event(**kwargs):
     }
 
     return ctx
+
+@register.filter(is_safe=True)
+def na_if_none(value):
+    if value is None:
+        return "N/A"
+
+    return value
