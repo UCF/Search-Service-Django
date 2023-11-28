@@ -12,20 +12,22 @@ class Migration(migrations.Migration):
     def forward(apps, schema_editor):
         WeightedJobPosition = apps.get_model('programs', 'WeightedJobPosition')
         for row in WeightedJobPosition.objects.all():
-            print(row)
+            program = row.program
+            program.jobs.add(row.job)
+            program.save()
 
 
     operations = [
+        migrations.AddField(
+            model_name='program',
+            name='jobs',
+            field=models.ManyToManyField(related_name='programs', to='programs.JobPosition'),
+        ),
         migrations.RunPython(
             forward,
             reverse_code=migrations.RunPython.noop
         ),
-        # migrations.AddField(
-        #     model_name='program',
-        #     name='jobs',
-        #     field=models.ManyToManyField(related_name='programs', to='programs.JobPosition'),
-        # ),
-        # migrations.DeleteModel(
-        #     name='WeightedJobPosition',
-        # ),
+        migrations.DeleteModel(
+            name='WeightedJobPosition',
+        ),
     ]
