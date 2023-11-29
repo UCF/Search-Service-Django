@@ -15,42 +15,42 @@
   </div>
   <div class="row custom-row-sm-cards">
     <div class="d-flex flex-wrap justify-content-around mb-4">
-        <div role="button" class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card active-card">
-          <div class="py-2">
-            <i class="fa fa-circle-info fa-3x text-muted"></i>
-          </div>
-          <div class="d-flex">
-              <span class="p-2 h5">All available programs</span>
-              <span class="p-2 fs-2">999</spßan>
-          </div>
-        </div>
-        <div role="button" class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card">
+        <a href="?{% param_replace missing='' %}" role="button" class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card {% if not request.GET.missing %}active-card{% endif %}">
+              <div class="py-2">
+                <i class="fa fa-circle-info fa-3x text-muted"></i>
+              </div>
+              <div class="d-flex">
+                  <span class="p-2 h5">All Available Programs</span>
+                  <span class="p-2 fs-2">{{ meta.program_count }}</spßan>
+              </div>
+         </a>
+        <a href="?{% param_replace missing='missing' %}" role="button" class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card {% if request.GET.missing == 'missing' %}active-card{% endif %}">
             <div class="py-2">
-                <i class="fa fa-warning fa-3x text-warning mr-2"></i>
+                <i class="fa fa-3x mr-2 {% if meta.missing_count != 0 %} fa-warning text-warning {% else %} fa-check-circle text-success {% endif %}"></i>
             </div>
             <div class="d-flex">
-                <span class="p-2 h5">Missing program Description</span>
-                <span class="p-2 fs-2">45</span>
+                <span class="p-2 h5">Missing Program Description</span>
+                <span class="p-2 fs-2">{{ meta.missing_desc_count }}</span>
             </div>
-        </div>
-        <div role="button" class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card">
+          </a>
+        <a href="?{% param_replace missing='missing_jobs' %}" role="button" class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card {% if request.GET.missing == 'missing_jobs' %}active-card{% endif %}">
             <div class="py-2">
-                <i class="fa fa-warning fa-3x text-warning mr-2"></i>
-            </div>
-            <div class="d-flex">
-                <span class="p-2 h5">Missing Custom Description</span>
-                <span class="p-2 fs-2">22</span>
-            </div>
-        </div>
-        <div role="button" class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card">
-            <div class="py-2">
-              <i class="fa fa-check-circle fa-3x text-success"></i>
+              <i class="fa fa-3x mr-2 {% if meta.missing_jobs != 0 %} fa-warning text-warning {% else %} fa-check-circle text-success {% endif %}"></i>
             </div>
             <div class="d-flex">
                 <span class="p-2 h5">Missing Career path Description</span>
-                <span class="p-2 fs-2">0</span>
+                <span class="p-2 fs-2">{{ meta.missing_jobs }}</span>
             </div>
-        </div>
+          </a>
+        <a href="?{% param_replace missing='missing_custom' %}" role="button" class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card {% if request.GET.missing == 'missing_custom' %}active-card{% endif %}">
+            <div class="py-2">
+                <i class="fa fa-3x mr-2 {% if meta.missing_custom_desc_count != 0 %} fa-warning text-warning {% else %} fa-check-circle text-success {% endif %}"></i>
+            </div>
+            <div class="d-flex">
+                <span class="p-2 h5">Missing Custom Description</span>
+                <span class="p-2 fs-2">{{ meta.missing_custom_desc_count }}</span>
+            </div>
+          </a>
     </div>
   </div>
   <div class="custom-shadow-box card-block p-4 lv-mob-table">

@@ -89,10 +89,21 @@ class ExtendedUser(models.Model):
         """
         return self.programs_missing_custom_description.count()
 
+
     @property
-    def programs_missing_career_paths_count(self) -> int:
+    def programs_missing_jobs(self):
+        """
+        Returns the programs missing career paths
+        """
+        return self.editable_programs.annotate(
+            num_jobs=Count('jobs')
+        ).filter(num_jobs=0)
+
+
+    @property
+    def programs_missing_jobs_count(self) -> int:
         """
         Returns the number of programs missing
         custom career paths
         """
-        return 22
+        return self.programs_missing_jobs.count()

@@ -6,7 +6,8 @@ class ProgramListFilterSet(django_filters.FilterSet):
     missing_choices = [
         ('', ''),
         ('Description Missing', 'missing'),
-        ('Custom Description Missing', 'missing_custom')
+        ('Custom Description Missing', 'missing_custom'),
+        ('Career Paths Missing', 'jobs_missing')
     ]
 
     name = django_filters.CharFilter(lookup_expr='icontains')
@@ -47,5 +48,9 @@ class ProgramListFilterSet(django_filters.FilterSet):
             return queryset.exclude(
                 id__in=programs_with_custom_descriptions
             )
+        elif value == 'jobs_missing':
+            return queryset.annotate(
+                num_jobs=Count('jobs')
+            ).filter(num_jobs=0)
 
         return queryset
