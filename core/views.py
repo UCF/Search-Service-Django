@@ -129,6 +129,18 @@ class ProgramListing(LoginRequiredMixin, TitleContextMixin, FilteredListView):
     def get_queryset(self):
         return super().get_queryset(self.request.user.meta.editable_programs)
 
+    def get_context_data(self, **kwargs):
+        user = self.request.user
+
+        ctx = super().get_context_data(**kwargs)
+        ctx['meta'] = {
+            'missing_desc_count': user.meta.programs_missing_descriptions_count,
+            'missing_custom_desc_count': user.meta.programs_missing_custom_descriptions_count,
+            'missing_jobs': user.meta.programs_missing_jobs_count
+        }
+
+        return ctx
+
 class ProgramEditView(LoginRequiredMixin, TitleContextMixin, UpdateView):
     template_name = 'dashboard/program-edit.html'
     title = 'Edit Program'

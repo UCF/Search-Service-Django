@@ -21,7 +21,10 @@
             </div>
             <div class="d-flex">
                 <span class="p-2 h5">Missing program Description</span>
-                <span class="p-2 fs-2">45</span>
+                <span class="p-2 fs-2">{{ meta.missing_desc_count }}</span>
+            </div>
+            <div class="py-2">
+              <a href="?{% param_replace missing='missing' %}">View All Missing Descriptions</a>
             </div>
         </div>
         <div class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card">
@@ -30,7 +33,10 @@
             </div>
             <div class="d-flex">
                 <span class="p-2 h5">Missing Custom Description</span>
-                <span class="p-2 fs-2">22</span>
+                <span class="p-2 fs-2">{{ meta.missing_custom_desc_count }}</span>
+            </div>
+            <div class="py-2">
+              <a href="?{% param_replace missing='missing_custom' %}">View All Missing Custom Descriptions</a>
             </div>
         </div>
         <div class="card m-1 border-0 custom-shadow-box d-flex align-items-center justify-content-center custom-sm-card">
@@ -39,7 +45,10 @@
             </div>
             <div class="d-flex">
                 <span class="p-2 h5">Missing Career path Description</span>
-                <span class="p-2 fs-2">0</span>
+                <span class="p-2 fs-2">{{ meta.missing_jobs }}</span>
+            </div>
+            <div class="py-2">
+              <a href="?{% param_replace missing='missing_jobs' %}">View All Missing Career Paths</a>
             </div>
         </div>
     </div>
