@@ -134,6 +134,7 @@ class ProgramListing(LoginRequiredMixin, TitleContextMixin, FilteredListView):
 
         ctx = super().get_context_data(**kwargs)
         ctx['meta'] = {
+            'program_count': user.meta.editable_programs.count(),
             'missing_desc_count': user.meta.programs_missing_descriptions_count,
             'missing_custom_desc_count': user.meta.programs_missing_custom_descriptions_count,
             'missing_jobs': user.meta.programs_missing_jobs_count
