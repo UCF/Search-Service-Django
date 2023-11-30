@@ -2,35 +2,48 @@
 {% block body %}
 <div class="container mt-4">
     <h2 class="heading-underline">{{ object.name }}</h2>
-    <h3 class="h4">Descriptions</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col">Description Type</th>
-                <th scope="col">Exists</th>
-                <th scope="col">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-    {% for description in object.descriptions.all %}
-        <tr>
-            <td>{{ description.description_type }}</td>
-            <td>
-                {% if description.description != "" %}
-                <span class="fa fa-circle-check text-success"></span><span class="sr-only">Exists</span>
-                {% else %}
-                <span class="fa fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
-                {% endif %}
-            </td>
-            <td>
-                <a class="btn btn-sm btn-success" href="#preview" data-toggle="modal" data-target="#{{ description.description_type|slugify }}-modal">
-                    <span class="fa fa-search"></span> Preview
-                </a>
-            </td>
-        </tr>
-    {% endfor %}
-        </tbody>
-    </table>
+    <form action="." method="POST">
+      {% csrf_token %}
+      <h3 class="h4">Descriptions</h3>
+      <div class="row">
+        <div class="col-md-4">
+          <h4>Custom Description</h4>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
+        </div>
+        <div class="col-md-8">
+          {{ form.custom_description }}
+        </div>
+      </div>
+
+      <!-- <table class="table">
+          <thead>
+              <tr>
+                  <th scope="col">Description Type</th>
+                  <th scope="col">Exists</th>
+                  <th scope="col">Actions</th>
+              </tr>
+          </thead>
+          <tbody>
+      {% for description in object.descriptions.all %}
+          <tr>
+              <td>{{ description.description_type }}</td>
+              <td>
+                  {% if description.description != "" %}
+                  <span class="fa fa-circle-check text-success"></span><span class="sr-only">Exists</span>
+                  {% else %}
+                  <span class="fa fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
+                  {% endif %}
+              </td>
+              <td>
+                  <a class="btn btn-sm btn-success" href="#preview" data-toggle="modal" data-target="#{{ description.description_type|slugify }}-modal">
+                      <span class="fa fa-search"></span> Preview
+                  </a>
+              </td>
+          </tr>
+      {% endfor %}
+          </tbody>
+      </table> -->
+    </form>
     <hr class="my-5">
     <h2>Read-only Fields</h2>
     <dl class="row">
@@ -78,4 +91,29 @@
     </div>
   </div>
 {% endfor %}
+{% endblock %}
+{% block scripts %}
+  {{ bock.super }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.0/tinymce.min.js"></script>
+  <script>
+    tinymce.init({
+      selector: '.wysiwyg',
+      browser_spellcheck: true,
+      plugins: 'link paste autoresize lists',
+      // valid elems/styles configuration below should match with
+      // BLEACH_ALLOWED_[] settings in settings_local.py
+      valid_elements: 'p[style],span[style],br,strong/b,em/i,u,a[href|title|style|alt|target=_blank],ul,ol,li',
+      valid_styles: {
+        p: 'font-weight,text-decoration',
+        span: 'font-weight,text-decoration',
+        a: 'font-weight,text-decoration'
+      },
+      statusbar: false,
+      menubar: false,
+      toolbar: 'bold italic underline | bullist numlist | link',
+      autoresize_bottom_margin: 10,
+      min_height: 400,
+      theme: 'silver'
+    });
+  </script>
 {% endblock %}

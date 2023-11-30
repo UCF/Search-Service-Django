@@ -4,14 +4,16 @@
 from django.conf import settings
 
 from django.shortcuts import render
+from django.http import Http404
 from django.views.generic.base import TemplateView
-from django.views.generic import ListView, UpdateView
+from django.views.generic import ListView, FormView
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from programs.models import Program, ProgramDescription, ProgramImportRecord
+from core.forms import CommunicatorProgramForm
 
 from core.filters import ProgramListFilterSet
 from django.contrib.contenttypes.models import ContentType
@@ -142,18 +144,30 @@ class ProgramListing(LoginRequiredMixin, TitleContextMixin, FilteredListView):
 
         return ctx
 
-class ProgramEditView(LoginRequiredMixin, TitleContextMixin, UpdateView):
+class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
     template_name = 'dashboard/program-edit.html'
     title = 'Edit Program'
     heading = 'Edit Program'
     local = settings.LOCAL
-    fields = ('name',)
+    form_class = CommunicatorProgramForm
 
     def get_queryset(self):
         return self.request.user.meta.editable_programs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+
+        program_pk = self.kwargs.get('pk', None)
+
+        if program_pk is None:
+            raise Http404
+
+        try:
+            object = Program.objects.get(pk=program_pk)
+            ctx['object'] = object
+        except Program.DoesNotExist:
+            raise Http404
+
         obj: Program = ctx['object']
         ctx['read_only_fields'] = {
             'Name': obj.name,
