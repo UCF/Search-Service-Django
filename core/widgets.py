@@ -15,4 +15,4 @@ class Wysiwyg(forms.Textarea):
         return attrs
 
     def use_required_attribute(self, initial: Any) -> bool:
-        return False
+        return True
