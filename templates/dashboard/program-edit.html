@@ -1,8 +1,77 @@
 {% extends 'base-bootstrap.html' %}
 {% block body %}
 <div class="container mt-4">
-    <h2 class="heading-underline">{{ object.name }}</h2>
-    <h3 class="h4">Descriptions</h3>
+    <div class="row">
+      <div class="col-12">
+        <div class="pb-1">
+          <h2 class="heading-underline">Program Name: {{ object.name }}</h2>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Main -->
+        <div class="col-12 col-lg-8">
+            <!-- xs-cards-row -->
+            <div class="row">
+                <div class="d-flex flex-wrap justify-content-start mb-4">
+                    {% for description in object.descriptions.all %}
+                        <div class="card custom-xs-card border-0 m-1 custom-shadow-box text-center">
+                            {% if description.description != "" %}
+                            <span class="fa fa-circle-check text-success"></span><span class="sr-only">Exists</span>
+                            {% else %}
+                            <span class="fa fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
+                            {% endif %}
+                            <span>{{ description.description_type }}</span>
+                            <a class="btn btn-sm" href="#preview" data-toggle="modal" data-target="#{{ description.description_type|slugify }}-modal">
+                              <i class="fa fa-eye" aria-hidden="true"></i>
+                              Preview
+                            </a>
+                        </div>
+                    {% endfor %}
+                    <div class="card custom-xs-card border-0 m-1 custom-shadow-box text-center">
+                        Description
+                        <a class="btn btn-sm" href="#">
+                        <i class="fa fa-2x fa-pencil-square-o" aria-hidden="true"></i>
+                        Edit
+                        </a>
+                    </div>
+                    <div class="card custom-xs-card border-0 m-1 custom-shadow-box text-center">
+                        Career Path
+                        <a class="btn btn-sm" href="#">
+                        <i class="fa fa-2x fa-pencil-square-o" aria-hidden="true"></i>
+                        Edit
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Edit Desc Row -->
+            <div class="row">
+                <div>
+                    <span class="h2"> Edit description</span>
+                    <p class="pt-2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.</p>
+                    <div class="form-group">
+                      <textarea id="editor"></textarea>
+                    </div>
+                </div>
+            </div>
+            <!-- Edit Career Path -->
+            <div>
+              <span class="h2"> Edit Career Path</span>
+              <p class="pt-2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.</p>
+              <!-- Capsule design must be added here -->
+            </div>
+            <!-- Custom Description -->
+            <div>
+              <span class="h2"> Custom Description</span>
+              <p class="pt-2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.</p>
+            </div>
+        </div>
+        <!-- Sidebar -->
+        <div class="col-12 col-lg-4">
+
+        </div>
+    </div>
+
+    <!-- <h3 class="h4">Descriptions</h3>
     <table class="table">
         <thead>
             <tr>
@@ -30,7 +99,7 @@
         </tr>
     {% endfor %}
         </tbody>
-    </table>
+    </table> -->
     <hr class="my-5">
     <h2>Read-only Fields</h2>
     <dl class="row">
