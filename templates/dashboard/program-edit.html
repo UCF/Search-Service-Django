@@ -46,7 +46,7 @@
             <!-- Edit Desc Row -->
             <div class="row">
                 <div>
-                    <span class="h2"> Edit description</span>
+                    <span class="h2"> Edit Description</span>
                     <p class="pt-2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.</p>
                     <div class="form-group">
                       <textarea id="editor"></textarea>
@@ -64,6 +64,55 @@
               <span class="h2"> Custom Description</span>
               <p class="pt-2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.</p>
             </div>
+            <!-- Read Only Fields -->
+            <hr class="my-5">
+            <h2>Read-only Fields</h2>
+            <dl class="row">
+                {% for field, value in read_only_fields.items %}
+                <dt class="col-6 col-sm-3">{{ field }}: </dt>
+                <dd class="col-6 col-sm-9">
+                    {% if field in 'Colleges,Departments' %}
+                        <ul class="list-unstyled">
+                        {% for v in value.all %}
+                            <li class="list-item">{{ v }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% elif field == 'Catalog URL' %}
+                        <a class="text-break" href="{{ value }}" target="_blank" rel="nofollow">{{ value }}</a>
+                    {% elif field in 'Active,Valid' %}
+                        {% if value == 'True' %}
+                        <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
+                        {% else %}
+                        <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
+                        {% endif %}
+                    {% else %}
+                        {{ value }}
+                    {% endif %}
+                </dd>
+                {% endfor %}
+            </dl>
+        </div>
+        {% for description in object.descriptions.all %}
+        <div class="modal fade" id="{{ description.description_type|slugify }}-modal" tabindex="-1" role="dialog" aria-labelledby="{{ description.description_type|slugify }}-label" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">{{ description.description_type }} Preview</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body p-5">
+                    {{ description.description|safe }}
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+        {% endblock %}
         </div>
         <!-- Sidebar -->
         <div class="col-12 col-lg-4">
@@ -100,7 +149,7 @@
     {% endfor %}
         </tbody>
     </table> -->
-    <hr class="my-5">
+    <!-- <hr class="my-5">
     <h2>Read-only Fields</h2>
     <dl class="row">
         {% for field, value in read_only_fields.items %}
@@ -146,5 +195,4 @@
       </div>
     </div>
   </div>
-{% endfor %}
-{% endblock %}
+{% endfor %} -->
