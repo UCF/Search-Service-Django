@@ -1,117 +1,132 @@
 {% extends 'base-bootstrap.html' %}
 {% block body %}
 <div class="container mt-4">
-    <div class="row">
-      <div class="col-12">
-        <div class="pb-1">
-          <h2 class="heading-underline pb-3">Program Name: {{ object.name }}</h2>
-        </div>
-    </div>
-    <div class="row">
-        <!-- Main -->
-        <div class="col-12 col-lg-8">
-            <!-- xs-cards-row -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="row">
-                    {% for description in object.descriptions.all %}
-                        <div class="col-5 col-sm-3 col-lg-2 col-lg-3 col-xl-2 mx-2 mb-4 p-3 card border-0 custom-shadow-box text-center">
-                            <a href="#preview" data-toggle="modal" data-target="#{{ description.description_type|slugify }}-modal" class="text-decoration-none">
-                              <div class="pt-1">
-                                  {% if description.description != "" %}
-                                  <span class="fa fa-2x fa-circle-check text-success"></span><span class="sr-only">Exists</span>
-                                  {% else %}
-                                  <span class="fa fa-2x fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
-                                  {% endif %}
-                              </div>
-                              <div class="pt-2">
-                                  <span>{{ description.description_type }}</span>
-                              </div>
-                              <div>
-                                  <div class="pt-3">
-                                    <i class="fa fa-eye" aria-hidden="true"></i>
-                                    Preview
-                                  </div>
-                              </div>
-                            </a>
-                        </div>
-                    {% endfor %}
-                    </div>
-                </div>
-            </div>
-            <!-- Edit Desc Row  -->
-            <div class="row">
-                <div>
-                    <span class="h2"> Edit Description</span>
-                    <p class="pt-2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.</p>
-                    <div class="form-group">
-                      <textarea id="editor"></textarea>
-                    </div>
-                </div>
-            </div>
-            <!-- Edit Career Path -->
-            <div>
-              <span class="h2"> Edit Career Path</span>
-              <p class="pt-2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.</p>
-              <!-- Capsule design must be added here -->
-            </div>
-            <!-- Custom Description -->
-            <div>
-              <span class="h2"> Custom Description</span>
-              <p class="pt-2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.</p>
-            </div>
-            <!-- Read Only Fields -->
-            <hr class="my-5">
-            <h2>Read-only Fields</h2>
-            <dl class="row">
-                {% for field, value in read_only_fields.items %}
-                <dt class="col-6 col-sm-3">{{ field }}: </dt>
-                <dd class="col-6 col-sm-9">
-                    {% if field in 'Colleges,Departments' %}
-                        <ul class="list-unstyled">
-                        {% for v in value.all %}
-                            <li class="list-item">{{ v }}</li>
-                        {% endfor %}
-                        </ul>
-                    {% elif field == 'Catalog URL' %}
-                        <a class="text-break" href="{{ value }}" target="_blank" rel="nofollow">{{ value }}</a>
-                    {% elif field in 'Active,Valid' %}
-                        {% if value == 'True' %}
-                        <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
-                        {% else %}
-                        <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
-                        {% endif %}
-                    {% else %}
-                        {{ value }}
-                    {% endif %}
-                </dd>
-                {% endfor %}
-            </dl>
-        </div>
-        {% for description in object.descriptions.all %}
-        <div class="modal fade" id="{{ description.description_type|slugify }}-modal" tabindex="-1" role="dialog" aria-labelledby="{{ description.description_type|slugify }}-label" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="exampleModalLabel">{{ description.description_type }} Preview</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div class="modal-body p-5">
-                    {{ description.description|safe }}
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
+  <h2 class="heading-underline pb-4">Program Name: {{ object.name }}</h2>
+  <div class="row"> <!-- Main -->
+    <div class="col-lg-8">
+      <form id="program-form" name="program-form" method="POST">
+        {% csrf_token %}
+        <h3 class="h2">Edit Custom Description</h4>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
+        {{ form.custom_description }}
+        <h3 class="h2 my-4">Catalog Descriptions</h3>
+        <div class="row justify-content-evenly">
+          {% for description_name, description in descriptions.items %}
+          <div class="col-5 mx-2 mb-4 p-3 card border-0 custom-shadow-box text-center">
+            <a href="#preview" data-bs-toggle="modal" data-bs-target="#{{ description_name|slugify }}-modal" class="text-decoration-none">
+              <div class="pt-1">
+                  {% if description is not None and description.description is not None and description.description != "" %}
+                  <span class="fa fa-2x fa-circle-check text-success"></span><span class="sr-only">Exists</span>
+                  {% else %}
+                  <span class="fa fa-2x fa-circle-xmark text-danger"></span><span class="sr-only">Does not exist</span>
+                  {% endif %}
               </div>
-            </div>
+              <div class="pt-2">
+                  <span>{{ description_name }}</span>
+                  <p class="py-2">{{ description.explanation }}</p>
+              </div>
+              <div>
+                  <div class="pt-3">
+                    <i class="fa fa-eye" aria-hidden="true"></i>
+                    Preview
+                  </div>
+              </div>
+            </a>
           </div>
-        {% endfor %}
-        <!-- Sidebar -->
-        <div class="col-12 col-lg-4">
-            <div class="bg-light" style="height: 500px; position: sticky; top: 100px;"> Side bar</div>
+          {% endfor %}
         </div>
+        <h4 class="h2">Edit Career Paths</h4>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
+      </form>
+      <hr class="my-5">
+      <h2>Read-only Fields</h2>
+      <dl class="row">
+          {% for field, value in read_only_fields.items %}
+          <dt class="col-6 col-sm-3">{{ field }}: </dt>
+          <dd class="col-6 col-sm-9">
+              {% if field in 'Colleges,Departments' %}
+                  <ul class="list-unstyled">
+                  {% for v in value.all %}
+                      <li class="list-item">{{ v }}</li>
+                  {% endfor %}
+                  </ul>
+              {% elif field == 'Catalog URL' %}
+                  <a href="{{ value }}" target="_blank" rel="nofollow">{{ value }}</a>
+              {% elif field in 'Active,Valid' %}
+                  {% if value == 'True' %}
+                  <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
+                  {% else %}
+                  <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
+                  {% endif %}
+              {% else %}
+                  {{ value }}
+              {% endif %}
+          </dd>
+          {% endfor %}
+      </dl>
+    </div>
+    <div class="col-lg-4">
+      <div class="card mt-2 mt-md-5 mb-3 sticky-lg-top">
+        <div class="card-body">
+          <dl class="mb-4">
+            <dt>Created:</dt>
+            <dd>Nov 1, 2023</dd>
+            <dt>Updated:</dt>
+            <dd>Nov 1, 2023</dd>
+            <dt>Last Updated User:</dt>
+            <dd>Webcom</dd>
+          </dl>
+          <input type="submit" form="program-form" class="btn btn-success" value="Save Changes">
+        </div>
+      </div>
+    </div>
+    {% for description_name, description in descriptions.items %}
+    <div class="modal fade" id="{{ description_name|slugify }}-modal" tabindex="-1" role="dialog" aria-labelledby="{{ description_name|slugify }}-label" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="{{ description_name|slugify }}-label">{{ description_name }} Preview</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-5">
+              {% if description.description and description.description != '' %}
+                {{ description.description|safe }}
+              {% else %}
+                <div class="alert alert-warning">A catalog description for this program has not been imported.</div>
+              {% endif %}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  {% endblock %}
+</div>
+{% endfor %}
+{% endblock %}
+{% block scripts %}
+  {{ block.super }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.0/tinymce.min.js"></script>
+  <script>
+    tinymce.init({
+      selector: '.wysiwyg',
+      browser_spellcheck: true,
+      plugins: 'link autoresize lists',
+      // valid elems/styles configuration below should match with
+      // BLEACH_ALLOWED_[] settings in settings_local.py
+      valid_elements: 'p[style],span[style],br,strong/b,em/i,u,a[href|title|style|alt|target=_blank],ul,ol,li',
+      valid_styles: {
+        p: 'font-weight,text-decoration',
+        span: 'font-weight,text-decoration',
+        a: 'font-weight,text-decoration'
+      },
+      statusbar: false,
+      menubar: false,
+      toolbar: 'bold italic underline | bullist numlist | link',
+      autoresize_bottom_margin: 10,
+      min_height: 400,
+      theme: 'silver'
+    });
+  </script>
+{% endblock %}

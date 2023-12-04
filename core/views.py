@@ -1,17 +1,25 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import Any
 from django.conf import settings
 
-from django.shortcuts import render
+from django.shortcuts import render, resolve_url
+from django.http import Http404, HttpRequest
 from django.views.generic.base import TemplateView
-from django.views.generic import ListView, UpdateView
+from django.views.generic import ListView, FormView
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from programs.models import Program, ProgramDescription, ProgramImportRecord
+from programs.models import (
+    Program,
+    ProgramDescription,
+    ProgramDescriptionType,
+    ProgramImportRecord
+)
+from core.forms import CommunicatorProgramForm
 
 from core.filters import ProgramListFilterSet
 from django.contrib.contenttypes.models import ContentType
@@ -142,19 +150,134 @@ class ProgramListing(LoginRequiredMixin, TitleContextMixin, FilteredListView):
 
         return ctx
 
-class ProgramEditView(LoginRequiredMixin, TitleContextMixin, UpdateView):
+class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
     template_name = 'dashboard/program-edit.html'
     title = 'Edit Program'
     heading = 'Edit Program'
     local = settings.LOCAL
-    fields = ('name',)
+    form_class = CommunicatorProgramForm
+
+    def __get_program(self):
+        """
+        Gets the program from the pk passed in
+        """
+        retval = None
+        program_pk = self.kwargs.get('pk', None)
+
+        if program_pk is None:
+            return retval
+
+        try:
+            retval = Program.objects.get(pk=program_pk)
+        except Program.DoesNotExist:
+            return retval
+
+        return retval
+
+
+    def __get_custom_description(self):
+        """
+        Gets the custom description of
+        the program
+        """
+        program = self.__get_program()
+
+        if not program or not program.has_custom_description:
+            return None
+
+        return ProgramDescription.objects.get(
+            description_type=settings.CUSTOM_DESCRIPTION_TYPE_ID,
+            program=program
+        )
+
+    def __get_description_by_name(self, program=None, description_type_name=None):
+        """
+        Gets the full description of
+        the program
+        """
+        if not program or description_type_name is None:
+            return None
+
+        try:
+            return ProgramDescription.objects.get(
+                description_type__name=description_type_name,
+                program=program
+            )
+        except ProgramDescription.DoesNotExist:
+            return None
+
+
+    def get_success_url(self) -> str:
+        return resolve_url('dashboard.programs.list')
+
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        custom_description = self.__get_custom_description()
+
+        if custom_description:
+            initial['custom_description'] = custom_description.description
+
+        return initial
+
+    def form_valid(self, form):
+        program = self.__get_program()
+        custom_description = self.__get_custom_description()
+
+        if not custom_description:
+            custom_description = ProgramDescription(
+                description=form.cleaned_data['custom_description'],
+                description_type=ProgramDescriptionType.objects.get(pk=settings.CUSTOM_DESCRIPTION_TYPE_ID),
+                program=program
+            )
+        else:
+            custom_description.description = form.cleaned_data['custom_description']
+
+        custom_description.save()
+
+        # Final sanity check. If the description is empty,
+        # delete the description because it might as well
+        # not exist
+        if custom_description.description == '':
+            custom_description.delete()
+
+        return super().form_valid(form)
 
     def get_queryset(self):
         return self.request.user.meta.editable_programs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+
+        program_pk = self.kwargs.get('pk', None)
+
+        if program_pk is None:
+            raise Http404
+
+        try:
+            object = Program.objects.get(pk=program_pk)
+            self.object = object
+            ctx['object'] = object
+        except Program.DoesNotExist:
+            raise Http404
+
         obj: Program = ctx['object']
+
+        catalog_description = self.__get_description_by_name(obj, 'Catalog Description')
+        full_description = self.__get_description_by_name(obj, 'Full Catalog Description' )
+
+        ctx['descriptions'] = {
+            'Catalog Description': {
+                'explanation': 'The description pulled from the UCF Catalog that has been passed through a simple algorithm to remove the degree requirements.',
+                'description': catalog_description.description if catalog_description is not None else None,
+            },
+            'Full Catalog Description': {
+                'explanation': 'The full catalog description pulled from the UCF Catalog.',
+                'description': full_description.description if full_description is not None else None,
+            }
+        }
+
         ctx['read_only_fields'] = {
             'Name': obj.name,
             'Credit Hours': obj.credit_hours,
