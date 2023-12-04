@@ -1,69 +1,42 @@
 {% extends 'base-bootstrap.html' %}
 {% block body %}
-<div class="container-fluid mt-4">
-  <div class="row">
-    <div class="col-lg-2 order-lg-2">
-      <div class="card mt-2 mt-md-5 mb-3 sticky-lg-top">
-        <div class="card-body">
-          <dl class="mb-4">
-            <dt>Created:</dt>
-            <dd>Nov 1, 2023</dd>
-            <dt>Updated:</dt>
-            <dd>Nov 1, 2023</dd>
-            <dt>Last Updated User:</dt>
-            <dd>Webcom</dd>
-          </dl>
-          <input type="submit" form="program-form" class="btn btn-success" value="Save Changes">
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6 offset-lg-2 order-lg-1">
-      <h2 class="heading-underline">{{ object.name }}</h2>
+<div class="container mt-4">
+  <h2 class="heading-underline pb-4">Program Name: {{ object.name }}</h2>
+  <div class="row"> <!-- Main -->
+    <div class="col-lg-8">
       <form id="program-form" name="program-form" method="POST">
         {% csrf_token %}
-        <h3 class="h4 mb-4">Descriptions</h3>
-        <div class="row">
-          <div class="col-md-4">
-            <h4 class="h6">Custom Description</h4>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
-          </div>
-          <div class="col-md-8">
-            {{ form.custom_description }}
-          </div>
-        </div>
-        <h4 class="h6">Catalog Descriptions</h4>
-        <table class="table">
-          <thead>
-              <tr>
-                  <th scope="col">Description Type</th>
-                  <th scope="col">Source</th>
-                  <th scope="col">Exists</th>
-                  <th scope="col">Actions</th>
-              </tr>
-          </thead>
-          <tbody>
-      {% for description_name, description in descriptions.items %}
-          <tr>
-              <td>{{ description_name }}</td>
-              <td>{{ description.explanation }}</td>
-              <td>
+        <h3 class="h2">Edit Custom Description</h4>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
+        {{ form.custom_description }}
+        <h3 class="h2 my-4">Catalog Descriptions</h3>
+        <div class="row justify-content-evenly">
+          {% for description_name, description in descriptions.items %}
+          <div class="col-5 mx-2 mb-4 p-3 card border-0 custom-shadow-box text-center">
+            <a href="#preview" data-bs-toggle="modal" data-bs-target="#{{ description_name|slugify }}-modal" class="text-decoration-none">
+              <div class="pt-1">
                   {% if description.description != "" %}
-                  <span class="fa fa-circle-check text-success"></span><span class="sr-only">Exists</span>
+                  <span class="fa fa-2x fa-circle-check text-success"></span><span class="sr-only">Exists</span>
                   {% else %}
-                  <span class="fa fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
+                  <span class="fa fa-2x fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
                   {% endif %}
-              </td>
-              <td>
-                  <a class="btn btn-sm btn-success" href="#preview" data-bs-toggle="modal" data-bs-target="#{{ description_name|slugify }}-modal">
-                      <span class="fa fa-search"></span> Preview
-                  </a>
-              </td>
-          </tr>
-      {% endfor %}
-          </tbody>
-        </table>
-
-
+              </div>
+              <div class="pt-2">
+                  <span>{{ description_name }}</span>
+                  <p class="py-2">{{ description.explanation }}</p>
+              </div>
+              <div>
+                  <div class="pt-3">
+                    <i class="fa fa-eye" aria-hidden="true"></i>
+                    Preview
+                  </div>
+              </div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+        <h4 class="h2">Edit Career Paths</h4>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
       </form>
       <hr class="my-5">
       <h2>Read-only Fields</h2>
@@ -91,6 +64,21 @@
           </dd>
           {% endfor %}
       </dl>
+    </div>
+    <div class="col-lg-4">
+      <div class="card mt-2 mt-md-5 mb-3 sticky-lg-top">
+        <div class="card-body">
+          <dl class="mb-4">
+            <dt>Created:</dt>
+            <dd>Nov 1, 2023</dd>
+            <dt>Updated:</dt>
+            <dd>Nov 1, 2023</dd>
+            <dt>Last Updated User:</dt>
+            <dd>Webcom</dd>
+          </dl>
+          <input type="submit" form="program-form" class="btn btn-success" value="Save Changes">
+        </div>
+      </div>
     </div>
     {% for description_name, description in descriptions.items %}
     <div class="modal fade" id="{{ description_name|slugify }}-modal" tabindex="-1" role="dialog" aria-labelledby="{{ description_name|slugify }}-label" aria-hidden="true">
