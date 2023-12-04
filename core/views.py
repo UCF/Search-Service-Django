@@ -270,11 +270,11 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         ctx['descriptions'] = {
             'Catalog Description': {
                 'explanation': 'The description pulled from the UCF Catalog that has been passed through a simple algorithm to remove the degree requirements.',
-                'description': catalog_description.description,
+                'description': catalog_description.description if catalog_description is not None else None,
             },
             'Full Catalog Description': {
                 'explanation': 'The full catalog description pulled from the UCF Catalog.',
-                'description': full_description.description,
+                'description': full_description.description if full_description is not None else None,
             }
         }
 
