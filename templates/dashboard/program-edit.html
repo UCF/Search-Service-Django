@@ -2,8 +2,8 @@
 {% block body %}
 <div class="container-fluid mt-4">
   <div class="row">
-    <div class="col-md-2 order-md-2">
-      <div class="card mt-2 mt-md-5 mb-3 sticky-top">
+    <div class="col-lg-2 order-lg-2">
+      <div class="card mt-2 mt-md-5 mb-3 sticky-lg-top">
         <div class="card-body">
           <dl class="mb-4">
             <dt>Created:</dt>
@@ -17,7 +17,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6 offset-md-2 order-md-1">
+    <div class="col-lg-6 offset-lg-2 order-lg-1">
       <h2 class="heading-underline">{{ object.name }}</h2>
       <form id="program-form" name="program-form" method="POST">
         {% csrf_token %}
