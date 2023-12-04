@@ -1,96 +1,115 @@
 {% extends 'base-bootstrap.html' %}
 {% block body %}
-<div class="container mt-4">
-    <h2 class="heading-underline">{{ object.name }}</h2>
-    <form method="POST">
-      {% csrf_token %}
-      <h3 class="h4">Descriptions</h3>
-      <div class="row">
-        <div class="col-md-4">
-          <h4>Custom Description</h4>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
-          <input type="submit" class="btn btn-success" value="Save Changes">
-        </div>
-        <div class="col-md-8">
-          {{ form.custom_description }}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-md-2 order-md-2">
+      <div class="card mt-2 mt-md-5 mb-3 sticky-top">
+        <div class="card-body">
+          <dl class="mb-4">
+            <dt>Created:</dt>
+            <dd>Nov 1, 2023</dd>
+            <dt>Updated:</dt>
+            <dd>Nov 1, 2023</dd>
+            <dt>Last Updated User:</dt>
+            <dd>Webcom</dd>
+          </dl>
+          <input type="submit" form="program-form" class="btn btn-success" value="Save Changes">
         </div>
       </div>
+    </div>
+    <div class="col-md-6 offset-md-2 order-md-1">
+      <h2 class="heading-underline">{{ object.name }}</h2>
+      <form id="program-form" name="program-form" method="POST">
+        {% csrf_token %}
+        <h3 class="h4">Descriptions</h3>
+        <div class="row">
+          <div class="col-md-4">
+            <h4>Custom Description</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
 
-      <!-- <table class="table">
-          <thead>
-              <tr>
-                  <th scope="col">Description Type</th>
-                  <th scope="col">Exists</th>
-                  <th scope="col">Actions</th>
-              </tr>
-          </thead>
-          <tbody>
-      {% for description in object.descriptions.all %}
-          <tr>
-              <td>{{ description.description_type }}</td>
-              <td>
-                  {% if description.description != "" %}
-                  <span class="fa fa-circle-check text-success"></span><span class="sr-only">Exists</span>
-                  {% else %}
-                  <span class="fa fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
-                  {% endif %}
-              </td>
-              <td>
-                  <a class="btn btn-sm btn-success" href="#preview" data-toggle="modal" data-target="#{{ description.description_type|slugify }}-modal">
-                      <span class="fa fa-search"></span> Preview
-                  </a>
-              </td>
-          </tr>
-      {% endfor %}
-          </tbody>
-      </table> -->
-    </form>
-    <hr class="my-5">
-    <h2>Read-only Fields</h2>
-    <dl class="row">
-        {% for field, value in read_only_fields.items %}
-        <dt class="col-6 col-sm-3">{{ field }}: </dt>
-        <dd class="col-6 col-sm-9">
-            {% if field in 'Colleges,Departments' %}
-                <ul class="list-unstyled">
-                {% for v in value.all %}
-                    <li class="list-item">{{ v }}</li>
-                {% endfor %}
-                </ul>
-            {% elif field == 'Catalog URL' %}
-                <a href="{{ value }}" target="_blank" rel="nofollow">{{ value }}</a>
-            {% elif field in 'Active,Valid' %}
-                {% if value == 'True' %}
-                <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
-                {% else %}
-                <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
-                {% endif %}
-            {% else %}
-                {{ value }}
-            {% endif %}
-        </dd>
+          </div>
+          <div class="col-md-8">
+            {{ form.custom_description }}
+          </div>
+        </div>
+
+        <!-- <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Description Type</th>
+                    <th scope="col">Exists</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+        {% for description in object.descriptions.all %}
+            <tr>
+                <td>{{ description.description_type }}</td>
+                <td>
+                    {% if description.description != "" %}
+                    <span class="fa fa-circle-check text-success"></span><span class="sr-only">Exists</span>
+                    {% else %}
+                    <span class="fa fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a class="btn btn-sm btn-success" href="#preview" data-toggle="modal" data-target="#{{ description.description_type|slugify }}-modal">
+                        <span class="fa fa-search"></span> Preview
+                    </a>
+                </td>
+            </tr>
         {% endfor %}
-    </dl>
-</div>
-{% for description in object.descriptions.all %}
-<div class="modal fade" id="{{ description.description_type|slugify }}-modal" tabindex="-1" role="dialog" aria-labelledby="{{ description.description_type|slugify }}-label" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">{{ description.description_type }} Preview</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body p-5">
-            {{ description.description|safe }}
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </tbody>
+        </table> -->
+      </form>
+      <hr class="my-5">
+      <h2>Read-only Fields</h2>
+      <dl class="row">
+          {% for field, value in read_only_fields.items %}
+          <dt class="col-6 col-sm-3">{{ field }}: </dt>
+          <dd class="col-6 col-sm-9">
+              {% if field in 'Colleges,Departments' %}
+                  <ul class="list-unstyled">
+                  {% for v in value.all %}
+                      <li class="list-item">{{ v }}</li>
+                  {% endfor %}
+                  </ul>
+              {% elif field == 'Catalog URL' %}
+                  <a href="{{ value }}" target="_blank" rel="nofollow">{{ value }}</a>
+              {% elif field in 'Active,Valid' %}
+                  {% if value == 'True' %}
+                  <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
+                  {% else %}
+                  <span class="fa fa-circle-check text-success" aria-hidden="True"></span>
+                  {% endif %}
+              {% else %}
+                  {{ value }}
+              {% endif %}
+          </dd>
+          {% endfor %}
+      </dl>
+    </div>
+    {% for description in object.descriptions.all %}
+    <div class="modal fade" id="{{ description.description_type|slugify }}-modal" tabindex="-1" role="dialog" aria-labelledby="{{ description.description_type|slugify }}-label" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">{{ description.description_type }} Preview</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body p-5">
+              {{ description.description|safe }}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 {% endfor %}
 {% endblock %}
 {% block scripts %}
