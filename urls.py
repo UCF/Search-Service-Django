@@ -54,7 +54,7 @@ urlpatterns = [
     ),
     url(r'^',
         include('core.urls')
-    )
+    ),
 ]
 
 if settings.USE_SAML:
