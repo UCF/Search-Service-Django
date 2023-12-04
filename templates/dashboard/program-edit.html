@@ -12,28 +12,31 @@
         <div class="col-12 col-lg-8">
             <!-- xs-cards-row -->
             <div class="row">
-                <div class="d-flex flex-wrap justify-content-start mb-4">
+                <div class="col-12">
+                    <div class="row">
                     {% for description in object.descriptions.all %}
-                        <a href="#preview" data-toggle="modal" data-target="#{{ description.description_type|slugify }}-modal" class="card custom-xs-card border-0 m-1 custom-shadow-box text-center">
-                            <div class="pt-1">
-                                {% if description.description != "" %}
-                                <span class="fa fa-2x fa-circle-check text-success"></span><span class="sr-only">Exists</span>
-                                {% else %}
-                                <span class="fa fa-2x fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
-                                {% endif %}
-                            </div>
-                            <div class="pt-2">
-                                <span>{{ description.description_type }}</span>
-                            </div>
-                            <div style="position: absolute; bottom: 5px; left: 22%;">
-                                <div>
-                                  <i class="fa fa-eye" aria-hidden="true"></i>
-                                  Preview
-                                </div>
-                            </div>
-                          </a>
+                        <div class="col-5 col-sm-3 col-lg-2 col-lg-3 col-xl-2 mx-2 mb-4 p-3 card border-0 custom-shadow-box text-center">
+                            <a href="#preview" data-toggle="modal" data-target="#{{ description.description_type|slugify }}-modal" class="text-decoration-none">
+                              <div class="pt-1">
+                                  {% if description.description != "" %}
+                                  <span class="fa fa-2x fa-circle-check text-success"></span><span class="sr-only">Exists</span>
+                                  {% else %}
+                                  <span class="fa fa-2x fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
+                                  {% endif %}
+                              </div>
+                              <div class="pt-2">
+                                  <span>{{ description.description_type }}</span>
+                              </div>
+                              <div>
+                                  <div class="pt-3">
+                                    <i class="fa fa-eye" aria-hidden="true"></i>
+                                    Preview
+                                  </div>
+                              </div>
+                            </a>
+                        </div>
                     {% endfor %}
-
+                    </div>
                 </div>
             </div>
             <!-- Edit Desc Row -->
