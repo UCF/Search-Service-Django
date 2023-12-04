@@ -21,46 +21,49 @@
       <h2 class="heading-underline">{{ object.name }}</h2>
       <form id="program-form" name="program-form" method="POST">
         {% csrf_token %}
-        <h3 class="h4">Descriptions</h3>
+        <h3 class="h4 mb-4">Descriptions</h3>
         <div class="row">
           <div class="col-md-4">
-            <h4>Custom Description</h4>
+            <h4 class="h6">Custom Description</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
-
           </div>
           <div class="col-md-8">
             {{ form.custom_description }}
           </div>
         </div>
+        <h4 class="h6">Catalog Descriptions</h4>
+        <table class="table">
+          <thead>
+              <tr>
+                  <th scope="col">Description Type</th>
+                  <th scope="col">Source</th>
+                  <th scope="col">Exists</th>
+                  <th scope="col">Actions</th>
+              </tr>
+          </thead>
+          <tbody>
+      {% for description_name, description in descriptions.items %}
+          <tr>
+              <td>{{ description_name }}</td>
+              <td>{{ description.explanation }}</td>
+              <td>
+                  {% if description.description != "" %}
+                  <span class="fa fa-circle-check text-success"></span><span class="sr-only">Exists</span>
+                  {% else %}
+                  <span class="fa fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
+                  {% endif %}
+              </td>
+              <td>
+                  <a class="btn btn-sm btn-success" href="#preview" data-bs-toggle="modal" data-bs-target="#{{ description_name|slugify }}-modal">
+                      <span class="fa fa-search"></span> Preview
+                  </a>
+              </td>
+          </tr>
+      {% endfor %}
+          </tbody>
+        </table>
 
-        <!-- <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">Description Type</th>
-                    <th scope="col">Exists</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-        {% for description in object.descriptions.all %}
-            <tr>
-                <td>{{ description.description_type }}</td>
-                <td>
-                    {% if description.description != "" %}
-                    <span class="fa fa-circle-check text-success"></span><span class="sr-only">Exists</span>
-                    {% else %}
-                    <span class="fa fa-circle-cross text-error"></span><span class="sr-only">Does not exist</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <a class="btn btn-sm btn-success" href="#preview" data-toggle="modal" data-target="#{{ description.description_type|slugify }}-modal">
-                        <span class="fa fa-search"></span> Preview
-                    </a>
-                </td>
-            </tr>
-        {% endfor %}
-            </tbody>
-        </table> -->
+
       </form>
       <hr class="my-5">
       <h2>Read-only Fields</h2>
@@ -89,21 +92,19 @@
           {% endfor %}
       </dl>
     </div>
-    {% for description in object.descriptions.all %}
-    <div class="modal fade" id="{{ description.description_type|slugify }}-modal" tabindex="-1" role="dialog" aria-labelledby="{{ description.description_type|slugify }}-label" aria-hidden="true">
+    {% for description_name, description in descriptions.items %}
+    <div class="modal fade" id="{{ description_name|slugify }}-modal" tabindex="-1" role="dialog" aria-labelledby="{{ description_name|slugify }}-label" aria-hidden="true">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">{{ description.description_type }} Preview</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <h5 class="modal-title" id="{{ description_name|slugify }}-label">{{ description_name }} Preview</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body p-5">
               {{ description.description|safe }}
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
@@ -113,13 +114,13 @@
 {% endfor %}
 {% endblock %}
 {% block scripts %}
-  {{ bock.super }}
+  {{ block.super }}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.0/tinymce.min.js"></script>
   <script>
     tinymce.init({
       selector: '.wysiwyg',
       browser_spellcheck: true,
-      plugins: 'link paste autoresize lists',
+      plugins: 'link autoresize lists',
       // valid elems/styles configuration below should match with
       // BLEACH_ALLOWED_[] settings in settings_local.py
       valid_elements: 'p[style],span[style],br,strong/b,em/i,u,a[href|title|style|alt|target=_blank],ul,ol,li',

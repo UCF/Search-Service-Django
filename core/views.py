@@ -190,6 +190,23 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
             program=program
         )
 
+    def __get_description_by_name(self, program=None, description_type_name=None):
+        """
+        Gets the full description of
+        the program
+        """
+        if not program or description_type_name is None:
+            return None
+
+        try:
+            return ProgramDescription.objects.get(
+                description_type__name=description_type_name,
+                program=program
+            )
+        except ProgramDescription.DoesNotExist:
+            return None
+
+
     def get_success_url(self) -> str:
         return resolve_url('dashboard.programs.list')
 
@@ -246,6 +263,21 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
             raise Http404
 
         obj: Program = ctx['object']
+
+        catalog_description = self.__get_description_by_name(obj, 'Catalog Description')
+        full_description = self.__get_description_by_name(obj, 'Full Catalog Description' )
+
+        ctx['descriptions'] = {
+            'Catalog Description': {
+                'explanation': 'The description pulled from the UCF Catalog that has been passed through a simple algorithm to remove the degree requirements.',
+                'description': catalog_description.description,
+            },
+            'Full Catalog Description': {
+                'explanation': 'The full catalog description pulled from the UCF Catalog.',
+                'description': full_description.description,
+            }
+        }
+
         ctx['read_only_fields'] = {
             'Name': obj.name,
             'Credit Hours': obj.credit_hours,
