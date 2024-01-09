@@ -241,12 +241,32 @@ class MatchableProgram(object):
         matched with this MatchableProgram by program name, and stores
         the match and its match score if it does.
         """
-        match_score = fuzz.token_sort_ratio(
-            self.name_clean,
-            catalog_entry.name_clean
+        match_score = self.__get_code_match(
+            catalog_entry
         )
+
+        if match_score != 100:
+            match_score = fuzz.token_sort_ratio(
+                self.name_clean,
+                catalog_entry.name_clean
+            )
+
         if match_score >= self.__get_match_threshold(catalog_entry):
             self.matches.append((match_score, catalog_entry))
+
+
+    def __get_code_match(self, catalog_entry):
+        """
+        Tries to match the "code" field with the
+        plan_code of the program.
+        """
+        if catalog_entry.data and \
+            'code' in catalog_entry.data and \
+            self.program.plan_code == catalog_entry.data['code']:
+            return 100
+
+        return 0
+
 
     def get_best_match(self):
         """
@@ -325,6 +345,8 @@ def clean_name(program_name):
         (str): The sanitized program name
     """
     name = program_name
+
+    name = program_name.replace(' Undergraduate', '').replace(' Graduate', '')
 
     # Ensure we're working with a str object, not bytes:
     if type(name) is bytes:
