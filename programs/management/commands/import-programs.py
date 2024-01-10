@@ -244,9 +244,20 @@ class Command(BaseCommand):
         if program.level.name == 'Minor' and 'Minor' not in program.name:
             retval = f"{program.name} Minor"
         elif program.level.name == 'Certificate' and f'{program.career.name} Certificate' not in program.name:
-            retval = f"{program.name.rstrip(' Certificate')} {program.career.name} Certificate"
+            retval = self.update_certificate_name(program.name, program.career.name)
 
         return retval
+
+
+    def update_certificate_name(self, program_name, career_name) -> str:
+        """
+        Updates 'Certificate' to 'Undergraduate Certificate' or
+        'Graduate Certificate' based on the program career name.
+        """
+        if program_name.rstrip()[-12:] == ' Certificate':
+            return f"{program_name[:-12]} {career_name} Certificate"
+
+        return program_name
 
 
     def add_program(self, data):
