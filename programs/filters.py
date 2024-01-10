@@ -57,3 +57,12 @@ class TuitionOverrideFilter(django_filters.FilterSet):
             'plan_code',
             'subplan_code'
         )
+
+class JobPositionFilter(django_filters.FilterSet):
+    search = filters.CharFilter(field_name='name', lookup_expr='icontains')
+
+    class Meta:
+        model = JobPosition
+        fields = (
+            'search',
+        )

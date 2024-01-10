@@ -92,6 +92,12 @@ class DepartmentSearchView(DepartmentListView):
     filter_class = DepartmentFilter
 
 
+class JobListView(generics.ListAPIView):
+    filter_class = JobPositionFilter
+    queryset = JobPosition.objects.all()
+    serializer_class = JobPositionSerializer
+
+
 class ProgramListView(generics.ListAPIView):
     queryset = Program.objects.all()
     serializer_class = ProgramSerializer
