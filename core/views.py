@@ -17,7 +17,8 @@ from programs.models import (
     Program,
     ProgramDescription,
     ProgramDescriptionType,
-    ProgramImportRecord
+    ProgramImportRecord,
+    JobPosition
 )
 from core.forms import CommunicatorProgramForm
 
@@ -206,22 +207,47 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         except ProgramDescription.DoesNotExist:
             return None
 
+    def __get_jobs(self) -> str:
+        """
+        Returns a list of assigned jobs
+        """
+        program = self.__get_program()
+
+        if not program:
+            return []
+
+        return ",".join([x.name for x in program.jobs.all()])
+
 
     def get_success_url(self) -> str:
+        """
+        Returns the success URL
+        """
         return resolve_url('dashboard.programs.list')
 
 
     def get_initial(self):
+        """
+        Gets the initial values for the form
+        """
         initial = super().get_initial()
 
         custom_description = self.__get_custom_description()
+        jobs = self.__get_jobs()
 
         if custom_description:
             initial['custom_description'] = custom_description.description
 
+        if jobs:
+            initial['jobs'] = jobs
+
         return initial
 
     def form_valid(self, form):
+        """
+        Runs whenever the form is submitted and
+        all values provided pass validation.
+        """
         program = self.__get_program()
         custom_description = self.__get_custom_description()
 
@@ -236,6 +262,26 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
         custom_description.save()
 
+        current_jobs = self.__get_jobs().split(',')
+        jobs = form.cleaned_data['jobs'].split(',')
+
+        # Remove jobs that are no longer listed
+        for job in current_jobs:
+            if job not in jobs:
+                job_position = JobPosition.objects.get(name=job)
+                program.jobs.remove(job_position)
+
+        # Add new jobs
+        for job in jobs:
+            if job not in current_jobs:
+                try:
+                    job_position = JobPosition.objects.get(name=job)
+                except JobPosition.DoesNotExist:
+                    job_position = JobPosition(name=job)
+                    job_position.save()
+
+                program.jobs.add(job_position)
+
         # Final sanity check. If the description is empty,
         # delete the description because it might as well
         # not exist
@@ -245,9 +291,15 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         return super().form_valid(form)
 
     def get_queryset(self):
+        """
+        Gets the initial queryset of the view
+        """
         return self.request.user.meta.editable_programs
 
     def get_context_data(self, **kwargs):
+        """
+        Generates the context data of the view
+        """
         ctx = super().get_context_data(**kwargs)
 
         program_pk = self.kwargs.get('pk', None)
