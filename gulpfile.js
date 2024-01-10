@@ -193,8 +193,12 @@ gulp.task('js-build-theme', () => {
   return buildJS(`${config.src.jsPath}/script.js`, config.dist.jsPath);
 });
 
+gulp.task('js-build-typeahead', () => {
+  return buildJS(`${config.src.jsPath}/jobs-typeahead.js`, config.dist.jsPath);
+});
+
 // All js-related tasks
-gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme'));
+gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme', 'js-build-typeahead'));
 
 
 //

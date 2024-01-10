@@ -126,6 +126,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Department
 
+class JobPositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = JobPosition
 
 class ProgramProfileTypeSerializer(serializers.ModelSerializer):
     class Meta:
