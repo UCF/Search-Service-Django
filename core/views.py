@@ -267,13 +267,13 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
         # Remove jobs that are no longer listed
         for job in current_jobs:
-            if job not in jobs:
+            if job not in jobs and job != '':
                 job_position = JobPosition.objects.get(name=job)
                 program.jobs.remove(job_position)
 
         # Add new jobs
         for job in jobs:
-            if job not in current_jobs:
+            if job not in current_jobs and job != '':
                 try:
                     job_position = JobPosition.objects.get(name=job)
                 except JobPosition.DoesNotExist:
