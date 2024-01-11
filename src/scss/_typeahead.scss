@@ -33,15 +33,3 @@
       @extend .form-check-input;
   }
 }
-
-.token {
-  @extend .badge;
-  @extend .bg-success;
-  margin-right: .5rem;
-  margin-bottom: .25rem;
-
-  .close {
-    color: $white;
-    padding-left: .75rem;
-  }
-}
