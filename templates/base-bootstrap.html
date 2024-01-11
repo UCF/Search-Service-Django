@@ -6,10 +6,10 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+    {% block css %}
     <!-- Athena CSS -->
     <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
-    {% block additional_css %}{% endblock %}
+    {% endblock %}
   </head>
   <body data-spy="scroll" data-target="#sidebar">
     <header>
