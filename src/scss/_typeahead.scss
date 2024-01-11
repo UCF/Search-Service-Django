@@ -33,3 +33,24 @@
       @extend .form-check-input;
   }
 }
+
+.tokenfield {
+
+  .token-input {
+    font-size: 18px;
+    margin-top: 6px;
+  }
+
+  .token {
+    background-color: $success;
+    color: $white;
+    height: 36px;
+    margin-bottom: 0;
+    padding: .35rem .65rem;
+
+    .close {
+      color: $white;
+      text-decoration: none;
+    }
+  }
+}
