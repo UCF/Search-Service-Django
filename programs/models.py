@@ -659,6 +659,10 @@ class Program(models.Model):
     def has_custom_description(self):
         return self.descriptions.filter(description_type=settings.CUSTOM_DESCRIPTION_TYPE_ID).count() > 0
 
+    @property
+    def has_jobs(self):
+        return self.jobs.count() > 0
+
 
 class ProgramProfile(models.Model):
     """
