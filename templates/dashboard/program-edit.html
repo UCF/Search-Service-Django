@@ -1,5 +1,8 @@
 {% extends 'base-bootstrap.html' %}
 {% load static %}
+{% block additional_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tokenfield/0.12.0/css/bootstrap-tokenfield.min.css" integrity="sha512-YWDtZYKUekuPMIzojX205b/D7yCj/ZM82P4hkqc9ZctHtQjvq3ei11EvAmqxQoyrIFBd9Uhfn/X6nJ1Nnp+F7A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
 {% block body %}
 <div class="container mt-4">
   <h2 class="heading-underline pb-4">Program Name: {{ object.name }}</h2>
@@ -38,11 +41,7 @@
         </div>
         <h4 class="h2">Edit Career Paths</h4>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
-        <div class="row">
-          <div class="col-sm-8">
-            {{ form.jobs }}
-          </div>
-        </div>
+        {{ form.jobs }}
       </form>
       <hr class="my-5">
       <h2>Read-only Fields</h2>
