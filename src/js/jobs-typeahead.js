@@ -18,8 +18,8 @@ const $tf = $('#id_jobs').tokenfield({
     source: engine.ttAdapter(),
     displayKey: 'name',
     templates: {
-      notFound: '<div>Not Found</div>',
-      pending: '<div>Loading...</div>',
+      notFound: '<div class="tt-suggestion">Not Found</div>',
+      pending: '<div class="tt-suggestion">Loading...</div>',
       suggestion: function (data) {
         return `<div data-job-id="${data.id}">${data.name}</div>`;
       }
