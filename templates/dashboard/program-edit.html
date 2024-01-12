@@ -9,8 +9,8 @@
   <h1 class="h6 text-light text-uppercase">Edit Program: </h1>
   <span class="h1 text-primary">{{ object.name }}</span>
   {% if object.primary_profile_url %}
-  <span class="h6">
-    <a class="text-secondary" href="{{ object.primary_profile_url }}">{{ object.primary_profile_url }}</a>
+  <span class="h6 mt-2 d-block">
+    <a class="text-light" href="{{ object.primary_profile_url }}" target="_blank">{{ object.primary_profile_url }}</a>
   </span>
   {% endif %}
 {% endblock %}
