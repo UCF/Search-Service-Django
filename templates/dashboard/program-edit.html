@@ -6,10 +6,10 @@
 {% endblock %}
 
 {% block header_content %}
-  <h1 class="h6 text-light text-uppercase">Edit Program: </h1>
+  <h1 class="h6 mb-3 text-light text-uppercase">Edit Program: </h1>
   <span class="h1 text-primary">{{ object.name }}</span>
   {% if object.primary_profile_url %}
-  <span class="h6 mt-2 d-block">
+  <span class="h6 mt-3 d-block">
     <a class="text-light" href="{{ object.primary_profile_url }}" target="_blank">{{ object.primary_profile_url }}</a>
   </span>
   {% endif %}
