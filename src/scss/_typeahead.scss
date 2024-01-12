@@ -34,14 +34,23 @@
   }
 }
 
-.token {
-  @extend .badge;
-  @extend .bg-success;
-  margin-right: .5rem;
-  margin-bottom: .25rem;
+.tokenfield {
 
-  .close {
+  .token-input {
+    font-size: 18px;
+    margin-top: 6px;
+  }
+
+  .token {
+    background-color: $success;
     color: $white;
-    padding-left: .75rem;
+    height: 36px;
+    margin-bottom: .2rem;
+    padding: .35rem .65rem;
+
+    .close {
+      color: $white;
+      text-decoration: none;
+    }
   }
 }
