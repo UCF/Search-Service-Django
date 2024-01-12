@@ -21,7 +21,7 @@
     <div class="col-lg-8">
       <form id="program-form" name="program-form" method="POST">
         {% csrf_token %}
-        <h3 class="h2">Edit Custom Description</h4>
+        <h2 class="h3">Edit Custom Description</h4>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
         {{ form.custom_description }}
         <h3 class="h2 my-4">Catalog Descriptions</h3>
@@ -50,12 +50,12 @@
           </div>
           {% endfor %}
         </div>
-        <h4 class="h2">Edit Career Paths</h4>
+        <h2 class="h3">Edit Career Paths</h4>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
         {{ form.jobs }}
       </form>
       <hr class="my-5">
-      <h2>Read-only Fields</h2>
+      <h2 class="h3">Read-only Fields</h2>
       <dl class="row">
           {% for field, value in read_only_fields.items %}
           <dt class="col-6 col-sm-3">{{ field }}: </dt>
