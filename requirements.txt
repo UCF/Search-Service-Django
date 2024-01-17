@@ -24,6 +24,8 @@ cryptography==41.0.2
     # via
     #   pyopenssl
     #   pysaml2
+croniter==2.0.1
+    # via UCF-Search-Service-Django (pyproject.toml)
 defusedxml==0.7.1
     # via pysaml2
 django==3.2.20
