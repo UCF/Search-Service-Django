@@ -3,6 +3,7 @@
 
 from typing import Any
 from django.conf import settings
+from django.contrib import messages
 
 from django.shortcuts import render, resolve_url
 from django.http import Http404, HttpRequest
@@ -230,7 +231,8 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         """
         Returns the success URL
         """
-        return resolve_url('dashboard.programs.list')
+        program_pk = self.kwargs.get('pk', None)
+        return resolve_url('dashboard.programs.edit', pk=program_pk)
 
 
     def get_initial(self):
@@ -295,7 +297,18 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         if custom_description.description == '':
             custom_description.delete()
 
+        messages.success(self.request, self.__get_success_message(program))
+
         return super().form_valid(form)
+
+    def __get_success_message(self, program):
+        """
+        Generates the success message
+        """
+        next_import_date = get_next_date_from_cron(settings.IMPORT_CRON)
+
+        return f"You have successfully updated the {program.name} program. The changes will be available for the next degree import, which occurs on {next_import_date.strftime('%B %-d, %Y')}."
+
 
     def get_queryset(self):
         """
