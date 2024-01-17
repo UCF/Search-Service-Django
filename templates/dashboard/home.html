@@ -5,8 +5,7 @@
   <div class="row">
     <div class="col-12">
       <div class="pb-3">
-        <p class="fs-5">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the i ndustry's standard dummy text ever since the 1500s.
-        </p>
+        <p class="fs-5">This dashboard serves as your go-to resource to quickly gauge degree page content opportunities and address.</p>
       </div>
   </div>
   <div class="row custom-row-sm-cards">
@@ -22,11 +21,21 @@
             </span>
         </div>
         <div class="card m-1 border-0 custom-shadow-box text-center d-flex align-items-center justify-content-center custom-sm-card">
+          <span class="p-2 h4">Next Import</span>
+          <span class="p-2 fs-5">
+            {% if import.next_import_date %}
+            {{ import.next_import_date|date:"F j, Y" }}
+            {% else %}
+            N/A
+            {% endif %}
+          </span>
+      </div>
+        <div class="card m-1 border-0 custom-shadow-box text-center d-flex align-items-center justify-content-center custom-sm-card">
             <span class="p-2 h4">Programs Added</span>
             <span class="p-2 fs-5">{{ import.programs_created|na_if_none }}</span>
         </div>
         <div class="card m-1 border-0 custom-shadow-box text-center d-flex align-items-center justify-content-center custom-sm-card">
-            <span class="p-2 h4">Total degree count</span>
+            <span class="p-2 h4">Total Degree Count</span>
             <span class="p-2 fs-5">{{ import.programs_processed|na_if_none }}</span>
         </div>
     </div>
@@ -42,8 +51,8 @@
             <table class="table table-borderless">
               <thead>
                 <tr class="font-size-sm border-bottom">
-                  <th scope="col">Type of Issue</th>
-                  <th scope="col">Number of Issues</th>
+                  <th scope="col">Content Opportunities</th>
+                  <th scope="col">Number of Opportunities</th>
                   <th scope="col">Action</th>
                 </tr>
               </thead>
@@ -51,17 +60,17 @@
                 <tr>
                   <td class="p-3 custom-t-3"><span class="fa fa-warning fa-lg text-warning mr-2"></span> Missing Program Descriptions</td>
                   <td class="p-3 custom-t-3">{{ meta.missing_desc_count }}</td>
-                  <td class="p-3 custom-t-3"><a href="{% url 'dashboard.programs.list' %}?missing=missing">View Programs</a></td>
+                  <td class="p-3 custom-t-3"><a href="{% url 'dashboard.programs.list' %}?missing=missing">View/Edit Programs</a></td>
                 </tr>
                 <tr>
                   <td class="p-3 custom-t-3"><span class="fa fa-warning fa-lg text-warning mr-2"></span> Missing Custom Description</td>
                   <td class="p-3 custom-t-3">{{ meta.missing_custom_desc_count }}</td>
-                  <td class="p-3 custom-t-3"><a href="{% url 'dashboard.programs.list' %}?missing=missing_custom">View Programs</a></td>
+                  <td class="p-3 custom-t-3"><a href="{% url 'dashboard.programs.list' %}?missing=missing_custom">View/Edit Content</a></td>
                 </tr>
                 <tr>
                   <td class="p-3 custom-t-3"><span class="fa fa-warning fa-lg text-warning mr-2"></span> Missing Career Paths</td>
                   <td class="p-3 custom-t-3">{{ meta.missing_jobs }}</td>
-                  <td class="p-3 custom-t-3"><a href="{% url 'dashboard.programs.list' %}?missing=missing_jobs">View Programs</a></td>
+                  <td class="p-3 custom-t-3"><a href="{% url 'dashboard.programs.list' %}?missing=missing_jobs">View/Edit Careers</a></td>
                 </tr>
               </tbody>
             </table>

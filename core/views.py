@@ -20,6 +20,7 @@ from programs.models import (
     ProgramImportRecord,
     JobPosition
 )
+from programs.utilities.scheduling import get_next_date_from_cron
 from core.forms import CommunicatorProgramForm
 
 from core.filters import ProgramListFilterSet
@@ -88,6 +89,7 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
         user = self.request.user
 
         last_import = ProgramImportRecord.objects.order_by('-start_date_time').first()
+        next_import = get_next_date_from_cron(settings.IMPORT_CRON)
 
         if last_import is not None:
             ctx['import'] = {
@@ -101,6 +103,11 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
                 'programs_created': None,
                 'programs_processed': None,
             }
+
+        if next_import:
+            ctx['import']['next_import_date'] = next_import
+        else:
+            ctx['import']['next_import_date'] = None
 
         program_content_type = ContentType.objects.get_for_model(Program)
         program_description_content_type = ContentType.objects.get_for_model(ProgramDescription)
