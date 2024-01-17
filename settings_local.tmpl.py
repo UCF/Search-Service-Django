@@ -302,6 +302,10 @@ ACADEMIC_ANALYTICS_API_KEY = ''
 # Program or Catalog import
 IMPORT_USER_ID = 1
 
+# The CRON used to schedule the monthly import
+# Is used to predict when the next import will occur
+IMPORT_CRON = 'H 10 8-14 * 2'
+
 # Full name replacements to be performed on college, department and
 # organization names for Units generated via map-units.py.
 # Full name replacements are case-sensitive. Replacements are performed
