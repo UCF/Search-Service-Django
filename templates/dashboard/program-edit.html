@@ -17,6 +17,20 @@
 
 {% block body %}
 <div class="container mt-4">
+  <!-- Status Area -->
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{message.tags}} alert-dismissible fade show" role="alert">
+      <p>
+        {{message}}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </p>
+      <hr>
+      <p>Continue editing this program or <a href="{% url 'dashboard.programs.list' %}" class="alert-link">return to the list of editable programs</a>.</p>
+    </div>
+    {% endfor %}
+  {% endif %}
+  <!-- End Status Area -->
   <div class="row"> <!-- Main -->
     <div class="col-lg-8">
       <form id="program-form" name="program-form" method="POST">
