@@ -91,8 +91,6 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
         last_import = ProgramImportRecord.objects.order_by('-start_date_time').first()
         next_import = get_next_date_from_cron(settings.IMPORT_CRON)
 
-        print(next_import)
-
         if last_import is not None:
             ctx['import'] = {
                 'last_import_date': last_import.start_date_time,
