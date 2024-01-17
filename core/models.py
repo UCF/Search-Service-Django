@@ -37,10 +37,15 @@ class ExtendedUser(models.Model):
         elif self.colleges_can_edit.count() == 0 or self.departments_can_edit.count() == 0:
             return Program.objects.none()
         else:
-            return Program.objects.filter(
-                models.Q(colleges__in=self.colleges_can_edit.all()) |
-                models.Q(departments__in=self.departments_can_edit.all())
-            )
+            query = Program.objects.all()
+
+            if self.colleges_can_edit.count() > 0:
+                query = query.filter(colleges__in=self.colleges_can_edit.all())
+
+            if self.departments_can_edit.count() > 0:
+                query = query.filter(departments__in=self.departments_can_edit.all())
+
+            return query
 
 
     @property
