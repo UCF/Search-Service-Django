@@ -38,8 +38,8 @@ class ExtendedUser(models.Model):
             return Program.objects.none()
         else:
             return Program.objects.filter(
-                models.Q(colleges__in=self.colleges_can_edit) |
-                models.Q(departments__in=self.departments_can_edit)
+                models.Q(colleges__in=self.colleges_can_edit.all()) |
+                models.Q(departments__in=self.departments_can_edit.all())
             )
 
 
