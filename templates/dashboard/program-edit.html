@@ -22,7 +22,7 @@
       <form id="program-form" name="program-form" method="POST">
         {% csrf_token %}
         <h2 class="h3">Edit Custom Description</h4>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
+        <p>Use this field to write an engaging, brief description (approx. 250 words) meant to provide a general overview of the program. This may be the first interaction with your program, so it could be helpful to include what students will learn, a brief mention of what students can do after graduation, and any tracks or related programs. For SEO purposes, include the program name in the first sentence of the description. The <a href="https://www.ucf.edu/degree/psychology-bs/" target="_blank">Psychology (BS)</a> and <a href="https://www.ucf.edu/degree/aerospace-engineering-msae/" target="_blank">Aerospace (MSAE)</a> pages are good examples.</p>
         {{ form.custom_description }}
         <h2 class="h3 mt-4">Catalog Descriptions</h3>
         <div class="row justify-content-evenly">
@@ -51,7 +51,7 @@
           {% endfor %}
         </div>
         <h2 class="h3">Edit Career Paths</h4>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus aliquam mauris eget sapien cursus, ac gravida turpis sodales. Proin at aliquam quam, nec ornare massa. Nunc nec est velit. Etiam malesuada ullamcorper lacus, ac sagittis elit sagittis id. Nulla rutrum nibh id nisl consequat, vel ornare ante imperdiet. Donec facilisis magna nec enim feugiat ultricies. Nulla purus ex, dapibus commodo vehicula vel, condimentum non tellus. Aliquam ac sapien nibh. Vivamus sagittis blandit odio quis convallis. Vivamus non sapien aliquet, imperdiet turpis fringilla, tempus ipsum. Phasellus lobortis est odio, non bibendum mauris placerat nec. Sed lobortis augue nec libero ultricies, eu fringilla leo facilisis.</p>
+        <p>List up to 6 career opportunities/career titles/career paths that graduates of this program could seek (e.g. Marketing Analyst, Data Scientist, Theme Park Designer, etc.)</p>
         {{ form.jobs }}
       </form>
       <hr class="my-5">
@@ -89,10 +89,10 @@
         <div class="card-body">
           <dl class="mb-4">
             <dt>Created:</dt>
-            <dd>Nov 1, 2023</dd>
-            <dt>Updated:</dt>
-            <dd>Nov 1, 2023</dd>
-            <dt>Last Updated User:</dt>
+            <dd>{{ object.created|date:"F j, Y" }}</dd>
+            <dt>Last Updated On:</dt>
+            <dd>{{ object.modified|date:"F j, Y" }}</dd>
+            <dt>Last Updated By:</dt>
             <dd>Webcom</dd>
           </dl>
           <input type="submit" form="program-form" class="btn btn-primary" value="Save Changes">
