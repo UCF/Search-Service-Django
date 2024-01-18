@@ -34,12 +34,12 @@ class ExtendedUser(models.Model):
         """
         if self.user.is_superuser:
             return Program.objects.all()
-        elif self.colleges_can_edit.count() == 0 or self.departments_can_edit.count() == 0:
+        elif self.colleges_can_edit.count() == 0 and self.departments_can_edit.count() == 0:
             return Program.objects.none()
         else:
             return Program.objects.filter(
-                models.Q(colleges__in=self.colleges_can_edit) |
-                models.Q(departments__in=self.departments_can_edit)
+                models.Q(colleges__in=self.colleges_can_edit.all()) |
+                models.Q(departments__in=self.departments_can_edit.all())
             )
 
 
