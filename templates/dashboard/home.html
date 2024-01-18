@@ -79,61 +79,79 @@
     </div>
     <div class="col-12 col-lg-4">
       <div class="card border-0 custom-shadow-box mb-4">
-        <div class="px-4 pt-4 h4">
-          My Recent Activity
+        <div class="card-header">
+          <h2 class="h6 card-title">My Recent Activities</h2>
         </div>
-        <div class="card-block">
+        <div class="card-body pb-4">
           {% if user_events.count > 0 %}
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">User</th>
-                <th scope="col">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-            {% for event in user_events %}
-              <tr>
-                <td>{{ event.actor }}</td>
-                <td>{% auditlog_event event=event %}</td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-          {% else %}
-          <div class="alert alert-info">
-            <p>You have no recent activity.</p>
+          {% for event in user_events %}
+          <div class="row">
+            <div class="col-4">{{ event.actor }}</div>
+            <div class="col-8">{{ event }}</div>
           </div>
-          {% endif %}
-        </div>
-      </div>
-      <div class="card border-0 custom-shadow-box mb-4">
-        <div class="px-4 pt-4 h4">
-          Recent Activity (Global)
-        </div>
-        <div class="card-block">
-          {% if global_events.count > 0 %}
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">User</th>
-                <th scope="col">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-            {% for event in global_events %}
-              <tr>
-                <td>{{ event.actor }}</td>
-                <td>{{ event }}</td>
-              </tr>
-            {% endfor %}
-            </tbody>
-          </table>
+          <hr class="my-3">
+            {% if forloop.counter == 2 and user_events.count > 2 %}
+            <div class="collapse" id="user-activity-hidden">
+            {% endif %}
+          {% endfor %}
+            {% if user_events.count > 2 %}
+            </div>
+            {% endif %}
           {% else %}
           <div class="alert alert-info">
             <p>There is no recent activity to display.</p>
           </div>
           {% endif %}
+        </div>
+        <div class="card-footer">
+          <a
+            href="#user-activity-hidden"
+            data-bs-toggle="collapse"
+            data-bs-target="#user-activity-hidden"
+            class="btn btn-sm btn-primary d-block"
+            role="button"
+            aria-expanded="false"
+            aria-controls="user-activity-hidden">
+              View more actions
+          </a>
+        </div>
+      </div>
+      <div class="card border-0 custom-shadow-box mb-4">
+        <div class="card-header">
+          <h2 class="h6 card-title">Recent Activity (Global)</h2>
+        </div>
+        <div class="card-body pb-4">
+          {% if global_events.count > 0 %}
+          {% for event in global_events %}
+          <div class="row">
+            <div class="col-4">{{ event.actor }}</div>
+            <div class="col-8">{{ event }}</div>
+          </div>
+          <hr class="my-3">
+            {% if forloop.counter == 2 and global_events.count > 2 %}
+            <div class="collapse" id="global-activity-hidden">
+            {% endif %}
+          {% endfor %}
+            {% if global_events.count > 2 %}
+            </div>
+            {% endif %}
+          {% else %}
+          <div class="alert alert-info">
+            <p>There is no recent activity to display.</p>
+          </div>
+          {% endif %}
+        </div>
+        <div class="card-footer">
+          <a
+            href="#global-activity-hidden"
+            data-bs-toggle="collapse"
+            data-bs-target="#global-activity-hidden"
+            class="btn btn-sm btn-primary d-block"
+            role="button"
+            aria-expanded="false"
+            aria-controls="global-activity-hidden">
+              View more activities
+          </a>
         </div>
       </div>
     </div>

@@ -116,13 +116,13 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
         user_events = LogEntry.objects.filter(
             Q(content_type=program_content_type)|Q(content_type=program_description_content_type),
             actor=user,
-        )[:5]
+        )[:10]
 
         global_events = LogEntry.objects.filter(
             Q(content_type=program_content_type)|Q(content_type=program_description_content_type)
         ).exclude(
             actor=user
-        )[:5]
+        )[:10]
 
         ctx['meta'] = {
             'program_count': user.meta.editable_programs.count(),
