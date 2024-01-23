@@ -32,7 +32,7 @@ urlpatterns = [
         ),
     url(
         r'^programs/(?P<id>\d+)/careers/ranked/$',
-        WeighedProgramView.as_view(),
+        ProgramCareerView.as_view(),
         name='api.programs.careers.ranked'
     ),
     url(
