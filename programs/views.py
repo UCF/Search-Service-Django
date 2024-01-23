@@ -222,17 +222,7 @@ class ProgramCareerView(APIView):
     def get(request, format=None, **kwargs):
         program = Program.objects.get(id=kwargs['id'])
 
-        return Response(program.careers.values_list('name', flat=True).distinct())
-
-class WeighedProgramView(APIView):
-    def get(request, format=None, **kwargs):
-        program = Program.objects.get(id=kwargs['id'])
-
-        weighted_jobs = program.weighted_jobs.all().order_by('-weight')
-        response_data = WeightedJobSerializer(instance=weighted_jobs, many=True, read_only=True)
-
-        return Response(response_data.data)
-
+        return Response(program.jobs.values_list('name', flat=True).distinct())
 
 class ApplicationDeadlinesView(APIView):
     def get(request, format=None, **kwargs):
