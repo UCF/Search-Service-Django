@@ -1,7 +1,7 @@
 from operator import itemgetter
 from fuzzywuzzy import fuzz
 
-from programs.models import Level, Career
+from programs.models import Level, Career, Program
 
 
 class CatalogEntry(object):
@@ -19,6 +19,18 @@ class CatalogEntry(object):
         self.program_curriculum_clean = None
         self.level_pk = self.level.pk
         self.career_pk = self.career.pk
+
+        self.plan_code = None
+        self.subplan_code = None
+        self.parent_catalog_id = None
+
+        # Set plan code or subplan code
+        if 'inheritedFrom' not in self.data and 'code' in self.data:
+            self.plan_code = self.data['code']
+        else:
+            self.parent_catalog_id = self.data['inheritedFrom']
+            self.subplan_code = self.data['code']
+
 
     @property
     def description(self):
@@ -205,7 +217,7 @@ class MatchableProgram(object):
     """
     Describes a Program and its match(es) to CatalogEntries.
     """
-    def __init__(self, program):
+    def __init__(self, program: Program):
         self.program = program
         self.matches = []  # List of tuples containing score, CatalogEntry object
         self.best_match = None
@@ -260,10 +272,14 @@ class MatchableProgram(object):
         Tries to match the "code" field with the
         plan_code of the program.
         """
-        if catalog_entry.data and \
-            'code' in catalog_entry.data and \
-            self.program.plan_code == catalog_entry.data['code']:
-            return 100
+        # If this is a parent program
+        if self.program.parent_program == None:
+            if self.program.plan_code == catalog_entry.plan_code:
+                return 100
+        else: # If this is a subplan
+            if self.program.plan_code == catalog_entry.plan_code and \
+                self.program.subplan_code == catalog_entry.subplan_code:
+                return 100
 
         return 0
 
