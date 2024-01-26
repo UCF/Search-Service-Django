@@ -370,6 +370,21 @@ Finished in {datetime.now() - self.start_time}
 
         self.catalog_entry_data_queue.join()
 
+        subplan_prep_progress = ChargingBar(
+            'Matching subplans...',
+            max=len(self.catalog_entries)
+        )
+
+        # For all entries with subplan, find their plans
+        for entry in self.catalog_entries:
+            subplan_prep_progress.next()
+            if entry.subplan_code is not None:
+                entry.plan_code = [
+                    x.plan_code \
+                    for x in self.catalog_entries \
+                    if x.data['pid'] == entry.parent_catalog_id
+                ]
+
 
     def __get_catalog_entry_data(self):
         """
