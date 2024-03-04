@@ -81,8 +81,8 @@ class SettingsAPIView(APIView):
 # Communicator Dashboard Views
 class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView):
     template_name = 'dashboard/home.html'
-    title = 'Dashboard'
-    heading = 'Communicator Dashboard'
+    title = 'Contributor Dashboard'
+    heading = 'Contributor Dashboard'
     local = settings.LOCAL
 
     def get_context_data(self, **kwargs):
@@ -222,9 +222,21 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         program = self.__get_program()
 
         if not program:
-            return []
+            return ""
 
         return ",".join([x.name for x in program.jobs.all()])
+
+
+    def __get_jobs_source(self) -> str:
+        """
+        Returns the jobs_source value
+        """
+        program = self.__get_program()
+
+        if not program:
+            return ""
+
+        return program.audit_data.jobs_source
 
 
     def get_success_url(self) -> str:
@@ -243,12 +255,16 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
         custom_description = self.__get_custom_description()
         jobs = self.__get_jobs()
+        jobs_source = self.__get_jobs_source()
 
         if custom_description:
             initial['custom_description'] = custom_description.description
 
         if jobs:
             initial['jobs'] = jobs
+
+        if jobs_source:
+            initial['jobs_source'] = jobs_source
 
         return initial
 
@@ -271,12 +287,17 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
         custom_description.save()
 
+        jobs_source = form.cleaned_data['jobs_source']
+        audit_data = program.audit_data
+        audit_data.jobs_source = jobs_source
+        audit_data.save()
+
         current_jobs = self.__get_jobs().split(',')
         jobs = form.cleaned_data['jobs'].split(',')
 
         # Remove jobs that are no longer listed
         for job in current_jobs:
-            if job not in jobs:
+            if job not in jobs and job != '':
                 job_position = JobPosition.objects.get(name=job.strip())
                 program.jobs.remove(job_position)
 
