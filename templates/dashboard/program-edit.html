@@ -67,6 +67,11 @@
         <h2 class="h3">Edit Career Paths</h4>
         <p>List up to 6 career opportunities/career titles/career paths that graduates of this program could seek (e.g. Marketing Analyst, Data Scientist, Theme Park Designer, etc.)</p>
         {{ form.jobs }}
+        <div>
+          <label for="{{ form.jobs_source.id_for_label }}" class="h6 d-block mt-3 mb-2">Data Source(s)</label>
+          <p>List where or who provided the career paths/job title information.</p>
+          {{form.jobs_source}}
+        </div>
       </form>
       <hr class="my-5">
       <h2 class="h3">Read-only Fields</h2>
