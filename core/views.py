@@ -81,8 +81,8 @@ class SettingsAPIView(APIView):
 # Communicator Dashboard Views
 class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView):
     template_name = 'dashboard/home.html'
-    title = 'Dashboard'
-    heading = 'Communicator Dashboard'
+    title = 'Contributor Dashboard'
+    heading = 'Contributor Dashboard'
     local = settings.LOCAL
 
     def get_context_data(self, **kwargs):
