@@ -13,7 +13,12 @@ class ProgramListFilterSet(django_filters.FilterSet):
         ('Career Paths Missing', 'jobs_missing')
     ]
 
-    colleges_choices = College.objects.values_list('id', 'full_name')
+    colleges_choices = []
+
+    for college in College.objects.all():
+        colleges_choices.append(
+            (college.id, college.full_name.replace('College of ', ''))
+        )
 
     name = django_filters.CharFilter(
         lookup_expr='icontains',
