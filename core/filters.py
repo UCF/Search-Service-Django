@@ -1,6 +1,9 @@
 import django_filters
+from django import forms
 from django.conf import settings
 from django.db.models import Count
+
+from programs.models import College
 
 class ProgramListFilterSet(django_filters.FilterSet):
     missing_choices = [
@@ -10,7 +13,17 @@ class ProgramListFilterSet(django_filters.FilterSet):
         ('Career Paths Missing', 'missing_jobs')
     ]
 
+    colleges_choices = College.objects.values_list('id', 'full_name')
+
     name = django_filters.CharFilter(lookup_expr='icontains')
+    colleges = django_filters.MultipleChoiceFilter(
+        field_name='colleges',
+        lookup_expr='in',
+        choices=colleges_choices,
+        widget=forms.CheckboxSelectMultiple({
+            'class': 'list-unstyled'
+        })
+    )
     missing = django_filters.CharFilter(
         method='missing_descriptions'
     )
@@ -30,7 +43,6 @@ class ProgramListFilterSet(django_filters.FilterSet):
     def __init__(self, data, *args, **kwargs):
         data = data.copy()
         super().__init__(data, *args, **kwargs)
-
 
     def missing_descriptions(self, queryset, name, value):
         """
