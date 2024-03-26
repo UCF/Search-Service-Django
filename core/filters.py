@@ -15,7 +15,10 @@ class ProgramListFilterSet(django_filters.FilterSet):
 
     colleges_choices = College.objects.values_list('id', 'full_name')
 
-    name = django_filters.CharFilter(lookup_expr='icontains')
+    name = django_filters.CharFilter(
+        lookup_expr='icontains',
+        widget=forms.TextInput({'class': 'form-control mb-4' })
+    )
     colleges = django_filters.MultipleChoiceFilter(
         field_name='colleges',
         lookup_expr='in',
