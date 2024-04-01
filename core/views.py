@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib import messages
 
 from django.shortcuts import render, resolve_url
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpRequest
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView, FormView
@@ -236,7 +237,10 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         if not program:
             return ""
 
-        return program.audit_data.jobs_source
+        try:
+            return program.audit_data.jobs_source
+        except ObjectDoesNotExist:
+            return ""
 
 
     def get_success_url(self) -> str:
