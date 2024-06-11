@@ -871,3 +871,8 @@ auditlog.register(ProgramDescription, serialize_data=True)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+@receiver(post_save, sender=Program)
+def create_programauditdata(sender, instance=None, created=False, **kwargs):
+    if created:
+        ProgramAuditData.objects.create(program=instance, jobs_source="")
