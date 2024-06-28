@@ -55,3 +55,15 @@ sudo apt-get install -y libxml2-dev libxslt1-dev
 ```
 sudo yum install libxml2 libxml2-devel libxml2-python libxslt libxslt-devel
 ```
+
+## Managing Pip Packages
+
+The `requirements.txt` and `dev-requirements.txt` files in this project are generated using the `pip-tools` package. All package information is tracked within the `pyproject.toml` file and then dependencies are resolved using the following commands:
+
+**Production requirements.txt**
+`pip-compile -o requirements.txt pyproject.toml`
+
+**Dev requirements.txt**
+`pip-compile --extra=dev --output-file=dev-requirements.txt pyproject.toml`
+
+If you do not already have pip-tools installed, you can install them with the following command: `pip install pip-tools`.
