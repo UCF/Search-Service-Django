@@ -138,7 +138,7 @@ gulp.task('move-components-fontawesome-6', (done) => {
   del(`${config.dist.fontPath}/font-awesome/**/*`);
 
   // Move font files
-  gulp.src(`${config.packagesPath}/@fortawesome/fontawesome-free/webfonts/**/*`)
+  gulp.src(`${config.packagesPath}/@fortawesome/fontawesome-pro/webfonts/**/*`)
     .pipe(gulp.dest(`${config.dist.fontPath}/`));
 
   done();
