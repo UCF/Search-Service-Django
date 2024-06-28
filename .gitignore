@@ -39,3 +39,6 @@ node_modules
 
 # SSH Support
 .localcerts/
+
+# env
+.env

@@ -121,6 +121,9 @@ urllib3==1.26.16
     #   requests
 xmlschema==2.3.1
     # via pysaml2
+--extra-index-url https://dl.fontawesome.com/TOKEN/fontawesome-pro/python/simple/
+fontawesomepro==6.5.2
+    # Fontawesomepro
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
