@@ -10,6 +10,7 @@ Thumbs.db
 *.db
 *.db-journal
 *.log
+.npmrc
 
 # IDEs
 .idea
