@@ -1,24 +1,27 @@
 let myData;
 let filteredIcons;
+let tempIcon = '';
+let tempId = '';
+
 const highlightsObj = [
   {
     id: 'highlights-01',
-    iconClass: 'something',
+    iconClass: '',
     description: 'something'
   },
   {
     id: 'highlights-02',
-    iconClass: 'something',
+    iconClass: '',
     description: 'something'
   },
   {
     id: 'highlights-03',
-    iconClass: 'something',
+    iconClass: '',
     description: 'something'
   },
   {
     id: 'highlights-04',
-    iconClass: 'something',
+    iconClass: '',
     description: 'something'
   }
 ];
@@ -33,19 +36,23 @@ fetch('/static/js/fontawesome-v6.4.2.json').then((res) => res.json())
 const modalIconListContainer = document.querySelector('.icon-list-container');
 const highlightsWrapper = document.querySelector('#highlights-wrapper');
 
-const highlightsMarkUp = highlightsObj.map((item) => {
-  return `<div id="${item.id}" class="row d-block mb-4">
-    <div class="col-3">
-      <div class="border py-3 d-flex flex-column align-items-center justify-content-center">
-        <i class="fa fa-cloud-arrow-up text-secondary" style="font-size: 6rem;"></i>
-        <button class="btn btn-primary mt-3" onclick="iconSelector('${item.id}',event)" data-bs-toggle="modal" data-bs-target="#iconModal">Cick to Select</button>
+const updateHighlightsWrapper = () => {
+  const highlightsMarkUp = highlightsObj.map((item) => {
+    const dynamicClass = item.iconClass || 'text-muted fa-cloud-arrow-up fa m-2';
+    return `<div id="${item.id}" class="row d-block mb-4">
+      <div class="col-3">
+        <div class="border py-3 d-flex flex-column align-items-center justify-content-center">
+          <i class="${dynamicClass}" style="font-size: 6rem;"></i>
+          <button class="btn btn-primary mt-3" onclick="iconSelector('${item.id}',event)" data-bs-toggle="modal" data-bs-target="#iconModal">Cick to Select</button>
+        </div>
       </div>
-    </div>
-    <div class="col-9">
-    </div>
-  </div>`;
-});
-highlightsWrapper.innerHTML = highlightsMarkUp.join('');
+      <div class="col-9">
+      </div>
+    </div>`;
+  });
+  highlightsWrapper.innerHTML = highlightsMarkUp.join('');
+};
+updateHighlightsWrapper();
 
 const searchHandler = (e) => {
   console.log(e.target.value);
@@ -59,21 +66,27 @@ const searchHandler = (e) => {
 
 const iconSelector = (id, e) => {
   e.preventDefault();
-  console.log(id);
+  tempId = id;
 };
 
 const modalIconSelectBtn = () => {
-  console.log('clicked');
+  if (tempId) {
+    highlightsObj.filter((item) => {
+      if (item.id === tempId) {
+        item.iconClass = tempIcon;
+      }
+    });
+  }
+  updateHighlightsWrapper(); // Update the highlightsWrapper after modifying highlightsObj
 };
 
 const modalIconClassPicker = (event) => {
-  const iconClass = event.target.classList;
+  const iconClassArray = event.target.classList;
   modalIconListContainer.childNodes.forEach((element) => {
     element.firstChild.classList.remove('bg-primary', 'p-1');
   });
+  tempIcon = iconClassArray.value;
   event.target.classList.add('bg-primary', 'p-1');
-
-  return iconClass;
 };
 
 const iconList = () => {
@@ -86,7 +99,7 @@ const iconList = () => {
     const iconElement = document.createElement('i');
     const colDiv = document.createElement('div');
 
-    iconElement.addEventListener('click', (e) => iconClassPicker(e));
+    iconElement.addEventListener('click', (e) => modalIconClassPicker(e));
 
     colDiv.classList.add('col-2');
     colDiv.setAttribute('role', 'button');
