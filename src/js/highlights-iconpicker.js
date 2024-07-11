@@ -2,27 +2,28 @@ let myData;
 let filteredIcons;
 let tempIcon = '';
 let tempId = '';
+let tempDescription = '';
 
 const highlightsObj = [
   {
     id: 'highlights-01',
     iconClass: '',
-    description: 'something'
+    description: ''
   },
   {
     id: 'highlights-02',
     iconClass: '',
-    description: 'something'
+    description: ''
   },
   {
     id: 'highlights-03',
     iconClass: '',
-    description: 'something'
+    description: ''
   },
   {
     id: 'highlights-04',
     iconClass: '',
-    description: 'something'
+    description: ''
   }
 ];
 
@@ -39,7 +40,7 @@ const highlightsWrapper = document.querySelector('#highlights-wrapper');
 const updateHighlightsWrapper = () => {
   const highlightsMarkUp = highlightsObj.map((item) => {
     const dynamicClass = item.iconClass || 'text-muted fa-cloud-arrow-up fa m-2';
-    return `<div id="${item.id}" class="row d-block mb-4">
+    return `<div id="${item.id}" class="row mb-4">
       <div class="col-3">
         <div class="border py-3 d-flex flex-column align-items-center justify-content-center">
           <i class="${dynamicClass}" style="font-size: 6rem;"></i>
@@ -47,6 +48,12 @@ const updateHighlightsWrapper = () => {
         </div>
       </div>
       <div class="col-9">
+        <div class="form-group">
+          <textarea class="form-control" rows="5" maxlength="150" onkeyup="descriptionHandler('${item.id}',event)">${item.description}</textarea>
+            <div class="d-flex justify-content-end">
+              <button class="btn btn-primary mt-3" onclick="saveStoryHandler('${item.id}', event)">Save Story</button>
+            </div>
+         </div>
       </div>
     </div>`;
   });
@@ -71,7 +78,7 @@ const iconSelector = (id, e) => {
 
 const modalIconSelectBtn = () => {
   if (tempId) {
-    highlightsObj.filter((item) => {
+    highlightsObj.find((item) => {
       if (item.id === tempId) {
         item.iconClass = tempIcon;
       }
@@ -110,4 +117,16 @@ const iconList = () => {
     colDiv.appendChild(iconElement);
     modalIconListContainer.appendChild(colDiv);
   }
+};
+
+const descriptionHandler = (id, event) => {
+  tempDescription = event.target.value;
+};
+const saveStoryHandler = (id, event) => {
+  highlightsObj.find((item) => {
+    if (item.id === id) {
+      item.description = tempDescription;
+    }
+  });
+  updateHighlightsWrapper();
 };
