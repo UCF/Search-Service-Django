@@ -2,40 +2,35 @@ let myData;
 let filteredIcons;
 let tempIcon = '';
 let tempId = '';
-let tempDescription = '';
 
 const highlightsObj = [
   {
-    id: 'highlights-01',
-    iconClass: '',
-    description: ''
-  },
-  {
-    id: 'highlights-02',
-    iconClass: '',
-    description: ''
-  },
-  {
-    id: 'highlights-03',
-    iconClass: '',
-    description: ''
-  },
-  {
-    id: 'highlights-04',
+    id: 'highlight-01',
     iconClass: '',
     description: ''
   }
 ];
 
-fetch('/static/js/fontawesome-v6.4.2.json').then((res) => res.json())
+fetch('/static/js/fontawesome-v6.4.2.json')
+  .then((res) => res.json())
   .then((data) => {
     myData = data.solid;
     iconList();
-  }
-  );
+  });
 
 const modalIconListContainer = document.querySelector('.icon-list-container');
 const highlightsWrapper = document.querySelector('#highlights-wrapper');
+
+const addStory = (event) => {
+  event.preventDefault();
+  const newId = `id-${Date.now()}`;
+  highlightsObj.push({
+    id: newId,
+    iconClass: '',
+    description: ''
+  });
+  updateHighlightsWrapper();
+};
 
 const updateHighlightsWrapper = () => {
   const highlightsMarkUp = highlightsObj.map((item) => {
@@ -43,17 +38,16 @@ const updateHighlightsWrapper = () => {
     return `<div id="${item.id}" class="row mb-4">
       <div class="col-3">
         <div class="border py-3 d-flex flex-column align-items-center justify-content-center">
-          <i class="${dynamicClass}" style="font-size: 6rem;"></i>
-          <button class="btn btn-primary mt-3" onclick="iconSelector('${item.id}',event)" data-bs-toggle="modal" data-bs-target="#iconModal">Cick to Select</button>
+          <i class="${dynamicClass}" style="font-size: 4rem;"></i>
+          <button class="btn btn-primary mt-3" onclick="iconSelector('${item.id}', event)" data-bs-toggle="modal" data-bs-target="#iconModal">Click to Select</button>
         </div>
       </div>
-      <div class="col-9">
+      <div class="col-8">
         <div class="form-group">
-          <textarea class="form-control" rows="5" maxlength="150" onkeyup="descriptionHandler('${item.id}',event)">${item.description}</textarea>
-            <div class="d-flex justify-content-end">
-              <button class="btn btn-primary mt-3" onclick="saveStoryHandler('${item.id}', event)">Save Story</button>
-            </div>
-         </div>
+          <textarea class="form-control" rows="7" maxlength="150" onkeyup="descriptionHandler('${item.id}', event)">${item.description}</textarea>
+        </div>
+      </div>
+      <div class="col-1 position-relative"><button type="button" class="btn-close p-3 position-absolute top-0 start-0" aria-label="Close" onclick="removeHighlight('${item.id}')"></button>
       </div>
     </div>`;
   });
@@ -62,7 +56,6 @@ const updateHighlightsWrapper = () => {
 updateHighlightsWrapper();
 
 const searchHandler = (e) => {
-  console.log(e.target.value);
   const searchText = e.target.value.toLowerCase(); // Convert input to lowercase for case-insensitive search
 
   filteredIcons = myData.filter((iconName) => {
@@ -97,7 +90,6 @@ const modalIconClassPicker = (event) => {
 };
 
 const iconList = () => {
-  // Clear previous content in modal-body
   modalIconListContainer.innerHTML = '';
   const iconArray = filteredIcons ? filteredIcons : myData;
 
@@ -120,13 +112,16 @@ const iconList = () => {
 };
 
 const descriptionHandler = (id, event) => {
-  tempDescription = event.target.value;
+  const story = highlightsObj.find((item) => item.id === id);
+  if (story) {
+    story.description = event.target.value;
+  }
 };
-const saveStoryHandler = (id, event) => {
-  highlightsObj.find((item) => {
-    if (item.id === id) {
-      item.description = tempDescription;
-    }
-  });
-  updateHighlightsWrapper();
+
+const removeHighlight = (id) => {
+  const indexToRemove = highlightsObj.findIndex((item) => item.id === id);
+  if (indexToRemove !== -1) {
+    highlightsObj.splice(indexToRemove, 1);
+    updateHighlightsWrapper(); // Update the UI after removing the item
+  }
 };
