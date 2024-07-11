@@ -138,7 +138,7 @@ gulp.task('move-components-fontawesome-6', (done) => {
   del(`${config.dist.fontPath}/font-awesome/**/*`);
 
   // Move font files
-  gulp.src(`${config.packagesPath}/@fortawesome/fontawesome-free/webfonts/**/*`)
+  gulp.src(`${config.packagesPath}/@fortawesome/fontawesome-pro/webfonts/**/*`)
     .pipe(gulp.dest(`${config.dist.fontPath}/`));
 
   done();
@@ -197,8 +197,12 @@ gulp.task('js-build-typeahead', () => {
   return buildJS(`${config.src.jsPath}/jobs-typeahead.js`, config.dist.jsPath);
 });
 
+gulp.task('js-build-highlights', () => {
+  return buildJS(`${config.src.jsPath}/highlights-iconpicker.js`, config.dist.jsPath);
+});
+
 // All js-related tasks
-gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme', 'js-build-typeahead'));
+gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme', 'js-build-typeahead', 'js-build-highlights'));
 
 
 //
