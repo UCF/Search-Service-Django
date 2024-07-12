@@ -300,7 +300,6 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         jobs = form.cleaned_data['jobs'].split(',')
 
         highlights = form.cleaned_data['highlights']
-        print(highlights)
 
         # Remove jobs that are no longer listed
         for job in current_jobs:
