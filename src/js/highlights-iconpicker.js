@@ -136,8 +136,15 @@ const descriptionHandler = (id, event) => {
 
 const removeHighlight = (id) => {
   const indexToRemove = highlightsObj.findIndex((item) => item.id === id);
+
   if (indexToRemove !== -1) {
     highlightsObj.splice(indexToRemove, 1);
+
+    // Reassign data_order properties
+    highlightsObj.forEach((item, index) => {
+      item.data_order = index + 1;
+    });
+
     updateHighlightsWrapper(); // Update the UI after removing the item
   }
 };
