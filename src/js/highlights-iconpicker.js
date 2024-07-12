@@ -8,7 +8,7 @@ const highlightsObj = [
   {
     id: firstId,
     data_order: 1,
-    iconClass: '',
+    icon_class: '',
     description: ''
   }
 ];
@@ -53,7 +53,7 @@ const addStory = (event) => {
   highlightsObj.push({
     id: newId,
     data_order: lastDataOrder + 1,
-    iconClass: '',
+    icon_class: '',
     description: ''
   });
   updateHighlightsWrapper();
@@ -61,11 +61,11 @@ const addStory = (event) => {
 
 const updateHighlightsWrapper = () => {
   const highlightsMarkUp = highlightsObj.map((item) => {
-    const dynamicClass = item.iconClass || 'text-muted fa-cloud-arrow-up fa m-2';
+    const dynamicClass = item.icon_class || 'text-muted fa-cloud-arrow-up fa m-2';
     return `<div id="${item.id}" class="row mb-4">
       <div class="col-3">
         <div class="border py-3 d-flex flex-column align-items-center justify-content-center">
-          <i class="${dynamicClass}" style="font-size: 4rem;"></i>
+          <i class="fa fa-${dynamicClass} m-2" style="font-size: 4rem;"></i>
           <button class="btn btn-primary mt-3" onclick="iconSelector('${item.id}', event)" data-bs-toggle="modal" data-bs-target="#iconModal">Click to Select</button>
         </div>
       </div>
@@ -105,7 +105,7 @@ const modalIconSelectBtn = () => {
   if (tempId) {
     highlightsObj.find((item) => {
       if (item.id === tempId) {
-        item.iconClass = tempIcon;
+        item.icon_class = tempIcon;
       }
     });
   }
@@ -114,10 +114,13 @@ const modalIconSelectBtn = () => {
 
 const modalIconClassPicker = (event) => {
   const iconClassArray = event.target.classList;
+  const faClass = iconClassArray[0].replace('fa-', '');
+
   modalIconListContainer.childNodes.forEach((element) => {
     element.firstChild.classList.remove('bg-primary', 'p-1');
   });
-  tempIcon = iconClassArray.value;
+  tempIcon = faClass;
+
   event.target.classList.add('bg-primary', 'p-1');
 };
 
