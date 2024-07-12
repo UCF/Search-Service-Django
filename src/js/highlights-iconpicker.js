@@ -7,6 +7,7 @@ const firstId = `id-${Date.now()}`;
 const highlightsObj = [
   {
     id: firstId,
+    data_order: 1,
     iconClass: '',
     description: ''
   }
@@ -48,8 +49,10 @@ fetch('/static/js/fontawesome-v6.4.2.json')
 const addStory = (event) => {
   event.preventDefault();
   const newId = `id-${Date.now()}`;
+  const lastDataOrder = highlightsObj[length - 1].data_order;
   highlightsObj.push({
     id: newId,
+    data_order: lastDataOrder + 1,
     iconClass: '',
     description: ''
   });
