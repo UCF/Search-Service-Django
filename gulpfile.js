@@ -204,7 +204,6 @@ gulp.task('js-build-highlights', () => {
 // All js-related tasks
 gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme', 'js-build-typeahead', 'js-build-highlights'));
 
-
 //
 // Rerun tasks when files change
 //

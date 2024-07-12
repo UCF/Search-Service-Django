@@ -2,14 +2,41 @@ let myData;
 let filteredIcons;
 let tempIcon = '';
 let tempId = '';
+const firstId = `id-${Date.now()}`;
 
 const highlightsObj = [
   {
-    id: 'highlight-01',
+    id: firstId,
     iconClass: '',
     description: ''
   }
 ];
+
+const modalIconListContainer = document.querySelector('.icon-list-container');
+const highlightsWrapper = document.querySelector('#highlights-wrapper');
+const highlightsFeild = document.querySelector('input[name="highlights"]');
+
+const iconList = () => {
+  modalIconListContainer.innerHTML = '';
+  const iconArray = filteredIcons ? filteredIcons : myData;
+
+  for (let j = 0; j < 30; j++) {
+    const iconName = iconArray[j];
+    const iconElement = document.createElement('i');
+    const colDiv = document.createElement('div');
+
+    iconElement.addEventListener('click', (e) => modalIconClassPicker(e));
+
+    colDiv.classList.add('col-2');
+    colDiv.setAttribute('role', 'button');
+
+    iconElement.classList.add(iconName, 'fa', 'm-2');
+    iconElement.style = 'font-size: 3rem';
+
+    colDiv.appendChild(iconElement);
+    modalIconListContainer.appendChild(colDiv);
+  }
+};
 
 fetch('/static/js/fontawesome-v6.4.2.json')
   .then((res) => res.json())
@@ -17,9 +44,6 @@ fetch('/static/js/fontawesome-v6.4.2.json')
     myData = data.solid;
     iconList();
   });
-
-const modalIconListContainer = document.querySelector('.icon-list-container');
-const highlightsWrapper = document.querySelector('#highlights-wrapper');
 
 const addStory = (event) => {
   event.preventDefault();
@@ -52,6 +76,11 @@ const updateHighlightsWrapper = () => {
     </div>`;
   });
   highlightsWrapper.innerHTML = highlightsMarkUp.join('');
+
+  // Check if highlights_feild exists before setting its value
+  if (highlightsFeild) {
+    highlightsFeild.value = JSON.stringify(highlightsObj);
+  }
 };
 updateHighlightsWrapper();
 
@@ -89,32 +118,13 @@ const modalIconClassPicker = (event) => {
   event.target.classList.add('bg-primary', 'p-1');
 };
 
-const iconList = () => {
-  modalIconListContainer.innerHTML = '';
-  const iconArray = filteredIcons ? filteredIcons : myData;
-
-  for (let j = 0; j < 30; j++) {
-    const iconName = iconArray[j];
-    const iconElement = document.createElement('i');
-    const colDiv = document.createElement('div');
-
-    iconElement.addEventListener('click', (e) => modalIconClassPicker(e));
-
-    colDiv.classList.add('col-2');
-    colDiv.setAttribute('role', 'button');
-
-    iconElement.classList.add(iconName, 'fa', 'm-2');
-    iconElement.style = 'font-size: 3rem';
-
-    colDiv.appendChild(iconElement);
-    modalIconListContainer.appendChild(colDiv);
-  }
-};
-
 const descriptionHandler = (id, event) => {
   const story = highlightsObj.find((item) => item.id === id);
   if (story) {
     story.description = event.target.value;
+    if (highlightsFeild) {
+      highlightsFeild.value = JSON.stringify(highlightsObj);
+    }
   }
 };
 
