@@ -197,9 +197,12 @@ gulp.task('js-build-typeahead', () => {
   return buildJS(`${config.src.jsPath}/jobs-typeahead.js`, config.dist.jsPath);
 });
 
-// All js-related tasks
-gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme', 'js-build-typeahead'));
+gulp.task('js-build-highlights', () => {
+  return buildJS(`${config.src.jsPath}/highlights-iconpicker.js`, config.dist.jsPath);
+});
 
+// All js-related tasks
+gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme', 'js-build-typeahead', 'js-build-highlights'));
 
 //
 // Rerun tasks when files change
