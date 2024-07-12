@@ -7,7 +7,8 @@ const firstId = `id-${Date.now()}`;
 const highlightsObj = [
   {
     id: firstId,
-    iconClass: '',
+    data_order: 1,
+    icon_class: '',
     description: ''
   }
 ];
@@ -48,9 +49,11 @@ fetch('/static/js/fontawesome-v6.4.2.json')
 const addStory = (event) => {
   event.preventDefault();
   const newId = `id-${Date.now()}`;
+  const lastDataOrder = highlightsObj[length - 1].data_order;
   highlightsObj.push({
     id: newId,
-    iconClass: '',
+    data_order: lastDataOrder + 1,
+    icon_class: '',
     description: ''
   });
   updateHighlightsWrapper();
@@ -58,11 +61,11 @@ const addStory = (event) => {
 
 const updateHighlightsWrapper = () => {
   const highlightsMarkUp = highlightsObj.map((item) => {
-    const dynamicClass = item.iconClass || 'text-muted fa-cloud-arrow-up fa m-2';
+    const dynamicClass = item.icon_class || 'text-muted fa-cloud-arrow-up fa m-2';
     return `<div id="${item.id}" class="row mb-4">
       <div class="col-3">
         <div class="border py-3 d-flex flex-column align-items-center justify-content-center">
-          <i class="${dynamicClass}" style="font-size: 4rem;"></i>
+          <i class="fa fa-${dynamicClass} m-2" style="font-size: 4rem;"></i>
           <button class="btn btn-primary mt-3" onclick="iconSelector('${item.id}', event)" data-bs-toggle="modal" data-bs-target="#iconModal">Click to Select</button>
         </div>
       </div>
@@ -102,7 +105,7 @@ const modalIconSelectBtn = () => {
   if (tempId) {
     highlightsObj.find((item) => {
       if (item.id === tempId) {
-        item.iconClass = tempIcon;
+        item.icon_class = tempIcon;
       }
     });
   }
@@ -111,10 +114,13 @@ const modalIconSelectBtn = () => {
 
 const modalIconClassPicker = (event) => {
   const iconClassArray = event.target.classList;
+  const faClass = iconClassArray[0].replace('fa-', '');
+
   modalIconListContainer.childNodes.forEach((element) => {
     element.firstChild.classList.remove('bg-primary', 'p-1');
   });
-  tempIcon = iconClassArray.value;
+  tempIcon = faClass;
+
   event.target.classList.add('bg-primary', 'p-1');
 };
 
@@ -130,8 +136,15 @@ const descriptionHandler = (id, event) => {
 
 const removeHighlight = (id) => {
   const indexToRemove = highlightsObj.findIndex((item) => item.id === id);
+
   if (indexToRemove !== -1) {
     highlightsObj.splice(indexToRemove, 1);
+
+    // Reassign data_order properties
+    highlightsObj.forEach((item, index) => {
+      item.data_order = index + 1;
+    });
+
     updateHighlightsWrapper(); // Update the UI after removing the item
   }
 };
