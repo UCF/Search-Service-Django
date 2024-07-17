@@ -244,7 +244,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
     def __get_highlights(self) -> str:
         """
-        Returns the jobs_source value
+        Returns the highlights json
         """
         program = self.__get_program()
 
