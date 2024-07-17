@@ -242,6 +242,18 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         except ObjectDoesNotExist:
             return ""
 
+    def __get_highlights(self) -> str:
+        """
+        Returns the jobs_source value
+        """
+        program = self.__get_program()
+
+        if not program:
+            return ""
+        try:
+            return program.highlights
+        except ObjectDoesNotExist:
+            return ""
 
     def get_success_url(self) -> str:
         """
@@ -260,6 +272,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         custom_description = self.__get_custom_description()
         jobs = self.__get_jobs()
         jobs_source = self.__get_jobs_source()
+        highlights = self.__get_highlights()
 
         if custom_description:
             initial['custom_description'] = custom_description.description
@@ -269,6 +282,9 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
         if jobs_source:
             initial['jobs_source'] = jobs_source
+
+        if highlights:
+            initial['highlights'] = highlights
 
         return initial
 
@@ -301,6 +317,11 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
         highlights = form.cleaned_data['highlights']
 
+        if highlights != '':
+            program.highlights = highlights
+            program.save()
+
+        print(highlights)
         # Remove jobs that are no longer listed
         for job in current_jobs:
             if job not in jobs and job != '':
