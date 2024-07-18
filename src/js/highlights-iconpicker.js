@@ -5,22 +5,16 @@ let tempOrder = -1;
 
 const modalIconListContainer = document.querySelector('.icon-list-container');
 const highlightsWrapper = document.querySelector('#highlights-wrapper');
-const highlightsFeild = document.querySelector('input[name="highlights"]');
+const highlightsField = document.querySelector('input[name="highlights"]');
 
 let highlightsObj = [];
 
-const initialHighlightValue = highlightsFeild.value;
+const initialHighlightValue = highlightsField.value;
 
 if (initialHighlightValue !== '') {
   highlightsObj = JSON.parse(initialHighlightValue);
 } else {
-  highlightsObj = [
-    {
-      data_order: 0,
-      icon_class: '',
-      description: ''
-    }
-  ];
+  highlightsObj = [];
 }
 
 const iconList = () => {
@@ -64,6 +58,14 @@ const addStory = (event) => {
 };
 
 const updateHighlightsWrapper = () => {
+  if (highlightsObj.length === 0) {
+    highlightsObj.push({
+      data_order: 0,
+      icon_class: '',
+      description: ''
+    });
+  }
+
   const highlightsMarkUp = highlightsObj.map((item) => {
     const dynamicClass = item.icon_class || 'text-muted fa-cloud-arrow-up fa m-2';
     return `<div data-order="${item.data_order}" class="row mb-4">
@@ -83,7 +85,7 @@ const updateHighlightsWrapper = () => {
     </div>`;
   });
   highlightsWrapper.innerHTML = highlightsMarkUp.join('');
-  highlightsFeild.value = JSON.stringify(highlightsObj);
+  highlightsField.value = JSON.stringify(highlightsObj);
 };
 updateHighlightsWrapper();
 
@@ -128,8 +130,8 @@ const descriptionHandler = (order, event) => {
   const story = highlightsObj.find((item) => item.data_order === order);
   if (story) {
     story.description = event.target.value;
-    if (highlightsFeild) {
-      highlightsFeild.value = JSON.stringify(highlightsObj);
+    if (highlightsField) {
+      highlightsField.value = JSON.stringify(highlightsObj);
     }
   }
 };
