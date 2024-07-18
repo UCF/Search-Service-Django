@@ -1,21 +1,21 @@
 let myData;
 let filteredIcons;
 let tempIcon = '';
-let tempId = '';
-const firstId = `id-${Date.now()}`;
-
-const highlightsObj = [
-  {
-    id: firstId,
-    data_order: 1,
-    icon_class: '',
-    description: ''
-  }
-];
+let tempOrder = -1;
 
 const modalIconListContainer = document.querySelector('.icon-list-container');
 const highlightsWrapper = document.querySelector('#highlights-wrapper');
-const highlightsFeild = document.querySelector('input[name="highlights"]');
+const highlightsField = document.querySelector('input[name="highlights"]');
+
+let highlightsObj = [];
+
+const initialHighlightValue = highlightsField.value;
+
+if (initialHighlightValue !== '') {
+  highlightsObj = JSON.parse(initialHighlightValue);
+} else {
+  highlightsObj = [];
+}
 
 const iconList = () => {
   modalIconListContainer.innerHTML = '';
@@ -48,10 +48,8 @@ fetch('/static/js/fontawesome-v6.4.2.json')
 
 const addStory = (event) => {
   event.preventDefault();
-  const newId = `id-${Date.now()}`;
-  const lastDataOrder = highlightsObj[length - 1].data_order;
+  const lastDataOrder = highlightsObj.length > 0 ? highlightsObj[highlightsObj.length - 1].data_order : -1;
   highlightsObj.push({
-    id: newId,
     data_order: lastDataOrder + 1,
     icon_class: '',
     description: ''
@@ -60,30 +58,34 @@ const addStory = (event) => {
 };
 
 const updateHighlightsWrapper = () => {
+  if (highlightsObj.length === 0) {
+    highlightsObj.push({
+      data_order: 0,
+      icon_class: '',
+      description: ''
+    });
+  }
+
   const highlightsMarkUp = highlightsObj.map((item) => {
     const dynamicClass = item.icon_class || 'text-muted fa-cloud-arrow-up fa m-2';
-    return `<div id="${item.id}" class="row mb-4">
+    return `<div data-order="${item.data_order}" class="row mb-4">
       <div class="col-3">
         <div class="border py-3 d-flex flex-column align-items-center justify-content-center">
           <i class="fa fa-${dynamicClass} m-2" style="font-size: 4rem;"></i>
-          <button class="btn btn-primary mt-3" onclick="iconSelector('${item.id}', event)" data-bs-toggle="modal" data-bs-target="#iconModal">Click to Select</button>
+          <button class="btn btn-primary mt-3" onclick="iconSelector(${item.data_order}, event)" data-bs-toggle="modal" data-bs-target="#iconModal">Click to Select</button>
         </div>
       </div>
       <div class="col-8">
         <div class="form-group">
-          <textarea class="form-control" rows="7" maxlength="150" onkeyup="descriptionHandler('${item.id}', event)">${item.description}</textarea>
+          <textarea class="form-control" rows="7" maxlength="150" onkeyup="descriptionHandler(${item.data_order}, event)">${item.description}</textarea>
         </div>
       </div>
-      <div class="col-1 position-relative"><button type="button" class="btn-close p-3 position-absolute top-0 start-0" aria-label="Close" onclick="removeHighlight('${item.id}')"></button>
+      <div class="col-1 position-relative"><button type="button" class="btn-close p-3 position-absolute top-0 start-0" aria-label="Close" onclick="removeHighlight(${item.data_order})"></button>
       </div>
     </div>`;
   });
   highlightsWrapper.innerHTML = highlightsMarkUp.join('');
-
-  // Check if highlights_feild exists before setting its value
-  if (highlightsFeild) {
-    highlightsFeild.value = JSON.stringify(highlightsObj);
-  }
+  highlightsField.value = JSON.stringify(highlightsObj);
 };
 updateHighlightsWrapper();
 
@@ -96,15 +98,15 @@ const searchHandler = (e) => {
   iconList();
 };
 
-const iconSelector = (id, e) => {
+const iconSelector = (order, e) => {
   e.preventDefault();
-  tempId = id;
+  tempOrder = order;
 };
 
 const modalIconSelectBtn = () => {
-  if (tempId) {
+  if (tempOrder !== -1) {
     highlightsObj.find((item) => {
-      if (item.id === tempId) {
+      if (item.data_order === tempOrder) {
         item.icon_class = tempIcon;
       }
     });
@@ -124,25 +126,25 @@ const modalIconClassPicker = (event) => {
   event.target.classList.add('bg-primary', 'p-1');
 };
 
-const descriptionHandler = (id, event) => {
-  const story = highlightsObj.find((item) => item.id === id);
+const descriptionHandler = (order, event) => {
+  const story = highlightsObj.find((item) => item.data_order === order);
   if (story) {
     story.description = event.target.value;
-    if (highlightsFeild) {
-      highlightsFeild.value = JSON.stringify(highlightsObj);
+    if (highlightsField) {
+      highlightsField.value = JSON.stringify(highlightsObj);
     }
   }
 };
 
-const removeHighlight = (id) => {
-  const indexToRemove = highlightsObj.findIndex((item) => item.id === id);
+const removeHighlight = (order) => {
+  const indexToRemove = highlightsObj.findIndex((item) => item.data_order === order);
 
   if (indexToRemove !== -1) {
     highlightsObj.splice(indexToRemove, 1);
 
     // Reassign data_order properties
     highlightsObj.forEach((item, index) => {
-      item.data_order = index + 1;
+      item.data_order = index;
     });
 
     updateHighlightsWrapper(); // Update the UI after removing the item

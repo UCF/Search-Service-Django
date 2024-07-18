@@ -31,6 +31,7 @@ from django.contrib.contenttypes.models import ContentType
 from auditlog.models import LogEntry
 
 import settings
+import json
 
 class TitleContextMixin(object):
     """
@@ -243,6 +244,18 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         except ObjectDoesNotExist:
             return ""
 
+    def __get_highlights(self) -> str:
+        """
+        Returns the highlights json
+        """
+        program = self.__get_program()
+
+        if not program:
+            return ""
+        try:
+            return program.highlights
+        except ObjectDoesNotExist:
+            return ""
 
     def get_success_url(self) -> str:
         """
@@ -261,6 +274,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         custom_description = self.__get_custom_description()
         jobs = self.__get_jobs()
         jobs_source = self.__get_jobs_source()
+        highlights = self.__get_highlights()
 
         if custom_description:
             initial['custom_description'] = custom_description.description
@@ -270,6 +284,9 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
         if jobs_source:
             initial['jobs_source'] = jobs_source
+
+        if highlights:
+            initial['highlights'] = highlights
 
         return initial
 
@@ -301,6 +318,17 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         jobs = form.cleaned_data['jobs'].split(',')
 
         highlights = form.cleaned_data['highlights']
+        highlights_list = json.loads(highlights)
+
+        # Filter out entries with empty 'icon_class' or 'description'
+        filtered_highlights = [entry for entry in highlights_list if entry['icon_class'] or entry['description']]
+        if filtered_highlights:
+            program.highlights = json.dumps(filtered_highlights)
+            program.save()
+        if not filtered_highlights:
+            program.highlights = json.dumps([])
+            program.save()
+
 
         # Remove jobs that are no longer listed
         for job in current_jobs:
