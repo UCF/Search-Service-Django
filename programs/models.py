@@ -527,7 +527,7 @@ class Program(models.Model):
     start_term = models.ForeignKey(AcademicTerm, null=True, blank=True, related_name='start_term_programs', on_delete=models.SET_NULL)
     jobs = models.ManyToManyField(JobPosition, related_name='programs')
     history = AuditlogHistoryField()
-    highlights = models.JSONField(null=True)
+    highlights = models.JSONField(null=True, blank=True)
 
 
     class Meta:
