@@ -1,24 +1,26 @@
 let myData;
 let filteredIcons;
 let tempIcon = '';
-let tempOrder = -1; // Using a temporary variable to track the selected data_order
+let tempOrder = -1;
 
 const modalIconListContainer = document.querySelector('.icon-list-container');
 const highlightsWrapper = document.querySelector('#highlights-wrapper');
 const highlightsFeild = document.querySelector('input[name="highlights"]');
 
-let highlightsObj = [
-  {
-    data_order: 0,
-    icon_class: '',
-    description: ''
-  }
-];
+let highlightsObj = [];
 
 const initialHighlightValue = highlightsFeild.value;
 
 if (initialHighlightValue !== '') {
   highlightsObj = JSON.parse(initialHighlightValue);
+} else {
+  highlightsObj = [
+    {
+      data_order: 0,
+      icon_class: '',
+      description: ''
+    }
+  ];
 }
 
 const iconList = () => {
@@ -52,7 +54,7 @@ fetch('/static/js/fontawesome-v6.4.2.json')
 
 const addStory = (event) => {
   event.preventDefault();
-  const lastDataOrder = highlightsObj[highlightsObj.length - 1].data_order;
+  const lastDataOrder = highlightsObj.length > 0 ? highlightsObj[highlightsObj.length - 1].data_order : -1;
   highlightsObj.push({
     data_order: lastDataOrder + 1,
     icon_class: '',
@@ -81,11 +83,7 @@ const updateHighlightsWrapper = () => {
     </div>`;
   });
   highlightsWrapper.innerHTML = highlightsMarkUp.join('');
-
-  // Check if highlightsFeild exists before setting its value
-  if (highlightsFeild) {
-    // highlightsFeild.value = JSON.stringify(highlightsObj);
-  }
+  highlightsFeild.value = JSON.stringify(highlightsObj);
 };
 updateHighlightsWrapper();
 

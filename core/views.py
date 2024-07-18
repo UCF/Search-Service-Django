@@ -317,7 +317,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
         highlights = form.cleaned_data['highlights']
 
-        if highlights != '':
+        if highlights != '' :
             program.highlights = highlights
             program.save()
 
