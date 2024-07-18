@@ -4,13 +4,14 @@
 from typing import Any
 from django.conf import settings
 from django.contrib import messages
+from django.utils import timezone
 
 from django.shortcuts import render, resolve_url
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpRequest
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView, FormView
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -426,4 +427,75 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
             'Graduate Slate ID': obj.graduate_slate_id,
             'Valid': obj.valid
         }
+        return ctx
+
+
+class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
+    template_name = 'dashboard/usage-report.html'
+    title = 'Usage Report'
+    heading = 'Usage Report'
+    local = settings.LOCAL
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+
+        start_date = timezone.datetime.now() - timezone.timedelta(365)
+        end_date = timezone.datetime.now()
+        program_description_content_type = ContentType.objects.get_for_model(ProgramDescription)
+
+        created_stats = LogEntry.objects.filter(
+            content_type=program_description_content_type,
+            timestamp__gte=start_date,
+            timestamp__lte=end_date,
+            action=LogEntry.Action.CREATE
+        ).values(
+            'actor__first_name',
+            'actor__last_name',
+            'content_type__model'
+        ).exclude(
+            actor=1
+        ).annotate(
+            action_count=Count('actor')
+        ).order_by(
+            'action_count'
+        )
+
+        updated_stats = LogEntry.objects.filter(
+            content_type=program_description_content_type,
+            timestamp__gte=start_date,
+            timestamp__lte=end_date,
+            action=LogEntry.Action.UPDATE
+        ).values(
+            'actor__first_name',
+            'actor__last_name',
+            'content_type__model'
+        ).exclude(
+            actor=1
+        ).annotate(
+            action_count=Count('actor')
+        ).order_by(
+            'action_count'
+        )
+
+        deleted_stats = LogEntry.objects.filter(
+            content_type=program_description_content_type,
+            timestamp__gte=start_date,
+            timestamp__lte=end_date,
+            action=LogEntry.Action.DELETE
+        ).values(
+            'actor__first_name',
+            'actor__last_name',
+            'content_type__model'
+        ).exclude(
+            actor=1
+        ).annotate(
+            action_count=Count('actor')
+        ).order_by(
+            'action_count'
+        )
+
+        ctx['created_stats'] = created_stats
+        ctx['updated_stats'] = updated_stats
+        ctx['deleted_stats'] = deleted_stats
+
         return ctx
