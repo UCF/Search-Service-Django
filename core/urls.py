@@ -20,6 +20,11 @@ urlpatterns = [
         name='dashboard'
     ),
     url(
+        r'manager/dashboard/usage/$',
+        UsageReportView.as_view(),
+        name='dashboard.usage'
+    ),
+    url(
         r'manager/dashboard/programs/$',
         ProgramListing.as_view(),
         name='dashboard.programs.list'

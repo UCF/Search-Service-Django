@@ -1,0 +1,83 @@
+{% extends 'base-bootstrap.html' %}
+{% load core_extras %}
+{% block body %}
+<div class="container py-5">
+  <div class="row">
+    <div class="col-12 col-sm-6 col-md-4">
+      <h2 class="mb-4">Program Description Created</h2>
+      {% if created_stats.count > 0 %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Content Type</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in created_stats %}
+            <tr>
+              <td>{{ entry.actor__first_name }} {{ entry.actor__last_name }}</td>
+              <td>{{ entry.content_type__model }}</td>
+              <td>{{ entry.action_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="alert alert-info">There have been no program descriptions created during the specified time period.</p>
+      {% endif %}
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+      <h2 class="mb-4">Program Description Updated</h2>
+      {% if updated_stats.count > 0 %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Content Type</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in updated_stats %}
+            <tr>
+              <td>{{ entry.actor__first_name }} {{ entry.actor__last_name }}</td>
+              <td>{{ entry.content_type__model }}</td>
+              <td>{{ entry.action_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="alert alert-info">There have been no program descriptions updated during the specified time period.</p>
+      {% endif %}
+    </div>
+    <div class="col-12 col-sm-6 col-md-4">
+      <h2 class="mb-4">Program Description Deleted</h2>
+      {% if deleted_stats.count > 0 %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Content Type</th>
+            <th>Deleted</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in deleted_stats %}
+            <tr>
+              <td>{{ entry.actor__first_name }} {{ entry.actor__last_name }}</td>
+              <td>{{ entry.content_type__model }}</td>
+              <td>{{ entry.action_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="alert alert-info">There have been no program descriptions deleted during the specified time period.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
