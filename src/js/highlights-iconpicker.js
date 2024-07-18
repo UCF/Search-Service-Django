@@ -3,7 +3,11 @@ let filteredIcons;
 let tempIcon = '';
 let tempOrder = -1; // Using a temporary variable to track the selected data_order
 
-const highlightsObj = [
+const modalIconListContainer = document.querySelector('.icon-list-container');
+const highlightsWrapper = document.querySelector('#highlights-wrapper');
+const highlightsFeild = document.querySelector('input[name="highlights"]');
+
+let highlightsObj = [
   {
     data_order: 0,
     icon_class: '',
@@ -11,9 +15,11 @@ const highlightsObj = [
   }
 ];
 
-const modalIconListContainer = document.querySelector('.icon-list-container');
-const highlightsWrapper = document.querySelector('#highlights-wrapper');
-const highlightsFeild = document.querySelector('input[name="highlights"]');
+const initialHighlightValue = highlightsFeild.value;
+
+if (initialHighlightValue !== '') {
+  highlightsObj = JSON.parse(initialHighlightValue);
+}
 
 const iconList = () => {
   modalIconListContainer.innerHTML = '';
@@ -78,7 +84,7 @@ const updateHighlightsWrapper = () => {
 
   // Check if highlightsFeild exists before setting its value
   if (highlightsFeild) {
-    highlightsFeild.value = JSON.stringify(highlightsObj);
+    // highlightsFeild.value = JSON.stringify(highlightsObj);
   }
 };
 updateHighlightsWrapper();
