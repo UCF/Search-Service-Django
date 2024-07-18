@@ -439,9 +439,8 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
 
-        start_date = timezone.datetime.now() - timezone.timedelta(30)
+        start_date = timezone.datetime.now() - timezone.timedelta(365)
         end_date = timezone.datetime.now()
-        program_content_type = ContentType.objects.get_for_model(Program)
         program_description_content_type = ContentType.objects.get_for_model(ProgramDescription)
 
         created_stats = LogEntry.objects.filter(
