@@ -30,6 +30,7 @@ from django.contrib.contenttypes.models import ContentType
 from auditlog.models import LogEntry
 
 import settings
+import json
 
 class TitleContextMixin(object):
     """
@@ -244,7 +245,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
     def __get_highlights(self) -> str:
         """
-        Returns the jobs_source value
+        Returns the highlights json
         """
         program = self.__get_program()
 
@@ -316,12 +317,18 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         jobs = form.cleaned_data['jobs'].split(',')
 
         highlights = form.cleaned_data['highlights']
+        highlights_list = json.loads(highlights)
 
-        if highlights != '':
-            program.highlights = highlights
+        # Filter out entries with empty 'icon_class' or 'description'
+        filtered_highlights = [entry for entry in highlights_list if entry['icon_class'] or entry['description']]
+        if filtered_highlights:
+            program.highlights = json.dumps(filtered_highlights)
+            program.save()
+        if not filtered_highlights:
+            program.highlights = []
             program.save()
 
-        print(highlights)
+
         # Remove jobs that are no longer listed
         for job in current_jobs:
             if job not in jobs and job != '':
