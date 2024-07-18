@@ -430,6 +430,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     area_of_interest = serializers.SerializerMethodField()
     subarea_of_interest = serializers.SerializerMethodField()
 
+    highlights = serializers.JSONField(read_only=True)
+
     def get_excerpt(self, obj: Program):
         return obj.excerpt
 
@@ -489,7 +491,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'start_term',
             'excerpt',
             'area_of_interest',
-            'subarea_of_interest'
+            'subarea_of_interest',
+            'highlights'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,cip_code,parent_program",

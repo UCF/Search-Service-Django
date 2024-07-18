@@ -325,7 +325,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
             program.highlights = json.dumps(filtered_highlights)
             program.save()
         if not filtered_highlights:
-            program.highlights = []
+            program.highlights = json.dumps([])
             program.save()
 
 
