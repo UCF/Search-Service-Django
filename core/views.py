@@ -323,10 +323,10 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         # Filter out entries with empty 'icon_class' or 'description'
         filtered_highlights = [entry for entry in highlights_list if entry['icon_class'] or entry['description']]
         if filtered_highlights:
-            program.highlights = filtered_highlights
+            program.highlights = json.dumps(filtered_highlights)
             program.save()
         if not filtered_highlights:
-            program.highlights = []
+            program.highlights = json.dumps([])
             program.save()
 
 
@@ -449,7 +449,6 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             timestamp__lte=end_date,
             action=LogEntry.Action.CREATE
         ).values(
-            'actor_id',
             'actor__first_name',
             'actor__last_name',
             'content_type__model'
@@ -467,7 +466,6 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             timestamp__lte=end_date,
             action=LogEntry.Action.UPDATE
         ).values(
-            'actor_id',
             'actor__first_name',
             'actor__last_name',
             'content_type__model'
@@ -485,7 +483,6 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             timestamp__lte=end_date,
             action=LogEntry.Action.DELETE
         ).values(
-            'actor_id',
             'actor__first_name',
             'actor__last_name',
             'content_type__model'
@@ -497,45 +494,8 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             'action_count'
         )
 
-        results = {}
-
-        for entry in [x for x in created_stats if x['actor_id'] is not None]:
-            if entry['actor_id'] not in results.keys():
-                results[entry['actor_id']] = {
-                    'first_name': entry['actor__first_name'],
-                    'last_name': entry['actor__last_name'],
-                    'created': 0,
-                    'updated': 0,
-                    'deleted': 0
-                }
-
-            results[entry['actor_id']]['created'] = entry['action_count']
-
-        for entry in [x for x in updated_stats if x['actor_id'] is not None]:
-            if entry['actor_id'] not in results.keys():
-                results[entry['actor_id']] = {
-                    'first_name': entry['actor__first_name'],
-                    'last_name': entry['actor__last_name'],
-                    'created': 0,
-                    'updated': 0,
-                    'deleted': 0
-                }
-
-            results[entry['actor_id']]['updated'] = entry['action_count']
-
-        for entry in [x for x in deleted_stats if x['actor_id'] is not None]:
-            if entry['actor_id'] not in results.keys():
-                results[entry['actor_id']] = {
-                    'first_name': entry['actor__first_name'],
-                    'last_name': entry['actor__last_name'],
-                    'created': 0,
-                    'updated': 0,
-                    'deleted': 0
-                }
-
-            results[entry['actor_id']]['deleted'] = entry['action_count']
-
-
-        ctx['results'] = results
+        ctx['created_stats'] = created_stats
+        ctx['updated_stats'] = updated_stats
+        ctx['deleted_stats'] = deleted_stats
 
         return ctx
