@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from programs.models import *
 import warnings
+import json
 
 from django.db import IntegrityError
 from django.db.models import Max, Avg, Sum
@@ -386,6 +387,11 @@ class AcademicTermSerializer(serializers.ModelSerializer):
         )
         model = AcademicTerm
 
+class HighlightField(serializers.JSONField):
+    def to_representation(self, value):
+        # Convert the JSON to a dictionary for display
+            return json.loads(value) if value else []
+
 class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     level = serializers.StringRelatedField(many=False)
     career = serializers.StringRelatedField(many=False)
@@ -430,7 +436,7 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
     area_of_interest = serializers.SerializerMethodField()
     subarea_of_interest = serializers.SerializerMethodField()
 
-    highlights = serializers.JSONField(read_only=True)
+    highlights = HighlightField(read_only=True)
 
     def get_excerpt(self, obj: Program):
         return obj.excerpt
