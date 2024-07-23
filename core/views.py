@@ -329,7 +329,6 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
             program.highlights = json.dumps([])
             program.save()
 
-
         # Remove jobs that are no longer listed
         for job in current_jobs:
             if job not in jobs and job != '':
