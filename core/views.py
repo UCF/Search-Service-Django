@@ -323,10 +323,10 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         # Filter out entries with empty 'icon_class' or 'description'
         filtered_highlights = [entry for entry in highlights_list if entry['icon_class'] or entry['description']]
         if filtered_highlights:
-            program.highlights = json.dumps(filtered_highlights)
+            program.highlights = filtered_highlights
             program.save()
         if not filtered_highlights:
-            program.highlights = json.dumps([])
+            program.highlights = []
             program.save()
 
         # Remove jobs that are no longer listed
