@@ -286,7 +286,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
             initial['jobs_source'] = jobs_source
 
         if highlights:
-            initial['highlights'] = highlights
+            initial['highlights'] = json.dumps(highlights)
 
         return initial
 
