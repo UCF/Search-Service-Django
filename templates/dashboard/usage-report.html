@@ -3,9 +3,9 @@
 {% block body %}
 <div class="container py-5">
   <div class="row">
-    <div class="col-12 col-sm-6 col-md-4">
-      <h2 class="mb-4">Program Description Created</h2>
-      {% if created_stats.count > 0 %}
+    <div class="col-12 col-sm-6">
+      <h2 class="mb-4 h4">Program Description Created</h2>
+      {% if descriptions_created.count > 0 %}
       <table class="table">
         <thead>
           <tr>
@@ -15,7 +15,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for entry in created_stats %}
+          {% for entry in descriptions_created %}
             <tr>
               <td>{{ entry.actor__first_name }} {{ entry.actor__last_name }}</td>
               <td>{{ entry.content_type__model }}</td>
@@ -28,9 +28,9 @@
       <p class="alert alert-info">There have been no program descriptions created during the specified time period.</p>
       {% endif %}
     </div>
-    <div class="col-12 col-sm-6 col-md-4">
-      <h2 class="mb-4">Program Description Updated</h2>
-      {% if updated_stats.count > 0 %}
+    <div class="col-12 col-sm-6">
+      <h2 class="mb-4 h4">Program Description Updated</h2>
+      {% if descriptions_updated.count > 0 %}
       <table class="table">
         <thead>
           <tr>
@@ -40,7 +40,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for entry in updated_stats %}
+          {% for entry in descriptions_updated %}
             <tr>
               <td>{{ entry.actor__first_name }} {{ entry.actor__last_name }}</td>
               <td>{{ entry.content_type__model }}</td>
@@ -53,29 +53,50 @@
       <p class="alert alert-info">There have been no program descriptions updated during the specified time period.</p>
       {% endif %}
     </div>
-    <div class="col-12 col-sm-6 col-md-4">
-      <h2 class="mb-4">Program Description Deleted</h2>
-      {% if deleted_stats.count > 0 %}
+    <div class="col-12 col-sm-6">
+      <h2 class="mb-4 h4">Programs with Job Data Created or Updated</h2>
+      {% if jobs_created_or_updated.count > 0 %}
       <table class="table">
         <thead>
           <tr>
             <th>User</th>
-            <th>Content Type</th>
-            <th>Deleted</th>
+            <th>Created or Updated</th>
           </tr>
         </thead>
         <tbody>
-          {% for entry in deleted_stats %}
+          {% for entry in jobs_created_or_updated %}
             <tr>
               <td>{{ entry.actor__first_name }} {{ entry.actor__last_name }}</td>
-              <td>{{ entry.content_type__model }}</td>
               <td>{{ entry.action_count }}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
       {% else %}
-      <p class="alert alert-info">There have been no program descriptions deleted during the specified time period.</p>
+      <p class="alert alert-info">There have been no jobs created or updated during the specified time period.</p>
+      {% endif %}
+    </div>
+    <div class="col-12 col-sm-6">
+      <h2 class="mb-4 h4">Programs with Highlights Data Created or Updated</h2>
+      {% if highlights_created_or_updated.count > 0 %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Created or Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in highlights_created_or_updated %}
+            <tr>
+              <td>{{ entry.actor__first_name }} {{ entry.actor__last_name }}</td>
+              <td>{{ entry.action_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="alert alert-info">There have been no highlights created or updated during the specified time period.</p>
       {% endif %}
     </div>
   </div>

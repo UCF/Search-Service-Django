@@ -440,17 +440,18 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
 
         start_date = timezone.datetime.now() - timezone.timedelta(365)
         end_date = timezone.datetime.now()
+
+        program_content_type = ContentType.objects.get_for_model(Program)
         program_description_content_type = ContentType.objects.get_for_model(ProgramDescription)
 
-        created_stats = LogEntry.objects.filter(
+        descriptions_created = LogEntry.objects.filter(
             content_type=program_description_content_type,
             timestamp__gte=start_date,
             timestamp__lte=end_date,
             action=LogEntry.Action.CREATE
         ).values(
             'actor__first_name',
-            'actor__last_name',
-            'content_type__model'
+            'actor__last_name'
         ).exclude(
             actor=1
         ).annotate(
@@ -459,15 +460,14 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             'action_count'
         )
 
-        updated_stats = LogEntry.objects.filter(
+        descriptions_updated = LogEntry.objects.filter(
             content_type=program_description_content_type,
             timestamp__gte=start_date,
             timestamp__lte=end_date,
             action=LogEntry.Action.UPDATE
         ).values(
             'actor__first_name',
-            'actor__last_name',
-            'content_type__model'
+            'actor__last_name'
         ).exclude(
             actor=1
         ).annotate(
@@ -476,15 +476,16 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             'action_count'
         )
 
-        deleted_stats = LogEntry.objects.filter(
-            content_type=program_description_content_type,
+        jobs_created_or_updated = LogEntry.objects.filter(
+            content_type=program_content_type,
             timestamp__gte=start_date,
             timestamp__lte=end_date,
-            action=LogEntry.Action.DELETE
+            action=LogEntry.Action.UPDATE
+        ).filter(
+            changes__icontains='jobs'
         ).values(
             'actor__first_name',
-            'actor__last_name',
-            'content_type__model'
+            'actor__last_name'
         ).exclude(
             actor=1
         ).annotate(
@@ -493,8 +494,27 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             'action_count'
         )
 
-        ctx['created_stats'] = created_stats
-        ctx['updated_stats'] = updated_stats
-        ctx['deleted_stats'] = deleted_stats
+        highlights_created_or_updated = LogEntry.objects.filter(
+            content_type=program_content_type,
+            timestamp__gte=start_date,
+            timestamp__lte=end_date,
+            action=LogEntry.Action.UPDATE
+        ).filter(
+            changes__icontains="highlights"
+        ).values(
+            'actor__first_name',
+            'actor__last_name'
+        ).exclude(
+            actor=1
+        ).annotate(
+            action_count=Count('actor')
+        ).order_by(
+            'action_count'
+        )
+
+        ctx['descriptions_created'] = descriptions_created
+        ctx['descriptions_updated'] = descriptions_updated
+        ctx['jobs_created_or_updated'] = jobs_created_or_updated
+        ctx['highlights_created_or_updated'] = highlights_created_or_updated
 
         return ctx
