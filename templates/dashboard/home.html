@@ -80,14 +80,22 @@
     <div class="col-12 col-lg-4">
       <div class="card border-0 custom-shadow-box mb-4">
         <div class="card-header">
-          <h2 class="h6 card-title">My Recent Activities</h2>
+          <h2 class="h6 card-title">My Recent Activities <a class="float-end" href="{% url 'dashboard.usage' %}">All activity</a></h2>
         </div>
         <div class="card-body pb-4">
           {% if user_events.count > 0 %}
           {% for event in user_events %}
           <div class="row">
-            <div class="col-4">{{ event.actor }}</div>
-            <div class="col-8">{{ event }}</div>
+            <div class="col-4">
+              {% if event.actor__first_name or event.actor__last_name %}
+                {{ event.actor__first_name }} {{ event.actor__last_name }}
+              {% else %}
+                Automated Process
+              {% endif %}
+              </div>
+              <div class="col-8">
+                {% auditlog_event event=event.max_id fetch_event=True %}
+              </div>
           </div>
           <hr class="my-3">
             {% if forloop.counter == 2 and user_events.count > 2 %}
@@ -118,14 +126,22 @@
       </div>
       <div class="card border-0 custom-shadow-box mb-4">
         <div class="card-header">
-          <h2 class="h6 card-title">Recent Activity (Global)</h2>
+          <h2 class="h6 card-title">Recent Activity (Global) <a class="float-end" href="{% url 'dashboard.usage' %}">All activity</a></h2>
         </div>
         <div class="card-body pb-4">
           {% if global_events.count > 0 %}
           {% for event in global_events %}
           <div class="row">
-            <div class="col-4">{{ event.actor }}</div>
-            <div class="col-8">{{ event }}</div>
+            <div class="col-4">
+              {% if event.actor__first_name or event.actor__last_name %}
+                {{ event.actor__first_name }} {{ event.actor__last_name }}
+              {% else %}
+                Automated Process
+              {% endif %}
+              </div>
+            <div class="col-8">
+                {% auditlog_event event=event.max_id fetch_event=True %}
+            </div>
           </div>
           <hr class="my-3">
             {% if forloop.counter == 2 and global_events.count > 2 %}

@@ -866,7 +866,7 @@ class ProgramImportRecord(models.Model):
         return self.programs_revalidated.count()
 
 
-auditlog.register(Program, serialize_data=True)
+auditlog.register(Program, serialize_data=True, m2m_fields={'jobs'})
 auditlog.register(ProgramDescription, serialize_data=True)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

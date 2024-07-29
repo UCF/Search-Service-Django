@@ -1,4 +1,6 @@
 from django import template
+import json
+from auditlog.models import LogEntry
 
 register = template.Library()
 
@@ -44,9 +46,16 @@ def sortable_field_header(context, **kwargs):
 @register.inclusion_tag('templatetags/auditlog-event.html')
 def auditlog_event(**kwargs):
     event = kwargs.get('event', None)
+    fetch_event = kwargs.get('fetch_event', False)
 
-    if event is None:
+    if event is None or event == '':
         return None
+
+    # If we pass this flag in,
+    # we can assume we're getting an ID
+    # and can go look up the event.
+    if fetch_event:
+        event = LogEntry.objects.get(pk=event)
 
     action = ''
     if event.action == 0:
