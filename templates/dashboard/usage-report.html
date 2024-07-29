@@ -12,7 +12,7 @@
       <th>Programs with Highlights Created or Updated</th>
     </thead>
     <tbody>
-      {% for idx, result in results.values %}
+      {% for result in results.values %}
         <tr>
           <td>{{ result.first_name }} {{ result.last_name }}</td>
           <td>{{ result.descriptions_created }}</td>
