@@ -519,6 +519,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
         ).filter(
             changes__icontains="highlights"
         ).values(
+            'actor_id',
             'actor__first_name',
             'actor__last_name'
         ).exclude(
