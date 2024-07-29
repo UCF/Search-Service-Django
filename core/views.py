@@ -119,12 +119,16 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
         user_events = LogEntry.objects.filter(
             Q(content_type=program_content_type)|Q(content_type=program_description_content_type),
             actor=user,
+        ).annotate(
+            action_count=Count('object_id', distinct=True)
         )[:10]
 
         global_events = LogEntry.objects.filter(
             Q(content_type=program_content_type)|Q(content_type=program_description_content_type)
         ).exclude(
             actor=user
+        ).annotate(
+            action_count=Count('object_id', distinct=True)
         )[:10]
 
         ctx['meta'] = {
