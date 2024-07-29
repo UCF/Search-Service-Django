@@ -80,7 +80,7 @@
     <div class="col-12 col-lg-4">
       <div class="card border-0 custom-shadow-box mb-4">
         <div class="card-header">
-          <h2 class="h6 card-title">My Recent Activities</h2>
+          <h2 class="h6 card-title">My Recent Activities <a class="float-end" href="{% url 'dashboard.usage' %}">All activity</a></h2>
         </div>
         <div class="card-body pb-4">
           {% if user_events.count > 0 %}
@@ -126,7 +126,7 @@
       </div>
       <div class="card border-0 custom-shadow-box mb-4">
         <div class="card-header">
-          <h2 class="h6 card-title">Recent Activity (Global)</h2>
+          <h2 class="h6 card-title">Recent Activity (Global) <a class="float-end" href="{% url 'dashboard.usage' %}">All activity</a></h2>
         </div>
         <div class="card-body pb-4">
           {% if global_events.count > 0 %}
