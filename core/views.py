@@ -121,6 +121,8 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
             actor=user,
         ).annotate(
             action_count=Count('object_id', distinct=True)
+        ).order_by(
+            '-timestamp'
         )[:10]
 
         global_events = LogEntry.objects.filter(
@@ -129,6 +131,8 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
             actor=user
         ).annotate(
             action_count=Count('object_id', distinct=True)
+        ).order_by(
+            '-timestamp'
         )[:10]
 
         ctx['meta'] = {
