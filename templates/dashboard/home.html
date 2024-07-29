@@ -87,7 +87,7 @@
           {% for event in user_events %}
           <div class="row">
             <div class="col-4">
-              {% if actor__first_name or actor__last_name %}
+              {% if event.actor__first_name or event.actor__last_name %}
                 {{ event.actor__first_name }} {{ event.actor__last_name }}
               {% else %}
                 Automated Process
@@ -133,7 +133,7 @@
           {% for event in global_events %}
           <div class="row">
             <div class="col-4">
-              {% if actor__first_name or actor__last_name %}
+              {% if event.actor__first_name or event.actor__last_name %}
                 {{ event.actor__first_name }} {{ event.actor__last_name }}
               {% else %}
                 Automated Process
