@@ -435,6 +435,20 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
     heading = 'Usage Report'
     local = settings.LOCAL
 
+    def create_blank_result(self, entry):
+        """
+        Returns a blank record for the results dictionary.
+        """
+        return {
+            'first_name': entry['actor__first_name'],
+            'last_name': entry['actor__last_name'],
+            'descriptions_created': 0,
+            'descriptions_updated': 0,
+            'programs_job_created_updated': 0,
+            'programs_highlights_created_updated': 0
+        }
+
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
 
@@ -450,6 +464,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             timestamp__lte=end_date,
             action=LogEntry.Action.CREATE
         ).values(
+            'actor_id',
             'actor__first_name',
             'actor__last_name'
         ).exclude(
@@ -466,6 +481,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             timestamp__lte=end_date,
             action=LogEntry.Action.UPDATE
         ).values(
+            'actor_id',
             'actor__first_name',
             'actor__last_name'
         ).exclude(
@@ -476,7 +492,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             'action_count'
         )
 
-        jobs_created_or_updated = LogEntry.objects.filter(
+        programs_jobs_actions = LogEntry.objects.filter(
             content_type=program_content_type,
             timestamp__gte=start_date,
             timestamp__lte=end_date,
@@ -484,6 +500,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
         ).filter(
             changes__icontains='jobs'
         ).values(
+            'actor_id',
             'actor__first_name',
             'actor__last_name'
         ).exclude(
@@ -494,7 +511,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             'action_count'
         )
 
-        highlights_created_or_updated = LogEntry.objects.filter(
+        programs_highlights_actions = LogEntry.objects.filter(
             content_type=program_content_type,
             timestamp__gte=start_date,
             timestamp__lte=end_date,
@@ -512,9 +529,36 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             'action_count'
         )
 
-        ctx['descriptions_created'] = descriptions_created
-        ctx['descriptions_updated'] = descriptions_updated
-        ctx['jobs_created_or_updated'] = jobs_created_or_updated
-        ctx['highlights_created_or_updated'] = highlights_created_or_updated
+        results = {}
+
+        for entry in [x for x in descriptions_created if x['actor_id'] is not None]:
+            if entry['actor_id'] not in results.keys():
+                results[entry['actor_id']] = self.create_blank_result(entry)
+
+            results[entry['actor_id']]['descriptions_created'] = entry['action_count']
+
+
+        for entry in [x for x in descriptions_updated if x['actor_id'] is not None]:
+            if entry['actor_id'] not in results.keys():
+                results[entry['actor_id']] = self.create_blank_result(entry)
+
+            results[entry['actor_id']]['descriptions_updated'] = entry['action_count']
+
+
+        for entry in [x for x in programs_jobs_actions if x['actor_id'] is not None]:
+            if entry['actor_id'] not in results.keys():
+                results[entry['actor_id']] = self.create_blank_result(entry)
+
+            results[entry['actor_id']]['programs_jobs_actions'] = entry['action_count']
+
+
+        for entry in [x for x in programs_highlights_actions if x['actor_id'] is not None]:
+            if entry['actor_id'] not in results.keys():
+                results[entry['actor_id']] = self.create_blank_result(entry)
+
+            results[entry['actor_id']]['programs_highlights_actions'] = entry['action_count']
+
+
+        ctx['results'] = results
 
         return ctx
