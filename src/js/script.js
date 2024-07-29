@@ -3,3 +3,4 @@
 //
 
 // =require media-background-lazyload.js
+// =require sortable
