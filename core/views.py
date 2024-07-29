@@ -506,7 +506,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
         ).exclude(
             actor=1
         ).annotate(
-            action_count=Count('actor')
+            action_count=Count('object_id', distinct=True)
         ).order_by(
             'action_count'
         )
@@ -525,7 +525,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
         ).exclude(
             actor=1
         ).annotate(
-            action_count=Count('actor')
+            action_count=Count('object_id', distinct=True)
         ).order_by(
             'action_count'
         )
