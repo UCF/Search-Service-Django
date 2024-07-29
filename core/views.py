@@ -464,6 +464,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             timestamp__lte=end_date,
             action=LogEntry.Action.CREATE
         ).values(
+            'actor_id',
             'actor__first_name',
             'actor__last_name'
         ).exclude(
@@ -480,6 +481,7 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
             timestamp__lte=end_date,
             action=LogEntry.Action.UPDATE
         ).values(
+            'actor_id',
             'actor__first_name',
             'actor__last_name'
         ).exclude(
