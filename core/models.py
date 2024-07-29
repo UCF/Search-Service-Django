@@ -107,3 +107,10 @@ class ExtendedUser(models.Model):
         custom career paths
         """
         return self.programs_missing_jobs.count()
+
+    @property
+    def display_name_full(self) -> str:
+        if self.user.first_name and self.user.last_name:
+            return f"{self.user.first_name} {self.user.last_name}"
+        else:
+            return self.user.username

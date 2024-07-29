@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpRequest
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView, FormView
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Max
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -119,20 +119,32 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
         user_events = LogEntry.objects.filter(
             Q(content_type=program_content_type)|Q(content_type=program_description_content_type),
             actor=user,
+        ).values(
+            'object_id',
+            'actor__first_name',
+            'actor__last_name'
         ).annotate(
-            action_count=Count('object_id', distinct=True)
+            action_count=Count('object_id', distinct=True),
+            newest_action=Max('timestamp'),
+            max_id=Max('id')
         ).order_by(
-            '-timestamp'
+            '-newest_action'
         )[:10]
 
         global_events = LogEntry.objects.filter(
             Q(content_type=program_content_type)|Q(content_type=program_description_content_type)
         ).exclude(
             actor=user
+        ).values(
+            'object_id',
+            'actor__first_name',
+            'actor__last_name'
         ).annotate(
-            action_count=Count('object_id', distinct=True)
+            action_count=Count('object_id', distinct=True),
+            newest_action=Max('timestamp'),
+            max_id=Max('id')
         ).order_by(
-            '-timestamp'
+            '-newest_action'
         )[:10]
 
         ctx['meta'] = {
