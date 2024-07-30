@@ -1,9 +1,10 @@
 {% extends 'base-bootstrap.html' %}
 {% load core_extras %}
+{% load static %}
 {% block body %}
 <div class="container py-5">
   <h2 class="h3">Stats</h2>
-  <table class="table sortable">
+  <table class="table sortable-theme-bootstrap" data-sortable>
     <thead>
       <th>Name</th>
       <th>Descriptions Created</th>
@@ -39,5 +40,5 @@
 {% endblock %}
 {% block scripts %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/sorttable@1/sorttable.min.js"></script>
+  <script src="{% static 'js/script.min.js' %}"></script>
 {% endblock %}
