@@ -1,4 +1,5 @@
 from django.conf.urls import url, include
+from django.urls import path
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
@@ -38,6 +39,10 @@ urlpatterns = [
         r'^manager/search/$',
         SearchView.as_view(template_name='search.html'),
         name='search'
+    ),
+    url(r'^api/v1/positions/$',
+        OpenJobListView.as_view(),
+        name='api.positions.list'
     ),
     url(
         r'^settings/$',

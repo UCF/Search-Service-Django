@@ -32,6 +32,12 @@ from auditlog.models import LogEntry
 
 import settings
 import json
+import requests
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from bs4 import BeautifulSoup
 
 class TitleContextMixin(object):
     """
@@ -583,3 +589,31 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
         ctx['results'] = results
 
         return ctx
+
+class OpenJobListView(APIView):
+    def get(self, request):
+        url = "https://jobs.ucf.edu/jobs/search"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.content, 'html.parser')  # Specify the parser
+
+        cards = soup.find_all(class_="job-search-results-card-title")
+
+        # Base URL to remove
+        base_url = "https://jobs.ucf.edu/jobs"
+
+        jobs = []
+        for card in cards:
+            a_tag = card.find('a')
+            if a_tag:
+                href = a_tag.get('href')
+                title = a_tag.get_text(strip=True)
+
+                # Remove the base URL part
+                if href.startswith(base_url):
+                    href = href[len(base_url):]
+
+                jobs.append({'title': title, 'externalPath': href})
+
+        # Format the response
+        response_data = {'jobPostings': jobs}
+        return Response(response_data, status=status.HTTP_200_OK)
