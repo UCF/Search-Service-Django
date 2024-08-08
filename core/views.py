@@ -596,8 +596,6 @@ class OpenJobListView(APIView):
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
 
-        print(limit, offset)
-
         url = "https://jobs.ucf.edu/jobs/search"
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')  # Specify the parser
