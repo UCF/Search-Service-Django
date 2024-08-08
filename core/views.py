@@ -595,17 +595,21 @@ class OpenJobListView(APIView):
         # Parameters recieving
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
+        base_url = settings.JOBS_SCRAPE_BASE_URL
+        url = base_url + "/search"
 
-        url = "https://jobs.ucf.edu/jobs/search"
-        response = requests.get(url)
+        try:
+            response = requests.get(url, timeout=30)
+            # Raises HTTPError for bad responses
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            # Handle any errors that occur during the request
+            return Response({"error": "An error occurred fetching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         soup = BeautifulSoup(response.content, 'html.parser')  # Specify the parser
-
         cards = soup.find_all(class_="job-search-results-card-title")
-
-        # Base URL to remove
-        base_url = "https://jobs.ucf.edu/jobs"
-
         jobs = []
+
         for card in cards:
             a_tag = card.find('a')
             if a_tag:

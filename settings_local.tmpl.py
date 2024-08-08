@@ -433,3 +433,6 @@ SAML2_AUTH = {
     },
     'ASSERTION_URL': '{assertion_url}', # Custom URL to validate incoming SAML requests against
 }
+
+# Jobs scraper configuration item
+JOBS_SCRAPE_BASE_URL = 'https://jobs.ucf.edu/jobs'
