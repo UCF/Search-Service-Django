@@ -599,7 +599,7 @@ class OpenJobListView(APIView):
         url = base_url + "/search"
 
         try:
-            response = requests.get(url, timeout=30)
+            response = requests.get(url, timeout=10)
             # Raises HTTPError for bad responses
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
