@@ -592,6 +592,12 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
 
 class OpenJobListView(APIView):
     def get(self, request):
+        # Parameters recieving
+        limit = int(request.query_params.get('limit', 10))
+        offset = int(request.query_params.get('offset', 0))
+
+        print(limit, offset)
+
         url = "https://jobs.ucf.edu/jobs/search"
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')  # Specify the parser
@@ -608,11 +614,13 @@ class OpenJobListView(APIView):
                 href = a_tag.get('href')
                 title = a_tag.get_text(strip=True)
 
-                # Remove the base URL part
                 if href.startswith(base_url):
                     href = href[len(base_url):]
 
                 jobs.append({'title': title, 'externalPath': href})
+
+        # apply offset and limit to the jobs array
+        jobs = jobs[offset: offset+limit]
 
         # Format the response
         response_data = {'jobPostings': jobs}
