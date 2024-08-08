@@ -32,6 +32,12 @@ from auditlog.models import LogEntry
 
 import settings
 import json
+import requests
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from bs4 import BeautifulSoup
 
 class TitleContextMixin(object):
     """
@@ -583,3 +589,41 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
         ctx['results'] = results
 
         return ctx
+
+class OpenJobListView(APIView):
+    def get(self, request):
+        # Parameters recieving
+        limit = int(request.query_params.get('limit', 10))
+        offset = int(request.query_params.get('offset', 0))
+        base_url = settings.JOBS_SCRAPE_BASE_URL
+        url = base_url + "/search"
+
+        try:
+            response = requests.get(url, timeout=10)
+            # Raises HTTPError for bad responses
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            # Handle any errors that occur during the request
+            return Response({"error": "An error occurred fetching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        soup = BeautifulSoup(response.content, 'html.parser')  # Specify the parser
+        cards = soup.find_all(class_="job-search-results-card-title")
+        jobs = []
+
+        for card in cards:
+            a_tag = card.find('a')
+            if a_tag:
+                href = a_tag.get('href')
+                title = a_tag.get_text(strip=True)
+
+                if href.startswith(base_url):
+                    href = href[len(base_url):]
+
+                jobs.append({'title': title, 'externalPath': href})
+
+        # apply offset and limit to the jobs array
+        jobs = jobs[offset: offset+limit]
+
+        # Format the response
+        response_data = {'jobPostings': jobs}
+        return Response(response_data, status=status.HTTP_200_OK)
