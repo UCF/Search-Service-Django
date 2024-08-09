@@ -602,8 +602,6 @@ class OpenJobListView(APIView):
             return Response(cached_jobs, status=status.HTTP_200_OK)
 
         # Parameters recieving
-        limit = int(request.query_params.get('limit', 10))
-        offset = int(request.query_params.get('offset', 0))
         base_url = settings.JOBS_SCRAPE_BASE_URL
         url = base_url + "/search"
 
@@ -629,9 +627,6 @@ class OpenJobListView(APIView):
                     href = href[len(base_url):]
 
                 jobs.append({'title': title, 'externalPath': href})
-
-        # apply offset and limit to the jobs array
-        jobs = jobs[offset: offset+limit]
 
         # Format the response
         jobs_response_data = {'jobPostings': jobs}
