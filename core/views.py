@@ -599,7 +599,7 @@ class OpenJobListView(APIView):
         cached_jobs = cache.get(cache_key)
 
         reset_cache = int(request.query_params.get('reset_cache', 0))
-        # if reset_cache is set to 0 or none or then it pull the cached data.
+        # if reset_cache is set to 0 or none then it pull the cached data.
         if not reset_cache or reset_cache == 0 :
             # if cache is valid.
             if cached_jobs:
