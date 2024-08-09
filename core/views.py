@@ -603,7 +603,7 @@ class OpenJobListView(APIView):
         if not reset_cache or reset_cache == 0 :
             # if cache is valid.
             if cached_jobs:
-                print('cached read.')
+                print('cache read.')
                 return Response(cached_jobs, status=status.HTTP_200_OK)
 
         # If cache is not valid or reset_cache requested in shortcode then it will execute
@@ -640,7 +640,7 @@ class OpenJobListView(APIView):
         # Cache the response data for one week
         if jobs:
             try:
-                print('cached was set')
+                print('cache was set')
                 cache.set(cache_key, jobs_response_data, timeout=604800)
             except Exception as e:
                 # If Caching breaks.
