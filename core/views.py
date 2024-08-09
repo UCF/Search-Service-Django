@@ -31,7 +31,10 @@ from core.filters import ProgramListFilterSet
 from django.contrib.contenttypes.models import ContentType
 from auditlog.models import LogEntry
 
+from .utils.jobs_utils import get_cached_jobs, set_cached_jobs
+
 import settings
+import logging
 import json
 import requests
 
@@ -593,20 +596,21 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
 
 class OpenJobListView(APIView):
     def get(self, request):
-        # Cache Key for storing job listing
-        cache_key = 'cached_jobs'
-        cached_jobs = cache.get(cache_key)
+        # Retrieve limit and offset from query parameters
+        limit = int(request.query_params.get('limit', 10))  # Default to 10 if not provided
+        offset = int(request.query_params.get('offset', 0))  # Default to 0 if not provided
 
-        reset_cache = int(request.query_params.get('reset_cache', 0))
-        # if reset_cache is set to 0 or not exists, then it pull the cached data.
-        if not reset_cache or reset_cache == 0 :
-            # if cache is valid.
-            if cached_jobs:
-                print('cache read.')
-                return Response(cached_jobs, status=status.HTTP_200_OK)
+        # Retrieve cached jobs
+        cached_jobs = get_cached_jobs()
 
-        # If cache is not valid or reset_cache = "1" in shortcode then it will execute
-        # Parameters recieving
+        # if cache is valid.
+        if cached_jobs:
+            logging.info('cache read.')
+            jobs = cached_jobs['jobPostings']
+            filtered_jobs = jobs[offset:offset+limit]
+            return Response({'jobPostings': filtered_jobs}, status=status.HTTP_200_OK)
+
+        # If cache is not valid
         base_url = settings.JOBS_SCRAPE_BASE_URL
         url = base_url + "/search"
 
@@ -618,7 +622,7 @@ class OpenJobListView(APIView):
             # Handle any errors that occur during the request
             return Response({"error": "An error occurred fetching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        soup = BeautifulSoup(response.content, 'html.parser')  # Specify the parser
+        soup = BeautifulSoup(response.content, 'html.parser')
         cards = soup.find_all(class_="job-search-results-card-title")
         jobs = []
 
@@ -632,19 +636,14 @@ class OpenJobListView(APIView):
                     href = href[len(base_url):]
 
                 jobs.append({'title': title, 'externalPath': href})
-        print('scraped.')
-        # Format the response
+        logging.info('scraped.')
+
         jobs_response_data = {'jobPostings': jobs}
 
-        # Cache the response data for one week
-        if jobs:
-            try:
-                print('cache was set')
-                cache.set(cache_key, jobs_response_data, timeout=604800)
-            except Exception as e:
-                # If Caching breaks.
-                return Response({"error": "An error occurred while caching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response({"error": "No jobs found"}, status=status.HTTP_404_NOT_FOUND)
+        # Cache the response data and handle any errors
+        cache_response = set_cached_jobs(jobs_response_data)
+        if cache_response:
+            return cache_response
 
-        return Response(jobs_response_data, status=status.HTTP_200_OK)
+        filtered_jobs = jobs[offset:offset+limit]
+        return Response({'jobPostings': filtered_jobs}, status=status.HTTP_200_OK)
