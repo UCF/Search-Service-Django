@@ -436,3 +436,5 @@ SAML2_AUTH = {
 
 # Jobs scraper configuration item
 JOBS_SCRAPE_BASE_URL = 'https://jobs.ucf.edu/jobs'
+JOBS_FILE_PATH = 'static/data/jobs.json'
+

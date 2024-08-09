@@ -3,6 +3,7 @@
 
 from typing import Any
 from django.conf import settings
+from django.core.cache import cache
 from django.contrib import messages
 from django.utils import timezone
 
@@ -30,6 +31,7 @@ from core.filters import ProgramListFilterSet
 from django.contrib.contenttypes.models import ContentType
 from auditlog.models import LogEntry
 
+import os
 import settings
 import json
 import requests
@@ -592,6 +594,13 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
 
 class OpenJobListView(APIView):
     def get(self, request):
+        cache_key = 'cached_jobs'
+        cached_jobs = cache.get(cache_key)
+
+        #if cache exists
+        if cached_jobs:
+            return Response(cached_jobs, status=status.HTTP_200_OK)
+
         # Parameters recieving
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
@@ -625,5 +634,13 @@ class OpenJobListView(APIView):
         jobs = jobs[offset: offset+limit]
 
         # Format the response
-        response_data = {'jobPostings': jobs}
-        return Response(response_data, status=status.HTTP_200_OK)
+        jobs_response_data = {'jobPostings': jobs}
+
+        # Cache the response data for one week
+        try:
+            cache.set(cache_key, jobs_response_data, timeout=604800)
+        except Exception as e:
+            # If Caching breaks.
+            return Response({"error": "An error occurred while caching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(jobs_response_data, status=status.HTTP_200_OK)
