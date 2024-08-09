@@ -594,13 +594,19 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
 
 class OpenJobListView(APIView):
     def get(self, request):
+        # Cache Key for storing job listing
         cache_key = 'cached_jobs'
         cached_jobs = cache.get(cache_key)
 
-        #if cache exists
-        if cached_jobs:
-            return Response(cached_jobs, status=status.HTTP_200_OK)
+        reset_cache = int(request.query_params.get('reset_cache', 0))
+        # if reset_cache is set to 0 or none then it pull the cached data.
+        if not reset_cache or reset_cache == 0 :
+            # if cache is valid.
+            if cached_jobs:
+                print('cached read.')
+                return Response(cached_jobs, status=status.HTTP_200_OK)
 
+        # If cache is not valid or reset_cache requested in shortcode then it will execute
         # Parameters recieving
         base_url = settings.JOBS_SCRAPE_BASE_URL
         url = base_url + "/search"
@@ -627,15 +633,19 @@ class OpenJobListView(APIView):
                     href = href[len(base_url):]
 
                 jobs.append({'title': title, 'externalPath': href})
-
+        print('scraped.')
         # Format the response
         jobs_response_data = {'jobPostings': jobs}
 
         # Cache the response data for one week
-        try:
-            cache.set(cache_key, jobs_response_data, timeout=604800)
-        except Exception as e:
-            # If Caching breaks.
-            return Response({"error": "An error occurred while caching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if jobs:
+            try:
+                print('cached was set')
+                cache.set(cache_key, jobs_response_data, timeout=604800)
+            except Exception as e:
+                # If Caching breaks.
+                return Response({"error": "An error occurred while caching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({"error": "No jobs found"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(jobs_response_data, status=status.HTTP_200_OK)
