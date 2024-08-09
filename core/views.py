@@ -599,14 +599,14 @@ class OpenJobListView(APIView):
         cached_jobs = cache.get(cache_key)
 
         reset_cache = int(request.query_params.get('reset_cache', 0))
-        # if reset_cache is set to 0 or none then it pull the cached data.
+        # if reset_cache is set to 0 or none or then it pull the cached data.
         if not reset_cache or reset_cache == 0 :
             # if cache is valid.
             if cached_jobs:
                 print('cache read.')
                 return Response(cached_jobs, status=status.HTTP_200_OK)
 
-        # If cache is not valid or reset_cache requested in shortcode then it will execute
+        # If cache is not valid or reset_cache = "1" in shortcode then it will execute
         # Parameters recieving
         base_url = settings.JOBS_SCRAPE_BASE_URL
         url = base_url + "/search"
