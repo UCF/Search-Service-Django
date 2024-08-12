@@ -3,6 +3,7 @@
 
 from typing import Any
 from django.conf import settings
+from django.core.cache import cache
 from django.contrib import messages
 from django.utils import timezone
 
@@ -30,7 +31,10 @@ from core.filters import ProgramListFilterSet
 from django.contrib.contenttypes.models import ContentType
 from auditlog.models import LogEntry
 
+from .utils.jobs_utils import get_cached_jobs, set_cached_jobs
+
 import settings
+import logging
 import json
 import requests
 
@@ -592,9 +596,21 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
 
 class OpenJobListView(APIView):
     def get(self, request):
-        # Parameters recieving
-        limit = int(request.query_params.get('limit', 10))
-        offset = int(request.query_params.get('offset', 0))
+        # Retrieve limit and offset from query parameters
+        limit = int(request.query_params.get('limit', 10))  # Default to 10 if not provided
+        offset = int(request.query_params.get('offset', 0))  # Default to 0 if not provided
+
+        # Retrieve cached jobs
+        cached_jobs = get_cached_jobs()
+
+        # if cache is valid.
+        if cached_jobs:
+            logging.info('cache read.')
+            jobs = cached_jobs
+            filtered_jobs = jobs[offset:offset+limit]
+            return Response(filtered_jobs, status=status.HTTP_200_OK)
+
+        # If cache is not valid
         base_url = settings.JOBS_SCRAPE_BASE_URL
         url = base_url + "/search"
 
@@ -606,7 +622,7 @@ class OpenJobListView(APIView):
             # Handle any errors that occur during the request
             return Response({"error": "An error occurred fetching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        soup = BeautifulSoup(response.content, 'html.parser')  # Specify the parser
+        soup = BeautifulSoup(response.content, 'html.parser')
         cards = soup.find_all(class_="job-search-results-card-title")
         jobs = []
 
@@ -620,10 +636,14 @@ class OpenJobListView(APIView):
                     href = href[len(base_url):]
 
                 jobs.append({'title': title, 'externalPath': href})
+        logging.info('scraped.')
 
-        # apply offset and limit to the jobs array
-        jobs = jobs[offset: offset+limit]
+        # Cache the response data and handle any errors
+        try:
+            jobs = set_cached_jobs(jobs)
+        except e:
+            return Response({"error": "An error occurred fetching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Format the response
-        response_data = {'jobPostings': jobs}
-        return Response(response_data, status=status.HTTP_200_OK)
+
+        filtered_jobs = jobs[offset:offset+limit]
+        return Response(filtered_jobs, status=status.HTTP_200_OK)
