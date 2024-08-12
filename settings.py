@@ -111,6 +111,12 @@ LOGIN_URL = '/manager/login/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
+    }
+}
+
 try:
     from settings_local import *
 except ImportError:

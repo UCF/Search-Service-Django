@@ -3,6 +3,7 @@
 
 from typing import Any
 from django.conf import settings
+from django.core.cache import cache
 from django.contrib import messages
 from django.utils import timezone
 
@@ -30,8 +31,17 @@ from core.filters import ProgramListFilterSet
 from django.contrib.contenttypes.models import ContentType
 from auditlog.models import LogEntry
 
+from .utils.jobs_utils import get_cached_jobs, set_cached_jobs
+
 import settings
+import logging
 import json
+import requests
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from bs4 import BeautifulSoup
 
 class TitleContextMixin(object):
     """
@@ -583,3 +593,58 @@ class UsageReportView(LoginRequiredMixin, TitleContextMixin, TemplateView):
         ctx['results'] = results
 
         return ctx
+
+class OpenJobListView(APIView):
+    def get(self, request):
+        # Retrieve limit and offset from query parameters
+        limit = int(request.query_params.get('limit', 10))  # Default to 10 if not provided
+        offset = int(request.query_params.get('offset', 0))  # Default to 0 if not provided
+
+        # Retrieve cached jobs
+        cached_jobs = get_cached_jobs()
+
+        # if cache is valid.
+        if cached_jobs:
+            print(cached_jobs)
+            logging.info('cache read.')
+            jobs = cached_jobs
+            filtered_jobs = jobs[offset:offset+limit]
+            return Response(filtered_jobs, status=status.HTTP_200_OK)
+
+        # If cache is not valid
+        base_url = settings.JOBS_SCRAPE_BASE_URL
+        url = base_url + "/search"
+
+        try:
+            response = requests.get(url, timeout=10)
+            # Raises HTTPError for bad responses
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            # Handle any errors that occur during the request
+            return Response({"error": "An error occurred fetching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        cards = soup.find_all(class_="job-search-results-card-title")
+        jobs = []
+
+        for card in cards:
+            a_tag = card.find('a')
+            if a_tag:
+                href = a_tag.get('href')
+                title = a_tag.get_text(strip=True)
+
+                if href.startswith(base_url):
+                    href = href[len(base_url):]
+
+                jobs.append({'title': title, 'externalPath': href})
+        logging.info('scraped.')
+
+        # Cache the response data and handle any errors
+        try:
+            jobs = set_cached_jobs(jobs)
+        except e:
+            return Response({"error": "An error occurred fetching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+        filtered_jobs = jobs[offset:offset+limit]
+        return Response(filtered_jobs, status=status.HTTP_200_OK)
