@@ -605,7 +605,6 @@ class OpenJobListView(APIView):
 
         # if cache is valid.
         if cached_jobs:
-            print(cached_jobs)
             logging.info('cache read.')
             jobs = cached_jobs
             filtered_jobs = jobs[offset:offset+limit]
