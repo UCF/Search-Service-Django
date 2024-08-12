@@ -605,10 +605,11 @@ class OpenJobListView(APIView):
 
         # if cache is valid.
         if cached_jobs:
+            print(cached_jobs)
             logging.info('cache read.')
-            jobs = cached_jobs['jobPostings']
+            jobs = cached_jobs
             filtered_jobs = jobs[offset:offset+limit]
-            return Response({'jobPostings': filtered_jobs}, status=status.HTTP_200_OK)
+            return Response(filtered_jobs, status=status.HTTP_200_OK)
 
         # If cache is not valid
         base_url = settings.JOBS_SCRAPE_BASE_URL
@@ -638,12 +639,12 @@ class OpenJobListView(APIView):
                 jobs.append({'title': title, 'externalPath': href})
         logging.info('scraped.')
 
-        jobs_response_data = {'jobPostings': jobs}
-
         # Cache the response data and handle any errors
-        cache_response = set_cached_jobs(jobs_response_data)
-        if cache_response:
-            return cache_response
+        try:
+            jobs = set_cached_jobs(jobs)
+        except e:
+            return Response({"error": "An error occurred fetching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
         filtered_jobs = jobs[offset:offset+limit]
-        return Response({'jobPostings': filtered_jobs}, status=status.HTTP_200_OK)
+        return Response(filtered_jobs, status=status.HTTP_200_OK)

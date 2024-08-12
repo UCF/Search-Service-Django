@@ -10,14 +10,15 @@ def get_cached_jobs():
     # Retrieve cached job listings if available.
     return cache.get(CACHE_KEY)
 
-def set_cached_jobs(jobs_response_data):
+def set_cached_jobs(jobs_response_data) -> list:
     # Cache the job listings data and handle errors if caching fails.
-    if jobs_response_data['jobPostings']:
+    if jobs_response_data:
         try:
             logging.info('cache was set')
             cache.set(CACHE_KEY, jobs_response_data, timeout=CACHE_TIMEOUT)
+            return jobs_response_data
         except Exception as e:
             logging.error(f"An error occurred while caching the jobs: {str(e)}")
-            return Response({"error": "An error occurred while caching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise e
     else:
-        return Response({"error": "No jobs found"}, status=status.HTTP_404_NOT_FOUND)
+        return []
