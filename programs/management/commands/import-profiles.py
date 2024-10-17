@@ -130,6 +130,7 @@ Imports URLs for ProgramProfiles from a WordPress blog
         for program in programs:
             self.degrees_processed += 1
             self.progress_bar.next()
+            prg_obj = None
             plan_code = program['degree_meta'][self.plan_code_field] if self.plan_code_field in program['degree_meta'] else None
             subplan_code = program['degree_meta'][self.subplan_code_field] if self.subplan_code_field in program['degree_meta'] else None
 
@@ -140,6 +141,10 @@ Imports URLs for ProgramProfiles from a WordPress blog
                 else:
                     self.degrees_skipped += 1
             except:
+                self.degrees_skipped += 1
+                continue
+
+            if prg_obj is None:
                 self.degrees_skipped += 1
                 continue
 
