@@ -22,6 +22,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('programs', '0062_auto_20240724_1513')
     ]
 
     operations = [
