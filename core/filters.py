@@ -45,6 +45,7 @@ class ProgramListFilterSet(django_filters.FilterSet):
 
     def __init__(self, data, *args, **kwargs):
         data = data.copy()
+        super().__init__(data, *args, **kwargs)
 
         colleges_choices = []
 
@@ -54,8 +55,6 @@ class ProgramListFilterSet(django_filters.FilterSet):
             )
 
         self.filters['colleges'].extra['choices'] = colleges_choices
-
-        super().__init__(data, *args, **kwargs)
 
     def missing_descriptions(self, queryset, name, value):
         """
