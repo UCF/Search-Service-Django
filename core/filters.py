@@ -3,6 +3,8 @@ from django import forms
 from django.conf import settings
 from django.db.models import Count
 
+from django.db import connection
+
 from programs.models import College
 
 class ProgramListFilterSet(django_filters.FilterSet):
@@ -13,13 +15,6 @@ class ProgramListFilterSet(django_filters.FilterSet):
         ('Career Paths Missing', 'jobs_missing')
     ]
 
-    colleges_choices = []
-
-    for college in College.objects.all():
-        colleges_choices.append(
-            (college.id, college.full_name.replace('College of ', ''))
-        )
-
     name = django_filters.CharFilter(
         lookup_expr='icontains',
         widget=forms.TextInput({'class': 'form-control mb-4' })
@@ -27,7 +22,7 @@ class ProgramListFilterSet(django_filters.FilterSet):
     colleges = django_filters.MultipleChoiceFilter(
         field_name='colleges',
         lookup_expr='in',
-        choices=colleges_choices,
+        choices=[],
         widget=forms.CheckboxSelectMultiple({
             'class': 'list-unstyled'
         })
@@ -50,6 +45,16 @@ class ProgramListFilterSet(django_filters.FilterSet):
 
     def __init__(self, data, *args, **kwargs):
         data = data.copy()
+
+        colleges_choices = []
+
+        for college in College.objects.all():
+            colleges_choices.append(
+                (college.id, college.full_name.replace('College of ', ''))
+            )
+
+        self.filters['colleges'].extra['choices'] = colleges_choices
+
         super().__init__(data, *args, **kwargs)
 
     def missing_descriptions(self, queryset, name, value):
