@@ -21,6 +21,8 @@ class Migration(migrations.Migration):
 
 
     dependencies = [
+        migrations.swappable_dependency('programs.College'),
+        migrations.swappable_dependency('programs.Department'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
