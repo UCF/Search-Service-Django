@@ -296,10 +296,11 @@ Finished in {datetime.now() - self.start_time}
                 'Unable to retrieve catalog IDs.'
             )
 
-    def __get_paged_results(self, url):
+    def __get_paged_results(self, url, params = {}):
         retval = []
         params = {
-            'limit': 100
+            'limit': 100,
+            **params
         }
 
         initial_response = self.__get_json_response(url, params=params)
@@ -327,8 +328,18 @@ Finished in {datetime.now() - self.start_time}
         Requests programs/tracks from Kuali, and prepares
         retrieved data for matching
         """
-        catalog_program_data = self.__get_paged_results(self.catalog_programs_url)
-        catalog_tracks_data = self.__get_paged_results(self.catalog_tracks_url)
+        today = datetime.now()
+        catalog_year = today.year if today.month >= 8 else today.year - 1
+
+        catalog_program_data = self.__get_paged_results(self.catalog_programs_url, {
+            'status': 'active',
+            'dateStart': f"gte({str(catalog_year)})"
+        })
+
+        catalog_tracks_data = self.__get_paged_results(self.catalog_tracks_url, {
+            'status': 'active'
+        })
+
         data = []
 
         try:
