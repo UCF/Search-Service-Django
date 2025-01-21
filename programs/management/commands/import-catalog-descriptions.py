@@ -480,15 +480,6 @@ Finished in {datetime.now() - self.start_time}
                     self.catalog_program_html_url.format(catalog_id, pid)
                 )
 
-                if pid in self.catalog_html_data and \
-                    self.catalog_html_data[pid] is not None:
-                    current_date = datetime.strptime(self.catalog_html_data[pid]['catalogActivationDate'], '%Y-%m-%d')
-                    new_date = datetime.strptime(program_html_data['catalogActivationDate'], '%Y-%m-%d')
-
-                    if current_date >= new_date:
-                        return None
-
-
                 if program_html_data:
                     # Store for reference for tracks
                     with self.mt_lock:
