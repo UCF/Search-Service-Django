@@ -296,10 +296,11 @@ Finished in {datetime.now() - self.start_time}
                 'Unable to retrieve catalog IDs.'
             )
 
-    def __get_paged_results(self, url):
+    def __get_paged_results(self, url, params = {}):
         retval = []
         params = {
-            'limit': 100
+            'limit': 100,
+            **params
         }
 
         initial_response = self.__get_json_response(url, params=params)
@@ -327,8 +328,18 @@ Finished in {datetime.now() - self.start_time}
         Requests programs/tracks from Kuali, and prepares
         retrieved data for matching
         """
-        catalog_program_data = self.__get_paged_results(self.catalog_programs_url)
-        catalog_tracks_data = self.__get_paged_results(self.catalog_tracks_url)
+        today = datetime.now()
+        catalog_year = today.year if today.month >= 8 else today.year - 1
+
+        catalog_program_data = self.__get_paged_results(self.catalog_programs_url, {
+            'status': 'active',
+            'dateStart': f"gte({str(catalog_year)})"
+        })
+
+        catalog_tracks_data = self.__get_paged_results(self.catalog_tracks_url, {
+            'status': 'active'
+        })
+
         data = []
 
         try:
@@ -468,15 +479,6 @@ Finished in {datetime.now() - self.start_time}
                 program_html_data = self.__get_json_response(
                     self.catalog_program_html_url.format(catalog_id, pid)
                 )
-
-                if pid in self.catalog_html_data and \
-                    self.catalog_html_data[pid] is not None:
-                    current_date = datetime.strptime(self.catalog_html_data[pid]['catalogActivationDate'], '%Y-%m-%d')
-                    new_date = datetime.strptime(program_html_data['catalogActivationDate'], '%Y-%m-%d')
-
-                    if current_date >= new_date:
-                        return None
-
 
                 if program_html_data:
                     # Store for reference for tracks
