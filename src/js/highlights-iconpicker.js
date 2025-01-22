@@ -171,7 +171,6 @@ const removeHighlight = (order) => {
     highlightsObj.forEach((item, index) => {
       item.data_order = index;
     });
-    console.log(highlightsObj);
     updateHighlightsWrapper(); // Update the UI after removing the item
   }
 };
