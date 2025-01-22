@@ -48,7 +48,10 @@ fetch('/static/js/fontawesome-v6.4.2.json')
 
 const addStory = (event) => {
   event.preventDefault();
-  const lastDataOrder = highlightsObj.length > 0 ? highlightsObj[highlightsObj.length - 1].data_order : -1;
+  const lastDataOrder =
+    highlightsObj.length > 0
+      ? highlightsObj[highlightsObj.length - 1].data_order
+      : -1;
   highlightsObj.push({
     data_order: lastDataOrder + 1,
     icon_class: '',
@@ -67,20 +70,32 @@ const updateHighlightsWrapper = () => {
   }
 
   const highlightsMarkUp = highlightsObj.map((item) => {
-    const dynamicClass = item.icon_class || 'text-muted fa-cloud-arrow-up fa m-2';
+    const dynamicClass =
+      item.icon_class || 'text-muted fa-cloud-arrow-up fa m-2';
+
+    // if highlights section is empty, close button will be hidden./
+    const hideCloseButtonClass =
+      item.icon_class === '' &&
+      item.description.trim() === '' &&
+      highlightsObj.length === 1
+        ? 'd-none'
+        : '';
+
     return `<div data-order="${item.data_order}" class="row mb-4">
       <div class="col-3">
+        <label for="icon-field-picker" class="h6">Icon</label>
         <div class="border py-3 d-flex flex-column align-items-center justify-content-center">
           <i class="fa fa-${dynamicClass} m-2" style="font-size: 4rem;"></i>
-          <button class="btn btn-primary mt-3" onclick="iconSelector(${item.data_order}, event)" data-bs-toggle="modal" data-bs-target="#iconModal">Click to Select</button>
+          <button id="icon-field-picker" class="btn btn-primary mt-3" onclick="iconSelector(${item.data_order}, event)" data-bs-toggle="modal" data-bs-target="#iconModal">Select an Icon</button>
         </div>
       </div>
       <div class="col-8">
+        <label for="highlights-des-textarea" class="h6">Description</label>
         <div class="form-group">
-          <textarea class="form-control" rows="7" maxlength="150" onkeyup="descriptionHandler(${item.data_order}, event)">${item.description}</textarea>
+          <textarea id="highlights-des-textarea" class="form-control" rows="7" maxlength="150" onkeyup="descriptionHandler(${item.data_order}, event)">${item.description}</textarea>
         </div>
       </div>
-      <div class="col-1 position-relative"><button type="button" class="btn-close p-3 position-absolute top-0 start-0" aria-label="Close" onclick="removeHighlight(${item.data_order})"></button>
+      <div class="col-1 position-relative"><button type="button" class="btn-close p-3 position-absolute top-0 start-0 ${hideCloseButtonClass}" aria-label="Close" onclick="removeHighlight(${item.data_order})"></button>
       </div>
     </div>`;
   });
@@ -118,12 +133,20 @@ const modalIconClassPicker = (event) => {
   const iconClassArray = event.target.classList;
   const faClass = iconClassArray[0].replace('fa-', '');
 
-  modalIconListContainer.childNodes.forEach((element) => {
-    element.firstChild.classList.remove('bg-primary', 'p-1');
-  });
-  tempIcon = faClass;
+  // Check if the clicked icon is already selected
+  if (tempIcon === faClass) {
+    // Deselect the icon
+    tempIcon = ''; // Reset the tempIcon
+    event.target.classList.remove('bg-primary', 'p-1'); // Remove highlight classes
+  } else {
+    // Select the icon
+    modalIconListContainer.childNodes.forEach((element) => {
+      element.firstChild.classList.remove('bg-primary', 'p-1');
+    });
 
-  event.target.classList.add('bg-primary', 'p-1');
+    tempIcon = faClass; // Update the selected icon
+    event.target.classList.add('bg-primary', 'p-1'); // Highlight the new selection
+  }
 };
 
 const descriptionHandler = (order, event) => {
@@ -137,7 +160,9 @@ const descriptionHandler = (order, event) => {
 };
 
 const removeHighlight = (order) => {
-  const indexToRemove = highlightsObj.findIndex((item) => item.data_order === order);
+  const indexToRemove = highlightsObj.findIndex(
+    (item) => item.data_order === order
+  );
 
   if (indexToRemove !== -1) {
     highlightsObj.splice(indexToRemove, 1);
@@ -146,7 +171,6 @@ const removeHighlight = (order) => {
     highlightsObj.forEach((item, index) => {
       item.data_order = index;
     });
-
     updateHighlightsWrapper(); // Update the UI after removing the item
   }
 };
