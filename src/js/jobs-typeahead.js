@@ -34,9 +34,3 @@ const $tf = $("#id_jobs").tokenfield({
 $("#id_jobs-tokenfield").on("typeahead:selected", (event, obj) => {
   $tf.tokenfield("createToken", obj.name);
 });
-
-$("#id_jobs-tokenfield").on("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-  }
-});
