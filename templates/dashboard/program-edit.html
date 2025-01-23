@@ -74,7 +74,7 @@
         </div>
         <div>
           <h2 class="h3 mt-3">Edit Highlights</h2>
-          <p>A list of selling points/highlighted information about this program.</p>
+          <p>List up to 4 standout features about this program with related icons. Focus on employer partnerships, industry rankings, career outcomes, salary data, and other unique program strengths that showcase its value.</p>
           <!-- Highlights -->
           <div id="highlights-wrapper">
             <div class="row d-block my-2">
@@ -88,7 +88,7 @@
               </div>
             </div>
           </div>
-          <div class="d-flex justify-content-center"><button class="btn btn-light" onclick="addStory(event)"><i class="fa-2xl fa-regular fa-square-plus"></i> Add Highlight</button></div>
+          <div class="d-flex justify-content-center"><button id="add-highlight-btn" class="btn btn-light" onclick="addStory(event)"><i class="fa-2xl fa-regular fa-square-plus"></i> Add Highlight</button></div>
             <!-- Modal -->
           <div class="modal fade" id="iconModal" tabindex="-1" aria-labelledby="iconModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -99,13 +99,12 @@
                 </div>
                 <div class="modal-body container">
                   <form>
-                      <input type="text" class="form-control" id="search-icon" placeholder="Search your icon" onkeyup="searchHandler(event)">
+                      <input type="text" class="form-control position-relative" id="search-icon" placeholder="Search thousands of icons" onkeyup="searchHandler(event)">
                   </form>
                   <div class="icon-list-container row mt-3"></div>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                  <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onClick="modalIconSelectBtn()">Click to Select</button>
+                  <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onClick="modalIconSelectBtn()">Use Icon</button>
                 </div>
               </div>
             </div>
