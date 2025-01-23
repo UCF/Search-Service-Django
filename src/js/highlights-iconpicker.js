@@ -6,6 +6,7 @@ let tempOrder = -1;
 const modalIconListContainer = document.querySelector('.icon-list-container');
 const highlightsWrapper = document.querySelector('#highlights-wrapper');
 const highlightsField = document.querySelector('input[name="highlights"]');
+const addButton = document.querySelector('#add-highlight-btn');
 
 let highlightsObj = [];
 
@@ -101,6 +102,13 @@ const updateHighlightsWrapper = () => {
   });
   highlightsWrapper.innerHTML = highlightsMarkUp.join('');
   highlightsField.value = JSON.stringify(highlightsObj);
+
+  // Show/hide the add button based on the number of highlights
+  if (highlightsObj.length >= 4) {
+    addButton.style.display = 'none';
+  } else {
+    addButton.style.display = 'block';
+  }
 };
 updateHighlightsWrapper();
 
