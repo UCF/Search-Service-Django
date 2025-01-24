@@ -672,7 +672,7 @@ class ProgramAuditData(models.Model):
     related to programs.
     """
     program = models.OneToOneField(Program, related_name='audit_data', on_delete=models.CASCADE)
-    jobs_source = models.TextField(null=False, blank=False, default='U.S. Bureau of Labor Statistics - Classification of Instructional Programs (CIP) to Standard Occupational Classification (SOC) mapping done for employment projection reports')
+    jobs_source = models.TextField(null=False, blank=False, default='')
 
     def __str__(self):
         return f"{self.program} - Audit Data"
