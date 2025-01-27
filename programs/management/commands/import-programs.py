@@ -27,6 +27,7 @@ class Command(BaseCommand):
     programs_added = 0
     programs_revalidated = 0
     programs_invalidated = 0
+    programs_deleted = 0
     programs_gained_locations = 0
     programs_lost_locations = 0
     programs_updated = 0
@@ -96,6 +97,12 @@ class Command(BaseCommand):
         response = requests.get(path)
         self.actor_id = getattr(settings, 'IMPORT_USER_ID', 1)
 
+        self.all_programs = {}
+
+        for p in Program.objects.all():
+            self.all_programs[p.pk] = p
+
+
         if mapping_path and not self.use_internal_mapping:
             mapping_resp = requests.get(mapping_path)
             self.mappings = mapping_resp.json()
@@ -122,6 +129,7 @@ class Command(BaseCommand):
                     self.programs_skipped += 1
 
             self.invalidate_stale_programs()
+            self.remove_missing_programs()
             self.__create_import_record()
             self.print_results()
 
@@ -437,6 +445,9 @@ class Command(BaseCommand):
 
         program.save()
 
+        if program.pk in self.all_programs.keys():
+            del self.all_programs[program.pk]
+
         return program
 
     def add_subplan(self, data, parent):
@@ -550,6 +561,9 @@ class Command(BaseCommand):
 
         program.save()
 
+        if program.pk in self.all_programs.keys():
+            del self.all_programs[program.pk]
+
     def program_is_online(self, data):
         """
         Determines whether a program from APIM should
@@ -598,6 +612,11 @@ class Command(BaseCommand):
 
         self.programs_invalidated += stale_programs.count()
 
+    def remove_missing_programs(self):
+        for program in self.all_programs.values():
+            program.delete()
+            self.programs_deleted += 1
+
     def print_results(self):
         """
         Prints the results of the import to the stdout
@@ -608,6 +627,7 @@ class Command(BaseCommand):
             ('Programs Created', self.programs_added),
             ('Programs Updated', self.programs_updated),
             ('Programs Invalidated', self.programs_invalidated),
+            ('Programs Deleted', self.programs_deleted),
             ('Programs Revalidated', self.programs_revalidated),
             ('Programs that Gained Active Locations', self.programs_gained_locations),
             ('Programs that Lost Active Locations', self.programs_lost_locations)
