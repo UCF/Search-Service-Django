@@ -31,6 +31,13 @@ const $tf = $('#id_jobs').tokenfield({
   limit: 10
 });
 
+$('#id_jobs-tokenfield').on('typeahead:render', () => {
+  const $firstSuggestion = $('.tt-suggestion').first();
+  if ($firstSuggestion.length) {
+    $firstSuggestion.addClass('tt-cursor'); // Highlight the first suggestion
+  }
+});
+
 $('#id_jobs-tokenfield').on('typeahead:selected', (event, obj) => {
   $tf.tokenfield('createToken', obj.name);
 });

@@ -87,7 +87,7 @@ const updateHighlightsWrapper = () => {
         <label for="icon-field-picker" class="h6">Icon</label>
         <div class="border py-3 d-flex flex-column align-items-center justify-content-center">
           <i class="fa fa-${dynamicClass} m-2" style="font-size: 4rem;"></i>
-          <button id="icon-field-picker" class="btn btn-primary mt-3" onclick="iconSelector(${item.data_order}, event)" data-bs-toggle="modal" data-bs-target="#iconModal">Select an Icon</button>
+          <button type="button" id="icon-field-picker" class="btn btn-primary mt-3" onclick="iconSelector(${item.data_order}, event)" data-bs-toggle="modal" data-bs-target="#iconModal">Select an Icon</button>
         </div>
       </div>
       <div class="col-8">
