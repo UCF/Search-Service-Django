@@ -40,4 +40,13 @@ $('#id_jobs-tokenfield').on('typeahead:render', () => {
 
 $('#id_jobs-tokenfield').on('typeahead:selected', (event, obj) => {
   $tf.tokenfield('createToken', obj.name);
+  setTimeout(() => {
+    event.target.value = '';
+  }, 1);
+});
+
+$('#id_jobs-tokenfield').on('blur', (event, obj) => {
+  setTimeout(() => {
+    event.target.value = '';
+  }, 1);
 });
