@@ -45,7 +45,7 @@ $('#id_jobs-tokenfield').on('typeahead:selected', (event, obj) => {
   }, 1);
 });
 
-$('#id_jobs-tokenfield').on('blur', (event, obj) => {
+$('#id_jobs-tokenfield').on('focusout', (event, obj) => {
   setTimeout(() => {
     event.target.value = '';
   }, 1);
