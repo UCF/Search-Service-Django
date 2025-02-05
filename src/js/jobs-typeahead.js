@@ -1,5 +1,3 @@
-import Tagify from '@yaireo/tagify';
-
 const inputElem = document.querySelector('#id_jobs');
 
 // Initialize Tagify
