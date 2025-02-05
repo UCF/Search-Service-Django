@@ -1,52 +1,87 @@
-const engine = new Bloodhound({
-  queryTokenizer: Bloodhound.tokenizers.whitespace,
-  datumTokenizer: function (datum) {
-    return Bloodhound.tokenizers.whitespace(datum.name);
-  },
-  remote: {
-    url: `${JOBS_TYPEAHEAD_URL}?search=%query`,
-    transform: function (response) {
-      return response.results;
-    },
-    wildcard: '%query'
+import Tagify from '@yaireo/tagify';
+
+const inputElem = document.querySelector('#id_jobs');
+
+// Initialize Tagify
+const tagify = new Tagify(inputElem, {
+  enforceWhitelist: false,
+  whitelist: [],
+  dropdown: {
+    enabled: 1, // Show dropdown when typing
+    maxItems: 10,
+    highlightFirst: true
   }
 });
 
-const $tf = $('#id_jobs').tokenfield({
-  typeahead: [
-    null,
-    {
-      name: 'available-jobs',
-      source: engine.ttAdapter(),
-      displayKey: 'name',
-      templates: {
-        notFound: '<div class="tt-suggestion">Not Found</div>',
-        pending: '<div class="tt-suggestion">Loading...</div>',
-        suggestion: function (data) {
-          return `<div data-job-id="${data.id}">${data.name}</div>`;
-        }
-      }
-    }
-  ],
-  limit: 10
-});
+// Cache to store previous API results
+const cache = new Map();
 
-$('#id_jobs-tokenfield').on('typeahead:render', () => {
-  const $firstSuggestion = $('.tt-suggestion').first();
-  if ($firstSuggestion.length) {
-    $firstSuggestion.addClass('tt-cursor'); // Highlight the first suggestion
+// Function to fetch data from API dynamically
+async function fetchWhitelist(query) {
+  if (cache.has(query)) {
+    console.log('Using cached results for:', query);
+    return cache.get(query);
   }
+
+  try {
+    const response = await fetch(
+      `${JOBS_TYPEAHEAD_URL}?search=${encodeURIComponent(query)}`
+    );
+    const data = await response.json();
+    const results = data.results.map((job) => ({
+      value: job.name,
+      id: job.id
+    }));
+
+    cache.set(query, results); // Cache results
+    return results;
+  } catch (error) {
+    console.error('Error fetching whitelist:', error);
+    return [];
+  }
+}
+
+// Debounce function to prevent excessive API calls
+function debounce(func, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+}
+
+// Handle input event (debounced API requests)
+const onInputDebounced = debounce(async (e) => {
+  const query = e.detail.value.trim();
+
+  if (query.length < 2) {
+    return;
+  } // Only search when more than 2 characters
+
+  tagify.loading(true);
+  tagify.whitelist = [];
+
+  const results = await fetchWhitelist(query);
+  tagify.settings.whitelist = results;
+  tagify.whitelist = [...results];
+  tagify.loading(false);
+  tagify.dropdown.show(query);
+}, 300); // Delay API calls by 300ms
+
+// Attach input event
+tagify.on('input', onInputDebounced);
+
+// Handle tag addition
+tagify.on('add', (e) => {
+  console.log('Tag added:', e.detail);
 });
 
-$('#id_jobs-tokenfield').on('typeahead:selected', (event, obj) => {
-  $tf.tokenfield('createToken', obj.name);
-  setTimeout(() => {
-    event.target.value = '';
-  }, 1);
+// Handle tag removal
+tagify.on('remove', (e) => {
+  console.log('Tag removed:', e.detail);
 });
 
-$('#id_jobs-tokenfield').on('focusout', (event, obj) => {
-  setTimeout(() => {
-    event.target.value = '';
-  }, 1);
+// Handle dropdown selection
+tagify.on('dropdown:select', (e) => {
+  console.log('Selected job:', e.detail);
 });
