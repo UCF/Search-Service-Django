@@ -8,7 +8,8 @@ const tagify = new Tagify(inputElem, {
     enabled: 1, // Show dropdown when typing
     maxItems: 10,
     highlightFirst: true
-  }
+  },
+  maxTags: 10
 });
 
 // Cache to store previous API results
