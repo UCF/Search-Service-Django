@@ -68,6 +68,7 @@
         <h2 class="h3">Edit Career Paths</h4>
         <p>List up to 10 career opportunities/career titles/career paths that graduates of this program could seek (e.g. Marketing Analyst, Data Scientist, Theme Park Designer, etc.)</p>
         {{ form.jobs }}
+        <p class="d-none text-danger mt-1" id="career-paths-notice"></p>
         <div>
           <label for="{{ form.jobs_source.id_for_label }}" class="h6 d-block mt-3 mb-2">Data Source(s)</label>
           <p>Specify the sources or individuals that provided career paths and job title information. Example: U.S. Bureau of Labor Statistics - Classification of Instructional Programs (CIP) to Standard Occupational Classification (SOC) mapping done for employment projection reports.</p>

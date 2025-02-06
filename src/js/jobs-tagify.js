@@ -1,5 +1,5 @@
 const inputElem = document.querySelector('#id_jobs');
-
+const noticeText = document.querySelector('#career-paths-notice');
 // Initialize Tagify
 const tagify = new Tagify(inputElem, {
   enforceWhitelist: false,
@@ -67,14 +67,25 @@ const onInputDebounced = debounce(async (e) => {
   tagify.dropdown.show(query);
 }, 300); // Delay API calls by 300ms
 
+// Attach keydown event
+tagify.on('keydown', (e) => {
+  if (noticeText.classList.contains('d-none')) {
+    return;
+  }
+  noticeText.classList.add('d-none');
+});
+
 // Attach input event
 tagify.on('input', onInputDebounced);
 
+// Validate tagify input
 tagify.on('invalid', (e) => {
   if (e.detail.data.__isValid === 'already exists') {
-    console.log('Invalidated:', e.detail.data.value + e.detail.data.__isValid);
+    noticeText.classList.remove('d-none');
+    noticeText.textContent = 'This career already exists';
   }
   if (e.detail.data.__isValid === 'number of tags exceeded') {
-    console.log('You can only add 10 tags');
+    noticeText.classList.remove('d-none');
+    noticeText.textContent = 'You could add up to 10 career only.';
   }
 });
