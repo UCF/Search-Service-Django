@@ -70,6 +70,11 @@ const onInputDebounced = debounce(async (e) => {
 // Attach input event
 tagify.on('input', onInputDebounced);
 
-tagify.on('isTagDuplicate', (e) => {
-  console.log('Duplicate tag detected:', e.detail.data.value);
+tagify.on('invalid', (e) => {
+  if (e.detail.data.__isValid === 'already exists') {
+    console.log('Invalidated:', e.detail.data.value + e.detail.data.__isValid);
+  }
+  if (e.detail.data.__isValid === 'number of tags exceeded') {
+    console.log('You can only add 10 tags');
+  }
 });
