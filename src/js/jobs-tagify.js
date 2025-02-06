@@ -1,5 +1,5 @@
 const inputElem = document.querySelector('#id_jobs');
-
+const noticeText = document.querySelector('#career-paths-notice');
 // Initialize Tagify
 const tagify = new Tagify(inputElem, {
   enforceWhitelist: false,
@@ -18,7 +18,7 @@ const cache = new Map();
 // Function to fetch data from API dynamically
 async function fetchWhitelist(query) {
   if (cache.has(query)) {
-    console.log('Using cached results for:', query);
+    // console.log('Using cached results for:', query);
     return cache.get(query);
   }
 
@@ -67,20 +67,25 @@ const onInputDebounced = debounce(async (e) => {
   tagify.dropdown.show(query);
 }, 300); // Delay API calls by 300ms
 
+// Attach keydown event
+tagify.on('keydown', (e) => {
+  if (noticeText.classList.contains('d-none')) {
+    return;
+  }
+  noticeText.classList.add('d-none');
+});
+
 // Attach input event
 tagify.on('input', onInputDebounced);
 
-// Handle tag addition
-tagify.on('add', (e) => {
-  console.log('Tag added:', e.detail);
-});
-
-// Handle tag removal
-tagify.on('remove', (e) => {
-  console.log('Tag removed:', e.detail);
-});
-
-// Handle dropdown selection
-tagify.on('dropdown:select', (e) => {
-  console.log('Selected job:', e.detail);
+// Validate tagify input
+tagify.on('invalid', (e) => {
+  if (e.detail.data.__isValid === 'already exists') {
+    noticeText.classList.remove('d-none');
+    noticeText.textContent = 'This career already exists';
+  }
+  if (e.detail.data.__isValid === 'number of tags exceeded') {
+    noticeText.classList.remove('d-none');
+    noticeText.textContent = 'You could add up to 10 career only.';
+  }
 });
