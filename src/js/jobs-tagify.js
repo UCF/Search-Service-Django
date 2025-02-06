@@ -1,4 +1,4 @@
-const inputElem = document.querySelector("#id_jobs");
+const inputElem = document.querySelector('#id_jobs');
 
 // Initialize Tagify
 const tagify = new Tagify(inputElem, {
@@ -7,9 +7,9 @@ const tagify = new Tagify(inputElem, {
   dropdown: {
     enabled: 1, // Show dropdown when typing
     maxItems: 10,
-    highlightFirst: true,
+    highlightFirst: true
   },
-  maxTags: 10,
+  maxTags: 10
 });
 
 // Cache to store previous API results
@@ -18,7 +18,7 @@ const cache = new Map();
 // Function to fetch data from API dynamically
 async function fetchWhitelist(query) {
   if (cache.has(query)) {
-    console.log("Using cached results for:", query);
+    // console.log('Using cached results for:', query);
     return cache.get(query);
   }
 
@@ -29,13 +29,13 @@ async function fetchWhitelist(query) {
     const data = await response.json();
     const results = data.results.map((job) => ({
       value: job.name,
-      id: job.id,
+      id: job.id
     }));
 
     cache.set(query, results); // Cache results
     return results;
   } catch (error) {
-    console.error("Error fetching whitelist:", error);
+    console.error('Error fetching whitelist:', error);
     return [];
   }
 }
@@ -68,4 +68,8 @@ const onInputDebounced = debounce(async (e) => {
 }, 300); // Delay API calls by 300ms
 
 // Attach input event
-tagify.on("input", onInputDebounced);
+tagify.on('input', onInputDebounced);
+
+tagify.on('isTagDuplicate', (e) => {
+  console.log('Duplicate tag detected:', e.detail.data.value);
+});
