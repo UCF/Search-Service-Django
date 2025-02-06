@@ -202,7 +202,7 @@ gulp.task("js-build-theme", () => {
   return buildJS(`${config.src.jsPath}/script.js`, config.dist.jsPath);
 });
 
-gulp.task("js-build-tagify", () => {
+gulp.task('js-build-tagify', () => {
   return buildJS(`${config.src.jsPath}/jobs-tagify.js`, config.dist.jsPath);
 });
 
@@ -214,15 +214,7 @@ gulp.task("js-build-highlights", () => {
 });
 
 // All js-related tasks
-gulp.task(
-  "js",
-  gulp.series(
-    "es-lint-theme",
-    "js-build-theme",
-    "js-build-tagify",
-    "js-build-highlights"
-  )
-);
+gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme', 'js-build-tagify', 'js-build-highlights'));
 
 //
 // Rerun tasks when files change
