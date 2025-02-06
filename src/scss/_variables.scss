@@ -7,41 +7,40 @@ $primary: #fc0;
 $blue-dark: #0262b6 !default; // custom
 
 // Create grayscale
-$gray-darkest:              #292b2c !default; // custom
-$gray-darker:               #464a4c !default; // custom
-$gray-dark:                 #636c72 !default; // modified
-$gray:                      #767676 !default; // modified
-$gray-light:                #ccc !default; // modified
-$gray-lighter:              #eceeef !default;
-$gray-lightest:             #f7f7f9 !default;
+$gray-darkest: #292b2c !default; // custom
+$gray-darker: #464a4c !default; // custom
+$gray-dark: #636c72 !default; // modified
+$gray: #767676 !default; // modified
+$gray-light: #ccc !default; // modified
+$gray-lighter: #eceeef !default;
+$gray-lightest: #f7f7f9 !default;
 
-
-$link-color:            $blue-dark !default; // modified
-$link-decoration:       underline !default; // modified
-$link-hover-color:      darken($link-color, 15%) !default;
+$link-color: $blue-dark !default; // modified
+$link-decoration: underline !default; // modified
+$link-hover-color: darken($link-color, 15%) !default;
 $link-hover-decoration: underline !default;
 
 //
 // Border Radii
 //
-$btn-border-radius:              0 !default; // modified
-$btn-border-radius-lg:           0 !default; // modified
-$btn-border-radius-sm:           0 !default; // modified
+$btn-border-radius: 0 !default; // modified
+$btn-border-radius-lg: 0 !default; // modified
+$btn-border-radius-sm: 0 !default; // modified
 
-$input-border-radius:            0 !default; // modified
-$input-border-radius-lg:         0 !default; // modified
-$input-border-radius-sm:         0 !default; // modified
+$input-border-radius: 0 !default; // modified
+$input-border-radius-lg: 0 !default; // modified
+$input-border-radius-sm: 0 !default; // modified
 
-$card-border-radius:             0 !default; // modified
-$card-border-radius-inner:       0 !default; // modified
+$card-border-radius: 0 !default; // modified
+$card-border-radius-inner: 0 !default; // modified
 
-$alert-border-radius:            0 !default; // modified
-$alert-border-width:             0 !default; // modified
+$alert-border-radius: 0 !default; // modified
+$alert-border-width: 0 !default; // modified
 
 //
 // Fonts and typography
 //
-$athena-font-path: '../webfonts';
+$athena-font-path: "../webfonts";
 
 // Custom - line height sizing
 $line-height: (
@@ -51,40 +50,45 @@ $line-height: (
   3: 1.325,
   4: 1.4,
   5: 1.5,
-  6: 1.65
+  6: 1.65,
 ) !default;
 
-$spacer:   1rem !default;
+$spacer: 1rem !default;
 
 // Font, line-height, and color for body text, headings, and more.
-$font-family-sans-serif: 'UCF Sans Serif Alt', 'Helvetica Neue', Arial, sans-serif !default; // modified
-$font-family-serif:      Georgia, 'Times New Roman', Times, serif !default; // modified
-$font-family-slab-serif: 'UCF Slab Serif Alt', serif !default; // custom
-$font-family-condensed:  'UCF Condensed Alt', sans-serif !default; // custom
-$font-family-monospace:  Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !default;
-$font-family-base:       $font-family-sans-serif !default;
+$font-family-sans-serif: "UCF Sans Serif Alt", "Helvetica Neue", Arial,
+  sans-serif !default; // modified
+$font-family-serif: Georgia, "Times New Roman", Times, serif !default; // modified
+$font-family-slab-serif: "UCF Slab Serif Alt", serif !default; // custom
+$font-family-condensed: "UCF Condensed Alt", sans-serif !default; // custom
+$font-family-monospace: Menlo, Monaco, Consolas, "Liberation Mono",
+  "Courier New", monospace !default;
+$font-family-base: $font-family-sans-serif !default;
 
-$font-size-lg:   1.25rem !default;
-$font-size-md:   1rem !default; // custom
-$font-size-sm:   .875rem !default;
-$font-size-xs:   .75rem !default;
-$font-size-base:    $font-size-sm !default; // modified, moved
+$font-size-lg: 1.25rem !default;
+$font-size-md: 1rem !default; // custom
+$font-size-sm: 0.875rem !default;
+$font-size-xs: 0.75rem !default;
+$font-size-base: $font-size-sm !default; // modified, moved
 $font-size-base-md: $font-size-md !default; // custom
-$font-size-lg-xs:   .925rem; // custom; using non-mobile-first var name for backward compat.
-$font-size-sm-xs:   $font-size-xs; // custom; using non-mobile-first var name for backward compat.
+$font-size-lg-xs: 0.925rem; // custom; using non-mobile-first var name for backward compat.
+$font-size-sm-xs: $font-size-xs; // custom; using non-mobile-first var name for backward compat.
 
 $font-weight-normal: normal !default;
 $font-weight-bold: bold !default;
 
 $font-weight-base: $font-weight-normal !default;
-$line-height-base: map-get($line-height, 5) !default; // modified, but same calculated value as Bootstrap
+$line-height-base: map-get(
+  $line-height,
+  5
+) !default; // modified, but same calculated value as Bootstrap
 
 $font-size-h1: 2rem !default; // modified
 $font-size-h2: 1.7rem !default; // modified
 $font-size-h3: 1.45rem !default; // modified
 $font-size-h4: 1.2rem !default; // modified
 $font-size-h5: 1rem !default; // modified
-$font-size-h6: .75rem !default; // modified
+$font-size-h6: 0.75rem !default; // modified
 $font-size-h1-md: 2.5rem !default; // custom
 $font-size-h2-md: 2rem !default; // custom
 $font-size-h3-md: 1.75rem !default; // custom
@@ -92,16 +96,19 @@ $font-size-h4-md: 1.5rem !default; // custom
 $font-size-h5-md: 1.25rem !default; // custom
 $font-size-h6-md: 1rem !default; // custom
 
-$font-serif-heading-size-ratio:      1.1 !default; // custom
+$font-serif-heading-size-ratio: 1.1 !default; // custom
 $font-slab-serif-heading-size-ratio: 1.15 !default; // custom
-$font-condensed-heading-size-ratio:  1.75 !default; // custom
+$font-condensed-heading-size-ratio: 1.75 !default; // custom
 
-$headings-margin-bottom:   ($spacer * .5) !default;
-$headings-font-family:     inherit !default;
-$headings-font-weight:     600 !default; // modified
-$headings-line-height:     map-get($line-height, 1) !default; // modified, but same calculated value as Bootstrap
-$headings-line-height-min: .875 !default; // custom
-$headings-color:           inherit !default;
+$headings-margin-bottom: ($spacer * 0.5) !default;
+$headings-font-family: inherit !default;
+$headings-font-weight: 600 !default; // modified
+$headings-line-height: map-get(
+  $line-height,
+  1
+) !default; // modified, but same calculated value as Bootstrap
+$headings-line-height-min: 0.875 !default; // custom
+$headings-color: inherit !default;
 
 $display1-size: 14vw !default; // modified
 $display2-size: 12vw !default; // modified
@@ -116,63 +123,54 @@ $display2-size-md: 5.5rem !default; // custom
 $display3-size-md: 4.5rem !default; // custom
 $display4-size-md: 3.5rem !default; // custom
 
-$display1-weight:         600 !default; // modified
-$display2-weight:         600 !default; // modified
-$display3-weight:         600 !default; // modified
-$display4-weight:         600 !default; // modified
-$display-line-height:     $headings-line-height !default;
+$display1-weight: 600 !default; // modified
+$display2-weight: 600 !default; // modified
+$display3-weight: 600 !default; // modified
+$display4-weight: 600 !default; // modified
+$display-line-height: $headings-line-height !default;
 $display-line-height-min: $headings-line-height-min !default; // custom
 
-$lead-font-size:    1rem !default; // modified
+$lead-font-size: 1rem !default; // modified
 $lead-font-size-md: 1.4rem !default; // custom
-$lead-font-weight:  400 !default; // modified
-$lead-line-height:  $line-height-base !default; // custom variable, but copied behavior from Bootstrap
+$lead-font-weight: 400 !default; // modified
+$lead-line-height: $line-height-base !default; // custom variable, but copied behavior from Bootstrap
 
-$font-serif-lead-size:         $lead-font-size * 1.2 !default; // custom
-$font-serif-lead-size-md:      $lead-font-size-md * 1.14 !default; // custom
-$font-slab-serif-lead-size:    $lead-font-size * 1.25 !default; // custom
+$font-serif-lead-size: $lead-font-size * 1.2 !default; // custom
+$font-serif-lead-size-md: $lead-font-size-md * 1.14 !default; // custom
+$font-slab-serif-lead-size: $lead-font-size * 1.25 !default; // custom
 $font-slab-serif-lead-size-md: $lead-font-size-md * 1.2 !default; // custom
-$font-serif-lead-line-height:      map-get($line-height, 3) !default; // custom
+$font-serif-lead-line-height: map-get($line-height, 3) !default; // custom
 $font-slab-serif-lead-line-height: map-get($line-height, 3) !default; // custom
 
-$small-font-size: max(.7rem, .7em) !default;
-$small-font-size-fixed: .725rem !default; // custom
-$sub-font-size: max(.6rem, .6em) !default; // custom
-$sub-font-size-fixed: .7rem !default; // custom
-$sup-font-size: max(.6rem, .6em) !default; // custom
-$sup-font-size-fixed: .7rem !default; // custom
+$small-font-size: max(0.7rem, 0.7em) !default;
+$small-font-size-fixed: 0.725rem !default; // custom
+$sub-font-size: max(0.6rem, 0.6em) !default; // custom
+$sub-font-size-fixed: 0.7rem !default; // custom
+$sup-font-size: max(0.6rem, 0.6em) !default; // custom
+$sup-font-size-fixed: 0.7rem !default; // custom
 
 $text-muted: $gray-dark !default; // modified
 
 $abbr-border-color: $gray-dark !default; // modified
 
-$blockquote-small-color:  $gray-dark !default; // modified
-$blockquote-font-size:    $lead-font-size !default; // modified
+$blockquote-small-color: $gray-dark !default; // modified
+$blockquote-font-size: $lead-font-size !default; // modified
 $blockquote-font-size-md: $lead-font-size-md !default; // custom
 $blockquote-border-color: transparent !default; // modified
 $blockquote-border-width: 0 !default; // modified
 $blockquote-line-height: $line-height-base !default; // custom variable, but copied behavior from Bootstrap
 
-$font-serif-blockquote-size:         $font-serif-lead-size !default; // custom
-$font-serif-blockquote-size-md:      $font-serif-lead-size-md !default; // custom
-$font-slab-serif-blockquote-size:    $font-slab-serif-lead-size !default; // custom
+$font-serif-blockquote-size: $font-serif-lead-size !default; // custom
+$font-serif-blockquote-size-md: $font-serif-lead-size-md !default; // custom
+$font-slab-serif-blockquote-size: $font-slab-serif-lead-size !default; // custom
 $font-slab-serif-blockquote-size-md: $font-slab-serif-lead-size-md !default; // custom
-$font-serif-blockquote-line-height:      $font-serif-lead-line-height !default; // custom
+$font-serif-blockquote-line-height: $font-serif-lead-line-height !default; // custom
 $font-slab-serif-blockquote-line-height: $font-slab-serif-lead-line-height !default; // custom
 
 $blockquote-quotation-mark-font-family: Arial, sans-serif !default; // custom
 
 //
-// Typeahead Variables
-//
-$btn-font-size: $font-size-base !default;
-$btn-padding-y: .75rem !default; // modified
-$input-padding-y: $btn-padding-y - (($font-size-base-md - $btn-font-size) * .5) !default; // modified
-$input-padding-y-md: $btn-padding-y !default; // custom
-
-//
 // Font Awesome Variables
 //
 
-$fa-font-path: '../webfonts';
-
+$fa-font-path: "../webfonts";
