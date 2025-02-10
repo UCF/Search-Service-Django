@@ -86,6 +86,6 @@ tagify.on('invalid', (e) => {
   }
   if (e.detail.data.__isValid === 'number of tags exceeded') {
     noticeText.classList.remove('d-none');
-    noticeText.textContent = 'You could add up to 10 career only.';
+    noticeText.textContent = 'Maximum limit reached. You can add up to 10 career paths.';
   }
 });
