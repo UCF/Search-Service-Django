@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             ('CREATE FULLTEXT INDEX teledata_name_index ON `teledata_combinedteledataview` (`first_name`, `last_name`)',),
-            ('DROP INDEX teledata_name_index on teledata_combinedteledataview',)
+            ('DROP INDEX teledata_name_index on teledata_combinedteledataview',),
+            hints={'target_db': 'mysql'}
         )
     ]
