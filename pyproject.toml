@@ -25,9 +25,10 @@ dependencies = [
     "pysaml2~=7.3.0",
     "raven",
     "requests",
+    "setuptools>=75.8.0",
     "sqlparse",
     "tabulate",
-    "Unidecode"
+    "Unidecode",
 ]
 
 [project.optional-dependencies]
