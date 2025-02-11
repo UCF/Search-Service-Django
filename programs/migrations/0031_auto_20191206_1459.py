@@ -9,15 +9,17 @@ from programs.models import ProgramOutcomeStat
 
 class Migration(migrations.Migration):
 
+    def forward(apps, schema_editor):
+        ProgramOutcomeStat = apps.get_model('programs', 'ProgramOutcomeStat')
+        ProgramOutcomeStat.objects.all().delete()
+
+
     dependencies = [
         ('programs', '0030_auto_20191205_1727'),
     ]
 
     operations = [
-        migrations.RunSQL(
-            'TRUNCATE TABLE `programs_programoutcomestat`',
-            'TRUNCATE TABLE `programs_programoutcomestat`'
-        ),
+        migrations.RunPython(forward),
         migrations.RemoveField(
             model_name='programoutcomestat',
             name='program',
