@@ -7,14 +7,18 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
+    def forward(apps, schema_editor):
+        if schema_editor.connection.vendor == 'mysql':
+            migrations.RunSQL('CREATE FULLTEXT INDEX teledata_name_index ON `teledata_combinedteledataview` (`first_name`, `last_name`)',)
+
+    def reverse(apps, schema_editor):
+        if schema_editor.connection.vendor == 'mysql':
+            migrations.RunSQL('DROP INDEX teledata_name_index on teledata_combinedteledataview',)
+
     dependencies = [
         ('teledata', '0004_combinedteledataview'),
     ]
 
     operations = [
-        migrations.RunSQL(
-            ('CREATE FULLTEXT INDEX teledata_name_index ON `teledata_combinedteledataview` (`first_name`, `last_name`)',),
-            ('DROP INDEX teledata_name_index on teledata_combinedteledataview',),
-            hints={'target_db': 'mysql'}
-        )
+        migrations.RunPython(forward, reverse)
     ]

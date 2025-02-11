@@ -4,8 +4,6 @@
 
 from django.db import migrations, models
 
-from teledata.models import CombinedTeledata
-
 def forward_migration(apps, schema_editor):
     CombinedTeledata.objects.update_data()
 
@@ -14,21 +12,27 @@ def reverse_migration(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    def forward_prep(apps, schema):
+        if schema.connection.vendor == 'mysql':
+            migrations.RunSQL('ALTER TABLE `teledata_combinedteledata` ENGINE = MyISAM')
+
+        CombinedTeledata = apps.get_model('teledata', 'CombinedTeledata')
+        CombinedTeledata.objects.all().delete()
+
+    def reverse_prep(apps, schema):
+        if schema.connection.vendor == 'mysql':
+            migrations.RunSQL('ALTER TABLE `teledata_combinedteledata` ENGINE = InnoDB')
+
+        CombinedTeledata = apps.get_model('teledata', 'CombinedTeledata')
+        CombinedTeledata.objects.all().delete()
+
     dependencies = [
         ('teledata', '0008_auto_20191107_1951'),
     ]
 
     operations = [
         # Alter db engine so we can have multiple fulltext indexes
-        migrations.RunSQL(
-            ('ALTER TABLE `teledata_combinedteledata` ENGINE = MyISAM'),
-            ('ALTER TABLE `teledata_combinedteledata` ENGINE = InnoDB')
-        ),
-        # Truncate all the data in the table
-        migrations.RunSQL(
-            ('TRUNCATE TABLE teledata_combinedteledata'),
-            ('TRUNCATE TABLE teledata_combinedteledata')
-        ),
+        migrations.RunPython(forward_prep, reverse_prep),
         # Remove the primary key as we're renaming it
         migrations.RemoveField(
             model_name='combinedteledata',
