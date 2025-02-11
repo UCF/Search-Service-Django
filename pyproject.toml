@@ -23,7 +23,6 @@ dependencies = [
     "progress",
     "python-dateutil",
     "pysaml2~=7.3.0",
-    "python-Levenshtein==0.12.2",
     "raven",
     "requests",
     "sqlparse",
@@ -34,6 +33,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "django-extensions",
+    "python-Levenshtein==0.12.2",
     "spacy",
     "Werkzeug"
 ]
