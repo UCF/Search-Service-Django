@@ -4,10 +4,10 @@
 
 from django.db import migrations, models
 
-from teledata import models
+import teledata
 
 def forward_migration(apps, schema_editor):
-    models.CombinedTeledata.objects.update_data()
+    teledata.models.CombinedTeledata.objects.update_data()
 
 def reverse_migration(apps, schema_editor):
     pass
