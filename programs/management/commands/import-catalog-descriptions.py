@@ -331,10 +331,18 @@ Finished in {datetime.now() - self.start_time}
         today = datetime.now()
         catalog_year = today.year if today.month >= 8 else today.year - 1
 
-        catalog_program_data = self.__get_paged_results(self.catalog_programs_url, {
+        graduate_catalog_programs = self.__get_paged_results(self.catalog_programs_url, {
             'status': 'active',
-            'dateStart': f"gte({str(catalog_year)})"
+            'dateStart': f"gte({str(catalog_year)})",
+            'academicLevel': 'graduate'
         })
+
+        undergraduate_catalog_programs = self.__get_paged_results(self.catalog_programs_url, {
+            'status': 'active',
+            'academicLevel': 'undergraduate'
+        })
+
+        catalog_program_data = graduate_catalog_programs + undergraduate_catalog_programs
 
         catalog_tracks_data = self.__get_paged_results(self.catalog_tracks_url, {
             'status': 'active'
