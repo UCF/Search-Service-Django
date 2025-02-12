@@ -2,6 +2,8 @@ const inputElem = document.querySelector('#id_jobs');
 const noticeText = document.querySelector('#career-paths-notice');
 // Initialize Tagify
 const tagify = new Tagify(inputElem, {
+  // Based on the documentation, This helper function is used to format the value of the input field in the comma-separated format.
+  originalInputValueFormat: (valuesArr) => valuesArr.map((item) => item.value).join(','),
   enforceWhitelist: false,
   whitelist: [],
   dropdown: {
@@ -18,7 +20,6 @@ const cache = new Map();
 // Function to fetch data from API dynamically
 async function fetchWhitelist(query) {
   if (cache.has(query)) {
-    // console.log('Using cached results for:', query);
     return cache.get(query);
   }
 
@@ -27,10 +28,7 @@ async function fetchWhitelist(query) {
       `${JOBS_TAGIFY_URL}?search=${encodeURIComponent(query)}`
     );
     const data = await response.json();
-    const results = data.results.map((job) => ({
-      value: job.name,
-      id: job.id
-    }));
+    const results = data.results.map((job) => job.name);
 
     cache.set(query, results); // Cache results
     return results;
@@ -65,6 +63,7 @@ const onInputDebounced = debounce(async (e) => {
   tagify.whitelist = [...results];
   tagify.loading(false);
   tagify.dropdown.show(query);
+
 }, 300); // Delay API calls by 300ms
 
 // Attach keydown event
