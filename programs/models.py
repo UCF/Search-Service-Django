@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from django.db import models
 from django_mysql.models import ListTextField
 import calendar
@@ -18,6 +19,8 @@ from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
 
 from bs4 import BeautifulSoup
+
+logger = logging.getLogger()
 
 # Create your models here.
 
@@ -581,6 +584,11 @@ class Program(models.Model):
     def current_cip(self) -> CIP:
         try:
             return self.cip.get(version=settings.CIP_CURRENT_VERSION)
+        except CIP.MultipleObjectsReturned:
+            # If this happens, there is something wrong with our data.
+            # That said, we'd prefer not to throw a big fat error.
+            logger.error(f"The program {self.name} has two CIPS for CIP version {settings.CIP_CURRENT_VERSION}!")
+            return None
         except CIP.DoesNotExist:
             return None
 
