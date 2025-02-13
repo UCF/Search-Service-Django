@@ -1,5 +1,6 @@
 from operator import itemgetter
 from fuzzywuzzy import fuzz
+from datetime import datetime
 
 from programs.models import Level, Career, Program
 
@@ -294,8 +295,16 @@ class MatchableProgram(object):
         if self.has_matches:
             max_match = max(self.matches, key=itemgetter(0))
             code = max_match[1].data['code']
-            similar_matches = [x for x in self.matches if x[1].data['code'] == code]
-            return max(similar_matches, key=lambda x: x[1].data['created'])
+            similar_matches = [
+                x for x in self.matches
+                    if x[1].data['code'] == code
+                    and 'dateStart' in x[1].data
+                    and datetime.strptime(x[1].data['dateStart'], '%Y-%m-%d') < datetime.now()
+            ]
+            return max(
+                similar_matches,
+                key=lambda x: datetime.strptime(x[1].data['dateStart'], '%Y-%m-%d')
+            ) if len(similar_matches) > 0 else max_match
         else:
             return None
 
