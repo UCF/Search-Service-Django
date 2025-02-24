@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'research',
     'images',
     'units',
+    'marketing',
     'core'
 ]
 
