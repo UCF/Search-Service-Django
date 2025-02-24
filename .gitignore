@@ -30,6 +30,10 @@ src/components/*
 node_modules/*
 gulp-config.json
 
+# Uploads
+media/*
+!media/.gitkeep
+
 # Static Files
 build/*
 static/admin/*

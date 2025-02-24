@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.conf.urls.static import static
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import RedirectView
 import django_saml2_auth.views
@@ -76,3 +77,6 @@ if settings.USE_SAML:
             django_saml2_auth.views.signin
         )
     )
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
