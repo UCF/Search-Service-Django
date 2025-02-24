@@ -37,6 +37,8 @@ static/rest_framework/*
 static/archimedes/index.html
 static/archimedes/3rdpartylicenses.txt
 node_modules
+static/archimedes/**/*.map
+archimedes/.angular/
 
 # SSH Support
 .localcerts/
