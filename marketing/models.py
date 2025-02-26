@@ -16,6 +16,6 @@ class Quote(models.Model):
             return self.quote_text
 
     @property
-    def titles_formatted(self):
+    def source_formatted(self):
         pattern = r'(.*[\’\']\d{2}([a-zA-Z.]+)?)'
-        return re.sub(pattern, '<strong>\g<1></strong>', self.title)
+        return re.sub(pattern, '<strong>\g<1></strong>', f"{self.source} {self.titles}")
