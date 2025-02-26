@@ -28,11 +28,14 @@ urlpatterns = [
     url(r'^api/v1/images/',
         include('images.urls')
         ),
-    url(r'^api/v1/',
-        include('programs.urls')
-        ),
     url(r'^api/v1/research/',
         include('research.urls')
+        ),
+    url(r'^api/v1/marketing/',
+        include('marketing.urls')
+        ),
+    url(r'^api/v1/',
+        include('programs.urls')
         ),
     url(r'^api-auth/',
         include('rest_framework.urls')
