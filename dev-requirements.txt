@@ -56,6 +56,7 @@ django==3.2.25
     #   django-extensions
     #   django-filter
     #   django-mysql
+    #   django-taggit
     #   djangorestframework
 django-auditlog==2.3.0
     # via ucf-search-service-django (pyproject.toml)
@@ -68,6 +69,8 @@ django-filter==21.1
 django-mysql==3.12.0
     # via ucf-search-service-django (pyproject.toml)
 django-saml2-auth-ai==2.1.6
+    # via ucf-search-service-django (pyproject.toml)
+django-taggit==4.0.0
     # via ucf-search-service-django (pyproject.toml)
 django-widget-tweaks==1.5.0
     # via ucf-search-service-django (pyproject.toml)
@@ -177,6 +180,7 @@ s3transfer==0.10.2
     # via boto3
 setuptools==75.8.0
     # via
+    #   ucf-search-service-django (pyproject.toml)
     #   marisa-trie
     #   python-levenshtein
     #   spacy
