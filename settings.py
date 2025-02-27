@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'django_saml2_auth',
     'auditlog',
+    'taggit',
 
     # Local
     'programs',
