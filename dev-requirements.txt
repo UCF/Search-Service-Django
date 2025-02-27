@@ -6,6 +6,8 @@ asgiref==3.8.1
     # via
     #   django
     #   django-cors-headers
+backports-zoneinfo==0.2.1
+    # via djangorestframework
 beautifulsoup4==4.12.3
     # via ucf-search-service-django (pyproject.toml)
 blis==0.7.11
@@ -56,6 +58,7 @@ django==3.2.25
     #   django-extensions
     #   django-filter
     #   django-mysql
+    #   django-taggit
     #   djangorestframework
 django-auditlog==2.3.0
     # via ucf-search-service-django (pyproject.toml)
@@ -68,6 +71,8 @@ django-filter==21.1
 django-mysql==3.12.0
     # via ucf-search-service-django (pyproject.toml)
 django-saml2-auth-ai==2.1.6
+    # via ucf-search-service-django (pyproject.toml)
+django-taggit==4.0.0
     # via ucf-search-service-django (pyproject.toml)
 django-widget-tweaks==1.5.0
     # via ucf-search-service-django (pyproject.toml)
@@ -83,6 +88,8 @@ gunicorn==22.0.0
     # via ucf-search-service-django (pyproject.toml)
 idna==3.7
     # via requests
+importlib-resources==6.4.5
+    # via pysaml2
 jinja2==3.1.4
     # via spacy
 jmespath==1.0.1
@@ -175,8 +182,9 @@ rich==13.7.1
     # via typer
 s3transfer==0.10.2
     # via boto3
-setuptools==75.8.0
+setuptools==75.3.0
     # via
+    #   ucf-search-service-django (pyproject.toml)
     #   marisa-trie
     #   python-levenshtein
     #   spacy
@@ -217,10 +225,12 @@ typer==0.12.3
     #   weasel
 typing-extensions==4.12.2
     # via
+    #   annotated-types
     #   asgiref
     #   cloudpathlib
     #   pydantic
     #   pydantic-core
+    #   rich
     #   typer
 unidecode==1.3.8
     # via ucf-search-service-django (pyproject.toml)
@@ -241,3 +251,5 @@ wrapt==1.16.0
     # via smart-open
 xmlschema==3.3.2
     # via pysaml2
+zipp==3.20.2
+    # via importlib-resources

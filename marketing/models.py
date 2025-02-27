@@ -1,5 +1,7 @@
 from django.db import models
 
+from taggit.managers import TaggableManager
+
 import re
 
 # Create your models here.
@@ -8,6 +10,7 @@ class Quote(models.Model):
     source = models.CharField(null=True, blank=True, max_length=500)
     titles = models.TextField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True)
+    tags = TaggableManager('tags')
 
     def __str__(self):
         if self.source:
