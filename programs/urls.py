@@ -128,4 +128,8 @@ urlpatterns = [
         JobListView.as_view(),
         name='api.jobs.list'
         ),
+    url(r'^programs/(?P<id>\d+)/quotes/$',
+        ProgramQuotesView.as_view(),
+        name='api.programs.quotes'
+        ),
 ]

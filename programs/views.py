@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from django_filters.rest_framework import DjangoFilterBackend
+from marketing.models import Quote
+from marketing.serializers import QuoteSerializer
 
 from programs.models import *
 from programs.serializers import *
@@ -234,3 +236,11 @@ class ApplicationDeadlinesView(APIView):
             'application_deadlines': ApplicationDeadlineSerializer(instance=deadlines, many=True, read_only=True).data,
             'application_requirements': requirements
         })
+
+class ProgramQuotesView(APIView):
+    def get(request, format=None, **kwargs):
+        program = Program.objects.get(id=kwargs['id'])
+        quotes = Quote.objects.filter(programs=program)
+
+        return Response(QuoteSerializer(quotes, many=True)).data
+
