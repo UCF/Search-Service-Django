@@ -3,12 +3,14 @@ from rest_framework.parsers import JSONParser
 
 from marketing.models import *
 from marketing.serializers import *
+from marketing.filters import QuoteFilter
 from marketing.parsers import MultiPartJSONParser
 
 # Create your views here.
 class QuoteListView(generics.ListAPIView):
     queryset = Quote.objects.all()
     serializer_class = QuoteSerializer
+    filter_class = QuoteFilter
 
 class QuoteCreateView(generics.CreateAPIView):
     serializer_class = QuoteSerializer
