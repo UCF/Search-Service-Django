@@ -1,9 +1,11 @@
 from rest_framework import serializers
+from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from marketing.models import Quote
 
-class QuoteSerializer(serializers.ModelSerializer):
+class QuoteSerializer(TaggitSerializer, serializers.ModelSerializer):
     source_formatted = serializers.ReadOnlyField()
+    tags = TagListSerializerField()
 
     class Meta:
         model = Quote
@@ -13,5 +15,6 @@ class QuoteSerializer(serializers.ModelSerializer):
             'source',
             'titles',
             'image',
-            'source_formatted'
+            'source_formatted',
+            'tags'
         )
