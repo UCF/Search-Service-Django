@@ -113,6 +113,103 @@
           {{ form.highlights }}
         </div>
       </form>
+      <section name="quote-section" class="mt-5">
+        <h2 class="h3 mt-3">Quote</h2>
+        <p>You can add a new quote to the current program by filling out the following fields, adding image.</p>
+        <nav>
+          <div class="nav nav-tabs" id="nav-tab" role="tablist">
+              <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Current Quote</button>
+              <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Choose Related Quotes</button>
+          </div>
+        </nav>
+          <div class="tab-content" id="nav-tabContent">
+            <div class="container border tab-pane fade show active p-3" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+              <label class="h6">Preview</label>
+              <div class="preview container">
+                <div class="row py-4 bg-light">
+                  <div class="col-4 text-center">
+                    <img src="" alt="Quote Image" class="img-fluid">
+                  </div>
+                  <div class="col-8">
+                    <blockquote class="blockquote">
+                      <p class="mb-0">This new degree builds upon the strength and diversity of UCF with its world-class programs in engineering, art, theatre and hospitality management. All here in Orlando, the perfect location for a program of this kind. We have already enjoyed great success with our popular Theatre MFA track in Themed Experience.</p>
+                    </blockquote>
+                  </div>
+                </div>
+                <div class="row mt-4">
+                    <form class="">
+                        <div class="row">
+                            <div class="col-4">
+                                <label for="selectedAvatar" class="h6">Image</label>
+                                <img id="selectedAvatar" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
+                                    class="rounded-circle d-block mx-auto mb-2" style="width: 120px; height: 120px; object-fit: cover;"
+                                    alt="example placeholder" />
+                                <label class="btn btn-primary d-flex justify-content-center btn-rounded text-white mx-md-4">
+                                    Upload image
+                                    <input type="file" class="d-none" id="customFile2" onchange="displaySelectedImage(event, 'selectedAvatar')" />
+                                </label>
+                            </div>
+                            <div class="col-8">
+                                 <div class="row">
+                                    <div class="col-6">
+                                        <label for="firstNameQuote" class="form-label h6">First Name</label>
+                                        <input type="text" class="form-control" id="firstNameQuote">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="lastNameQuote" class="form-label h6">Last Name</label>
+                                        <input type="text" class="form-control" id="lastNameQuote">
+                                    </div>
+                                 </div>
+                                 <label class="h6 d-block mt-4">Career/ Position</label>
+                                  <div class="d-flex flex-wrap justify-content-between">
+                                      <div class="form-check form-check-inline">
+                                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio-student" value="student">
+                                          <label class="form-check-label" for="inlineRadio-student">Student</label>
+                                      </div>
+                                      <div class="form-check form-check-inline">
+                                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio-faculty" value="Faculty">
+                                          <label class="form-check-label" for="inlineRadio-faculty">Faculty</label>
+                                      </div>
+                                      <div class="form-check form-check-inline">
+                                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio-staff" value="Staff">
+                                          <label class="form-check-label" for="inlineRadio-staff">Staff</label>
+                                      </div>
+                                      <div class="form-check form-check-inline">
+                                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio-other" value="Other">
+                                          <label class="form-check-label" for="inlineRadio-other">Other</label>
+                                      </div>
+                                  </div>
+                                  <select class="form-select mt-3" aria-label="Disabled select example" disabled>
+                                    <option selected>Graduation/ Expected graduation year</option>
+                                    <!-- more option needs to be added via JS -->
+                                  </select>
+                              </div>
+                          </div>
+                          <div class="row mt-4">
+                            <label for="quoteTitle" class="form-label h6">Title</label>
+                            <input type="text" class="form-control" id="quoteTitle">
+                          </div>
+                          <div class="row mt-4">
+                              <label class="h6" for="quoteText"> Quote text</label>
+                              <p>Here you can write your quotes</p>
+                              <textarea class="form-control" id="quoteText" rows="3"></textarea>
+                              <div class="progress mt-2 px-0" style="height: 12px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                              </div>
+                          </div>
+                          <div class="row mt-4">
+                            <label class="h6"l>Add Related Tags</label>
+                            <p>Related tags are necessary because ...</p>
+                            <input name='tags' value='tag1, tag2' autofocus>
+                          </div>
+                    </form>
+                </div>
+              </div>
+              </div>
+            <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">...</div>
+          </div>
+      </section>
+
       <hr class="my-5">
       <h2 class="h3">Read-only Fields</h2>
       <dl class="row">
