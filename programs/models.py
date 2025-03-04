@@ -15,6 +15,8 @@ from units.models import Unit
 from units.models import College as UnitCollege
 from units.models import Department as UnitDepartment
 
+from marketing.models import Quote
+
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
 
@@ -531,6 +533,7 @@ class Program(models.Model):
     jobs = models.ManyToManyField(JobPosition, related_name='programs', blank=True)
     history = AuditlogHistoryField()
     highlights = models.JSONField(default=list, blank=True)
+    quotes = models.ManyToManyField(Quote, related_name='programs', blank=True)
 
 
     class Meta:
