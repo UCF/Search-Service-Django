@@ -492,7 +492,8 @@ class ProgramSerializer(DynamicFieldSetMixin, serializers.ModelSerializer):
             'excerpt',
             'area_of_interest',
             'subarea_of_interest',
-            'highlights'
+            'highlights',
+            'quotes'
         )
         fieldsets = {
             "identifiers": "id,name,plan_code,subplan_code,cip_code,parent_program",
