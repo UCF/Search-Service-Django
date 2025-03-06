@@ -113,7 +113,7 @@
           {{ form.highlights }}
         </div>
       </form>
-      <section name="quote-section" class="mt-5">
+      <section name="quote-section" class="mt-5" data-program-id="{{ object.id }}">
         <h2 class="h3 mt-3">Quote</h2>
         <p>A quote is an essential element for adding credit to programs. You can view the Active Quotes attached to this specific program. If the Active Quote is empty, you can search for one using the Related Quote search box or create a new one.</p>
         <div class="container quote-wrapper border p-4">
@@ -171,8 +171,8 @@
                         <label for="quoteTitle">Title</label>
                         <input type="text" id="quoteTitle" class="form-control">
                       </div>
-                      <div class="form-group">
-                        <label for="quoteImage">Image</label>
+                      <div class="form-group mt-3">
+                        <label for="quoteImage" class="d-block">Image</label>
                         <input type="file" id="quoteImage" class="form-control-file">
                       </div>
                   </form>
