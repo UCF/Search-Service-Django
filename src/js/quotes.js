@@ -36,19 +36,11 @@ activeQuotes.forEach((quote) => {
       quote.querySelector('.active-quotes-quoteTitle').innerHTML = updatedQuoteTitle;
 
       // Prepare the data for the API request
-      const formData = new FormData();
-      formData.append('quote_text', updatedQuoteText);
-      formData.append('source', updatedQuoteSource);
-      formData.append('titles', updatedQuoteTitle);
-      if (updatedQuoteImage) {
-        formData.append('image', updatedQuoteImage);
-      }
-
-      // Prepare the data for the API request
       const quotePayload = {
         quote_text: updatedQuoteText,
         source: updatedQuoteSource,
-        titles: updatedQuoteTitle
+        titles: updatedQuoteTitle,
+        tags:['test']
       };
 
       // Send the API request to update the quote
