@@ -1,8 +1,8 @@
 const baseUrl = window.location.origin;
 const activeQuotes = document.querySelectorAll('.active-quotes');
-
 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
+console.log(csrftoken);
 const modal = document.getElementById('activeQuoteModal');
 const modalTitle = modal.querySelector('.modal-title');
 const modalBody = modal.querySelector('.modal-body');
@@ -14,15 +14,19 @@ activeQuotes.forEach((quote) => {
   const quoteId = quote.getAttribute('data-quote-id');
 
   editButton.addEventListener('click', () => {
+    // Get the current quote data from the DOM
     const quoteSource = quote.querySelector('.active-quotes-quoteSource').innerText;
     const quoteText = quote.querySelector('.active-quotes-quoteText').innerHTML;
     const quoteTitle = quote.querySelector('.active-quotes-quoteTitle').innerHTML;
 
+    // Populate the modal with the current quote data
     document.getElementById('quoteText').value = quoteText;
     document.getElementById('quoteSource').value = quoteSource;
     document.getElementById('quoteTitle').value = quoteTitle;
+    // Show the modal
     $(modal).modal('show');
 
+    // Add event listener to the save button
     editModalSaveBtn.onclick = async () => {
       // Get the updated values from the modal
       const updatedQuoteText = document.getElementById('quoteText').value;
@@ -48,7 +52,8 @@ activeQuotes.forEach((quote) => {
       const quotePayload = {
         quote_text: updatedQuoteText,
         source: updatedQuoteSource,
-        titles: updatedQuoteTitle
+        titles: updatedQuoteTitle,
+        tags:['test']
       };
 
       // Send the API request to update the quote
@@ -57,7 +62,7 @@ activeQuotes.forEach((quote) => {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
+            'X-CSRFToken': csrftoken // Important! Include CSRF token instead of API Key
           },
           body: JSON.stringify(quotePayload)
         });
@@ -65,6 +70,7 @@ activeQuotes.forEach((quote) => {
         if (response.ok) {
           const data = await response.json();
           console.log('Quote updated successfully:', data);
+          // Optionally, you can close the modal here
           $(modal).modal('hide');
         } else {
           console.error('Failed to update quote');
