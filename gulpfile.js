@@ -213,8 +213,12 @@ gulp.task("js-build-highlights", () => {
   );
 });
 
+gulp.task("js-build-quotes", () => {
+  return buildJS(`${config.src.jsPath}/quotes.js`, config.dist.jsPath);
+});
+
 // All js-related tasks
-gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme', 'js-build-tagify', 'js-build-highlights'));
+gulp.task('js', gulp.series('es-lint-theme', 'js-build-theme', 'js-build-tagify', 'js-build-highlights', 'js-build-quotes'));
 
 //
 // Rerun tasks when files change
