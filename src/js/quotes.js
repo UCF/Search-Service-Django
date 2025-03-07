@@ -3,12 +3,60 @@ const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 const programId = document.querySelector('[name=quote-section]').getAttribute('data-program-id');
 
 const activeQuotes = document.querySelectorAll('.active-quotes');
+const activeQuotesIds = [];
+activeQuotes.forEach((quote) => {
+  activeQuotesIds.push(quote.getAttribute('data-quote-id'));
+});
 
+const relatedQuotesWrapper = document.querySelector('#related-quotes-wrapper');
+
+// Edit Quote Modal
 const modal = document.getElementById('activeQuoteModal');
 const modalTitle = modal.querySelector('.modal-title');
 const modalBody = modal.querySelector('.modal-body');
-
 const editModalSaveBtn = modal.querySelector('#editModalSaveBtn');
+const AllQuotes = [];
+
+// Retrieve All quotes
+const fetchQuotes = async () => {
+  try {
+    const response = await fetch(`${baseUrl}/api/v1/marketing/quotes/`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data) {
+        AllQuotes.push(...data.results);
+      }
+    }
+    console.error('Failed to fetch quotes');
+  } catch (error) {
+    console.error('Error fetching quotes:', error);
+  }
+};
+
+// Trigger fetchQuotes on first load
+fetchQuotes().then(() => {
+  AllQuotes.forEach((quote) => {
+    if (!activeQuotesIds.includes(quote.id.toString())) {
+      relatedQuotesWrapper.innerHTML += `
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-header text-center">
+            ${quote.image ? `<img src="${quote.image}" class="card-img-top rounded-circle w-50" alt="...">` : ''}
+          </div>
+          <div class="card-body">
+            <p class="card-text">${quote.quote_text}</p>
+            <p class="card-text"><strong>${quote.source}</strong>${quote.titles}</p>
+          </div>
+          <div class="card-footer text-center">
+            <button class="btn" data-quote-id="${quote.id}" id="addQuoteBtn"><span class="fa-xl fa-regular fa-square-plus me-2"></span>Attach Quote</button>
+          </div>
+        </div>
+      </div>
+    `;
+    }
+  });
+});
+
 
 activeQuotes.forEach((quote) => {
   const editButton = quote.querySelector('.active-quote-edit');
@@ -109,6 +157,6 @@ activeQuotes.forEach((quote) => {
   });
 });
 
-modal.querySelector('.close').addEventListener('click', () => {
+modal.querySelector('.btn-close').addEventListener('click', () => {
   $('#activeQuoteModal').modal('hide');
 });
