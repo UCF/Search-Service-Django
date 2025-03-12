@@ -2,6 +2,8 @@
 {% load static %}
 {% block css %}
 <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
+<link href="https://cdn.jsdelivr.net/npm/yearpicker.js@1.0.1/dist/yearpicker.min.css" rel="stylesheet">
+
 {{ block.super }}
 {% endblock %}
 
@@ -189,54 +191,45 @@
                                         <img id="createSelectedAvatar" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
                                             class="rounded-circle d-block mx-auto mb-2" style="width: 120px; height: 120px; object-fit: cover;"
                                             alt="example placeholder" />
-                                        <label class="btn btn-primary d-flex justify-content-center btn-rounded text-white mx-md-4">
+                                        <label class="btn btn-primary d-flex justify-content-center btn-rounded mx-md-4">
                                             Upload image
-                                            <input type="file" class="d-none" id="createCustomFile" onchange="displaySelectedImage(event, 'createSelectedAvatar')" />
+                                            <input type="file" class="d-none" id="createCustomFile" onchange="handleImageUpload(event, 'createSelectedAvatar')" />
                                         </label>
                                     </div>
                                     <div class="col-8">
                                         <div class="row">
                                             <div class="col-6">
                                                 <label for="createFirstNameQuote" class="form-label h6">First Name</label>
-                                                <input type="text" class="form-control" id="createFirstNameQuote">
+                                                <input type="text" class="form-control updatedModalTitle" id="createFirstNameQuote" required>
                                             </div>
                                             <div class="col-6">
                                                 <label for="createLastNameQuote" class="form-label h6">Last Name</label>
-                                                <input type="text" class="form-control" id="createLastNameQuote">
+                                                <input type="text" class="form-control updatedModalTitle" id="createLastNameQuote" required>
                                             </div>
                                         </div>
                                         <label class="h6 d-block mt-4">Career/ Position</label>
-                                        <div class="d-flex flex-wrap justify-content-between">
+                                        <div class="d-flex flex-wrap">
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" name="createRadioOptions" id="createRadio-student" value="student">
+                                                <input class="form-check-input updatedModalTitle" type="radio" name="createRadioOptions" value="student">
                                                 <label class="form-check-label" for="createRadio-student">Student</label>
                                             </div>
                                             <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" name="createRadioOptions" id="createRadio-faculty" value="Faculty">
-                                                <label class="form-check-label" for="createRadio-faculty">Faculty</label>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" name="createRadioOptions" id="createRadio-staff" value="Staff">
-                                                <label class="form-check-label" for="createRadio-staff">Staff</label>
-                                            </div>
-                                            <div class="form-check form-check-inline">
-                                                <input class="form-check-input" type="radio" name="createRadioOptions" id="createRadio-other" value="Other">
+                                                <input class="form-check-input updatedModalTitle" type="radio" name="createRadioOptions" value="other">
                                                 <label class="form-check-label" for="createRadio-other">Other</label>
                                             </div>
                                         </div>
-                                        <select class="form-select mt-3" aria-label="Disabled select example" disabled>
-                                            <option selected>Graduation/ Expected graduation year</option>
-                                        </select>
+                                            <label for="graduation-year" class="form-check-label h6 d-block mt-4"> Graduation/ Expected graduation year </label>
+                                            <input type="text" class="updatedModalTitle yearpicker" id="graduationYear" value="" disabled>
                                     </div>
                                 </div>
                                 <div class="row mt-4">
                                     <label for="createQuoteTitle" class="form-label h6">Title</label>
-                                    <input type="text" class="form-control" id="createQuoteTitle">
+                                    <input type="text" class="form-control" id="createQuoteTitle" required>
                                 </div>
                                 <div class="row mt-4">
                                     <label class="h6" for="createQuoteText">Quote text</label>
                                     <p>Here you can write your quotes</p>
-                                    <textarea class="form-control" id="createQuoteText" rows="3"></textarea>
+                                    <textarea class="form-control" id="createQuoteText" rows="3" maxlength="220" required></textarea>
                                     <div class="progress mt-2 px-0" style="height: 12px;">
                                         <div class="progress-bar bg-success" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
@@ -244,10 +237,10 @@
                                 <div class="row mt-4">
                                     <label class="h6">Add Related Tags</label>
                                     <p>Related tags are necessary because ...</p>
-                                    <input name="createTags" class="form-control" value="tag1, tag2">
+                                    <input name="createTags" class="form-control" value="tag1, tag2" required>
                                 </div>
                                 <div class="text-center mt-4">
-                                    <button type="submit" class="btn btn-primary">Create new Quote</button>
+                                    <button type="submit" class="btn btn-primary" onclick="createQuote(event)">Create new Quote</button>
                                 </div>
                             </form>
                         </div>
@@ -268,15 +261,15 @@
                   <form id="editQuoteForm">
                       <div class="form-group">
                         <label for="quoteText">Quote Text</label>
-                        <textarea id="quoteText" class="form-control"></textarea>
+                        <textarea id="quoteText" class="form-control" maxlength="220" required></textarea>
                       </div>
                       <div class="form-group">
                         <label for="quoteSource">Source</label>
-                        <input type="text" id="quoteSource" class="form-control">
+                        <input type="text" id="quoteSource" class="form-control" required>
                       </div>
                       <div class="form-group">
                         <label for="quoteTitle">Title</label>
-                        <input type="text" id="quoteTitle" class="form-control">
+                        <input type="text" id="quoteTitle" class="form-control" required>
                       </div>
                       <div class="form-group mt-3">
                         <label for="quoteImage" class="d-block">Image</label>
@@ -396,4 +389,6 @@
   <script src="{% static 'js/jobs-tagify.min.js' %}"></script>
   <script src="{% static 'js/highlights-iconpicker.min.js' %}"></script>
   <script src="{% static 'js/quotes.min.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/yearpicker.js@1.0.1/dist/yearpicker.min.js"></script>
 {% endblock %}
+
