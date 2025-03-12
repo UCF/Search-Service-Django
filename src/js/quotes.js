@@ -101,7 +101,7 @@ const renderRelatedQuotes = () => {
             </div>
             <div class="card-body">
               <p class="card-text">${quote.quote_text}</p>
-              <p class="card-text"><strong>${quote.source}</strong>${quote.titles}</p>
+              <p class="card-text"><strong>${quote.source}</strong> ${quote.titles}</p>
             </div>
             <div class="card-footer text-center">
               <button class="btn" data-quote-id="${quote.id}" id="addQuoteBtn" onClick="attachQuoteToProgram(${quote.id})"><span class="fa-xl fa-regular fa-square-plus me-2"></span>Attach Quote</button>
