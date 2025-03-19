@@ -153,7 +153,6 @@
                   </div>
                   <div class="col-2">
                     <button class="btn btn-outline-primary text-black w-100 my-1 active-quote-edit"><span class="fa-light fa-pen-to-square me-2"></span>Edit</button>
-                    <button class="btn btn-outline-danger text-black w-100 my-1 active-quote-detach"><span class="fa-light fa-link-horizontal-slash me-2"></span>Detach</button>
                   </div>
               </div>
               {% endfor %}
@@ -260,17 +259,26 @@
                         <label for="quoteText">Quote Text</label>
                         <textarea id="quoteText" class="form-control" maxlength="220" required></textarea>
                       </div>
-                      <div class="form-group">
+                      <div class="form-group mt-3">
                         <label for="quoteSource">Source</label>
                         <input type="text" id="quoteSource" class="form-control" required>
                       </div>
-                      <div class="form-group">
+                      <div class="form-group mt-3">
                         <label for="quoteTitle">Title</label>
                         <input type="text" id="quoteTitle" class="form-control" required>
                       </div>
                       <div class="form-group mt-3">
                         <label for="quoteImage" class="d-block">Image</label>
                         <input type="file" id="quoteImage" class="form-control-file">
+                      </div>
+                      <div class="form-group mt-3">
+                        <label>Remove Quote</label>
+                        <p>To remove this quote, toggle the switch on and click Save Changes.</p>
+                        <!-- <button class="btn btn-outline-danger text-black w-100 my-1 active-quote-detach"><span class="fa-light fa-link-horizontal-slash me-2"></span>Detach</button> -->
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" id="detachSwitch">
+                          <label class="form-check-label hide" for="flexSwitchCheckDefault">remove Quote</label>
+                        </div>
                       </div>
                   </form>
                 </div>
