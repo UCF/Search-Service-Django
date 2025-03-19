@@ -106,7 +106,9 @@ const createQuote = async (event) => {
       response = await fetch(`${baseUrl}/api/v1/marketing/quotes/create/`, {
         method: 'POST',
         headers: {
-          'X-CSRFToken': csrftoken
+          'Content-Type': 'multipart/form-data',
+          'X-CSRFToken': csrftoken,
+          'Program-Id': programId
         },
         body: formData
       });
@@ -354,6 +356,7 @@ activeQuotes.forEach((quote) => {
         formData.append('image', updatedQuoteImage);
 
         try {
+          console.log(formData);
           const response = await fetch(
             `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
             {
