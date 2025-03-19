@@ -109,7 +109,7 @@ class ProgramSearchView(ProgramListView):
     pagination_class = LimitedPaginationMixin
 
 
-class ProgramDetailView(generics.RetrieveUpdateAPIView):
+class ProgramDetailView(generics.RetrieveAPIView):
     queryset = Program.objects.all()
     lookup_field = 'id'
     serializer_class = ProgramSerializer
