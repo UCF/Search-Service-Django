@@ -106,7 +106,6 @@ const createQuote = async (event) => {
       response = await fetch(`${baseUrl}/api/v1/marketing/quotes/create/`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'multipart/form-data',
           'X-CSRFToken': csrftoken,
           'Program-Id': programId
         },
@@ -360,7 +359,7 @@ activeQuotes.forEach((quote) => {
           const response = await fetch(
             `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
             {
-              method: 'PATCH',
+              method: 'PUT',
               headers: {
                 'X-CSRFToken': csrftoken
               },
