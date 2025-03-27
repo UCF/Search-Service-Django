@@ -17,11 +17,11 @@ class CombinedTeledataFilter(django_filters.FilterSet):
 
     class Meta:
         model = CombinedTeledata
-        fields = (
-            'pkid',
-            'id',
-            'alpha',
-            'name',
-            'use',
-            'active'
-        )
+        fields = {
+            'pkid': ['exact'],
+            'id': ['exact', 'in'],
+            'alpha': ['exact'],
+            'name': ['exact', 'icontains'],
+            'from_table': ['exact', 'in'],
+            'active': ['exact']
+        }
