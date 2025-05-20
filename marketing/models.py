@@ -14,7 +14,7 @@ class Quote(models.Model):
 
     def __str__(self):
         if self.source:
-            return f"{self.source}: {self.quote_text}"
+            return f"{self.source}"
         else:
             return self.quote_text
 
