@@ -1,3 +1,4 @@
+import Tagify from '@yaireo/tagify';
 // Variables
 // Global Variables
 const baseUrl = window.location.origin;
@@ -17,6 +18,7 @@ const quoteSearch = document.querySelector('#related-quote-search');
 // Quote Modal elements
 const titleInputs = document.querySelectorAll('.updatedModalTitle');
 const createQuoteModalTitle = document.querySelector('#createQuoteTitle');
+const createQuoteTag = document.querySelector('[name="createTags"]');
 const expectedGraduationFeild = document.querySelector('#graduationYear');
 const modal = document.getElementById('activeQuoteModal');
 const editModalSaveBtn = modal.querySelector('#editModalSaveBtn');
@@ -236,6 +238,9 @@ $('.yearpicker').on('change', function () {
     ? createQuoteModalTitle.value = `${createQuoteHelperObj.graduationYear}'`
     : createQuoteModalTitle.value = '';
 });
+
+// Create Quote Modal - Tagify
+new Tagify(createQuoteTag);
 
 // Render assigned Quotes
 activeQuotes.forEach((quote) => {

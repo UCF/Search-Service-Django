@@ -57,7 +57,7 @@
                                 <div class="row mt-4">
                                     <label class="h6">Add Related Tags</label>
                                     <p>Related tags are necessary because ...</p>
-                                    <input name="createTags" class="form-control" value="tag1, tag2" required>
+                                    <input name="createTags" class="form-control" value="{{object.name}}" required autofocus>
                                 </div>
                                 <div class="text-center mt-4">
                                     <button type="submit" class="btn btn-primary" onclick="createQuote(event)">Create new Quote</button>
