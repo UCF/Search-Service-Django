@@ -12,6 +12,7 @@ const activeQuotesIds = Array.from(activeQuotes).map((quote) =>
 
 // Related Quotes variables
 const relatedQuotesWrapper = document.querySelector('#related-quotes-wrapper');
+const quoteSearch = document.querySelector('#related-quote-search');
 
 // Quote Modal elements
 const titleInputs = document.querySelectorAll('.updatedModalTitle');
@@ -394,42 +395,75 @@ activeQuotes.forEach((quote) => {
 
 });
 
-// Render Related Quotes
-const renderRelatedQuotes = () => {
-  AllQuotes.forEach((quote) => {
-    if (!activeQuotesIds.includes(quote.id.toString())) {
-      const quoteHtml = `
-                <div class="col-md-4 mb-3">
-                  <div class="card h-100">
-                    <div class="card-header text-center">
-                      ${quote.image
-    ? `<img src="${quote.image}" class="card-img-top rounded-circle w-50" alt="...">`
-    : ''
+
+// Debounce utility function
+function debounce(func, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), delay);
+  };
 }
-                    </div>
-                    <div class="card-body">
-                      <p class="card-text">${quote.quote_text}</p>
-                      <p class="card-text"><strong>${quote.source}</strong> ${quote.titles
-}</p>
-                    </div>
-                    <div class="card-footer text-center">
-                      <button class="btn" data-quote-id="${quote.id
-}" id="addQuoteBtn" onClick="attachQuoteToProgram(${quote.id
-})"><span class="fa-xl fa-regular fa-square-plus me-2"></span>Attach Quote</button>
-                    </div>
-                  </div>
-                </div>
-              `;
+
+// Function to generate HTML for a single quote
+function generateQuoteHtml(quote) {
+  const imageHtml = quote.image
+    ? `<img src="${quote.image}" class="card-img-top rounded-circle w-50" alt="Image of ${quote.source}">`
+    : '<span class="card-img-top rounded-circle fa-thin fa-circle-user fa-6x mt-2"></span>';
+
+  return `
+    <div class="col-md-4 mb-3">
+      <div class="card h-100">
+        <div class="card-header text-center" style="height: 110px!important;">
+          ${imageHtml}
+        </div>
+        <div class="card-body">
+          <p class="card-text">${quote.quote_text}</p>
+          <p class="card-text"><strong>${quote.source}</strong> ${quote.titles}</p>
+        </div>
+        <div class="card-footer text-center">
+          <button class="btn" data-quote-id="${quote.id}" id="addQuoteBtn" onClick="attachQuoteToProgram(${quote.id})">
+            <span class="fa-xl fa-regular fa-square-plus me-2"></span>Attach Quote
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Render Related Quotes
+const renderRelatedQuotes = (filteredQuotes) => {
+  // Clear the related quotes wrapper
+  relatedQuotesWrapper.innerHTML = '';
+
+  // Use the filtered quotes if provided, otherwise use all quotes
+  const quotesToRender = filteredQuotes || AllQuotes;
+
+  quotesToRender.forEach((quote) => {
+    if (!activeQuotesIds.includes(quote.id.toString())) {
+      const quoteHtml = generateQuoteHtml(quote); // Use the reusable function
       relatedQuotesWrapper.innerHTML += quoteHtml;
     }
   });
 };
 
-// Trigger All Active quotes fetchQuotes on first load
+// Add event listener to the search input field with debouncer
+quoteSearch.addEventListener(
+  'keyup',
+  debounce((e) => {
+    const searchString = e.target.value.toLowerCase(); // Get the search string and convert to lowercase
+
+    // Filter the AllQuotes array based on the search string
+    const filteredQuotes = AllQuotes.filter((quote) => {
+      const sourceMatch = quote.source.toLowerCase().includes(searchString); // Check if source contains the string
+      const tagsMatch = quote.tags.some((tag) => tag.toLowerCase().includes(searchString)); // Check if any tag contains the string
+      return sourceMatch || tagsMatch; // Include the quote if either matches
+    });
+
+    // Render the filtered quotes
+    renderRelatedQuotes(filteredQuotes);
+  }, 300) // 300ms delay
+);
+
+// Fetch All Quotes and Render on Page Load
 fetchQuotes().then(renderRelatedQuotes);
-
-modal.querySelector('.btn-close').addEventListener('click', () => {
-  $('#activeQuoteModal').modal('hide');
-});
-
-
