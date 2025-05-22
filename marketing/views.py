@@ -21,6 +21,7 @@ class QuoteCreateView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         program_id = request.headers.get('Program-ID')
         quote_serializer = self.get_serializer(data=request.data)
+        print(request.data)
         quote_serializer.is_valid(raise_exception=True)
         quote = quote_serializer.save()
 

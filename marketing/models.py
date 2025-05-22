@@ -10,7 +10,7 @@ class Quote(models.Model):
     source = models.CharField(null=True, blank=True, max_length=500)
     titles = models.TextField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True)
-    tags = TaggableManager('tags')
+    tags = TaggableManager()
 
     def __str__(self):
         if self.source:
