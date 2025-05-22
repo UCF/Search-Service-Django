@@ -57,7 +57,12 @@
                                 <div class="row mt-4">
                                     <label class="h6">Add Related Tags</label>
                                     <p>Related tags are necessary because ...</p>
-                                    <input name="createTags" value="{% if object.name %}{{ object.name }}{% endif %}{% if object.parent_program %}, {{ object.parent_program }}{% endif %}" required autofocus>
+                                    <input name="createTags" value="
+                                    {% if object.name %}{{ object.name }}{% endif %},
+                                    {% if object.parent_program %}{{ object.parent_program }}{% endif %},
+                                    {% if object.colleges %}{% for college in object.colleges.all %}{{ college.name }}{% endfor %}{% endif %},
+                                    {% if object.departments %}{% for department in object.departments.all %}{{ department.name }}{% endfor %}{% endif %}
+                                    " required autofocus>
                                 </div>
                                 <div class="text-center mt-4">
                                     <button type="submit" class="btn btn-primary" onclick="createQuote(event)">Create new Quote</button>

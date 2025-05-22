@@ -417,6 +417,7 @@ function debounce(func, delay) {
 
 // Function to generate HTML for a single quote
 function generateQuoteHtml(quote) {
+  const tagsHtml = quote.tags.map((tag) => `<span class="text-wrap badge bg-secondary"># ${tag}</span>`).join(' ');
   const imageHtml = quote.image
     ? `<img src="${quote.image}" class="rounded-circle mt-1" width="90px" height="90px" alt="Image of ${quote.source}">`
     : '<span class="card-img-top rounded-circle fa-thin fa-circle-user fa-6x mt-2"></span>';
@@ -429,7 +430,7 @@ function generateQuoteHtml(quote) {
           ${imageHtml}
           </div>
           <div class="w-100 mt-2">
-            <span class="text-wrap badge bg-secondary"># ${quote.tags}</span>
+            ${tagsHtml}
           </div>
         </div>
         <div class="card-body">
