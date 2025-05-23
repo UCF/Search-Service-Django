@@ -1,0 +1,74 @@
+<!-- Create Quote Modal -->
+            <div class="modal fade" id="quoteModal" tabindex="-1" aria-labelledby="quoteModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="container modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="quoteModalLabel">Create a New Quote</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="createQuoteForm">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <label for="createSelectedAvatar" class="h6">Image</label>
+                                        <img id="createSelectedAvatar" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
+                                            class="rounded-circle d-block mx-auto mb-2" style="width: 120px; height: 120px; object-fit: cover;"
+                                            alt="example placeholder" />
+                                        <label class="btn btn-primary d-flex justify-content-center btn-rounded mx-md-4">
+                                            Upload image
+                                            <input type="file" class="d-none" id="createCustomFile" onchange="handleImageUpload(event, 'createSelectedAvatar')" />
+                                        </label>
+                                    </div>
+                                    <div class="col-8">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <label for="createFirstNameQuote" class="form-label h6">First Name</label>
+                                                <input type="text" class="form-control updatedModalTitle" id="createFirstNameQuote" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <label for="createLastNameQuote" class="form-label h6">Last Name</label>
+                                                <input type="text" class="form-control updatedModalTitle" id="createLastNameQuote" required>
+                                            </div>
+                                        </div>
+                                        <label class="h6 d-block mt-4">Career/ Position</label>
+                                        <div class="d-flex flex-wrap">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input updatedModalTitle" type="radio" name="createRadioOptions" value="student">
+                                                <label class="form-check-label" for="createRadio-student">Student</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input updatedModalTitle" type="radio" name="createRadioOptions" value="other">
+                                                <label class="form-check-label" for="createRadio-other">Other</label>
+                                            </div>
+                                        </div>
+                                            <label for="graduation-year" class="form-check-label h6 d-block mt-4"> Graduation/ Expected graduation year </label>
+                                            <input type="text" class="updatedModalTitle yearpicker" id="graduationYear" value="" disabled>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <label for="createQuoteTitle" class="form-label h6">Title</label>
+                                    <input type="text" class="form-control" id="createQuoteTitle" required>
+                                </div>
+                                <div class="row mt-4">
+                                    <label class="h6" for="createQuoteText">Quote text</label>
+                                    <p>Here you can write your quotes</p>
+                                    <textarea class="form-control" id="createQuoteText" rows="3" maxlength="220" required></textarea>
+                                </div>
+                                <div class="row mt-4">
+                                    <label class="h6">Add Related Tags</label>
+                                    <p>By default, dashboard attaches the name of the program, parent program, colleges, and departments. This improves search functionality and enhances the dashboard by displaying more relevant suggestions.</p>
+                                    <input name="createTags" value="
+                                    {% if object.name %}{{ object.name }}{% endif %},
+                                    {% if object.parent_program %}{{ object.parent_program }}{% endif %},
+                                    {% if object.colleges %}{% for college in object.colleges.all %}{{ college.name }}{% endfor %}{% endif %},
+                                    {% if object.departments %}{% for department in object.departments.all %}{{ department.name }}{% endfor %}{% endif %}
+                                    " required autofocus>
+                                </div>
+                                <div class="text-center mt-4">
+                                    <button type="submit" class="btn btn-primary" onclick="createQuote(event)">Create new Quote</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
