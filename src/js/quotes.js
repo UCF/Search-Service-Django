@@ -447,6 +447,7 @@ function generateQuoteHtml(quote) {
   `;
 }
 
+
 // Render Related Quotes
 const renderRelatedQuotes = (filteredQuotes) => {
   // Clear the related quotes wrapper
