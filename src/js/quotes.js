@@ -25,8 +25,7 @@ const editModalSaveBtn = modal.querySelector('#editModalSaveBtn');
 
 // Helper variables
 const createQuoteHelperObj = {
-  createFirstNameQuote: '',
-  createLastNameQuote: '',
+  createSouceQuote: '',
   graduationYear: ''
 };
 const AllQuotes = [];
@@ -52,10 +51,9 @@ const fetchQuotes = async () => {
 // Create new quote | POST API request
 const createQuote = async (event) => {
   event.preventDefault(); // Prevent form submission
-  const firstName = document
-    .getElementById('createFirstNameQuote')
+  const sourceName = document
+    .getElementById('createSourceQuote')
     .value.trim();
-  const lastName = document.getElementById('createLastNameQuote').value.trim();
   const quoteText = document.getElementById('createQuoteText').value.trim();
   const quoteTitle = document.getElementById('createQuoteTitle').value.trim();
   const tags = document
@@ -64,15 +62,9 @@ const createQuote = async (event) => {
   const imageFile = document.getElementById('createCustomFile').files[0];
 
   // Validation: Check if required fields are empty
-  if (!firstName) {
-    alert('First Name is required!');
-    document.getElementById('createFirstNameQuote').focus();
-    return;
-  }
-
-  if (!lastName) {
-    alert('Last Name is required!');
-    document.getElementById('createLastNameQuote').focus();
+  if (!sourceName) {
+    alert('Souce Name is required!');
+    document.getElementById('createSourceQuote').focus();
     return;
   }
 
@@ -101,7 +93,7 @@ const createQuote = async (event) => {
       // Create FormData Request if Image Exists
       const formData = new FormData();
       formData.append('quote_text', quoteText);
-      formData.append('source', `${firstName} ${lastName}`);
+      formData.append('source', sourceName);
       formData.append('titles', quoteTitle);
       tags.forEach((tag) => formData.append('tags', tag.trim())); // Append multiple tags
       formData.append('image', imageFile);
@@ -117,7 +109,7 @@ const createQuote = async (event) => {
       // Create JSON Request if No Image
       const quoteData = {
         quote_text: quoteText,
-        source: `${firstName} ${lastName}`,
+        source: sourceName,
         titles: quoteTitle,
         tags: tags.map((tag) => tag.trim())
       };
@@ -305,7 +297,7 @@ activeQuotes.forEach((quote) => {
       // Validation: Check if required fields are empty
       if (!updatedQuoteSource) {
         alert('Source is required!');
-        document.getElementById('createFirstNameQuote').focus();
+        document.getElementById('createSourceQuote').focus();
         return;
       }
 
