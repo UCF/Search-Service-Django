@@ -55,14 +55,14 @@
                                     <textarea class="form-control" id="createQuoteText" rows="3" maxlength="220" required></textarea>
                                 </div>
                                 <div class="row mt-4">
-                                    <label class="h6">Add Related Tags</label>
-                                    <p>By default, dashboard attaches the name of the program, parent program, colleges, and departments. This improves search functionality and enhances the dashboard by displaying more relevant suggestions.</p>
+                                    <label class="h6">Related Tags</label>
+                                    <p>By default, dashboard attaches the name of the program, parent program, colleges, and departments.</p>
                                     <input name="createTags" value="
                                     {% if object.name %}{{ object.name }}{% endif %},
                                     {% if object.parent_program %}{{ object.parent_program }}{% endif %},
                                     {% if object.colleges %}{% for college in object.colleges.all %}{{ college.name }}{% endfor %}{% endif %},
                                     {% if object.departments %}{% for department in object.departments.all %}{{ department.name }}{% endfor %}{% endif %}
-                                    " required autofocus>
+                                    " readonly autofocus>
                                 </div>
                                 <div class="text-center mt-4">
                                     <button type="submit" class="btn btn-primary" onclick="createQuote(event)">Create new Quote</button>

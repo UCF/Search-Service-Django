@@ -242,8 +242,6 @@ $('.yearpicker').on('change', function () {
 // Create Quote Modal - Tagify
 new Tagify(createQuoteTag, {
   originalInputValueFormat: (valuesArr) => valuesArr.map((item) => item.value).join(','),
-  enforceWhitelist: false,
-  whitelist: [],
   maxTags: 10
 });
 
