@@ -60,7 +60,7 @@ const createQuote = async (event) => {
     .querySelector('input[name="createTags"]')
     .value.split(',');
   const imageFile = document.getElementById('createCustomFile').files[0];
-  const imageAlt = document.getElementById('imageAlt').value.trim();
+  const imageAlt = document.getElementById('imageAlt').value.trim() || '';
   // Validation: Check if required fields are empty
   if (!sourceName) {
     alert('Souce Name is required!');
@@ -307,20 +307,50 @@ activeQuotes.forEach((quote) => {
     document.getElementById('quoteText').value = quoteText;
     document.getElementById('quoteSource').value = quoteSource;
     document.getElementById('quoteTitle').value = quoteTitle;
+
+    // Check to see if the image already exists in the template.
     if (quoteImageWrapper) {
       const quoteImageAlt = quote.querySelector('.active-quotes-quoteImageAlt').innerHTML;
       const quoteImage = quote.querySelector('.active-quotes-quoteImage').src;
 
-      document.getElementById('quoteImageAlt').value = quoteImageAlt;
+      document.getElementById('quoteImageAltEditField').value = quoteImageAlt;
+      document.getElementById('quoteImageAltEditField').removeAttribute('disabled');
+
       quoteEditorImageDisplay.classList.add('col-3');
       quoteEditorImageDisplay.innerHTML = `<img src="${quoteImage}" width="150px" height="150px" class="rounded-circle img-fluid">`;
     } else {
       quoteEditorImageDisplay.classList.remove('col-3');
+      document.getElementById('quoteImageAltEditField').setAttribute('disabled', '');
+      document.getElementById('quoteImageAltEditField').value = '';
       quoteEditorImageDisplay.innerHTML = '';
     }
 
 
     $(modal).modal('show');
+
+    document.getElementById('quoteImage').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      const quoteImageAlt = document.getElementById('quoteImageAltEditField');
+      const quoteEditorImageDisplay = document.getElementById('quoteEditorImagedisplay');
+
+      if (file) {
+        quoteImageAlt.removeAttribute('disabled');
+
+        // Display the selected image immediately
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          quoteEditorImageDisplay.classList.add('col-3');
+          quoteEditorImageDisplay.innerHTML = `
+        <img src="${e.target.result}" width="150px" height="150px" class="rounded-circle img-fluid">
+      `;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        quoteImageAlt.setAttribute('disabled', '');
+        quoteEditorImageDisplay.innerHTML = '';
+      }
+    });
+
 
     // Save button click event
     editModalSaveBtn.onclick = async () => {
@@ -328,7 +358,21 @@ activeQuotes.forEach((quote) => {
       const updatedQuoteSource = document.getElementById('quoteSource').value;
       const updatedQuoteTitle = document.getElementById('quoteTitle').value;
       const updatedQuoteImage = document.getElementById('quoteImage').files[0];
-      const updatedQuoteImageAlt = document.getElementById('quoteImageAlt').value;
+      const tagsContainer = quote.querySelector('.active-quotes-tags');
+      const tags = tagsContainer ? JSON.parse(tagsContainer.getAttribute('data-tags')) : [];
+      let updatedQuoteImageAlt = document.getElementById('quoteImageAltEditField').value.trim();
+      const altInput = document.getElementById('quoteImageAltEditField');
+      const existingAlt = quote.querySelector('.active-quotes-quoteImageAlt')?.innerText?.trim() || '';
+      if (!updatedQuoteImageAlt && existingAlt) {
+        updatedQuoteImageAlt = existingAlt;
+      }
+
+      // If the alt input is enabled but empty, block the request
+      if (!altInput.disabled && !updatedQuoteImageAlt) {
+        alert('Please provide alt text for the image.');
+        altInput.focus();
+        return;
+      }
 
       // Validation: Check if required fields are empty
       if (!updatedQuoteSource) {
@@ -354,7 +398,9 @@ activeQuotes.forEach((quote) => {
         const quotePayload = {
           quote_text: updatedQuoteText,
           source: updatedQuoteSource,
-          titles: updatedQuoteTitle
+          titles: updatedQuoteTitle,
+          tags: tags,
+          image_alt: updatedQuoteImageAlt
         };
         // Send the API request to update the quote
         try {
@@ -387,8 +433,12 @@ activeQuotes.forEach((quote) => {
         formData.append('quote_text', updatedQuoteText);
         formData.append('source', updatedQuoteSource);
         formData.append('titles', updatedQuoteTitle);
-        formData.append('tags', 'test');
         formData.append('image', updatedQuoteImage);
+        tags.forEach((tag) => formData.append('tags', tag));
+
+        if (updatedQuoteImageAlt) {
+          formData.append('image_alt', updatedQuoteImageAlt);
+        }
 
         try {
           console.log(formData);
