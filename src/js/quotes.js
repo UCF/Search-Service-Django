@@ -174,18 +174,42 @@ const attachQuoteToProgram = async (quoteId) => {
 // Create Quote Modal - Image Upload Preview
 function handleImageUpload(event) {
   const file = event.target.files[0];
+  const quoteImageAlt = document.getElementById('imageAlt');
+  const createImagePreview = document.getElementById('createSelectedAvatar');
+
   if (file) {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Only JPG, JPEG, or PNG files are allowed.');
+      event.target.value = '';
+      quoteImageAlt.setAttribute('disabled', '');
+      createImagePreview.src = '';
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = function (e) {
-      const imageDataUrl = e.target.result;
-      sessionStorage.setItem('uploadedImage', imageDataUrl);
-      // Update the image preview in the UI
-      document.getElementById('createSelectedAvatar').src = imageDataUrl;
+      const img = new Image();
+      img.onload = function () {
+        if (img.width !== 300 || img.height !== 300) {
+          alert('Image must be exactly 300x300 pixels.');
+          event.target.value = '';
+          quoteImageAlt.setAttribute('disabled', '');
+          createImagePreview.src = '';
+        } else {
+          quoteImageAlt.removeAttribute('disabled');
+          createImagePreview.src = e.target.result;
+        }
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
-    document.getElementById('imageAlt').removeAttribute('disabled');
+  } else {
+    quoteImageAlt.setAttribute('disabled', '');
+    createImagePreview.src = '';
   }
 }
+
 // User Input Event Listeners for Create Quote Modal
 titleInputs.forEach((input) => {
   input.addEventListener('change', (e) => {
@@ -334,15 +358,37 @@ activeQuotes.forEach((quote) => {
       const quoteEditorImageDisplay = document.getElementById('quoteEditorImagedisplay');
 
       if (file) {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+          alert('Only JPG, JPEG, or PNG files are allowed.');
+          event.target.value = ''; // Reset the file input
+          quoteImageAlt.setAttribute('disabled', '');
+          quoteEditorImageDisplay.innerHTML = '';
+          return;
+        }
+
         quoteImageAlt.removeAttribute('disabled');
 
         // Display the selected image immediately
         const reader = new FileReader();
         reader.onload = function (e) {
-          quoteEditorImageDisplay.classList.add('col-3');
-          quoteEditorImageDisplay.innerHTML = `
-        <img src="${e.target.result}" width="150px" height="150px" class="rounded-circle img-fluid">
-      `;
+          const img = new Image();
+          img.onload = function () {
+            if (img.width !== 300 || img.height !== 300) {
+              alert('Image must be exactly 300x300 pixels.');
+              event.target.value = ''; // Reset the file input
+              quoteImageAlt.setAttribute('disabled', '');
+              quoteEditorImageDisplay.innerHTML = '';
+            } else {
+              // Valid image: enable alt and show preview
+              quoteImageAlt.removeAttribute('disabled');
+              quoteEditorImageDisplay.classList.add('col-3');
+              quoteEditorImageDisplay.innerHTML = `
+          <img src="${e.target.result}" width="150px" height="150px" class="rounded-circle img-fluid">
+        `;
+            }
+          };
+          img.src = e.target.result;
         };
         reader.readAsDataURL(file);
       } else {
