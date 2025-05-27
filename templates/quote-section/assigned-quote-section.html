@@ -16,11 +16,12 @@
               {% for quote in object.quotes.all %}
               <div class="row bg-light active-quotes p-4 my-2" data-quote-id="{{ quote.id }}">
                   <div class="col-2">
-                    <div>
                     {% if quote.image %}
-                    <img src="{{quote.image.url}}" alt="{{quote.source}}" class="active-quotes-quoteImage rounded-circle img-fluid">
-                    {% endif %}
+                    <div class="active-quotes-image-wrapper">
+                        <img src="{{quote.image.url}}" alt="{{quote.image_alt}}" class="active-quotes-quoteImage rounded-circle img-fluid">
+                        <span class="active-quotes-quoteImageAlt hide">{{quote.image_alt}}</span>
                     </div>
+                    {% endif %}
                   </div>
                   <div class="col-8">
                     {% if quote.quote_text %}
@@ -34,12 +35,12 @@
                     {% endif %}
                   </div>
                   <div class="col-2">
-                    {% if request.user == quote.author or request.user.is_superuser %}
                     <button class="btn btn-outline-danger text-black w-100 my-1" id="detachButton"><span class="fa-solid fa-times me-2"></span>Detach</button>
+                    {% if request.user == quote.author or request.user.is_superuser %}
                     <button class="btn btn-outline-primary text-black w-100 my-1 active-quote-edit"><span class="fa-light fa-pen-to-square me-2"></span>Edit</button>
-                      {% if quote.author %}
+                    {% endif %}
+                    {% if quote.author %}
                       <span class="small">Author: {{ quote.author }}</span>
-                      {% endif %}
                     {% endif %}
                   </div>
               </div>

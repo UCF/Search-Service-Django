@@ -300,10 +300,25 @@ activeQuotes.forEach((quote) => {
     const quoteTitle = quote.querySelector(
       '.active-quotes-quoteTitle'
     ).innerHTML;
+    const quoteImageWrapper = quote.querySelector('.active-quotes-image-wrapper');
+    const quoteEditorImageDisplay = document.getElementById('quoteEditorImagedisplay');
+
 
     document.getElementById('quoteText').value = quoteText;
     document.getElementById('quoteSource').value = quoteSource;
     document.getElementById('quoteTitle').value = quoteTitle;
+    if (quoteImageWrapper) {
+      const quoteImageAlt = quote.querySelector('.active-quotes-quoteImageAlt').innerHTML;
+      const quoteImage = quote.querySelector('.active-quotes-quoteImage').src;
+
+      document.getElementById('quoteImageAlt').value = quoteImageAlt;
+      quoteEditorImageDisplay.classList.add('col-3');
+      quoteEditorImageDisplay.innerHTML = `<img src="${quoteImage}" width="150px" height="150px" class="rounded-circle img-fluid">`;
+    } else {
+      quoteEditorImageDisplay.classList.remove('col-3');
+      quoteEditorImageDisplay.innerHTML = '';
+    }
+
 
     $(modal).modal('show');
 
@@ -313,6 +328,7 @@ activeQuotes.forEach((quote) => {
       const updatedQuoteSource = document.getElementById('quoteSource').value;
       const updatedQuoteTitle = document.getElementById('quoteTitle').value;
       const updatedQuoteImage = document.getElementById('quoteImage').files[0];
+      const updatedQuoteImageAlt = document.getElementById('quoteImageAlt').value;
 
       // Validation: Check if required fields are empty
       if (!updatedQuoteSource) {
@@ -338,8 +354,7 @@ activeQuotes.forEach((quote) => {
         const quotePayload = {
           quote_text: updatedQuoteText,
           source: updatedQuoteSource,
-          titles: updatedQuoteTitle,
-          tags: ['test']
+          titles: updatedQuoteTitle
         };
         // Send the API request to update the quote
         try {
