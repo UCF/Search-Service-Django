@@ -242,6 +242,48 @@ activeQuotes.forEach((quote) => {
   const editButton = quote.querySelector('.active-quote-edit');
   const quoteId = quote.getAttribute('data-quote-id');
 
+  // Detach assigned Quote | PATCH API request
+  const detachButton = quote.querySelector('#detachButton');
+  const detachModal = document.getElementById('detachQuoteModal');
+  const detachSwitch = document.getElementById('detachSwitch');
+  const detachSaveButton = document.querySelector('#detachSaveButton');
+
+  detachButton.addEventListener('click', (event) => {
+    $(detachModal).modal('show');
+  });
+  // Detach Quote from Program | PATCH API request
+  detachSaveButton.addEventListener('click', async () => {
+    if (detachSwitch.checked) {
+      try {
+        const response = await fetch(
+          `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken,
+              'Program-Id': programId,
+              'Attr-Quote': 'detachQuote'
+            }
+          }
+        );
+
+        if (response.ok) {
+          console.log('Quote updated successfully:', response);
+          $(detachModal).modal('hide');
+          location.reload();
+        } else {
+          console.error('Failed to remove quote', response);
+        }
+      } catch (error) {
+        console.error('Error removing quote:', error);
+      }
+      return;
+    }
+    $(detachModal).modal('hide');
+
+  });
+
   // Quotes - Edit button event
   editButton.addEventListener('click', () => {
     const quoteSource = quote.querySelector(
@@ -264,36 +306,7 @@ activeQuotes.forEach((quote) => {
       const updatedQuoteSource = document.getElementById('quoteSource').value;
       const updatedQuoteTitle = document.getElementById('quoteTitle').value;
       const updatedQuoteImage = document.getElementById('quoteImage').files[0];
-      const detachSwitch = document.getElementById('detachSwitch');
 
-      // Detach Quote from Program | PATCH API request
-      if (detachSwitch.checked) {
-        try {
-          const response = await fetch(
-            `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
-            {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken,
-                'Program-Id': programId,
-                'Attr-Quote': 'detachQuote'
-              }
-            }
-          );
-
-          if (response.ok) {
-            console.log('Quote updated successfully:', response);
-            $(modal).modal('hide');
-            location.reload();
-          } else {
-            console.error('Failed to remove quote');
-          }
-        } catch (error) {
-          console.error('Error removing quote:', error);
-        }
-        return;
-      }
       // Validation: Check if required fields are empty
       if (!updatedQuoteSource) {
         alert('Source is required!');
