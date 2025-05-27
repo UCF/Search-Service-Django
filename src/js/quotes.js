@@ -60,14 +60,18 @@ const createQuote = async (event) => {
     .querySelector('input[name="createTags"]')
     .value.split(',');
   const imageFile = document.getElementById('createCustomFile').files[0];
-
+  const imageAlt = document.getElementById('imageAlt').value.trim();
   // Validation: Check if required fields are empty
   if (!sourceName) {
     alert('Souce Name is required!');
     document.getElementById('createSourceQuote').focus();
     return;
   }
-
+  if (imageFile && !imageAlt) {
+    alert('Image Alt Text is required!');
+    document.getElementById('imageAlt').focus();
+    return;
+  }
   if (!quoteTitle) {
     alert('Title is required!');
     document.getElementById('createQuoteTitle').focus();
@@ -86,6 +90,7 @@ const createQuote = async (event) => {
     return;
   }
 
+
   try {
     let response;
 
@@ -95,6 +100,7 @@ const createQuote = async (event) => {
       formData.append('quote_text', quoteText);
       formData.append('source', sourceName);
       formData.append('titles', quoteTitle);
+      formData.append('image_alt', imageAlt);
       tags.forEach((tag) => formData.append('tags', tag.trim())); // Append multiple tags
       formData.append('image', imageFile);
       response = await fetch(`${baseUrl}/api/v1/marketing/quotes/create/`, {
@@ -177,6 +183,7 @@ function handleImageUpload(event) {
       document.getElementById('createSelectedAvatar').src = imageDataUrl;
     };
     reader.readAsDataURL(file);
+    document.getElementById('imageAlt').removeAttribute('disabled');
   }
 }
 // User Input Event Listeners for Create Quote Modal

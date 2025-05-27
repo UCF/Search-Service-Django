@@ -11,6 +11,7 @@ class Quote(models.Model):
     titles = models.TextField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True)
     tags = TaggableManager()
+    image_alt = models.CharField(null=True, blank=True, max_length=500)
 
     def __str__(self):
         if self.source:
