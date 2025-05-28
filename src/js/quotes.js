@@ -25,9 +25,10 @@ const editModalSaveBtn = modal.querySelector('#editModalSaveBtn');
 
 // Helper variables
 const createQuoteHelperObj = {
-  createSouceQuote: '',
-  graduationYear: ''
+  createSourceQuote: '',
+  graduationEntries: [] // array of objects: { year: "24", degree: "Bachelor" }
 };
+
 const AllQuotes = [];
 
 // API calls
@@ -210,51 +211,98 @@ function handleImageUpload(event) {
   }
 }
 
-// User Input Event Listeners for Create Quote Modal
-titleInputs.forEach((input) => {
-  input.addEventListener('change', (e) => {
-    if (e.target.classList.contains('form-check-input')) {
-      switch (e.target.value) {
-        case 'student':
-          educationWrapper.style.display = 'flex';
-          educationWrapper.innerHTML = initialEducationRow;
+// Show or hide education fields based on UCF alumni selection
+document.querySelectorAll('input[name="createRadioOptions"]').forEach((radio) => {
+  radio.addEventListener('change', (e) => {
+    const addButton = document.querySelector('.addEducationRow');
 
-          educationWrapper.querySelectorAll('input, select, button').forEach((el) =>
-            el.removeAttribute('disabled')
-          );
-          initializeYearPickers();
+    if (e.target.value === 'student') {
+      // Add education row
+      educationWrapper.innerHTML = `
+        <div class="row g-2 mb-2">
+          <div class="col-5">
+            <input type="text" class="form-control yearpicker" placeholder="Graduation Year" />
+          </div>
+          <div class="col-5">
+            <select class="form-select">
+              <option value="" selected disabled>Select Degree</option>
+              <option value="Bachelor">Bachelor</option>
+              <option value="Master">Master</option>
+              <option value="Doctoral">Doctoral</option>
+            </select>
+          </div>
+          <div class="col-2 d-flex align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-danger removeEducationRow">–</button>
+          </div>
+        </div>
+      `;
 
-          $('.yearpicker').on('change', function () {
-            createQuoteHelperObj.graduationYear = $(this).val().slice(-2);
-            graduationYear
-              ? createQuoteModalTitle.value = `${createQuoteHelperObj.graduationYear}'`
-              : createQuoteModalTitle.value = '';
-          });
-
-          break;
-
-        case 'other':
-          createQuoteHelperObj.graduationYear = '';
-          createQuoteModalTitle.value = '';
-
-          // Remove all dynamically added rows after the educationWrapper
-          let nextSibling = educationWrapper.nextElementSibling;
-          while (nextSibling && nextSibling.classList.contains('row')) {
-            const toRemove = nextSibling;
-            nextSibling = nextSibling.nextElementSibling;
-            toRemove.remove();
-          }
-
-          // Clear and hide the base education wrapper
-          educationWrapper.innerHTML = initialEducationRow;
-          educationWrapper.style.display = 'none';
-          break;
+      educationWrapper.style.display = 'block'; // block works well for Bootstrap rows
+      if (addButton) {
+        addButton.style.display = 'inline-block';
       }
-    }
 
-    createQuoteHelperObj[e.target.id] = e.target.value;
+      setTimeout(() => {
+        initializeYearPickers();
+        updateQuoteTitle();
+      }, 0);
+
+    } else if (e.target.value === 'other') {
+      educationWrapper.innerHTML = '';
+      educationWrapper.style.display = 'none';
+      if (addButton) {
+        addButton.style.display = 'none';
+      }
+      document.getElementById('createQuoteTitle').value = '';
+    }
   });
 });
+document.querySelectorAll('input[name="createRadioOptions"]').forEach((radio) => {
+  radio.addEventListener('change', (e) => {
+    const addButton = document.querySelector('.addEducationRow');
+
+    if (e.target.value === 'student') {
+      // Add education row
+      educationWrapper.innerHTML = `
+        <div class="row g-2 mb-2">
+          <div class="col-5">
+            <input type="text" class="form-control yearpicker" placeholder="Graduation Year" />
+          </div>
+          <div class="col-5">
+            <select class="form-select">
+              <option value="" selected disabled>Select Degree</option>
+              <option value="Bachelor">Bachelor</option>
+              <option value="Master">Master</option>
+              <option value="Doctoral">Doctoral</option>
+            </select>
+          </div>
+          <div class="col-2 d-flex align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-danger removeEducationRow">–</button>
+          </div>
+        </div>
+      `;
+
+      educationWrapper.style.display = 'block'; // block works well for Bootstrap rows
+      if (addButton) {
+        addButton.style.display = 'inline-block';
+      }
+
+      setTimeout(() => {
+        initializeYearPickers();
+        updateQuoteTitle();
+      }, 0);
+
+    } else if (e.target.value === 'other') {
+      educationWrapper.innerHTML = '';
+      educationWrapper.style.display = 'none';
+      if (addButton) {
+        addButton.style.display = 'none';
+      }
+      document.getElementById('createQuoteTitle').value = '';
+    }
+  });
+});
+
 
 $('.yearpicker').on('change', function () {
   createQuoteHelperObj.graduationYear = $(this).val().slice(-2);
@@ -281,32 +329,72 @@ function initializeYearPickers() {
   });
 }
 
+function updateQuoteTitle() {
+  const sourceName = document.getElementById('createSourceQuote').value.trim();
+  const educationRows = document.querySelectorAll('.row.g-2.mb-2');
+  const titleParts = [];
+
+  educationRows.forEach((row) => {
+    const yearInput = row.querySelector('.yearpicker');
+    const degreeSelect = row.querySelector('select');
+    const year = yearInput?.value?.slice(-2);
+    const degree = degreeSelect?.value;
+
+    if (year && degree) {
+      let formattedDegree = degree;
+      if (degree === 'Master') {
+        formattedDegree = 'MS';
+      } else if (degree === 'Doctoral') {
+        formattedDegree = 'PhD';
+      }
+
+      titleParts.push(`${year}' ${formattedDegree}`);
+    }
+  });
+
+  const finalTitle = [sourceName, ...titleParts].filter(Boolean).join(', ');
+  document.getElementById('createQuoteTitle').value = finalTitle;
+}
+
 document.addEventListener('click', (e) => {
   if (e.target.classList.contains('addEducationRow')) {
     const newRow = document.createElement('div');
     newRow.classList.add('row', 'g-2', 'mb-2');
 
     newRow.innerHTML = `
-      <div class="col-5">
-        <input type="text" class="form-control yearpicker" placeholder="Graduation Year" />
-      </div>
-      <div class="col-5">
-        <select class="form-select">
-          <option value="" selected disabled>Select Degree</option>
-          <option value="Bachelor">Bachelor</option>
-          <option value="Master">Master</option>
-          <option value="Doctoral">Doctoral</option>
-        </select>
-      </div>
-      <div class="col-2 d-flex align-items-center">
-        <button type="button" class="btn btn-sm btn-outline-danger removeEducationRow">–</button>
-      </div>
-    `;
+    <div class="col-5">
+      <input type="text" class="form-control yearpicker" placeholder="Graduation Year" />
+    </div>
+    <div class="col-5">
+      <select class="form-select">
+        <option value="" selected disabled>Select Degree</option>
+        <option value="Bachelor">Bachelor</option>
+        <option value="Master">Master</option>
+        <option value="Doctoral">Doctoral</option>
+      </select>
+    </div>
+    <div class="col-2 d-flex align-items-center">
+      <button type="button" class="btn btn-sm btn-outline-danger removeEducationRow">–</button>
+    </div>
+  `;
 
-    document.getElementById('educationWrapper').after(newRow);
+    educationWrapper.appendChild(newRow);
     initializeYearPickers();
-  }
+    updateQuoteTitle();
 
+  }
+  // When source name changes, update the title
+  document.getElementById('createSourceQuote').addEventListener('input', updateQuoteTitle);
+
+  // When any graduation year or degree field changes, update the title
+  document.addEventListener('input', (e) => {
+    if (
+      e.target.classList.contains('yearpicker') ||
+      e.target.tagName === 'SELECT' && e.target.closest('.row.g-2.mb-2')
+    ) {
+      updateQuoteTitle();
+    }
+  });
   if (e.target.classList.contains('removeEducationRow')) {
     e.target.closest('.row').remove();
   }
