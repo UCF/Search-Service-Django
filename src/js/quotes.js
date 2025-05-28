@@ -323,7 +323,7 @@ document.querySelectorAll('input[name="createRadioOptions"]').forEach((radio) =>
           <div class="col-5">
             <select class="form-select">
               <option value="" selected disabled>Select Degree</option>
-              <option value="Bachelor">Bachelor</option>
+              <option value=" ">Bachelor</option>
               <option value="Master">Master</option>
               <option value="Doctoral">Doctoral</option>
             </select>
@@ -400,11 +400,11 @@ function updateQuoteTitle() {
         formattedDegree = 'PhD';
       }
 
-      titleParts.push(`${year}' ${formattedDegree}`);
+      titleParts.push(`'${year}${formattedDegree}`);
     }
   });
 
-  const finalTitle = [sourceName, ...titleParts].filter(Boolean).join(', ');
+  const finalTitle = [sourceName, ...titleParts].filter(Boolean).join(' ');
   document.getElementById('createQuoteTitle').value = finalTitle;
 }
 
