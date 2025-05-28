@@ -10,11 +10,11 @@
                             <form id="createQuoteForm">
                                 <div class="row">
                                     <div class="col-4">
-                                        <label for="createSelectedAvatar" class="h6">Image</label>
+                                        <label for="createSelectedAvatar" class="h6">Image <span class="small">( 300 x 300 pixels )</span></label>
                                         <img id="createSelectedAvatar" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
                                             class="rounded-circle d-block mx-auto mb-2" style="width: 120px; height: 120px; object-fit: cover;"
                                             alt="example placeholder" />
-                                        <label class="btn btn-primary d-flex justify-content-center btn-rounded mx-md-4">
+                                        <label class="btn btn-primary mb-2 d-flex justify-content-center btn-rounded mx-md-4">
                                             Upload image
                                             <input type="file" class="d-none" id="createCustomFile" onchange="handleImageUpload(event, 'createSelectedAvatar')" />
                                         </label>
@@ -22,27 +22,31 @@
                                     <div class="col-8">
                                         <div class="row">
                                             <div class="col-6">
-                                                <label for="createFirstNameQuote" class="form-label h6">First Name</label>
-                                                <input type="text" class="form-control updatedModalTitle" id="createFirstNameQuote" required>
+                                                <label for="createNameQuote" class="form-label h6">Source Name</label>
+                                                <input type="text" class="form-control updatedModalTitle" id="createSourceQuote" required>
                                             </div>
                                             <div class="col-6">
-                                                <label for="createLastNameQuote" class="form-label h6">Last Name</label>
-                                                <input type="text" class="form-control updatedModalTitle" id="createLastNameQuote" required>
+                                                <label for="imageAlt" class="form-label h6">Image Alt</label>
+                                                <input type="text" class="form-control" id="imageAlt" disabled>
                                             </div>
                                         </div>
-                                        <label class="h6 d-block mt-4">Career/ Position</label>
+                                        <label class="h6 d-block mt-4">Is the person UCF alumni?</label>
                                         <div class="d-flex flex-wrap">
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input updatedModalTitle" type="radio" name="createRadioOptions" value="student">
-                                                <label class="form-check-label" for="createRadio-student">Student</label>
+                                                <label class="form-check-label" for="createRadio-student">Yes</label>
                                             </div>
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input updatedModalTitle" type="radio" name="createRadioOptions" value="other">
-                                                <label class="form-check-label" for="createRadio-other">Other</label>
+                                                <label class="form-check-label" for="createRadio-other">No</label>
                                             </div>
                                         </div>
-                                            <label for="graduation-year" class="form-check-label h6 d-block mt-4"> Graduation/ Expected graduation year </label>
-                                            <input type="text" class="updatedModalTitle yearpicker" id="graduationYear" value="" disabled>
+                                            <div id="educationWrapper" class="row g-2 mb-3" style="display: none;">
+
+                                            </div>
+                                             <div class="col-12 d-flex align-items-center">
+                                              <button type="button" class="btn btn-sm btn-outline-success addEducationRow" style="display: none;">Add a degree +</button>
+                                            </div>
                                     </div>
                                 </div>
                                 <div class="row mt-4">
@@ -55,14 +59,14 @@
                                     <textarea class="form-control" id="createQuoteText" rows="3" maxlength="220" required></textarea>
                                 </div>
                                 <div class="row mt-4">
-                                    <label class="h6">Add Related Tags</label>
-                                    <p>By default, dashboard attaches the name of the program, parent program, colleges, and departments. This improves search functionality and enhances the dashboard by displaying more relevant suggestions.</p>
+                                    <label class="h6">Related Tags</label>
+                                    <p>By default, dashboard attaches the name of the program, parent program, colleges, and departments.</p>
                                     <input name="createTags" value="
                                     {% if object.name %}{{ object.name }}{% endif %},
                                     {% if object.parent_program %}{{ object.parent_program }}{% endif %},
                                     {% if object.colleges %}{% for college in object.colleges.all %}{{ college.name }}{% endfor %}{% endif %},
                                     {% if object.departments %}{% for department in object.departments.all %}{{ department.name }}{% endfor %}{% endif %}
-                                    " required autofocus>
+                                    " readonly autofocus>
                                 </div>
                                 <div class="text-center mt-4">
                                     <button type="submit" class="btn btn-primary" onclick="createQuote(event)">Create new Quote</button>

@@ -22,16 +22,17 @@
                         <input type="text" id="quoteTitle" class="form-control" required>
                       </div>
                       <div class="form-group mt-3">
-                        <label for="quoteImage" class="d-block">Image</label>
-                        <input type="file" id="quoteImage" class="form-control-file">
-                      </div>
-                      <div class="p-3 bg-light form-group mt-3">
-                        <label>Remove Quote</label>
-                        <p>To remove this quote, toggle the switch on and click Save Changes.</p>
-                        <div class="form-check form-switch">
-                          <input class="form-check-input" type="checkbox" id="detachSwitch">
-                          <label class="form-check-label hide" for="flexSwitchCheckDefault">remove Quote</label>
+                        <label for="quoteImage" class="d-block">Image <span class="small">( 300 x 300 Pixels )</span></label>
+                        <div class="row">
+                          <div id="quoteEditorImagedisplay"></div>
+                          <div class="col-auto d-flex align-items-center">
+                            <input type="file" id="quoteImage" class="form-control-file">
+                          </div>
                         </div>
+                      </div>
+                      <div class="form-group mt-3">
+                        <label for="quoteImageAlt" class="d-block">Image Alt</label>
+                        <input type="text" id="quoteImageAltEditField" class="form-control" disabled>
                       </div>
                   </form>
                 </div>
