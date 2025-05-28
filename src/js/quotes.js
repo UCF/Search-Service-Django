@@ -19,7 +19,7 @@ const quoteSearch = document.querySelector('#related-quote-search');
 const titleInputs = document.querySelectorAll('.updatedModalTitle');
 const createQuoteModalTitle = document.querySelector('#createQuoteTitle');
 const createQuoteTag = document.querySelector('[name="createTags"]');
-const expectedGraduationFeild = document.querySelector('#graduationYear');
+const educationWrapper = document.getElementById('educationWrapper');
 const modal = document.getElementById('activeQuoteModal');
 const editModalSaveBtn = modal.querySelector('#editModalSaveBtn');
 
@@ -216,24 +216,13 @@ titleInputs.forEach((input) => {
     if (e.target.classList.contains('form-check-input')) {
       switch (e.target.value) {
         case 'student':
-          expectedGraduationFeild.removeAttribute('disabled');
+          educationWrapper.style.display = 'flex';
+          educationWrapper.innerHTML = initialEducationRow;
 
-          $('.yearpicker').yearpicker({
-            // Default CSS classes
-            selectedClass: 'selected text-black bg-primary',
-            template: `<div class="yearpicker-container">
-                  <div class="yearpicker-header">
-                      <div class="yearpicker-prev" data-view="yearpicker-prev">&lsaquo;</div>
-                      <div class="yearpicker-current" data-view="yearpicker-current">SelectedYear</div>
-                      <div class="yearpicker-next" data-view="yearpicker-next">&rsaquo;</div>
-                  </div>
-                  <div class="yearpicker-body">
-                      <ul class="yearpicker-year" data-view="years">
-                      </ul>
-                  </div>
-              </div>
-              `
-          });
+          educationWrapper.querySelectorAll('input, select, button').forEach((el) =>
+            el.removeAttribute('disabled')
+          );
+          initializeYearPickers();
 
           $('.yearpicker').on('change', function () {
             createQuoteHelperObj.graduationYear = $(this).val().slice(-2);
@@ -241,12 +230,24 @@ titleInputs.forEach((input) => {
               ? createQuoteModalTitle.value = `${createQuoteHelperObj.graduationYear}'`
               : createQuoteModalTitle.value = '';
           });
+
           break;
 
         case 'other':
           createQuoteHelperObj.graduationYear = '';
-          expectedGraduationFeild.setAttribute('disabled', '');
           createQuoteModalTitle.value = '';
+
+          // Remove all dynamically added rows after the educationWrapper
+          let nextSibling = educationWrapper.nextElementSibling;
+          while (nextSibling && nextSibling.classList.contains('row')) {
+            const toRemove = nextSibling;
+            nextSibling = nextSibling.nextElementSibling;
+            toRemove.remove();
+          }
+
+          // Clear and hide the base education wrapper
+          educationWrapper.innerHTML = initialEducationRow;
+          educationWrapper.style.display = 'none';
           break;
       }
     }
@@ -257,10 +258,60 @@ titleInputs.forEach((input) => {
 
 $('.yearpicker').on('change', function () {
   createQuoteHelperObj.graduationYear = $(this).val().slice(-2);
-  graduationYear
+  createQuoteHelperObj.graduationYear
     ? createQuoteModalTitle.value = `${createQuoteHelperObj.graduationYear}'`
     : createQuoteModalTitle.value = '';
 });
+const initialEducationRow = document.getElementById('educationWrapper').innerHTML;
+
+function initializeYearPickers() {
+  $('.yearpicker').yearpicker({
+    selectedClass: 'selected text-black bg-primary',
+    template: `
+      <div class="yearpicker-container">
+        <div class="yearpicker-header">
+          <div class="yearpicker-prev" data-view="yearpicker-prev">&lsaquo;</div>
+          <div class="yearpicker-current" data-view="yearpicker-current">SelectedYear</div>
+          <div class="yearpicker-next" data-view="yearpicker-next">&rsaquo;</div>
+        </div>
+        <div class="yearpicker-body">
+          <ul class="yearpicker-year" data-view="years"></ul>
+        </div>
+      </div>`
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('addEducationRow')) {
+    const newRow = document.createElement('div');
+    newRow.classList.add('row', 'g-2', 'mb-2');
+
+    newRow.innerHTML = `
+      <div class="col-5">
+        <input type="text" class="form-control yearpicker" placeholder="Graduation Year" />
+      </div>
+      <div class="col-5">
+        <select class="form-select">
+          <option value="" selected disabled>Select Degree</option>
+          <option value="Bachelor">Bachelor</option>
+          <option value="Master">Master</option>
+          <option value="Doctoral">Doctoral</option>
+        </select>
+      </div>
+      <div class="col-2 d-flex align-items-center">
+        <button type="button" class="btn btn-sm btn-outline-danger removeEducationRow">–</button>
+      </div>
+    `;
+
+    document.getElementById('educationWrapper').after(newRow);
+    initializeYearPickers();
+  }
+
+  if (e.target.classList.contains('removeEducationRow')) {
+    e.target.closest('.row').remove();
+  }
+});
+
 
 // Create Quote Modal - Tagify
 new Tagify(createQuoteTag, {
@@ -594,8 +645,9 @@ quoteSearch.addEventListener(
     // Filter the AllQuotes array based on the search string
     const filteredQuotes = AllQuotes.filter((quote) => {
       const sourceMatch = quote.source.toLowerCase().includes(searchString); // Check if source contains the string
+      const descriptionMatch = quote.quote_text.toLowerCase().includes(searchString);
       const tagsMatch = quote.tags.some((tag) => tag.toLowerCase().includes(searchString)); // Check if any tag contains the string
-      return sourceMatch || tagsMatch; // Include the quote if either matches
+      return sourceMatch || descriptionMatch || tagsMatch; // Include the quote if either matches
     });
 
     // Render the filtered quotes

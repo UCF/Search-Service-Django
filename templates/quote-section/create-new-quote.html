@@ -10,11 +10,11 @@
                             <form id="createQuoteForm">
                                 <div class="row">
                                     <div class="col-4">
-                                        <label for="createSelectedAvatar" class="h6">Image</label>
+                                        <label for="createSelectedAvatar" class="h6">Image <span class="small">( 300 x 300 pixels )</span></label>
                                         <img id="createSelectedAvatar" src="https://mdbootstrap.com/img/Photos/Others/placeholder-avatar.jpg"
                                             class="rounded-circle d-block mx-auto mb-2" style="width: 120px; height: 120px; object-fit: cover;"
                                             alt="example placeholder" />
-                                        <label class="btn btn-primary d-flex justify-content-center btn-rounded mx-md-4">
+                                        <label class="btn btn-primary mb-2 d-flex justify-content-center btn-rounded mx-md-4">
                                             Upload image
                                             <input type="file" class="d-none" id="createCustomFile" onchange="handleImageUpload(event, 'createSelectedAvatar')" />
                                         </label>
@@ -41,8 +41,22 @@
                                                 <label class="form-check-label" for="createRadio-other">Other</label>
                                             </div>
                                         </div>
-                                            <label for="graduation-year" class="form-check-label h6 d-block mt-4"> Graduation/ Expected graduation year </label>
-                                            <input type="text" class="updatedModalTitle yearpicker" id="graduationYear" value="" disabled>
+                                            <div id="educationWrapper" class="row g-2 mb-3" style="display: none;">
+                                              <div class="col-5">
+                                                <input type="text" class="form-control yearpicker" placeholder="Graduation Year" />
+                                              </div>
+                                              <div class="col-5">
+                                                <select class="form-select">
+                                                  <option value="" selected disabled>Select Degree</option>
+                                                  <option value="Bachelor">Bachelor</option>
+                                                  <option value="Master">Master</option>
+                                                  <option value="Doctoral">Doctoral</option>
+                                                </select>
+                                              </div>
+                                              <div class="col-2 d-flex align-items-center">
+                                                <button type="button" class="btn btn-sm btn-outline-success addEducationRow">+</button>
+                                              </div>
+                                            </div>
                                     </div>
                                 </div>
                                 <div class="row mt-4">
