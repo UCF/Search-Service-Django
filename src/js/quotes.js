@@ -15,19 +15,18 @@ const activeQuotesIds = Array.from(activeQuotes).map((quote) =>
 const relatedQuotesWrapper = document.querySelector('#related-quotes-wrapper');
 const quoteSearch = document.querySelector('#related-quote-search');
 
+
 // Quote Modal elements
-const titleInputs = document.querySelectorAll('.updatedModalTitle');
-const createQuoteModalTitle = document.querySelector('#createQuoteTitle');
 const createQuoteTag = document.querySelector('[name="createTags"]');
+const currentPageTags = createQuoteTag
+  ? createQuoteTag.value
+    .split(',')
+    .map((tag) => tag.trim().toLowerCase())
+    .filter((tag) => tag !== '') // Remove empty strings
+  : [];
 const educationWrapper = document.getElementById('educationWrapper');
 const modal = document.getElementById('activeQuoteModal');
 const editModalSaveBtn = modal.querySelector('#editModalSaveBtn');
-
-// Helper variables
-const createQuoteHelperObj = {
-  createSourceQuote: '',
-  graduationEntries: [] // array of objects: { year: "24", degree: "Bachelor" }
-};
 
 const AllQuotes = [];
 
@@ -707,8 +706,15 @@ const renderRelatedQuotes = (filteredQuotes) => {
   // Clear the related quotes wrapper
   relatedQuotesWrapper.innerHTML = '';
 
-  // Use the filtered quotes if provided, otherwise use all quotes
-  const quotesToRender = filteredQuotes || AllQuotes;
+  // Use the filtered quotes if provided, otherwise use quotes from allquotes that has same tags
+  console.log('Current page tags:', currentPageTags);
+  console.log('All fetched quotes:', AllQuotes);
+  const relatedOnLoadQuotes = AllQuotes.filter((quote) =>
+    quote.tags.map((t) => t.toLowerCase()).some((tag) =>
+      currentPageTags.includes(tag)
+    )
+  );
+  const quotesToRender = filteredQuotes || relatedOnLoadQuotes;
 
   quotesToRender.forEach((quote) => {
     if (!activeQuotesIds.includes(quote.id.toString())) {
@@ -738,4 +744,6 @@ quoteSearch.addEventListener(
 );
 
 // Fetch All Quotes and Render on Page Load
-fetchQuotes().then(renderRelatedQuotes);
+fetchQuotes().then(() => {
+  renderRelatedQuotes(); // Now AllQuotes is populated, so relatedOnLoadQuotes will work
+});
