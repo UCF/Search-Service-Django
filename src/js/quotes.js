@@ -4,12 +4,14 @@ import Tagify from '@yaireo/tagify';
 const baseUrl = window.location.origin;
 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 const programId = document.querySelector('[name=quote-section]').getAttribute('data-program-id');
+const createQuoteBtn = document.getElementById('createQuoteBtn');
 
 // Active Quotes variables
 const activeQuotes = document.querySelectorAll('.active-quotes');
 const activeQuotesIds = Array.from(activeQuotes).map((quote) =>
   quote.getAttribute('data-quote-id')
 );
+
 
 // Related Quotes variables
 const relatedQuotesWrapper = document.querySelector('#related-quotes-wrapper');
@@ -29,6 +31,26 @@ const modal = document.getElementById('activeQuoteModal');
 const editModalSaveBtn = modal.querySelector('#editModalSaveBtn');
 
 const AllQuotes = [];
+
+// Toggle create button and related section based on assigned quote count
+const relatedQuoteSection = document.querySelector('.related-quote-section');
+
+if (activeQuotesIds.length >= 1) {
+  if (createQuoteBtn) {
+    createQuoteBtn.disabled = true;
+  }
+  if (relatedQuoteSection) {
+    relatedQuoteSection.style.display = 'none';
+  }
+} else {
+  if (createQuoteBtn) {
+    createQuoteBtn.disabled = false;
+  }
+  if (relatedQuoteSection) {
+    relatedQuoteSection.style.display = 'block';
+  }
+}
+
 
 // API calls
 // Retrieve All quotes
