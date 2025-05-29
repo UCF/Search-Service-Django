@@ -2,8 +2,9 @@ import Tagify from '@yaireo/tagify';
 // Variables
 // Global Variables
 const baseUrl = window.location.origin;
-const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-const programId = document.querySelector("[name=quote-section]").getAttribute("data-program-id");
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+const programId = document.querySelector('[name=quote-section]').getAttribute('data-program-id');
+const createQuoteBtn = document.getElementById('createQuoteBtn');
 
 // Active Quotes variables
 const activeQuotes = document.querySelectorAll('.active-quotes');
@@ -11,25 +12,45 @@ const activeQuotesIds = Array.from(activeQuotes).map((quote) =>
   quote.getAttribute('data-quote-id')
 );
 
+
 // Related Quotes variables
 const relatedQuotesWrapper = document.querySelector('#related-quotes-wrapper');
 const quoteSearch = document.querySelector('#related-quote-search');
 
+
 // Quote Modal elements
-const titleInputs = document.querySelectorAll('.updatedModalTitle');
-const createQuoteModalTitle = document.querySelector('#createQuoteTitle');
 const createQuoteTag = document.querySelector('[name="createTags"]');
+const currentPageTags = createQuoteTag
+  ? createQuoteTag.value
+    .split(',')
+    .map((tag) => tag.trim().toLowerCase())
+    .filter((tag) => tag !== '') // Remove empty strings
+  : [];
 const educationWrapper = document.getElementById('educationWrapper');
 const modal = document.getElementById('activeQuoteModal');
 const editModalSaveBtn = modal.querySelector('#editModalSaveBtn');
 
-// Helper variables
-const createQuoteHelperObj = {
-  createSourceQuote: '',
-  graduationEntries: [] // array of objects: { year: "24", degree: "Bachelor" }
-};
-
 const AllQuotes = [];
+
+// Toggle create button and related section based on assigned quote count
+const relatedQuoteSection = document.querySelector('.related-quote-section');
+
+if (activeQuotesIds.length >= 1) {
+  if (createQuoteBtn) {
+    createQuoteBtn.disabled = true;
+  }
+  if (relatedQuoteSection) {
+    relatedQuoteSection.style.display = 'none';
+  }
+} else {
+  if (createQuoteBtn) {
+    createQuoteBtn.disabled = false;
+  }
+  if (relatedQuoteSection) {
+    relatedQuoteSection.style.display = 'block';
+  }
+}
+
 
 // API calls
 // Retrieve All quotes
@@ -780,8 +801,15 @@ const renderRelatedQuotes = (filteredQuotes) => {
   // Clear the related quotes wrapper
   relatedQuotesWrapper.innerHTML = '';
 
-  // Use the filtered quotes if provided, otherwise use all quotes
-  const quotesToRender = filteredQuotes || AllQuotes;
+  // Use the filtered quotes if provided, otherwise use quotes from allquotes that has same tags
+  console.log('Current page tags:', currentPageTags);
+  console.log('All fetched quotes:', AllQuotes);
+  const relatedOnLoadQuotes = AllQuotes.filter((quote) =>
+    quote.tags.map((t) => t.toLowerCase()).some((tag) =>
+      currentPageTags.includes(tag)
+    )
+  );
+  const quotesToRender = filteredQuotes || relatedOnLoadQuotes;
 
   quotesToRender.forEach((quote) => {
     if (!activeQuotesIds.includes(quote.id.toString())) {
@@ -811,10 +839,6 @@ quoteSearch.addEventListener(
 );
 
 // Fetch All Quotes and Render on Page Load
-fetchQuotes().then(renderRelatedQuotes);
-
-modal.querySelector(".btn-close").addEventListener("click", () => {
-  $("#activeQuoteModal").modal("hide");
+fetchQuotes().then(() => {
+  renderRelatedQuotes(); // Now AllQuotes is populated, so relatedOnLoadQuotes will work
 });
-
-
