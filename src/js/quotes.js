@@ -304,12 +304,10 @@ document.querySelectorAll('input[name="createRadioOptions"]').forEach((radio) =>
 });
 
 
-$('.yearpicker').on('change', function () {
-  createQuoteHelperObj.graduationYear = $(this).val().slice(-2);
-  createQuoteHelperObj.graduationYear
-    ? createQuoteModalTitle.value = `${createQuoteHelperObj.graduationYear}'`
-    : createQuoteModalTitle.value = '';
+$(document).on('change', '.yearpicker', () => {
+  updateQuoteTitle();
 });
+
 const initialEducationRow = document.getElementById('educationWrapper').innerHTML;
 
 function initializeYearPickers() {
@@ -368,7 +366,7 @@ document.addEventListener('click', (e) => {
     <div class="col-5">
       <select class="form-select">
         <option value="" selected disabled>Select Degree</option>
-        <option value="Bachelor">Bachelor</option>
+        <option value=" ">Bachelor</option>
         <option value="Master">Master</option>
         <option value="Doctoral">Doctoral</option>
       </select>
