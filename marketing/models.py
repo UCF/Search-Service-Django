@@ -23,5 +23,4 @@ class Quote(models.Model):
 
     @property
     def source_formatted(self):
-        pattern = r'(.*[\’\']\d{2}([a-zA-Z.]+)?)'
-        return re.sub(pattern, '<strong>\g<1></strong>', f"{self.source} {self.titles}")
+        return f"{self.source} {self.titles}"

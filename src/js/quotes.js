@@ -356,12 +356,10 @@ document.querySelectorAll('input[name="createRadioOptions"]').forEach((radio) =>
 });
 
 
-$('.yearpicker').on('change', function () {
-  createQuoteHelperObj.graduationYear = $(this).val().slice(-2);
-  createQuoteHelperObj.graduationYear
-    ? createQuoteModalTitle.value = `${createQuoteHelperObj.graduationYear}'`
-    : createQuoteModalTitle.value = '';
+$(document).on('change', '.yearpicker', () => {
+  updateQuoteTitle();
 });
+
 const initialEducationRow = document.getElementById('educationWrapper').innerHTML;
 
 function initializeYearPickers() {
@@ -382,7 +380,6 @@ function initializeYearPickers() {
 }
 
 function updateQuoteTitle() {
-  const sourceName = document.getElementById('createSourceQuote').value.trim();
   const educationRows = document.querySelectorAll('.row.g-2.mb-2');
   const titleParts = [];
 
@@ -404,7 +401,7 @@ function updateQuoteTitle() {
     }
   });
 
-  const finalTitle = [sourceName, ...titleParts].filter(Boolean).join(' ');
+  const finalTitle = [...titleParts].filter(Boolean).join(' ');
   document.getElementById('createQuoteTitle').value = finalTitle;
 }
 
@@ -420,7 +417,7 @@ document.addEventListener('click', (e) => {
     <div class="col-5">
       <select class="form-select">
         <option value="" selected disabled>Select Degree</option>
-        <option value="Bachelor">Bachelor</option>
+        <option value=" ">Bachelor</option>
         <option value="Master">Master</option>
         <option value="Doctoral">Doctoral</option>
       </select>
@@ -435,9 +432,6 @@ document.addEventListener('click', (e) => {
     updateQuoteTitle();
 
   }
-  // When source name changes, update the title
-  document.getElementById('createSourceQuote').addEventListener('input', updateQuoteTitle);
-
   // When any graduation year or degree field changes, update the title
   document.addEventListener('input', (e) => {
     if (
