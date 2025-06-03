@@ -125,11 +125,11 @@ const createQuote = async (event) => {
       formData.append('image_alt', imageAlt);
       tags.forEach((tag) => formData.append('tags', tag.trim())); // Append multiple tags
       formData.append('image', imageFile);
+      formData.append('program_id', programId);
       response = await fetch(`${baseUrl}/api/v1/marketing/quotes/create/`, {
         method: 'POST',
         headers: {
-          'X-CSRFToken': csrftoken,
-          'Program-Id': programId
+          'X-CSRFToken': csrftoken
         },
         body: formData
       });
@@ -146,10 +146,13 @@ const createQuote = async (event) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken,
-          'Program-Id': programId
+          'X-CSRFToken': csrftoken
         },
-        body: JSON.stringify(quoteData)
+        body: JSON.stringify(
+          {
+            ...quoteData,
+            program_id: programId
+          })
       });
     }
 
@@ -159,7 +162,6 @@ const createQuote = async (event) => {
       location.reload();
     }
   } catch (error) {
-    console.log(quoteData);
     console.error('Error:', error);
     alert('Failed to create quote. Please try again.');
   }
@@ -174,15 +176,16 @@ const attachQuoteToProgram = async (quoteId) => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken,
-          'Program-Id': programId,
-          'Attr-Quote': 'attachQuote'
-        }
+          'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+          program_id: programId,
+          quote_attribute: 'attachQuote'
+        })
       }
     );
 
     if (response.ok) {
-      console.log('Quote attached successfully:', response);
       location.reload();
     } else {
       console.error('Failed to attach quote');
@@ -498,15 +501,16 @@ activeQuotes.forEach((quote) => {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'X-CSRFToken': csrftoken,
-              'Program-Id': programId,
-              'Attr-Quote': 'detachQuote'
-            }
+              'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+              program_id: programId,
+              quote_attribute: 'detachQuote'
+            })
           }
         );
 
         if (response.ok) {
-          console.log('Quote updated successfully:', response);
           $(detachModal).modal('hide');
           location.reload();
         } else {
@@ -683,8 +687,7 @@ activeQuotes.forEach((quote) => {
 
           if (response.ok) {
             const data = await response.json();
-            console.log("Quote updated successfully:", data);
-            $(modal).modal("hide");
+            $(modal).modal('hide');
             location.reload();
           } else {
             console.error("Failed to update quote");
@@ -714,7 +717,6 @@ activeQuotes.forEach((quote) => {
 >>>>>>> multiple-fields-degree
 
         try {
-          console.log(formData);
           const response = await fetch(
             `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
             {
@@ -802,8 +804,6 @@ const renderRelatedQuotes = (filteredQuotes) => {
   relatedQuotesWrapper.innerHTML = '';
 
   // Use the filtered quotes if provided, otherwise use quotes from allquotes that has same tags
-  console.log('Current page tags:', currentPageTags);
-  console.log('All fetched quotes:', AllQuotes);
   const relatedOnLoadQuotes = AllQuotes.filter((quote) =>
     quote.tags.map((t) => t.toLowerCase()).some((tag) =>
       currentPageTags.includes(tag)
