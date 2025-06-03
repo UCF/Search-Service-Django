@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 from taggit.managers import TaggableManager
 
@@ -10,15 +11,16 @@ class Quote(models.Model):
     source = models.CharField(null=True, blank=True, max_length=500)
     titles = models.TextField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True)
-    tags = TaggableManager('tags')
+    tags = TaggableManager()
+    image_alt = models.CharField(null=True, blank=True, max_length=500)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_quotes')
 
     def __str__(self):
         if self.source:
-            return f"{self.source}: {self.quote_text}"
+            return f"{self.source}"
         else:
             return self.quote_text
 
     @property
     def source_formatted(self):
-        pattern = r'(.*[\’\']\d{2}([a-zA-Z.]+)?)'
-        return re.sub(pattern, '<strong>\g<1></strong>', f"{self.source} {self.titles}")
+        return f"{self.source} {self.titles}"

@@ -2,6 +2,8 @@
 {% load static %}
 {% block css %}
 <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
+<link href="https://cdn.jsdelivr.net/npm/yearpicker.js@1.0.1/dist/yearpicker.min.css" rel="stylesheet">
+
 {{ block.super }}
 {% endblock %}
 
@@ -113,6 +115,7 @@
           {{ form.highlights }}
         </div>
       </form>
+      {% include 'quote-section/base.html' %}
       <hr class="my-5">
       <h2 class="h3">Read-only Fields</h2>
       <dl class="row">
@@ -214,4 +217,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
   <script src="{% static 'js/jobs-tagify.min.js' %}"></script>
   <script src="{% static 'js/highlights-iconpicker.min.js' %}"></script>
+  <script src="{% static 'js/quotes.min.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/yearpicker.js@1.0.1/dist/yearpicker.min.js"></script>
 {% endblock %}
+

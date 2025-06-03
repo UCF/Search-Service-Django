@@ -1,0 +1,44 @@
+          <!-- Modal Edit button-->
+          <div class="modal fade" id="activeQuoteModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="activeQuoteModalTitle">Edit Quote</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <form id="editQuoteForm">
+                      <div class="form-group">
+                        <label for="quoteText">Quote Text</label>
+                        <textarea id="quoteText" class="form-control" maxlength="220" required></textarea>
+                      </div>
+                      <div class="form-group mt-3">
+                        <label for="quoteSource">Source</label>
+                        <input type="text" id="quoteSource" class="form-control" required>
+                      </div>
+                      <div class="form-group mt-3">
+                        <label for="quoteTitle">Title</label>
+                        <input type="text" id="quoteTitle" class="form-control" required>
+                      </div>
+                      <div class="form-group mt-3">
+                        <label for="quoteImage" class="d-block">Image <span class="small">( 300 x 300 Pixels )</span></label>
+                        <div class="row">
+                          <div id="quoteEditorImagedisplay"></div>
+                          <div class="col-auto d-flex align-items-center">
+                            <input type="file" id="quoteImage" class="form-control-file">
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group mt-3">
+                        <label for="quoteImageAlt" class="d-block">Image Alt</label>
+                        <input type="text" id="quoteImageAltEditField" class="form-control" disabled>
+                      </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button id="editModalSaveBtn" type="button" class="btn btn-primary">Save changes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- End of Modal Edit button -->

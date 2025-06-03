@@ -15,6 +15,7 @@ class QuoteSerializer(TaggitSerializer, serializers.ModelSerializer):
             'source',
             'titles',
             'image',
+            'image_alt',
             'source_formatted',
             'tags'
         )
