@@ -125,11 +125,11 @@ const createQuote = async (event) => {
       formData.append('image_alt', imageAlt);
       tags.forEach((tag) => formData.append('tags', tag.trim())); // Append multiple tags
       formData.append('image', imageFile);
+      formData.append('program_id', programId);
       response = await fetch(`${baseUrl}/api/v1/marketing/quotes/create/`, {
         method: 'POST',
         headers: {
-          'X-CSRFToken': csrftoken,
-          'Program-Id': programId
+          'X-CSRFToken': csrftoken
         },
         body: formData
       });
@@ -146,10 +146,13 @@ const createQuote = async (event) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken,
-          'Program-Id': programId
+          'X-CSRFToken': csrftoken
         },
-        body: JSON.stringify(quoteData)
+        body: JSON.stringify(
+          {
+            ...quoteData,
+            program_id: programId
+          })
       });
     }
 
@@ -174,10 +177,12 @@ const attachQuoteToProgram = async (quoteId) => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken,
-          'Program-Id': programId,
-          'Attr-Quote': 'attachQuote'
-        }
+          'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({
+          program_id: programId,
+          quote_attribute: 'attachQuote'
+        })
       }
     );
 
@@ -446,10 +451,12 @@ activeQuotes.forEach((quote) => {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'X-CSRFToken': csrftoken,
-              'Program-Id': programId,
-              'Attr-Quote': 'detachQuote'
-            }
+              'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+              program_id: programId,
+              quote_attribute: 'detachQuote'
+            })
           }
         );
 

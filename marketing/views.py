@@ -19,7 +19,7 @@ class QuoteCreateView(generics.CreateAPIView):
     serializer_class = QuoteSerializer
 
     def create(self, request, *args, **kwargs):
-        program_id = request.headers.get('Program-ID')
+        program_id = request.data.get('program_id')
         quote_serializer = self.get_serializer(data=request.data)
         quote_serializer.is_valid(raise_exception=True)
         quote = quote_serializer.save(author=request.user)
@@ -29,7 +29,7 @@ class QuoteCreateView(generics.CreateAPIView):
             program.quotes.add(quote)
             return Response({"message": "Quote attached successfully"})
         except Program.DoesNotExist:
-            return Response({"message": "Program not found"})
+            return Response({"message": "Program not found"}, status=404)
 
 class QuoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Quote.objects.all()
@@ -38,8 +38,8 @@ class QuoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     parser_classes = (MultiPartJSONParser,JSONParser,)
 
     def patch(self, request, *args, **kwargs):
-        program_id = request.headers.get('Program-ID')
-        attribute = request.headers.get('Attr-Quote')
+        program_id = request.data.get('program_id')
+        attribute = request.data.get('quote_attribute')
         program = Program.objects.get(id=program_id)
         quote = self.get_object()
 
