@@ -162,7 +162,6 @@ const createQuote = async (event) => {
       location.reload();
     }
   } catch (error) {
-    console.log(quoteData);
     console.error('Error:', error);
     alert('Failed to create quote. Please try again.');
   }
@@ -187,7 +186,6 @@ const attachQuoteToProgram = async (quoteId) => {
     );
 
     if (response.ok) {
-      console.log('Quote attached successfully:', response);
       location.reload();
     } else {
       console.error('Failed to attach quote');
@@ -461,7 +459,6 @@ activeQuotes.forEach((quote) => {
         );
 
         if (response.ok) {
-          console.log('Quote updated successfully:', response);
           $(detachModal).modal('hide');
           location.reload();
         } else {
@@ -625,7 +622,6 @@ activeQuotes.forEach((quote) => {
 
           if (response.ok) {
             const data = await response.json();
-            console.log('Quote updated successfully:', data);
             $(modal).modal('hide');
             location.reload();
           } else {
@@ -648,7 +644,6 @@ activeQuotes.forEach((quote) => {
         }
 
         try {
-          console.log(formData);
           const response = await fetch(
             `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
             {
@@ -736,8 +731,6 @@ const renderRelatedQuotes = (filteredQuotes) => {
   relatedQuotesWrapper.innerHTML = '';
 
   // Use the filtered quotes if provided, otherwise use quotes from allquotes that has same tags
-  console.log('Current page tags:', currentPageTags);
-  console.log('All fetched quotes:', AllQuotes);
   const relatedOnLoadQuotes = AllQuotes.filter((quote) =>
     quote.tags.map((t) => t.toLowerCase()).some((tag) =>
       currentPageTags.includes(tag)

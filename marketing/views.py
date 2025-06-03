@@ -27,9 +27,15 @@ class QuoteCreateView(generics.CreateAPIView):
         try:
             program = Program.objects.get(id=program_id)
             program.quotes.add(quote)
-            return Response({"message": "Quote attached successfully"})
+            return Response(
+                {"message": "Quote created and attached successfully"},
+                status=status.HTTP_201_CREATED
+            )
         except Program.DoesNotExist:
-            return Response({"message": "Program not found"}, status=404)
+            return Response(
+                {"error": "Program not found"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class QuoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Quote.objects.all()
@@ -48,23 +54,34 @@ class QuoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
                 if quote in program.quotes.all():
                     program.quotes.remove(quote)
-                    return Response({"message": "Quote detached successfully"})
+                    return Response(
+                    {"message": "Quote detached successfully"},
+                    status=status.HTTP_200_OK
+                )
                 else:
-                    return Response({"error": "Quote was not attached to this program"})
+                    return Response(
+                {"error": "Program not found"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
             except Program.DoesNotExist:
-                return Response({"error": "Program not found"})
+                return Response(
+                {"error": "Program not found"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if attribute == 'attachQuote':
             try:
 
                 if quote not in program.quotes.all():
                     program.quotes.add(quote)
-                    return Response({"message": "Quote attached successfully"})
+                    return Response({"message": "Quote attached successfully"},
+                    status=status.HTTP_200_OK)
                 else:
-                    return Response({"error": "Quote already attached to this program"})
+                    return Response({"error": "Quote already attached to this program"},
+                status=status.HTTP_409_CONFLICT)
 
             except Program.DoesNotExist:
-                return Response({"error": "Program not found"})
+                return Response({"error": "Program not found"},status=status.HTTP_400_BAD_REQUEST)
 
 
