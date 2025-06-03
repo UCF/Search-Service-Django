@@ -23,4 +23,11 @@ class Quote(models.Model):
 
     @property
     def source_formatted(self):
-        return f"{self.source} {self.titles}"
+        full_text = f"{self.source or ''} {self.titles or ''}".strip()
+
+        # Split by first comma — before comma is bold, after is not
+        parts = full_text.split(',', 1)
+        bold_part = parts[0].strip()
+        rest_part = parts[1].strip() if len(parts) > 1 else ''
+
+        return f"<strong>{bold_part}</strong>{', ' + rest_part if rest_part else ''}"
