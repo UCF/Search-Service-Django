@@ -25,9 +25,9 @@ class Quote(models.Model):
     def source_formatted(self):
         full_text = f"{self.source or ''} {self.titles or ''}".strip()
 
-        # Split by first comma — before comma is bold, after is not
-        parts = full_text.split(',', 1)
-        bold_part = parts[0].strip()
-        rest_part = parts[1].strip() if len(parts) > 1 else ''
-
-        return f"<strong>{bold_part}</strong>{', ' + rest_part if rest_part else ''}"
+        match = re.match(r"(.*[’']\d{2}(?:[a-zA-Z]+)?)(.*)", full_text)
+        if match:
+            bold_part = match.group(1).strip()
+            rest_part = match.group(2)
+            return f"<strong>{bold_part}</strong>{rest_part}"
+        return full_text
