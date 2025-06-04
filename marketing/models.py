@@ -23,4 +23,11 @@ class Quote(models.Model):
 
     @property
     def source_formatted(self):
-        return f"{self.source} {self.titles}"
+        full_text = f"{self.source or ''} {self.titles or ''}".strip()
+
+        match = re.match(r"(.*[’']\d{2}(?:[a-zA-Z]+)?)(.*)", full_text)
+        if match:
+            bold_part = match.group(1).strip()
+            rest_part = match.group(2)
+            return f"<strong>{bold_part}</strong>{rest_part}"
+        return full_text
