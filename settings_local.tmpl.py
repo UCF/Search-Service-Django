@@ -61,6 +61,43 @@ USE_L10N = True
 
 USE_TZ = True
 
+USE_S3 = False
+
+S3_ENV = 'testing'
+
+if USE_S3:
+    # The ACCESS KEY to use to access S3
+    AWS_ACCESS_KEY_ID = ''
+
+    # The SECRET KEY to use in conjunction with the ACCESS KEY above
+    AWS_SECRET_ACCESS_KEY = ''
+
+    # The name of the S3 bucket we're using
+    AWS_STORAGE_BUCKET_NAME = 'ucf-search-service'
+
+    # The S3 domain to use
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+
+    # The object parameters to use. We can use this to add a long lasting cache
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+
+    # Where the files should be stored in the S3 bucket. Should be
+    # Evnrionment/media
+    PUBLIC_MEDIA_LOCATION = f'{S3_ENV}/media'
+
+    # Build out the media URL
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
+
+    # This sets some defaults on the file storage settings
+    DEFAULT_FILE_STORAGE = 'core.storage_backends.PublicMediaStorage'
+else:
+    # Absolute filesystem path to the directory that will hold user-uploaded files.
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+    # URL that handles the media served from MEDIA_ROOT. Make sure to use a
+    # trailing slash.
+    # Examples: "http://example.com/media/", "http://media.example.com/"
+    MEDIA_URL = '/media/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
@@ -71,14 +108,6 @@ STATICFILES_DIRS = [
     # Add static root path when debugging locally
     # os.path.join(BASE_DIR, "static")
 ]
-
-# Absolute filesystem path to the directory that will hold user-uploaded files.
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash.
-# Examples: "http://example.com/media/", "http://media.example.com/"
-MEDIA_URL = '/media/'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
