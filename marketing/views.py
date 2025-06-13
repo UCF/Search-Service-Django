@@ -44,45 +44,47 @@ class QuoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = QuoteSerializer
     parser_classes = (MultiPartJSONParser,JSONParser,)
 
-    # def patch(self, request, *args, **kwargs):
-    #     program_id = request.data.get('program_id')
-    #     attribute = request.data.get('quote_attribute')
-    #     program = Program.objects.get(id=program_id)
-    #     quote = self.get_object()
+    def patch(self, request, *args, **kwargs):
+        super().patch(request, *args, **kwargs)
 
-    #     if attribute == 'detachQuote':
-    #         try:
+        program_id = request.data.get('program_id')
+        attribute = request.data.get('quote_attribute')
+        program = Program.objects.get(id=program_id)
+        quote = self.get_object()
 
-    #             if quote in program.quotes.all():
-    #                 program.quotes.remove(quote)
-    #                 return Response(
-    #                 {"message": "Quote detached successfully"},
-    #                 status=status.HTTP_200_OK
-    #             )
-    #             else:
-    #                 return Response(
-    #             {"error": "Program not found"},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
+        if attribute == 'detachQuote':
+            try:
 
-    #         except Program.DoesNotExist:
-    #             return Response(
-    #             {"error": "Program not found"},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
+                if quote in program.quotes.all():
+                    program.quotes.remove(quote)
+                    return Response(
+                    {"message": "Quote detached successfully"},
+                    status=status.HTTP_200_OK
+                )
+                else:
+                    return Response(
+                {"error": "Program not found"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    #     if attribute == 'attachQuote':
-    #         try:
+            except Program.DoesNotExist:
+                return Response(
+                {"error": "Program not found"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    #             if quote not in program.quotes.all():
-    #                 program.quotes.add(quote)
-    #                 return Response({"message": "Quote attached successfully"},
-    #                 status=status.HTTP_200_OK)
-    #             else:
-    #                 return Response({"error": "Quote already attached to this program"},
-    #             status=status.HTTP_409_CONFLICT)
+        if attribute == 'attachQuote':
+            try:
 
-    #         except Program.DoesNotExist:
-    #             return Response({"error": "Program not found"},status=status.HTTP_400_BAD_REQUEST)
+                if quote not in program.quotes.all():
+                    program.quotes.add(quote)
+                    return Response({"message": "Quote attached successfully"},
+                    status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": "Quote already attached to this program"},
+                status=status.HTTP_409_CONFLICT)
+
+            except Program.DoesNotExist:
+                return Response({"error": "Program not found"},status=status.HTTP_400_BAD_REQUEST)
 
 
