@@ -174,6 +174,7 @@ const attachQuoteToProgram = async (quoteId) => {
       `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
       {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrftoken
@@ -447,6 +448,7 @@ activeQuotes.forEach((quote) => {
           `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
           {
             method: 'PATCH',
+            credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
               'X-CSRFToken': csrftoken
