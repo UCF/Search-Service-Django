@@ -30,6 +30,8 @@ dependencies = [
     "sqlparse",
     "tabulate",
     "Unidecode",
+    "django-storages>=1.14.6",
+    "pyopenssl>=25.0.0",
 ]
 
 [project.optional-dependencies]
