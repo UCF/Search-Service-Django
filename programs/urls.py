@@ -40,6 +40,11 @@ urlpatterns = [
         ApplicationDeadlinesView.as_view(),
         name='api.programs.deadlines'
     ),
+    url(
+        r'^programs/(?P<id>\d+)/quotes/(?P<quote_id>\d+)/$',
+        ProgramQuoteAssignmentView.as_view(),
+        name='api.programs.quotes'
+    ),
     url(r'^programs/search/$',
         ProgramSearchView.as_view(),
         name='api.programs.search'
