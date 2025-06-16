@@ -171,17 +171,13 @@ const createQuote = async (event) => {
 const attachQuoteToProgram = async (quoteId) => {
   try {
     const response = await fetch(
-      `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
+      `${baseUrl}/api/v1/programs/${programId}/quotes/${quoteId}/`,
       {
-        method: 'PATCH',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify({
-          program_id: programId,
-          quote_attribute: 'attachQuote'
-        })
+        }
       }
     );
 
@@ -444,17 +440,13 @@ activeQuotes.forEach((quote) => {
     if (detachSwitch.checked) {
       try {
         const response = await fetch(
-          `${baseUrl}/api/v1/marketing/quotes/${quoteId}/`,
+          `${baseUrl}/api/v1/programs/${programId}/quotes/${quoteId}/`,
           {
-            method: 'PATCH',
+            method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
               'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-              program_id: programId,
-              quote_attribute: 'detachQuote'
-            })
+            }
           }
         );
 
