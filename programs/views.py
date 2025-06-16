@@ -198,7 +198,7 @@ class ProgramOutcomeView(APIView):
 
 
 class ProgramProjectionTotalsView(APIView):
-    def get(request, format=None, **kwargs):
+    def get(self, request, format=None, **kwargs):
         program = Program.objects.get(id=kwargs['id'])
 
         obj = program.current_projections.aggregate(
@@ -219,13 +219,13 @@ class ProgramProjectionTotalsView(APIView):
 
 
 class ProgramCareerView(APIView):
-    def get(request, format=None, **kwargs):
+    def get(self, request, format=None, **kwargs):
         program = Program.objects.get(id=kwargs['id'])
 
         return Response(program.jobs.values_list('name', flat=True).distinct())
 
 class ApplicationDeadlinesView(APIView):
-    def get(request, format=None, **kwargs):
+    def get(self, request, format=None, **kwargs):
         program = Program.objects.get(id=kwargs['id'])
         deadlines = program.application_deadlines.all()
         requirements = program.application_requirements if program.application_requirements else []
@@ -234,3 +234,71 @@ class ApplicationDeadlinesView(APIView):
             'application_deadlines': ApplicationDeadlineSerializer(instance=deadlines, many=True, read_only=True).data,
             'application_requirements': requirements
         })
+
+class ProgramQuoteAssignmentView(APIView):
+    """
+    This endpoint allows quotes to be assigned
+    and unassigned from programs.
+    """
+    def post(self, request, *args, **kwargs):
+        program_id = kwargs.get('id', None)
+        quote_id = kwargs.get('quote_id', None)
+
+        if not program_id or not quote_id:
+            return Response({
+                'error': 'You must provide both a program ID and a quote ID'
+            }, status=500)
+
+        program = None
+        quote = None
+
+        try:
+            program = Program.objects.get(pk=program_id)
+        except Program.DoesNotExist:
+            return Response({
+                'error': 'Unable to locate the program specified.'
+            }, status=403)
+
+        try:
+            quote = Quote.objects.get(pk=quote_id)
+        except Quote.DoesNotExist:
+            return Response({
+                'error': 'Unable to locate the quote specified.'
+            }, status=403)
+
+        program.quotes.add(quote)
+
+        return Response({
+            'success': 'Successfully added the quote to the program.'
+        }, status=201)
+
+
+    def delete(self, request, *args, **kwargs):
+        program_id = kwargs.get('id', None)
+        quote_id = kwargs.get('quote_id', None)
+
+        if not program_id or not quote_id:
+            return Response({
+                'error': 'You must provide both a program ID and a quote ID'
+            }, status=500)
+
+        program = None
+        quote = None
+
+        try:
+            program = Program.objects.get(pk=program_id)
+        except Program.DoesNotExist:
+            return Response({
+                'error': 'Unable to locate the program specified.'
+            }, status=403)
+
+        try:
+            quote = Quote.objects.get(pk=quote_id)
+        except Quote.DoesNotExist:
+            return Response({
+                'error': 'Unable to locate the quote specified.'
+            }, status=403)
+
+        program.quotes.remove(quote)
+
+        return Response(None, status=204)
