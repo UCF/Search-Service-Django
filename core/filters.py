@@ -44,12 +44,17 @@ class ProgramListFilterSet(django_filters.FilterSet):
     )
 
 
-    def __init__(self, data=None, *args, **kwargs):
-        data = data.copy() if data else None
+    def __init__(self, data, *args, **kwargs):
+        data = data.copy()
         super().__init__(data, *args, **kwargs)
 
          # Customize label display for colleges
-        self.filters['colleges'].field.label_from_instance = lambda obj: obj.full_name.replace("College of ", "") if obj.full_name.startswith("College of ") else obj.full_name
+        def get_college_label(obj):
+            if obj.full_name.startswith("College of "):
+                return obj.full_name.replace("College of ", "")
+            return obj.full_name
+
+        self.filters['colleges'].field.label_from_instance = get_college_label
 
     def missing_descriptions(self, queryset, name, value):
         """
