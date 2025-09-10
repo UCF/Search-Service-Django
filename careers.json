@@ -1,0 +1,1614 @@
+[
+  {
+    "wordpress_id": 75448,
+    "slug": "kinesiology-phd",
+    "title": "Kinesiology (PhD)",
+    "degree_searchservice_api_id": "1922",
+    "degree_plan_code": "KINSLGYPHD",
+    "degree_subplan_code": null,
+    "careers": [
+      "University Professor",
+      "Sport Scientist",
+      "Clinical Research Scientist",
+      "Postdoctoral Fellow"
+    ]
+  },
+  {
+    "wordpress_id": 75224,
+    "slug": "fintech-ms",
+    "title": "Financial Technology (MS)",
+    "degree_searchservice_api_id": "1920",
+    "degree_plan_code": "FINTECHMS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Apps Developer",
+      "Blockchain Developer",
+      "Cybersecurity Analyst",
+      "Compliance Expert",
+      "Data Specialist",
+      "Financial Analyst",
+      "Investment Manager"
+    ]
+  },
+  {
+    "wordpress_id": 73226,
+    "slug": "career-and-technical-education-bs",
+    "title": "Career and Technical Education (BS)",
+    "degree_searchservice_api_id": "1898",
+    "degree_plan_code": "CRTCHED-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "CTE Teacher: Middle, Secondary and Postsecondary School",
+      "CTE Curriculum Specialist",
+      "CTE Program Coordinator",
+      "Training and Development Specialist",
+      "Corporate or Industry Trainer",
+      "Career and Workforce Consultant"
+    ]
+  },
+  {
+    "wordpress_id": 72057,
+    "slug": "themed-experience-ms",
+    "title": "Themed Experience (MS)",
+    "degree_searchservice_api_id": "1888",
+    "degree_plan_code": "THEMEXPRMS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Show Set Designer",
+      "Show Writer",
+      "Creative Director for Themed Entertainment",
+      "Art Director",
+      "Production Management for Themed Entertainment",
+      "Producer"
+    ]
+  },
+  {
+    "wordpress_id": 72050,
+    "slug": "data-science-bs",
+    "title": "Data Science (BS)",
+    "degree_searchservice_api_id": "1875",
+    "degree_plan_code": "DATASCI-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Data Analyst",
+      "Data Scientist",
+      "Data Engineer",
+      "Machine Learning Specialist",
+      " Enterprise Architect "
+    ]
+  },
+  {
+    "wordpress_id": 72049,
+    "slug": "computer-vision-ms",
+    "title": "Computer Vision (MS)",
+    "degree_searchservice_api_id": "1874",
+    "degree_plan_code": "COMPVISNMS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Research Engineer",
+      "Computer Vision Specialist",
+      "Machine Learning Engineer",
+      "Robotics Engineer ",
+      "Medical Imaging Specialist"
+    ]
+  },
+  {
+    "wordpress_id": 70423,
+    "slug": "biomedical-sciences-bs",
+    "title": "Biomedical Sciences (BS)",
+    "degree_searchservice_api_id": "1867",
+    "degree_plan_code": "BIOMD-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Physician ",
+      "Dentist ",
+      "Professor ",
+      "Veterinarian ",
+      "Research Scientist"
+    ]
+  },
+  {
+    "wordpress_id": 65737,
+    "slug": "senior-living-management-bs",
+    "title": "Senior Living Management (BS)",
+    "degree_searchservice_api_id": "1806",
+    "degree_plan_code": "SRLVMGT-BS",
+    "degree_subplan_code": "",
+    "careers": [
+      "Activity and Event Director ",
+      "Director of Admissions ",
+      "Director of Dining ",
+      "Director of Resident Programs ",
+      "Operations Manager ",
+      "Marketing Manager"
+    ]
+  },
+  {
+    "wordpress_id": 65561,
+    "slug": "exercise-and-sport-physiology",
+    "title": "Kinesiology (BS) &#8211; Exercise and Sport Physiology",
+    "degree_searchservice_api_id": "1786",
+    "degree_plan_code": "KNSLGY-BS",
+    "degree_subplan_code": "EXSPRTPHYS",
+    "careers": [
+      "Athletic Trainer",
+      "Physical Therapist",
+      "Sport Coach",
+      "Strength &amp; Conditioning Coach",
+      "Exercise Physiologist",
+      "Personal Trainer",
+      "Physician Assistant",
+      "Medical Doctor",
+      "Registered Dietitian",
+      "Sport Scientist",
+      "University Professor",
+      "School Teacher"
+    ]
+  },
+  {
+    "wordpress_id": 65545,
+    "slug": "kinesiology-ms",
+    "title": "Kinesiology (MS)",
+    "degree_searchservice_api_id": "1783",
+    "degree_plan_code": "KINESLGYMS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Clinical Exercise Physiologist",
+      "Corporate Wellness Specialist",
+      "Strength &amp; Conditioning Coach",
+      "Exercise Physiologist",
+      "Personal Trainer",
+      "University Professor",
+      "Sport Scientist",
+      "Clinical Research Scientist"
+    ]
+  },
+  {
+    "wordpress_id": 65330,
+    "slug": "travel-technology-and-analytics-ms",
+    "title": "Travel Technology and Analytics (MS)",
+    "degree_searchservice_api_id": "1770",
+    "degree_plan_code": "TRVLTECHMS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Senior Data Integration Analyst",
+      "Lead Data Analyst",
+      "Solution Architect",
+      "Business Analyst/Customer Marketing",
+      "Travel Management Specialist"
+    ]
+  },
+  {
+    "wordpress_id": 64882,
+    "slug": "business-analytics",
+    "title": "Management (MSM) &#8211; Business Analytics",
+    "degree_searchservice_api_id": "942",
+    "degree_plan_code": "BUS-MS",
+    "degree_subplan_code": "BUSAN-MS",
+    "careers": [
+      "Management Analyst",
+      "Operations Research Analyst",
+      "Marketing Analyst",
+      "Business Analytics Specialist",
+      "Data and Analytics Manager",
+      "Financial and Budget Analyst",
+      "Cost Estimator",
+      "Data Scientist"
+    ]
+  },
+  {
+    "wordpress_id": 64881,
+    "slug": "professional-mba",
+    "title": "Business Administration (MBA) &#8211; Professional MBA",
+    "degree_searchservice_api_id": "940",
+    "degree_plan_code": "BUS-MBA",
+    "degree_subplan_code": "PROF-MBA",
+    "careers": [
+      "Operations Manager",
+      "Project Manager",
+      "Project Engineer",
+      "Director of Operations",
+      "Marketing Manager",
+      "Director of Marketing",
+      "Sales Manager",
+      "Finance Manager",
+      "Director of Finance",
+      "Account Executive"
+    ]
+  },
+  {
+    "wordpress_id": 64879,
+    "slug": "executive-mba",
+    "title": "Business Administration (MBA) &#8211; Executive MBA",
+    "degree_searchservice_api_id": "938",
+    "degree_plan_code": "BUS-MBA",
+    "degree_subplan_code": "EXEC-MBA",
+    "careers": [
+      "Operations Manager",
+      "Marketing Director",
+      "Sales Director",
+      "Account Executive",
+      "Director of Finance",
+      "Chief Financial Officer",
+      "Chief Executive Officer"
+    ]
+  },
+  {
+    "wordpress_id": 64878,
+    "slug": "evening-mba",
+    "title": "Business Administration (MBA) &#8211; Evening MBA",
+    "degree_searchservice_api_id": "937",
+    "degree_plan_code": "BUS-MBA",
+    "degree_subplan_code": "EVNG-MBA",
+    "careers": [
+      "Analyst",
+      "Operations Manager",
+      "Project Manager",
+      "Project Engineer",
+      "Director of Operations",
+      "Marketing Manager",
+      "Director of Marketing",
+      "Sales Manager",
+      "Finance Manager",
+      "Director of Finance",
+      "Account Executive"
+    ]
+  },
+  {
+    "wordpress_id": 64404,
+    "slug": "themed-experience",
+    "title": "Theatre (MFA) &#8211; Themed Experience",
+    "degree_searchservice_api_id": "1743",
+    "degree_plan_code": "THEATR-MFA",
+    "degree_subplan_code": "THEMEDEXPR",
+    "careers": [
+      "Creative Director",
+      "Show Set Producer",
+      "Show Set Designer",
+      "Theme Park Designer",
+      "Production Artist",
+      "Show Writer"
+    ]
+  },
+  {
+    "wordpress_id": 64400,
+    "slug": "integrated-business",
+    "title": "Management (MSM) &#8211; Integrated Business",
+    "degree_searchservice_api_id": "1739",
+    "degree_plan_code": "BUS-MS",
+    "degree_subplan_code": "BUSITG-MSM",
+    "careers": [
+      "Business Analyst",
+      "Management Consulting",
+      "Customer Service/Customer Relations",
+      "General Management",
+      "Marketing",
+      "Operations",
+      "Project Management",
+      "Sales/Development",
+      "Staffing/Recruitment"
+    ]
+  },
+  {
+    "wordpress_id": 63381,
+    "slug": "teacher-education-bs",
+    "title": "Teacher Education (BS)",
+    "degree_searchservice_api_id": "1566",
+    "degree_plan_code": "TCHRED-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Elementary, Middle School or High School Teacher",
+      "Art Education Teacher",
+      "Physical Education Teacher",
+      "Spanish or French Teacher",
+      "Curriculum Developer"
+    ]
+  },
+  {
+    "wordpress_id": 63377,
+    "slug": "social-work-bsw",
+    "title": "Social Work (BSW)",
+    "degree_searchservice_api_id": "1532",
+    "degree_plan_code": "SOCWRK-BSW",
+    "degree_subplan_code": null,
+    "careers": [
+      "Court Advocate ",
+      "Developmental Disabilities Specialist ",
+      "Foster Care/Adoption Worker ",
+      "Hospital Social Worker ",
+      "Hospice Social Worker ",
+      "Community Advocacy &amp; Outreach",
+      "International Social Worker ",
+      "Policy Analyst ",
+      "School Social Worker ",
+      "Substance Abuse Case Manager ",
+      "Rehabilitation Specialist ",
+      "Victims Services Social Worker"
+    ]
+  },
+  {
+    "wordpress_id": 63375,
+    "slug": "secondary-education-bs",
+    "title": "Secondary Education (BS)",
+    "degree_searchservice_api_id": "1504",
+    "degree_plan_code": "SECEDU-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Middle School and High School Teacher",
+      "American History Teacher",
+      "English Language Arts Teacher",
+      "Geography Teacher",
+      "Mathematics Teacher",
+      "Science Teacher",
+      "Curriculum Developer "
+    ]
+  },
+  {
+    "wordpress_id": 63373,
+    "slug": "public-administration-bs",
+    "title": "Public Administration (BS)",
+    "degree_searchservice_api_id": "1476",
+    "degree_plan_code": "PUBADMN-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Outreach Coordinator",
+      "Program Analyst",
+      "Budget Analyst ",
+      "Grants Coordinator ",
+      "Research Associate ",
+      "Public Information Specialist ",
+      "Government Affairs Associate "
+    ]
+  },
+  {
+    "wordpress_id": 63372,
+    "slug": "public-administration-ba",
+    "title": "Public Administration (BA)",
+    "degree_searchservice_api_id": "1475",
+    "degree_plan_code": "PUBADMN-BA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Outreach Coordinator",
+      "Program Analyst",
+      "Budget Analyst ",
+      "Grants Coordinator ",
+      "Research Associate ",
+      "Public Information Specialist ",
+      "Government Affairs Associate "
+    ]
+  },
+  {
+    "wordpress_id": 63370,
+    "slug": "nonprofit-management-bs",
+    "title": "Nonprofit Management (BS)",
+    "degree_searchservice_api_id": "1365",
+    "degree_plan_code": "NPRMGT-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Program Coordinator ",
+      "Outreach Specialist ",
+      "Grant Specialist ",
+      "Marketing Assistant",
+      "Development Associate",
+      "Events Specialist ",
+      "Volunteer Coordinator ",
+      "Community Relations/Engagement Assistant "
+    ]
+  },
+  {
+    "wordpress_id": 63369,
+    "slug": "nonprofit-management-ba",
+    "title": "Nonprofit Management (BA)",
+    "degree_searchservice_api_id": "1364",
+    "degree_plan_code": "NPRMGT-BA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Program Coordinator ",
+      "Outreach Specialist ",
+      "Grant Specialist ",
+      "Marketing Assistant",
+      "Development Associate",
+      "Events Specialist ",
+      "Volunteer Coordinator ",
+      "Community Relations/Engagement Assistant "
+    ]
+  },
+  {
+    "wordpress_id": 63366,
+    "slug": "legal-studies-bs",
+    "title": "Legal Studies (BS)",
+    "degree_searchservice_api_id": "1280",
+    "degree_plan_code": "LEGALST-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Lawyer (requires advanced education) ",
+      "Paralegal ",
+      "Law Enforcement ",
+      "Social Worker (requires advanced education) ",
+      "Entrepreneur/Business Owner ",
+      "Politics"
+    ]
+  },
+  {
+    "wordpress_id": 63365,
+    "slug": "legal-studies-ba",
+    "title": "Legal Studies (BA)",
+    "degree_searchservice_api_id": "1277",
+    "degree_plan_code": "LEGALST-BA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Lawyer (requires advanced education) ",
+      "Paralegal ",
+      "Law Enforcement ",
+      "Social Worker (requires advanced education) ",
+      "Entrepreneur/Business Owner ",
+      "Politics"
+    ]
+  },
+  {
+    "wordpress_id": 63361,
+    "slug": "health-sciences-bs-pre-professional",
+    "title": "Health Sciences (BS)",
+    "degree_searchservice_api_id": "1206",
+    "degree_plan_code": "HLTSCIR-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Physician ",
+      "Physician Assistant ",
+      "Physical Therapist/Occupational Therapist ",
+      "Dentist  ",
+      "Pharmacist   ",
+      "Optometrist",
+      "Clinical or Behavioral Health Researcher ",
+      "Public Health Specialist"
+    ]
+  },
+  {
+    "wordpress_id": 63360,
+    "slug": "health-sciences-bs",
+    "title": "Health Sciences (BS)",
+    "degree_searchservice_api_id": "1204",
+    "degree_plan_code": "HLTSCI-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Physician ",
+      "Physician Assistant ",
+      "Physical Therapist/Occupational Therapist ",
+      "Dentist  ",
+      "Pharmacist   ",
+      "Optometrist",
+      "Clinical or Behavioral Health Researcher ",
+      "Public Health Specialist"
+    ]
+  },
+  {
+    "wordpress_id": 63359,
+    "slug": "health-services-administration-bs",
+    "title": "Health Services Administration (BS)",
+    "degree_searchservice_api_id": "1202",
+    "degree_plan_code": "HLTHSVC-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Manager-In-Training Programs for Several Industry Leaders ",
+      "Patient Experience Coordinator/Specialist",
+      "Human Resource Specialist",
+      "Physician Recruiter",
+      "Volunteer Coordinator",
+      "Patient Accounting Specialist",
+      "Medical Office Manager"
+    ]
+  },
+  {
+    "wordpress_id": 63352,
+    "slug": "emergency-management-bs",
+    "title": "Emergency Management (BS)",
+    "degree_searchservice_api_id": "1124",
+    "degree_plan_code": "EMGMGT-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Emergency Management Coordinator",
+      "Crisis Response Specialist ",
+      "Training and Exercise Coordinator ",
+      "Emergency Services Coordinator ",
+      "GIS Analyst ",
+      "Disaster Assistance Specialist ",
+      "Health Preparedness Planner"
+    ]
+  },
+  {
+    "wordpress_id": 63351,
+    "slug": "emergency-management-ba",
+    "title": "Emergency Management (BA)",
+    "degree_searchservice_api_id": "1123",
+    "degree_plan_code": "EMGMGT-BA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Emergency Management Coordinator",
+      "Crisis Response Specialist ",
+      "Training and Exercise Coordinator ",
+      "Emergency Services Coordinator ",
+      "GIS Analyst ",
+      "Disaster Assistance Specialist ",
+      "Health Preparedness Planner"
+    ]
+  },
+  {
+    "wordpress_id": 63349,
+    "slug": "elementary-education-bs",
+    "title": "Elementary Education (BS)",
+    "degree_searchservice_api_id": "1111",
+    "degree_plan_code": "ELEMEDU-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Elementary Teacher, Primary Grades",
+      "Elementary Teacher, Intermediate Grades",
+      "Curriculum Developer",
+      "Trainer for Educational Programs"
+    ]
+  },
+  {
+    "wordpress_id": 63348,
+    "slug": "early-childhood-development-and-education-bs",
+    "title": "Early Childhood Development and Education (BS)",
+    "degree_searchservice_api_id": "1063",
+    "degree_plan_code": "EARLYC-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Kindergarten Teacher",
+      "Elementary Teacher",
+      "Preschool Director",
+      "Head Start Professional",
+      "Child Development Specialist",
+      "Child Advocate",
+      "Early Intervention Specialist",
+      "Child Life Specialist"
+    ]
+  },
+  {
+    "wordpress_id": 63340,
+    "slug": "communication-sciences-and-disorders-bs",
+    "title": "Communication Sciences and Disorders (BS)",
+    "degree_searchservice_api_id": "998",
+    "degree_plan_code": "COMMDIS-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Speech-Language Pathology Assistant (SLPa)",
+      "Audiology Assistant",
+      "Behavior Therapist",
+      "Teacher or Teacher Assistant",
+      "Clinic/Hospital Support Staff"
+    ]
+  },
+  {
+    "wordpress_id": 63337,
+    "slug": "criminal-justice-bs-scholars",
+    "title": "Criminal Justice (BS)",
+    "degree_searchservice_api_id": "981",
+    "degree_plan_code": "CJSCLR-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Federal Bureau of Investigation Special Agent",
+      "U.S. Office of Probation",
+      "Crime/Intelligence Analyst",
+      "Private and Corporate Security",
+      "Domestic Violence Advocate",
+      "Local and State Law Enforcement"
+    ]
+  },
+  {
+    "wordpress_id": 63336,
+    "slug": "criminal-justice-ba-2",
+    "title": "Criminal Justice (BA)",
+    "degree_searchservice_api_id": "979",
+    "degree_plan_code": "CJSCLR-BA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Federal Bureau of Investigation Special Agent",
+      "U.S. Office of Probation",
+      "Crime/Intelligence Analyst",
+      "Private and Corporate Security",
+      "Domestic Violence Advocate",
+      "Local and State Law Enforcement"
+    ]
+  },
+  {
+    "wordpress_id": 63087,
+    "slug": "emergency-and-crisis-management-mecm",
+    "title": "Emergency and Crisis Management (MECM)",
+    "degree_searchservice_api_id": "1115",
+    "degree_plan_code": "EMCRMGMECM",
+    "degree_subplan_code": "",
+    "careers": [
+      "Director of Emergency Management ",
+      "Emergency Preparedness Coordinator ",
+      "Crisis Manager/Lead ",
+      "Emergency Management Coordinator ",
+      "Health and Safety Specialist ",
+      "Disaster Recovery Specialist"
+    ]
+  },
+  {
+    "wordpress_id": 61464,
+    "slug": "urban-and-regional-planning-ms",
+    "title": "Urban and Regional Planning (MS)",
+    "degree_searchservice_api_id": "1594",
+    "degree_plan_code": "URBREG-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "City Planner",
+      "Urban Designer",
+      "Neighborhood Planner",
+      "Environmental Program Manager",
+      "Economic Development Specialist",
+      "Community Planning Manager"
+    ]
+  },
+  {
+    "wordpress_id": 61455,
+    "slug": "theatre-bfa",
+    "title": "Theatre (BFA)",
+    "degree_searchservice_api_id": "1578",
+    "degree_plan_code": "THEATR-BFA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Scenic, Lighting, Sound, Make-up and Costume Designer Stage Manager",
+      "Actor in Film and On Stage",
+      "Voice-Over Actor",
+      "Singer",
+      "Stage Director Theatre Technician"
+    ]
+  },
+  {
+    "wordpress_id": 61431,
+    "slug": "social-work-msw",
+    "title": "Social Work (MSW)",
+    "degree_searchservice_api_id": "1525",
+    "degree_plan_code": "SOCWK-MSW",
+    "degree_subplan_code": null,
+    "careers": [
+      "Child and Family Services Social Worker",
+      "Healthcare Social Worker",
+      "Community Agency Social Worker",
+      "Mental Health and Substance Abuse Social Worker",
+      "Military Social Worker",
+      "School Social Worker",
+      "Law Enforcement Social Worker"
+    ]
+  },
+  {
+    "wordpress_id": 61419,
+    "slug": "real-estate-msre",
+    "title": "Real Estate (MSRE)",
+    "degree_searchservice_api_id": "1500",
+    "degree_plan_code": "RLESTAT-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Real Estate Brokerage and Appraisal",
+      "Real Estate Development",
+      "Industry Analyst",
+      "Mortgage Brokerage",
+      "Capital Markets",
+      "Asset Management"
+    ]
+  },
+  {
+    "wordpress_id": 61415,
+    "slug": "reading-education-med",
+    "title": "Reading Education (MEd)",
+    "degree_searchservice_api_id": "1494",
+    "degree_plan_code": "READSP-MED",
+    "degree_subplan_code": "",
+    "careers": [
+      "Reading/Literacy/Instructional Coaches",
+      "Intervention Specialists",
+      "School or District-Based Literacy Resource Teachers and Supervisors in Grades K-12 and Other Settings",
+      "Reading Consultant for Nonprofit Organizations",
+      "Curriculum Specialist for Commercial Publishers"
+    ]
+  },
+  {
+    "wordpress_id": 61406,
+    "slug": "public-administration-mpa",
+    "title": "Public Administration (MPA)",
+    "degree_searchservice_api_id": "1466",
+    "degree_plan_code": "PUBADM-MPA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Administrative Services Manager",
+      "City Manager",
+      "City Planner",
+      "Director of Education",
+      "Education Administrator",
+      "Nonprofit Manager",
+      "Program Analyst",
+      "Private Sector Roles"
+    ]
+  },
+  {
+    "wordpress_id": 61403,
+    "slug": "doctor-of-physical-therapy-dpt",
+    "title": "Doctor of Physical Therapy (DPT)",
+    "degree_searchservice_api_id": "1465",
+    "degree_plan_code": "PT-DPT",
+    "degree_subplan_code": null,
+    "careers": [
+      "Acute, Subacute, and Rehabilitation Hospitals ",
+      "Specialty Clinics",
+      "Outpatient Facilities",
+      "Private Practices",
+      "Veterans Affairs",
+      "Military Healthcare Facilities",
+      "Professional Sports",
+      "Schools",
+      "Long-Term Care Facilities",
+      "Home Health Agencies"
+    ]
+  },
+  {
+    "wordpress_id": 61401,
+    "slug": "psychology-bs",
+    "title": "Psychology (BS)",
+    "degree_searchservice_api_id": "1447",
+    "degree_plan_code": "PSYCH-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Managers in various fields",
+      "Nonprofit roles",
+      "Business positions, such as human resources ",
+      "Higher education administrators ",
+      "K-12 teachers ",
+      "Government employees ",
+      "Advocates",
+      "Customer service positions ",
+      "Public relations",
+      "Service providers"
+    ]
+  },
+  {
+    "wordpress_id": 61394,
+    "slug": "political-science-ba",
+    "title": "Political Science (BA)",
+    "degree_searchservice_api_id": "1431",
+    "degree_plan_code": "POLISCI-BA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Local, State, National Government ",
+      "International Business ",
+      "Legal Field ",
+      "Educator ",
+      "Lobbyist ",
+      "Governmental Affairs"
+    ]
+  },
+  {
+    "wordpress_id": 61386,
+    "slug": "photonic-science-and-engineering-bspse",
+    "title": "Photonic Science and Engineering (BSPSE)",
+    "degree_searchservice_api_id": "1410",
+    "degree_plan_code": "PHTNSCI-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Photonics Engineer",
+      "Engineering Manager",
+      "Optical Engineer",
+      "Quality Engineer",
+      "Site Reliability Engineer",
+      "Validation Engineer"
+    ]
+  },
+  {
+    "wordpress_id": 61379,
+    "slug": "nursing-bsn",
+    "title": "Nursing (BSN)",
+    "degree_searchservice_api_id": "1393",
+    "degree_plan_code": "NURSGN-BSN",
+    "degree_subplan_code": null,
+    "careers": [
+      "Hospital Nurse",
+      "Nurse Case Manager",
+      "Nurse Informatics Specialist",
+      "Clinical Nurse Specialist",
+      "Staff Nurse"
+    ]
+  },
+  {
+    "wordpress_id": 61377,
+    "slug": "nursing-msn",
+    "title": "Nursing (MSN)",
+    "degree_searchservice_api_id": "1382",
+    "degree_plan_code": "NURS-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Chief Nursing Officer",
+      "Director of Nursing",
+      "Health Care Administrator",
+      "Nurse Administrator",
+      "Nurse Educator",
+      "Nurse Simulation",
+      "Nursing Manager"
+    ]
+  },
+  {
+    "wordpress_id": 61363,
+    "slug": "music-ba",
+    "title": "Music (BA)",
+    "degree_searchservice_api_id": "1348",
+    "degree_plan_code": "MUSIC-BA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Arts Administrator",
+      "Arts Writer",
+      "Entertainment Lawyer",
+      "Instrument Repair",
+      "Musicologist",
+      "Music Director",
+      "Music Publisher",
+      "Recording Engineer"
+    ]
+  },
+  {
+    "wordpress_id": 61352,
+    "slug": "marketing-bsba",
+    "title": "Marketing (BSBA)",
+    "degree_searchservice_api_id": "1330",
+    "degree_plan_code": "MKTG-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Account Coordinator",
+      "Brand Specialist",
+      "Content Marketer",
+      "Marketing Specialist",
+      "Market Research Analyst",
+      "Production Coordinator",
+      "SEO Specialist",
+      "Social Media Coordinator"
+    ]
+  },
+  {
+    "wordpress_id": 61350,
+    "slug": "management-bsba",
+    "title": "Management (BSBA)",
+    "degree_searchservice_api_id": "1328",
+    "degree_plan_code": "MGT-BSBA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Business Analyst",
+      "Entrepreneur",
+      "Project Manager",
+      "Client Services Manager",
+      "Business Consultant",
+      "Operations Manager",
+      "Human Resources Manager"
+    ]
+  },
+  {
+    "wordpress_id": 61348,
+    "slug": "mechanical-engineering-msme",
+    "title": "Mechanical Engineering (MSME)",
+    "degree_searchservice_api_id": "1321",
+    "degree_plan_code": "MENGR-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Mechanical Engineer",
+      "Electrical Manager",
+      "Manufacturing Engineer",
+      "Validation Engineer",
+      "Combustion Engineer",
+      " Aircraft Engineer",
+      "Engine Designer",
+      "Engineering Research Manager"
+    ]
+  },
+  {
+    "wordpress_id": 61347,
+    "slug": "mechanical-engineering-bsme",
+    "title": "Mechanical Engineering (BSME)",
+    "degree_searchservice_api_id": "1320",
+    "degree_plan_code": "MENGR-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Mechanical Engineer",
+      "Manufacturing Engineer",
+      "Combustion Engineer",
+      "Aircraft Engineer",
+      "Engine Designer",
+      "Quality Engineer",
+      "Thermal Engineer"
+    ]
+  },
+  {
+    "wordpress_id": 61338,
+    "slug": "mathematics-bs",
+    "title": "Mathematics (BS)",
+    "degree_searchservice_api_id": "1302",
+    "degree_plan_code": "MATH-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Actuary",
+      "Mathematician",
+      "Statistician",
+      "Operations Research Analyst",
+      "Data Scientist",
+      "Post-Secondary Mathematics Teacher"
+    ]
+  },
+  {
+    "wordpress_id": 61336,
+    "slug": "marriage-couple-and-family-therapy-ma",
+    "title": "Marriage, Couple, and Family Therapy (MA)",
+    "degree_searchservice_api_id": "1298",
+    "degree_plan_code": "MARFMTH-MA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Marriage and Family Therapist",
+      "Couples Counselor",
+      "Family Therapist",
+      "Parenting Coordinator",
+      "Relationship Counselor"
+    ]
+  },
+  {
+    "wordpress_id": 61319,
+    "slug": "instructional-design-and-technology-educational-technology-ma",
+    "title": "Instructional Design and Technology: Educational Technology (MA)",
+    "degree_searchservice_api_id": "1263",
+    "degree_plan_code": "ITSTED-MA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Course Developer or Designer ",
+      "Distance Learning Director or Educator ",
+      "Instructional/Multimedia Designer ",
+      "Learning Systems Analyst ",
+      "Technology Coordinator/Integration Specialist ",
+      "Training Specialist, Manager or Director",
+      "Technology Instructional Coach"
+    ]
+  },
+  {
+    "wordpress_id": 61311,
+    "slug": "integrated-business-bsba",
+    "title": "Integrated Business (BSBA)",
+    "degree_searchservice_api_id": "1253",
+    "degree_plan_code": "INTBUS-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Business Analyst ",
+      "Management Consultant ",
+      "Operations Manager ",
+      "Project Manager ",
+      "Recruiter (various areas) ",
+      "Sales Coordinator/Associate",
+      "Account Coordinator/Customer Service"
+    ]
+  },
+  {
+    "wordpress_id": 61306,
+    "slug": "information-technology-bs",
+    "title": "Information Technology (BS)",
+    "degree_searchservice_api_id": "1244",
+    "degree_plan_code": "INFOTEC-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Computer Network Operator",
+      "Information Security Analyst",
+      "IT Professional",
+      "Network Administrator",
+      "Support Technician",
+      "System Administrator",
+      "Web Designer"
+    ]
+  },
+  {
+    "wordpress_id": 61302,
+    "slug": "industrial-engineering-ms",
+    "title": "Industrial Engineering (MS)",
+    "degree_searchservice_api_id": "1236",
+    "degree_plan_code": "IENGR-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Industrial Engineer",
+      "Engineering Manager",
+      "Process Engineer",
+      "Supply Chain Analyst",
+      "Project Manager",
+      "Systems Engineer",
+      "Manufacturing Engineer"
+    ]
+  },
+  {
+    "wordpress_id": 61292,
+    "slug": "hospitality-and-tourism-management-ms",
+    "title": "Hospitality and Tourism Management (MS)",
+    "degree_searchservice_api_id": "1219",
+    "degree_plan_code": "HOSPMGT-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Hotel Manager",
+      "Restaurant Manager",
+      "Travel and Tourism Services Marketing Manager",
+      "Convention or Conference Manager",
+      "Director of Special Events",
+      "Director of Sales"
+    ]
+  },
+  {
+    "wordpress_id": 61291,
+    "slug": "hospitality-management-bs",
+    "title": "Hospitality Management (BS)",
+    "degree_searchservice_api_id": "1213",
+    "degree_plan_code": "HOSPMGT-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Airline Manager",
+      "Cruise Manager",
+      "Director of Sales",
+      "Guest Services Manager",
+      "Hotel General Manager",
+      "Meeting, Convention or Event Planner",
+      "Restaurant/Food Service Manager",
+      "Tour and Travel Guide"
+    ]
+  },
+  {
+    "wordpress_id": 61264,
+    "slug": "forensic-science-bs",
+    "title": "Forensic Science (BS)",
+    "degree_searchservice_api_id": "1168",
+    "degree_plan_code": "FORSCI-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Drug Chemist ",
+      "Forensic Pathologist ",
+      "Firearms Examiner ",
+      "Trace Evidence Analyst ",
+      "Fingerprint Analyst ",
+      "Crime Scene Investigator"
+    ]
+  },
+  {
+    "wordpress_id": 61262,
+    "slug": "finance-bsba",
+    "title": "Finance (BSBA)",
+    "degree_searchservice_api_id": "1164",
+    "degree_plan_code": "FIN-BSBA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Financial Analyst ",
+      "Equity Research Analyst ",
+      "Credit Analyst ",
+      "Financial Planner",
+      "Portfolio Manager",
+      "Investment Banker",
+      "Securities Broker",
+      "Trader Loan Officer",
+      "Financial Manager"
+    ]
+  },
+  {
+    "wordpress_id": 61257,
+    "slug": "event-management-bs",
+    "title": "Event Management (BS)",
+    "degree_searchservice_api_id": "1158",
+    "degree_plan_code": "EVNTMGT-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Convention Service Manager",
+      "Conference Event Consultant",
+      "Event Venue Manager",
+      "Event Planning Advisor",
+      "Exhibits or Tradeshow Manager",
+      "Meeting Manager",
+      " Marketing and Event Coordinator",
+      "Sales Coordinator/Manager"
+    ]
+  },
+  {
+    "wordpress_id": 61256,
+    "slug": "environmental-engineering-ms",
+    "title": "Environmental Engineering (MS)",
+    "degree_searchservice_api_id": "1156",
+    "degree_plan_code": "ENVSCI-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Water Project Manager",
+      "Wastewater Treatment Engineer",
+      "Water Treatment Plant Engineer",
+      "Senior Environmental Engineer",
+      "Environmental Health and Safety Director",
+      "Green Building Consultant",
+      "Soil Engineer",
+      "Pollution Control Engineer"
+    ]
+  },
+  {
+    "wordpress_id": 61250,
+    "slug": "entertainment-management-bs",
+    "title": "Entertainment Management (BS)",
+    "degree_searchservice_api_id": "1150",
+    "degree_plan_code": "ENTRMGTBS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Event Manager",
+      "Production Coordinator",
+      "Brand Manager",
+      "Concert Promoter",
+      "Producer",
+      "Teacher",
+      "Talent Manager",
+      "Arts and Entertainment Business Manager"
+    ]
+  },
+  {
+    "wordpress_id": 61243,
+    "slug": "english-ba",
+    "title": "English (BA)",
+    "degree_searchservice_api_id": "1126",
+    "degree_plan_code": "ENGLISH-BA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Editor",
+      "English Teacher",
+      "Journalist",
+      "Publisher",
+      "Technical Writer",
+      "Writer"
+    ]
+  },
+  {
+    "wordpress_id": 61239,
+    "slug": "emerging-media-bfa",
+    "title": "Emerging Media (BFA)",
+    "degree_searchservice_api_id": "1117",
+    "degree_plan_code": "EMEDIA-BFA",
+    "degree_subplan_code": null,
+    "careers": [
+      "3D Artist",
+      "Graphic Designer",
+      "Multimedia Designer",
+      "Animator",
+      "Illustrator",
+      "Creative/Art Director",
+      "Concept/Preproduction Artist",
+      "Motion Graphics Artist",
+      "VFX Artist",
+      "Video Game Artist",
+      "Themed Design"
+    ]
+  },
+  {
+    "wordpress_id": 61237,
+    "slug": "elementary-education-med",
+    "title": "Elementary Education (MEd)",
+    "degree_searchservice_api_id": "1110",
+    "degree_plan_code": "ELEMED-MED",
+    "degree_subplan_code": null,
+    "careers": [
+      "School-Based Instructional Coaches ",
+      "Educational Consultants ",
+      "Reading Coaches",
+      "Resource Teachers",
+      "Specialized Educators",
+      "District Coaches"
+    ]
+  },
+  {
+    "wordpress_id": 61232,
+    "slug": "electrical-engineering-msee",
+    "title": "Electrical Engineering (MSEE)",
+    "degree_searchservice_api_id": "1104",
+    "degree_plan_code": "EENGR-MSEE",
+    "degree_subplan_code": null,
+    "careers": [
+      "Electrical Engineer",
+      "Electronics Engineer",
+      "RF Engineer",
+      "Optical/Laser Engineer",
+      "Mobile Applications Developer",
+      "Engineering Manager",
+      "Solar Engineer"
+    ]
+  },
+  {
+    "wordpress_id": 61231,
+    "slug": "electrical-engineering-bsee",
+    "title": "Electrical Engineering (BSEE)",
+    "degree_searchservice_api_id": "1099",
+    "degree_plan_code": "EENGR-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Electrical Engineer",
+      "Circuits Engineer",
+      "Power Systems Engineer",
+      "Project Engineer",
+      "Controls Engineer",
+      "Computer Hardware Engineer",
+      "Engineering Manager"
+    ]
+  },
+  {
+    "wordpress_id": 61227,
+    "slug": "educational-leadership-ma",
+    "title": "Educational Leadership (MA)",
+    "degree_searchservice_api_id": "1079",
+    "degree_plan_code": "EDLEAD-MA",
+    "degree_subplan_code": null,
+    "careers": [
+      "College Provost",
+      "Dean Of Students",
+      "District Administrator",
+      "Human Resources Administrator",
+      "Instructional Coordinator",
+      "Headmaster "
+    ]
+  },
+  {
+    "wordpress_id": 61223,
+    "slug": "business-economics-bsba",
+    "title": "Business Economics (BSBA)",
+    "degree_searchservice_api_id": "1067",
+    "degree_plan_code": "ECON-BSBA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Economist",
+      "Financial Risk Analyst",
+      "Data Analyst",
+      "Economic Researcher",
+      "Policy Analyst",
+      "Market Research Analyst",
+      "Actuary"
+    ]
+  },
+  {
+    "wordpress_id": 61215,
+    "slug": "digital-media-ma",
+    "title": "Digital Media (MA)",
+    "degree_searchservice_api_id": "1056",
+    "degree_plan_code": "DIGMED-MA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Applications Developer",
+      "Back-End Web Developer",
+      "Front-End Web Developer",
+      "Full Stack Web Developer",
+      "Project Manager",
+      "Social Media Manager",
+      "Web Interface Designer",
+      "Game Designer and Developer",
+      "AR and VR Designer and Developer",
+      "Teaching (K-12, college, university)"
+    ]
+  },
+  {
+    "wordpress_id": 61213,
+    "slug": "digital-forensics-ms",
+    "title": "Digital Forensics (MS)",
+    "degree_searchservice_api_id": "1051",
+    "degree_plan_code": "DGTLFRN-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Computer Forensic Examiner",
+      "Computer Forensic Investigator",
+      "Electronic Discovery",
+      "Incident Response Examiner",
+      "Information Security Analyst",
+      "Malware Analyst"
+    ]
+  },
+  {
+    "wordpress_id": 61211,
+    "slug": "data-analytics-ms",
+    "title": "Data Analytics (MS)",
+    "degree_searchservice_api_id": "1048",
+    "degree_plan_code": "DATAANAMS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Data Scientist",
+      "Data Analyst",
+      "Data Architect",
+      "Data Engineer",
+      "Data Mining Specialist",
+      "Business Intelligence Analyst",
+      "Big Data Engineer",
+      "Big Data Scientist",
+      "Database Administrator"
+    ]
+  },
+  {
+    "wordpress_id": 61196,
+    "slug": "counselor-education-ma",
+    "title": "Counselor Education (MA)",
+    "degree_searchservice_api_id": "1017",
+    "degree_plan_code": "COUNSED-MA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Mental Health Counselor",
+      "School Counselor",
+      "Career Counselor",
+      "Substance Abuse Counselor"
+    ]
+  },
+  {
+    "wordpress_id": 61189,
+    "slug": "computer-science-ms",
+    "title": "Computer Science (MS)",
+    "degree_searchservice_api_id": "1006",
+    "degree_plan_code": "COMPSCI-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Cyber/Information Security Engineer",
+      "Computer Scientist",
+      "Chief Information Officer",
+      "Computer Systems Engineer/Architect",
+      "Software Developer/Engineer",
+      "Database Administrator",
+      "Network Engineer/Architect",
+      "Software QA Engineer/Tester"
+    ]
+  },
+  {
+    "wordpress_id": 61188,
+    "slug": "computer-science-bs",
+    "title": "Computer Science (BS)",
+    "degree_searchservice_api_id": "1004",
+    "degree_plan_code": "COMPSCI-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Software Engineer",
+      "Software Developer",
+      "Database Administrator",
+      "Computer Systems Analyst",
+      "Computer Hardware Engineer",
+      "Information Security Analyst",
+      "Computer and Information Systems Managers",
+      "Network Architect"
+    ]
+  },
+  {
+    "wordpress_id": 61186,
+    "slug": "communication-sciences-and-disorders-ma",
+    "title": "Communication Sciences and Disorders (MA)",
+    "degree_searchservice_api_id": "999",
+    "degree_plan_code": "COMMDIS-MA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Early Intervention",
+      "Schools",
+      "Rehab hospitals",
+      "Children’s hospitals",
+      "VA or military hospital",
+      "Private practice/ outpatient care",
+      "Assisted living facilities ",
+      "Acute care",
+      "Voice care for performers "
+    ]
+  },
+  {
+    "wordpress_id": 61179,
+    "slug": "computer-engineering-mspe",
+    "title": "Computer Engineering (MSPE)",
+    "degree_searchservice_api_id": "989",
+    "degree_plan_code": "CMPENGR-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Electronics Engineer",
+      "Cyber/Information Security Engineer",
+      "Computer Systems Engineer",
+      "Mobile Applications Developer",
+      "Computer Programmer",
+      "Software Engineer",
+      "Data Engineer",
+      "Software QA Tester/Engineer",
+      "Network Engineer/Architect",
+      "Hardware Engineer"
+    ]
+  },
+  {
+    "wordpress_id": 61178,
+    "slug": "computer-engineering-bscpe",
+    "title": "Computer Engineering (BSCpE)",
+    "degree_searchservice_api_id": "986",
+    "degree_plan_code": "CMPENGR-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Computer Engineer",
+      "Software Engineer",
+      "Software Developer or Programmer",
+      "Computer and Information Systems Analyst",
+      "Database/Systems Administrator",
+      "Computer Specialist",
+      "Computer Hardware Engineer"
+    ]
+  },
+  {
+    "wordpress_id": 61169,
+    "slug": "civil-engineering-ms",
+    "title": "Civil Engineering (MS)",
+    "degree_searchservice_api_id": "972",
+    "degree_plan_code": "CIVENGR-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Water/Wastewater Engineer",
+      "Environmental Engineer",
+      "Transportation Engineer",
+      "Civil Engineer",
+      "Engineering Manager",
+      "Construction Manager",
+      "Site Engineer",
+      "Structural Engineer",
+      "Geotechnical Engineer"
+    ]
+  },
+  {
+    "wordpress_id": 61155,
+    "slug": "sport-business-management-msbm",
+    "title": "Sport Business Management (MSBM)",
+    "degree_searchservice_api_id": "950",
+    "degree_plan_code": "BUSPMGT-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "General Manager",
+      "Athletic Director",
+      "Sports Promotion",
+      "Sports Marketing Manager ",
+      "Sports Agent",
+      "Baseball Scout",
+      "Football Coach",
+      "Event Management"
+    ]
+  },
+  {
+    "wordpress_id": 61153,
+    "slug": "management-msm",
+    "title": "Management (MSM)",
+    "degree_searchservice_api_id": "941",
+    "degree_plan_code": "BUS-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Business Analyst",
+      "Management Consulting",
+      "Customer Service/Customer Relations",
+      "General Management",
+      "Marketing",
+      "Operations",
+      "Project Management",
+      "Sales/Development",
+      "Staffing/Recruitment"
+    ]
+  },
+  {
+    "wordpress_id": 61146,
+    "slug": "biomedical-engineering-ms",
+    "title": "Biomedical Engineering (MS)",
+    "degree_searchservice_api_id": "918",
+    "degree_plan_code": "BIOMEDEMS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Biomedical Engineer",
+      "Clinical Engineer",
+      "Rehabilitation Engineer",
+      "Quality Engineer",
+      "Researcher"
+    ]
+  },
+  {
+    "wordpress_id": 61143,
+    "slug": "biology-bs",
+    "title": "Biology (BS)",
+    "degree_searchservice_api_id": "906",
+    "degree_plan_code": "BIO-BS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Medical Scientist",
+      "Natural Sciences Manager",
+      "Biological Scientist",
+      "Life Scientist",
+      "Data Science Manager",
+      "Research Scientist",
+      "Laboratory Manager",
+      "Clinical Research Coordinator"
+    ]
+  },
+  {
+    "wordpress_id": 61138,
+    "slug": "master-of-athletic-training-mat",
+    "title": "Master of Athletic Training (MAT)",
+    "degree_searchservice_api_id": "900",
+    "degree_plan_code": "ATHTRMATHT",
+    "degree_subplan_code": null,
+    "careers": [
+      "Secondary schools",
+      "Colleges and universities",
+      "Professional sports ",
+      "Performing arts",
+      "Military",
+      "Public safety",
+      "Industry",
+      "Outpatient rehabilitation facilities, medical offices, and hospitals"
+    ]
+  },
+  {
+    "wordpress_id": 61135,
+    "slug": "art-ba",
+    "title": "Art (BA)",
+    "degree_searchservice_api_id": "894",
+    "degree_plan_code": "ART-BA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Illustrator",
+      "Graphic Designer",
+      "Fine Artist",
+      "Curator",
+      "Animator",
+      "Art Educator",
+      "Art Registrar",
+      "Photographer",
+      "Gallery Director",
+      "Art Administrator",
+      "Archivist"
+    ]
+  },
+  {
+    "wordpress_id": 61130,
+    "slug": "applied-learning-and-instruction-ma",
+    "title": "Applied Learning and Instruction (MA)",
+    "degree_searchservice_api_id": "886",
+    "degree_plan_code": "APLRNIS-MA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Trainer ",
+      "Instructional Designer ",
+      "Unit Manager ",
+      "Organizational Development Consultant ",
+      "Learning Consultant"
+    ]
+  },
+  {
+    "wordpress_id": 61125,
+    "slug": "aerospace-engineering-msae",
+    "title": "Aerospace Engineering (MSAE)",
+    "degree_searchservice_api_id": "874",
+    "degree_plan_code": "AEROENG-MS",
+    "degree_subplan_code": null,
+    "careers": [
+      "Aerospace Engineer",
+      "Compliance Officer",
+      "Maintenance Engineer",
+      "Manufacturing Systems Engineer",
+      "Materials Engineer",
+      "Mechanical Engineer",
+      "Spacecraft Designer"
+    ]
+  },
+  {
+    "wordpress_id": 61121,
+    "slug": "accounting-msa",
+    "title": "Accounting (MSA)",
+    "degree_searchservice_api_id": "869",
+    "degree_plan_code": "ACCTG-MSA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Senior Accountant",
+      "Financial Controller",
+      "Accounting Manager",
+      "Senior Financial Analyst",
+      "Tax Accountant",
+      "Auditor"
+    ]
+  },
+  {
+    "wordpress_id": 61120,
+    "slug": "accounting-bsba",
+    "title": "Accounting (BSBA)",
+    "degree_searchservice_api_id": "868",
+    "degree_plan_code": "ACCTG-BSBA",
+    "degree_subplan_code": null,
+    "careers": [
+      "Accounting Clerk",
+      "Bookkeeper",
+      "Budget Analyst",
+      "Forensic Accountant",
+      "Financial Analyst",
+      "Environmental Accountant"
+    ]
+  }
+]

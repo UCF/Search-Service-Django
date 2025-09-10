@@ -224,6 +224,7 @@ class ProgramCareerView(APIView):
 
         return Response(program.jobs.values_list('name', flat=True).distinct())
 
+
 class ApplicationDeadlinesView(APIView):
     def get(self, request, format=None, **kwargs):
         program = Program.objects.get(id=kwargs['id'])
