@@ -150,6 +150,9 @@ class Command(BaseCommand):
         self.full_descriptions_updated_created = 0
         self.credit_hours_set = 0
 
+        self.undergraduate_matches = 0
+        self.graduate_matches = 0
+
         self.program_prep_progress = None
         self.catalog_prep_progress = None
         self.catalog_match_progress = None
@@ -204,6 +207,9 @@ Matched {c_with_match}/{len(self.catalog_entries)} of Fetched Catalog Entries to
 
 Short Descriptions Updated or Created : {self.descriptions_updated_created}
 Full Descriptions Updated or Created  : {self.full_descriptions_updated_created}
+
+Undergraduate Programs Matched: {self.undergraduate_matches}
+Graduate Programs Matched: {self.graduate_matches}
 
 Credit Hours Set : {self.credit_hours_set}
 
@@ -289,8 +295,14 @@ Finished in {datetime.now() - self.start_time}
 
         try:
             for catalog in catalogs_data:
-                academic_level = 'undergraduate' if 'undergraduate' in catalog['title'].lower() else 'graduate'
-                self.catalogs[academic_level] = catalog['_id']
+                academic_level = None
+                if 'undergraduate' in catalog['title'].lower():
+                    academic_level = 'undergraduate'
+                elif 'graduate' in catalog['title'].lower() and 'alternative' not in catalog['title'].lower():
+                    academic_level = 'graduate'
+
+                if academic_level:
+                    self.catalogs[academic_level] = catalog['_id']
         except KeyError:
             raise Exception(
                 'Unable to retrieve catalog IDs.'
@@ -333,7 +345,6 @@ Finished in {datetime.now() - self.start_time}
 
         graduate_catalog_programs = self.__get_paged_results(self.catalog_programs_url, {
             'status': 'active',
-            'dateStart': f"gte({str(catalog_year)})",
             'academicLevel': 'graduate'
         })
 
@@ -358,6 +369,8 @@ Finished in {datetime.now() - self.start_time}
             data.extend(catalog_tracks_data)
         except KeyError:
             pass
+
+        data = self.__get_latest_entries(data)
 
         self.catalog_prep_progress = ChargingBar(
             'Prepping catalog entries...',
@@ -403,6 +416,25 @@ Finished in {datetime.now() - self.start_time}
                     for x in self.catalog_entries \
                     if x.data['pid'] == entry.parent_catalog_id
                 ]
+
+    def __get_latest_entries(self, data):
+        """
+        Loops through the program data and attempts
+        to get the latest catalog entries for each
+        program in the set.
+        """
+        retval = {}
+
+        for d in data:
+            if 'dateStart' not in d.keys():
+                continue
+
+            if d['title'] in retval.keys() and d['dateStart'] >= retval[d['title']]['dateStart']:
+                retval[d['title']] = d
+            elif d['title'] not in retval.keys():
+                retval[d['title']] = d
+
+        return list(retval.values())
 
 
     def __get_catalog_entry_data(self):
@@ -702,6 +734,11 @@ Finished in {datetime.now() - self.start_time}
                 # Increment match counts
                 self.program_match_count += 1
                 mp.best_match.match_count += 1
+
+                if mp.program.career.name == 'Undergraduate':
+                    self.undergraduate_matches += 1
+                else:
+                    self.graduate_matches += 1
 
                 logging.log(
                     logging.INFO,
