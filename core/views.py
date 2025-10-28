@@ -126,36 +126,38 @@ class CommunicatorDashboard(LoginRequiredMixin, TitleContextMixin, TemplateView)
         program_content_type = ContentType.objects.get_for_model(Program)
         program_description_content_type = ContentType.objects.get_for_model(ProgramDescription)
 
-        user_events = LogEntry.objects.filter(
-            Q(content_type=program_content_type)|Q(content_type=program_description_content_type),
-            actor=user,
-        ).values(
-            'object_id',
-            'actor__first_name',
-            'actor__last_name'
-        ).annotate(
-            action_count=Count('object_id', distinct=True),
-            newest_action=Max('timestamp'),
-            max_id=Max('id')
-        ).order_by(
-            '-newest_action'
-        )[:10]
+        # user_events = LogEntry.objects.filter(
+        #     Q(content_type=program_content_type)|Q(content_type=program_description_content_type),
+        #     actor=user,
+        # ).values(
+        #     'object_id',
+        #     'actor__first_name',
+        #     'actor__last_name'
+        # ).annotate(
+        #     action_count=Count('object_id', distinct=True),
+        #     newest_action=Max('timestamp'),
+        #     max_id=Max('id')
+        # ).order_by(
+        #     '-newest_action'
+        # )[:10]
 
-        global_events = LogEntry.objects.filter(
-            Q(content_type=program_content_type)|Q(content_type=program_description_content_type)
-        ).exclude(
-            actor=user
-        ).values(
-            'object_id',
-            'actor__first_name',
-            'actor__last_name'
-        ).annotate(
-            action_count=Count('object_id', distinct=True),
-            newest_action=Max('timestamp'),
-            max_id=Max('id')
-        ).order_by(
-            '-newest_action'
-        )[:10]
+        user_events = LogEntry.objects.none()
+
+        # global_events = (LogEntry.objects
+        #     .filter(
+        #         content_type__in=[program_content_type, program_description_content_type]
+        #     )
+        #     .exclude(actor=user)
+        #     .annotate(
+        #         action_count=Count('object_id', distinct=True),
+        #         newest_action=Max('timestamp')
+        #     )
+        #     .order_by('-newest_action')
+        #     .only('object_id', 'actor__first_name', 'actor__last_name', 'timestamp')
+        #     [:10]
+        # )
+
+        global_events = LogEntry.objects.none()
 
         ctx['meta'] = {
             'program_count': user.meta.editable_programs.count(),
