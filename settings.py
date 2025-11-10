@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'images',
     'units',
     'marketing',
+    "podcasts",
     'core'
 ]
 
