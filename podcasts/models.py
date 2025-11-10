@@ -1,12 +1,38 @@
 from django.db import models
+import feedparser
+
+from pprint import pprint
 
 # Create your models here.
+class PodcastShowManager(models.Manager):
+    def add_show_from_rss(self, rss_feed_url: str):
+        """
+        Attempts to add a show from a provided RSS feed URL
+        """
+        try:
+            feed = feedparser.parse(rss_feed_url)
+            if feed['status'] != 200:
+                return False
+
+            show = self.create(
+                title=feed['feed']['title'],
+                feed_url=rss_feed_url,
+                description=feed['feed']['summary'],
+                owner=feed['feed']['author'],
+            )
+
+            return show
+        except Exception as e:
+            return False
+
+
 class PodcastShow(models.Model):
     title = models.CharField(max_length=255, null=False, blank=False)
     feed_url = models.CharField(max_length=400, null=False, blank=False)
     description = models.TextField(null=False, blank=False)
     owner = models.CharField(max_length=255, null=False, blank=False)
     show_image = models.ImageField()
+    manager = PodcastShowManager()
 
     def __str__(self):
         return self.title
