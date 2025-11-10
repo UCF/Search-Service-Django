@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 class PodcastShow(models.Model):
     title = models.CharField(max_length=255, null=False, blank=False)
+    feed_url = models.CharField(max_length=400, null=False, blank=False)
     description = models.TextField(null=False, blank=False)
     owner = models.CharField(max_length=255, null=False, blank=False)
     show_image = models.ImageField()
