@@ -1,12 +1,9 @@
-from re import L
 from rest_framework import serializers
 from rest_framework.reverse import reverse
+
 from programs.models import *
 import warnings
-import json
 
-from django.db import IntegrityError
-from django.db.models import Max, Avg, Sum
 from drf_dynamic_fields import DynamicFieldsMixin
 
 
