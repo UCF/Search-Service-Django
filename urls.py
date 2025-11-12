@@ -34,6 +34,9 @@ urlpatterns = [
     url(r'^api/v1/marketing/',
         include('marketing.urls')
         ),
+    url(r'^api/v1/podcasts/',
+        include('podcasts.urls')
+        ),
     url(r'^api/v1/',
         include('programs.urls')
         ),

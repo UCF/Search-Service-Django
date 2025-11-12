@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView

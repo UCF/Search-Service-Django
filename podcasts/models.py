@@ -32,7 +32,7 @@ class PodcastShow(models.Model):
     description = models.TextField(null=False, blank=False)
     owner = models.CharField(max_length=255, null=False, blank=False)
     show_image = models.ImageField()
-    manager = PodcastShowManager()
+    objects = PodcastShowManager()
 
     def __str__(self):
         return self.title
