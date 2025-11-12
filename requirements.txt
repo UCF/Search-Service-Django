@@ -60,6 +60,8 @@ drf-dynamic-fields==0.4.0
     # via ucf-search-service-django (pyproject.toml)
 elementpath==4.4.0
     # via xmlschema
+feedparser==6.0.12
+    # via ucf-search-service-django (pyproject.toml)
 fuzzywuzzy==0.18.0
     # via ucf-search-service-django (pyproject.toml)
 gunicorn==22.0.0
@@ -114,6 +116,8 @@ s3transfer==0.10.2
     # via boto3
 setuptools==75.3.0
     # via ucf-search-service-django (pyproject.toml)
+sgmllib3k==1.0.0
+    # via feedparser
 six==1.16.0
     # via python-dateutil
 soupsieve==2.5
