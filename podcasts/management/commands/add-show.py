@@ -16,10 +16,10 @@ class Command(BaseCommand):
         rss_feed_url = options['rss_feed_url']
         show = None
         try:
-            show = PodcastShow.manager.add_show_from_rss(rss_feed_url)
+            show = PodcastShow.objects.add_show_from_rss(rss_feed_url)
         except:
             self.stderr.write(
-                self.style.ERROR(f"Successfully added show: {show.title}")
+                self.style.ERROR(f"Failed to add show: {show.title}")
             )
 
         if show is not None:
