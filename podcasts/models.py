@@ -49,9 +49,10 @@ class PodcastEpisode(models.Model):
     season_number = models.IntegerField(null=True, blank=True)
     episode_number = models.IntegerField(null=True, blank=True)
     author = models.CharField(max_length=255, null=True, blank=True)
+    transcript = models.TextField(null=True, blank=True)
 
     # Foreign Keys
-    show = models.ForeignKey(PodcastShow, on_delete=models.CASCADE)
+    show = models.ForeignKey(PodcastShow, related_name='episodes', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
