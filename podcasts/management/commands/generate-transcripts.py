@@ -73,6 +73,7 @@ Transcripts Skipped : {self.transcripts_error}
                 continue
 
             episode.transcript = self.__find_transcript(episode_data)
+            self.episodes_processed += 1
 
             if episode.transcript:
                 episode.save()
@@ -81,23 +82,28 @@ Transcripts Skipped : {self.transcripts_error}
                 self.transcripts_error += 1
 
     def __find_transcript(self, episode_data: feedparser.FeedParserDict) -> Optional[str]:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
+        }
+
         # Look for the transcript tag first
         if 'podcast_transcript' in episode_data.keys():
             transcript_url =  episode_data['podcast_transcript']['url']
 
             try:
-                response = requests.get(transcript_url)
+                response = requests.get(transcript_url, headers=headers)
                 if not response.ok:
                     self.stdout.write(
-                        self.style.NOTICE(f"Unable to get transcript file: {transcript_url}")
+                        self.style.NOTICE(f"Unable to retrieve transcript file: {transcript_url} - Status: {response.status_code}")
                     )
+                    return None
 
                 # Return the text of the transcript
                 return response.text
 
             except Exception as e:
                 self.stdout.write(
-                        self.style.NOTICE(f"Unable to get transcript file: {transcript_url}: {str(e)}")
+                        self.style.NOTICE(f"Unable to process transcript file: {str(e)}")
                     )
 
         elif '.docx' in episode_data['description']:
