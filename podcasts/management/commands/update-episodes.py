@@ -96,19 +96,20 @@ Episodes Error     : {self.episodes_errors}
         episode.description = episode_data['summary']
         episode.published_date = self.__format_date_time(episode_data['published'])
         episode.duration = self.__format_timespan(episode_data)
-        episode.link = episode_data['link']
+        episode.link = self.__get_episode_link(episode_data)
         episode.audio_file = self.__get_audio_url(episode_data)
         episode.episode_type = self.__get_episode_type(episode_data)
-        episode.season_number = episode_data['podcast_season']
-        episode.episode_number = episode_data['podcast_episode']
+
+        episode.season_number = self.__get_season_number(episode_data)
+        episode.episode_number = self.__get_episode_number(episode_data)
         episode.author = self.__get_episode_author(episode_data)
         episode.show = show
 
         try:
             episode.save()
-        except:
+        except Exception as e:
             self.stdout.write(
-                self.style.ERROR(f"Error saving episode: {episode.title}")
+                self.style.ERROR(f"Error saving episode: {episode.title} - {e}")
             )
             return None
 
@@ -120,7 +121,13 @@ Episodes Error     : {self.episodes_errors}
         Formats the datetime string from an RSS feed to a python
         datetime object.
         """
-        return datetime.strptime(date_time_str, "%a, %d %b %Y %H:%M:%S %Z")
+        format = ''
+        if date_time_str.endswith('0'):
+            format = '%a, %d %b %Y %H:%M:%S %z'
+        else:
+            format = '%a, %d %b %Y %H:%M:%S %Z'
+
+        return datetime.strptime(date_time_str, format)
 
     def __format_timespan(self, episode_data: dict) -> timedelta:
         """
@@ -129,10 +136,15 @@ Episodes Error     : {self.episodes_errors}
         """
         # See if we can find an itune duration field
         if 'itunes_duration' in episode_data.keys():
+            duration = episode_data['itunes_duration']
+
             # Is it in seconds or time format?
-            if ':' in episode_data['itunes_duration']:
+            if ':' in duration and duration.count(':') == 2:
                 (hours, minutes, seconds) = tuple(map(float, episode_data['itunes_duration'].split(':')))
                 return timedelta(hours=hours, minutes=minutes, seconds=seconds)
+            elif ':' in duration and duration.count(':') == 1:
+                (minutes, seconds) = tuple(map(float, episode_data['itunes_duration'].split(':')))
+                return timedelta(minutes=minutes, seconds=seconds)
             elif episode_data['itunes_duration'].isdigit():
                 return timedelta(seconds=int(episode_data['itunes_duration']))
         # We need to pull the duration from the audio file link
@@ -169,3 +181,36 @@ Episodes Error     : {self.episodes_errors}
         for item in episode_data['links']:
             if 'type' in item.keys() and 'audio' in item['type']:
                 return item['href']
+
+        return None
+
+    def __get_episode_link(self, episode_data: dict) -> Optional[str]:
+        """
+        Attempts to return a link to the podcast episode
+        """
+        if 'link' in episode_data.keys():
+            return episode_data['link']
+
+        return None
+
+    def __get_season_number(self, episode_data: dict) -> Optional[int]:
+        """
+        Attempts to return a season number from the podcast data
+        """
+        if 'podcast_season' in episode_data.keys():
+            return int(episode_data['podcast_season'])
+        elif 'itunes_season' in episode_data.keys():
+            return int(episode_data['itunes_season'])
+
+        return None
+
+    def __get_episode_number(self, episode_data: dict) -> Optional[int]:
+        """
+        Attempts to return an episode number from the podcast data
+        """
+        if 'podcast_episode' in episode_data.keys():
+            return int(episode_data['podcast_episode'])
+        elif 'itunes_episode' in episode_data.keys():
+            return int(episode_data['itunes_episode'])
+
+        return None
