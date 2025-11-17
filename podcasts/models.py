@@ -1,4 +1,6 @@
 from django.db import models
+from taggit.managers import TaggableManager
+
 import feedparser
 
 # Create your models here.
@@ -40,6 +42,7 @@ class PodcastShow(models.Model):
     owner = models.CharField(max_length=255, null=False, blank=False)
     show_image = models.ImageField()
     category = models.ForeignKey(PodcastCategory, related_name='podcasts', default=1, on_delete=models.CASCADE)
+    tags = TaggableManager()
     objects = PodcastShowManager()
 
     def __str__(self):
@@ -58,6 +61,7 @@ class PodcastEpisode(models.Model):
     episode_number = models.IntegerField(null=True, blank=True)
     author = models.CharField(max_length=255, null=True, blank=True)
     category = models.ForeignKey(PodcastCategory, related_name='episodes', default=1, on_delete=models.SET_DEFAULT)
+    tags = TaggableManager()
     transcript = models.TextField(null=True, blank=True)
 
     # Foreign Keys
