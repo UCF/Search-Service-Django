@@ -33,12 +33,12 @@ class PodcastEpisodeListView(generics.ListAPIView):
     queryset = PodcastEpisode.objects.all()
     lookup_field = 'id'
     serializer_class = PodcastEpisodeSerializer
-    filter_backends = PodcastEpisodeListFilter
+    filter_class = PodcastEpisodeListFilter
 
 class PodcastShowEpisodeListView(generics.ListAPIView):
     lookup_field = 'id'
     serializer_class = PodcastEpisodeSerializer
-    filter_backends = PodcastEpisodeListFilter
+    filter_class = PodcastEpisodeListFilter
 
     def get_queryset(self):
         show_id = self.kwargs.get('id', None)
