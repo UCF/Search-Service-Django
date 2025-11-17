@@ -87,9 +87,14 @@ Transcripts Skipped : {self.transcripts_error}
         }
 
         # Look for the transcript tag first
+        transcript_url = None
         if 'podcast_transcript' in episode_data.keys():
-            transcript_url =  episode_data['podcast_transcript']['url']
+            transcript_url = episode_data['podcast_transcript']['url']
+        elif 'transcript' in episode_data.keys():
+            print(episode_data['itunes_transcript'])
+            # transcript_url = episode_data['itunes_transcript']['url']
 
+        if transcript_url:
             try:
                 response = requests.get(transcript_url, headers=headers)
                 if not response.ok:
@@ -106,7 +111,7 @@ Transcripts Skipped : {self.transcripts_error}
                         self.style.NOTICE(f"Unable to process transcript file: {str(e)}")
                     )
 
-        elif '.docx' in episode_data['description']:
+        if '.docx' in episode_data['description']:
             # Get the docx file
             transcript_url = self.__find_docx_url(episode_data['description'])
 
