@@ -24,6 +24,6 @@ class Command(BaseCommand):
 
         if show is not None:
             self.stdout.write(
-                self.style.SUCCESS(f"Successfully added show: {show.title}")
+                self.style.SUCCESS(f"Successfully added show: {rss_feed_url}")
             )
 
