@@ -70,3 +70,12 @@ class PodcastEpisode(models.Model):
     def __str__(self):
         return self.title
 
+
+class PodcastEpisodeHighlight(models.Model):
+    time_text = models.CharField(max_length=255, blank=True, null=True)
+    order = models.IntegerField(blank=True, null=True)
+    summary = models.TextField(blank=False, null=False)
+    episode = models.ForeignKey(PodcastEpisode, related_name='highlights', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.episode.title}: Highlight {self.order}"

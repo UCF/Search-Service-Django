@@ -2,14 +2,20 @@ from django.contrib import admin
 
 from podcasts.models import (
     PodcastShow,
-    PodcastEpisode
+    PodcastEpisode,
+    PodcastEpisodeHighlight
 )
 
 # Register your models here.
+class PodcastEpisodeHighlightInline(admin.TabularInline):
+    model = PodcastEpisodeHighlight
+    extra = 1
+    ordering = ('order', 'time_text')
+
 @admin.register(PodcastShow)
 class PodcastShowAdmin(admin.ModelAdmin):
     pass
 
 @admin.register(PodcastEpisode)
 class PodcastEpisodeAdmin(admin.ModelAdmin):
-    pass
+    inlines = [PodcastEpisodeHighlightInline]
