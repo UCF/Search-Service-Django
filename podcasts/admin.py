@@ -10,6 +10,7 @@ from podcasts.models import (
 class PodcastEpisodeHighlightInline(admin.TabularInline):
     model = PodcastEpisodeHighlight
     extra = 1
+    ordering = ('order', 'time_text')
 
 @admin.register(PodcastShow)
 class PodcastShowAdmin(admin.ModelAdmin):
