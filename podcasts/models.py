@@ -1,7 +1,17 @@
 from django.db import models
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from taggit.managers import TaggableManager
 
+from typing import Optional, Tuple
+
+from core.storage_backends import PodcastImageStorage
+
 import feedparser
+import requests
+
+from io import BytesIO
+from PIL import Image as PILImage
+from pathlib import Path
 
 # Create your models here.
 class PodcastShowManager(models.Manager):
@@ -40,10 +50,99 @@ class PodcastShow(models.Model):
     feed_url = models.CharField(max_length=400, null=False, blank=False)
     description = models.TextField(null=False, blank=False)
     owner = models.CharField(max_length=255, null=False, blank=False)
-    show_image = models.ImageField()
+
+    show_image = models.ImageField(
+        storage=PodcastImageStorage,
+        null=True,
+        blank=True
+    )
+
+    show_image_thumbnail = models.ImageField(
+        storage=PodcastImageStorage,
+        null=True,
+        blank=True,
+        editable=False
+    )
+
+    show_image_medium = models.ImageField(
+        storage=PodcastImageStorage,
+        null=True,
+        blank=True,
+        editable=False
+    )
+
     category = models.ForeignKey(PodcastCategory, related_name='podcasts', default=1, on_delete=models.CASCADE)
     tags = TaggableManager()
     objects = PodcastShowManager()
+
+    def __make_thumbnail(self, width, height, name='') -> Optional[InMemoryUploadedFile]:
+        """
+        Attempts to make a thumbnail of width and height
+        from the primary show image.
+        """
+        img = None
+        in_buffer = None
+        out_buffer = BytesIO()
+
+        # See if we're using S3 for storage
+        if 's3' in self.show_image.url:
+            url = self.show_image.url
+
+            # Read the file into an Image object
+            response = requests.get(url)
+            in_buffer = BytesIO(response.content)
+            img = PILImage.open(in_buffer)
+
+        path = Path(self.show_image.url)
+        ext = path.suffix if path.suffix else '.jpg'
+        format = img.format
+
+        if ext in path.name:
+            filename = path.name.replace(ext, f"{name}{ext}")
+        else:
+            filename = f"{path.name}{name}{ext}"
+
+        if width and height:
+            img.thumbnail((width, height))
+            img.save(out_buffer, format=format)
+        elif width and not height:
+            original_width, original_height = img.size
+            height = int(original_height * (width / original_width))
+            img.thumbnail((width, height))
+            img.save(out_buffer, format=format)
+
+        out_buffer.seek(0)
+
+        retval = InMemoryUploadedFile(
+            out_buffer,
+            'ImageField',
+            filename,
+            f'image/{format.lower()}',
+            len(out_buffer.getvalue()),
+            None
+        )
+
+        return retval
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        update_fields = []
+
+        if self.show_image and not (self.show_image_medium or self.show_image_thumbnail):
+            thumbnail = self.__make_thumbnail(150, 150, '_thumbnail')
+            if thumbnail:
+                self.show_image_thumbnail = thumbnail
+                update_fields.append('show_image_thumbnail')
+
+            medium = self.__make_thumbnail(300, None, '_medium')
+            if medium:
+                self.show_image_medium = medium
+                update_fields.append('show_image_medium')
+
+
+        if len(update_fields) > 0:
+            super().save(update_fields=update_fields)
 
     def __str__(self):
         return self.title
