@@ -1,6 +1,8 @@
 from django.db import models
 from taggit.managers import TaggableManager
 
+from core.storage_backends import PodcastImageStorage
+
 import feedparser
 
 # Create your models here.
@@ -40,7 +42,7 @@ class PodcastShow(models.Model):
     feed_url = models.CharField(max_length=400, null=False, blank=False)
     description = models.TextField(null=False, blank=False)
     owner = models.CharField(max_length=255, null=False, blank=False)
-    show_image = models.ImageField()
+    show_image = models.ImageField(storage=PodcastImageStorage())
     category = models.ForeignKey(PodcastCategory, related_name='podcasts', default=1, on_delete=models.CASCADE)
     tags = TaggableManager()
     objects = PodcastShowManager()
