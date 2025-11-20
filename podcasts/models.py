@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.files import File
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from taggit.managers import TaggableManager
 
 from typing import Optional, Tuple
@@ -75,12 +75,14 @@ class PodcastShow(models.Model):
     tags = TaggableManager()
     objects = PodcastShowManager()
 
-    def __make_thumbnail(self, width, height, name='') -> Optional[Tuple[bytearray, str]]:
+    def __make_thumbnail(self, width, height, name='') -> Optional[InMemoryUploadedFile]:
         """
         Attempts to make a thumbnail of width and height
         from the primary show image.
         """
         img = None
+        in_buffer = None
+        out_buffer = BytesIO()
 
         # See if we're using S3 for storage
         if 's3' in self.show_image.url:
@@ -88,33 +90,39 @@ class PodcastShow(models.Model):
 
             # Read the file into an Image object
             response = requests.get(url)
-            image_data = BytesIO(response.content)
-            img = PILImage.open(image_data)
-        else:
-            img = self.show_image.file.copy()
-
-        img_thumbnail = img.copy()
+            in_buffer = BytesIO(response.content)
+            img = PILImage.open(in_buffer)
 
         path = Path(self.show_image.url)
         ext = path.suffix if path.suffix else '.jpg'
         format = img.format
+
         if ext in path.name:
             filename = path.name.replace(ext, f"{name}{ext}")
         else:
             filename = f"{path.name}{name}{ext}"
 
         if width and height:
-            img_thumbnail.thumbnail((width, height))
-            img_thumbnail.save(image_data, format=format)
+            img.thumbnail((width, height))
+            img.save(out_buffer, format=format)
         elif width and not height:
             original_width, original_height = img.size
             height = int(original_height * (width / original_width))
-            img_thumbnail.thumbnail((width, height))
-            img_thumbnail.save(image_data, format=format)
+            img.thumbnail((width, height))
+            img.save(out_buffer, format=format)
 
-        image_data.seek(0)
+        out_buffer.seek(0)
 
-        return (filename, image_data)
+        retval = InMemoryUploadedFile(
+            out_buffer,
+            'ImageField',
+            filename,
+            f'image/{format.lower()}',
+            len(out_buffer.getvalue()),
+            None
+        )
+
+        return retval
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -124,13 +132,14 @@ class PodcastShow(models.Model):
         if self.show_image and not (self.show_image_medium or self.show_image_thumbnail):
             thumbnail = self.__make_thumbnail(150, 150, '_thumbnail')
             if thumbnail:
-                self.show_image_thumbnail.save(thumbnail[0], thumbnail[1], False)
+                self.show_image_thumbnail = thumbnail
                 update_fields.append('show_image_thumbnail')
 
             medium = self.__make_thumbnail(300, None, '_medium')
             if medium:
-                self.show_image_medium.save(medium[0], medium[1], False)
+                self.show_image_medium = medium
                 update_fields.append('show_image_medium')
+
 
         if len(update_fields) > 0:
             super().save(update_fields=update_fields)
