@@ -81,7 +81,6 @@ class PodcastShow(models.Model):
         from the primary show image.
         """
         img = None
-        retval = BytesIO()
 
         # See if we're using S3 for storage
         if 's3' in self.show_image.url:
@@ -97,9 +96,12 @@ class PodcastShow(models.Model):
         img_thumbnail = img.copy()
 
         path = Path(self.show_image.url)
-        ext = path.suffix
+        ext = path.suffix if path.suffix else '.jpg'
         format = img.format
-        filename = path.name.replace(ext, f"{name}.{ext}")
+        if ext in path.name:
+            filename = path.name.replace(ext, f"{name}{ext}")
+        else:
+            filename = f"{path.name}{name}{ext}"
 
         if width and height:
             img_thumbnail.thumbnail((width, height))

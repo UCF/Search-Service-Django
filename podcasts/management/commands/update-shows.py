@@ -12,6 +12,10 @@ import tempfile
 class Command(BaseCommand):
     help = 'Updated show descriptions and images'
 
+    HEADERS = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
+    }
+
     def handle(self, *args, **options):
         self.shows_processed = 0
         self.shows_updated = 0
@@ -105,11 +109,14 @@ Errors          : {self.errors}
         if not show_image_url:
             return None
 
-        response = requests.get(show_image_url, stream=True)
+        response = requests.get(show_image_url, stream=True, headers=self.HEADERS)
+
         if not response.ok:
             return None
 
         file_name = show_image_url.split('/')[-1]
+        if all(sub not in file_name for sub in ['.jpeg', '.jpg', '.png', '.avif', '.webp']):
+            file_name += '.jpg'
 
         lf = tempfile.NamedTemporaryFile()
 
