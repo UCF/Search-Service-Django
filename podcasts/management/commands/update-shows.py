@@ -4,6 +4,7 @@ from django.core.files import File
 from podcasts.models import PodcastShow
 
 from typing import Optional, Tuple
+
 import feedparser
 import requests
 import tempfile
@@ -91,7 +92,9 @@ Errors          : {self.errors}
         feed data.
         """
         if 'image' in show_data['feed'] and 'href' in show_data['feed']['image']:
-            return show_data['feed']['image']['href']
+            url = show_data['feed']['image']['href']
+            url = url.split('?')[0]
+            return url
 
         return None
 

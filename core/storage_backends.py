@@ -7,4 +7,4 @@ class PublicMediaStorage(S3Boto3Storage):
 
 class PodcastImageStorage(S3Boto3Storage):
     location = f'{settings.S3_ENV}/media/podcasts'
-    file_overwrite = False
+    file_overwrite = True
