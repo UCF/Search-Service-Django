@@ -9,13 +9,14 @@ from podcasts.models import (
 
 from podcasts.serializers import (
     PodcastShowSerializer,
-    PodcastEpisodeSerializer
+    PodcastEpisodeSerializer,
+    PodcastEpisodeSimpleSerializer
 )
 
 from podcasts.filters import (
     PodcastShowListFilter,
     PodcastEpisodeListFilter
-    )
+)
 
 # Create your views here.
 class PodcastShowListView(generics.ListAPIView):
@@ -37,7 +38,7 @@ class PodcastEpisodeListView(generics.ListAPIView):
 
 class PodcastShowEpisodeListView(generics.ListAPIView):
     lookup_field = 'id'
-    serializer_class = PodcastEpisodeSerializer
+    serializer_class = PodcastEpisodeSimpleSerializer
     filter_class = PodcastEpisodeListFilter
 
     def get_queryset(self):
