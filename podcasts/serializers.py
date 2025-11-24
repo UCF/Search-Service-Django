@@ -1,6 +1,11 @@
 from rest_framework import serializers
 from django.urls import reverse
 
+from taggit.serializers import (
+    TaggitSerializer,
+    TagListSerializerField
+)
+
 from podcasts.models import (
     PodcastShow,
     PodcastEpisodeHighlight,
@@ -40,18 +45,20 @@ class PodcastEpisodeHighlightSerializer(serializers.ModelSerializer):
         model = PodcastEpisodeHighlight
 
 class PodcastEpisodeSimpleSerializer(serializers.ModelSerializer):
+    tags = TagListSerializerField()
+
     class Meta:
         fields = (
             'id',
             'title',
             'description',
-            # 'tags',
+            'tags',
             'category'
         )
         model = PodcastEpisode
 
 
-class PodcastEpisodeSerializer(serializers.ModelSerializer):
+class PodcastEpisodeSerializer(TaggitSerializer, serializers.ModelSerializer):
     highlights = PodcastEpisodeHighlightSerializer(
         many=True,
         read_only=True
