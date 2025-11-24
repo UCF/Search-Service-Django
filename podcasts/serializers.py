@@ -45,7 +45,7 @@ class PodcastEpisodeHighlightSerializer(serializers.ModelSerializer):
         model = PodcastEpisodeHighlight
 
 class PodcastEpisodeSimpleSerializer(serializers.ModelSerializer):
-    tags = TagListSerializerField()
+    tags = TagListSerializerField(read_only=True)
 
     class Meta:
         fields = (
