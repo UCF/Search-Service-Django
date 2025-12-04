@@ -36,6 +36,12 @@ class PodcastEpisodeListView(generics.ListAPIView):
     serializer_class = PodcastEpisodeSerializer
     filter_class = PodcastEpisodeListFilter
 
+class PodcastEpisodeSummaryView(generics.RetrieveAPIView):
+    queryset = PodcastEpisode.objects.all()
+    lookup_field = 'id'
+    serializer_class = PodcastEpisodeSerializer
+
+
 class PodcastShowEpisodeListView(generics.ListAPIView):
     lookup_field = 'id'
     serializer_class = PodcastEpisodeSimpleSerializer

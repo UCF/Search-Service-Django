@@ -8,9 +8,15 @@ from taggit.serializers import (
 
 from podcasts.models import (
     PodcastShow,
+    PodcastCategory,
     PodcastEpisodeHighlight,
     PodcastEpisode
 )
+
+class PodcastCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = PodcastCategory
 
 class PodcastShowSerializer(serializers.ModelSerializer):
     show_image = serializers.SerializerMethodField()
@@ -59,6 +65,9 @@ class PodcastEpisodeSimpleSerializer(serializers.ModelSerializer):
 
 
 class PodcastEpisodeSerializer(TaggitSerializer, serializers.ModelSerializer):
+    tags = TagListSerializerField(read_only=True)
+    category = PodcastCategorySerializer(read_only=True, many=False)
+
     highlights = PodcastEpisodeHighlightSerializer(
         many=True,
         read_only=True
