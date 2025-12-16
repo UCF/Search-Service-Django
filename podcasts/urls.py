@@ -4,6 +4,7 @@ from podcasts.views import (
     PodcastShowListView,
     PodcastShowDetailView,
     PodcastEpisodeListView,
+    PodcastEpisodeSummaryView,
     PodcastShowEpisodeListView
 )
 
@@ -15,6 +16,10 @@ urlpatterns = [
     url(r'^episodes/$',
         PodcastEpisodeListView.as_view(),
         name='api.podcasts.episodelist'
+    ),
+    url(r'^episodes/(?P<id>\d+)/$',
+        PodcastEpisodeSummaryView.as_view(),
+        name='api.podcasts.episode.summary'
     ),
     url(r'^(?P<id>\d+)/$',
         PodcastShowDetailView.as_view(),
