@@ -5,7 +5,9 @@ from podcasts.views import (
     PodcastShowDetailView,
     PodcastEpisodeListView,
     PodcastEpisodeSummaryView,
-    PodcastShowEpisodeListView
+    PodcastShowEpisodeListView,
+    PodcastCategoryListView,
+    PodcastCategoryDetailView
 )
 
 urlpatterns = [
@@ -20,6 +22,14 @@ urlpatterns = [
     url(r'^episodes/(?P<id>\d+)/$',
         PodcastEpisodeSummaryView.as_view(),
         name='api.podcasts.episode.summary'
+    ),
+    url(r'^categories/$',
+        PodcastCategoryListView.as_view(),
+        name='api.podcasts.categories.list'
+    ),
+    url(r'^categories/(?P<slug>[a-zA-Z\-]+)/$',
+        PodcastCategoryDetailView.as_view(),
+        name='api.podcasts.categories.detail'
     ),
     url(r'^(?P<id>\d+)/$',
         PodcastShowDetailView.as_view(),

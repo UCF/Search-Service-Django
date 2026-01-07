@@ -4,14 +4,16 @@ from django.shortcuts import get_object_or_404
 
 from podcasts.models import (
     PodcastShow,
-    PodcastEpisode
+    PodcastEpisode,
+    PodcastCategory
 )
 
 from podcasts.serializers import (
     PodcastShowSerializer,
     PodcastEpisodeSerializer,
     PodcastEpisodeSimpleSerializer,
-    PodcastEpisodeIdSerializer
+    PodcastEpisodeIdSerializer,
+    PodcastCategorySerializer
 )
 
 from podcasts.filters import (
@@ -21,17 +23,28 @@ from podcasts.filters import (
 
 # Create your views here.
 class PodcastShowListView(generics.ListAPIView):
+    """
+    The generic list view for all podcast shows.
+    """
     queryset = PodcastShow.objects.all()
     serializer_class = PodcastShowSerializer
     filter_class = PodcastShowListFilter
 
 
 class PodcastShowDetailView(generics.RetrieveAPIView):
+    """
+    The per show detail view
+    """
     queryset = PodcastShow.objects.all()
     lookup_field = 'id'
     serializer_class = PodcastShowSerializer
 
+
 class PodcastEpisodeListView(generics.ListAPIView):
+    """
+    A general, searchable episode list view for podcast
+    episodes.
+    """
     queryset = PodcastEpisode.objects.all()
     lookup_field = 'id'
     filter_class = PodcastEpisodeListFilter
@@ -43,12 +56,19 @@ class PodcastEpisodeListView(generics.ListAPIView):
         return PodcastEpisodeSerializer
 
 class PodcastEpisodeSummaryView(generics.RetrieveAPIView):
+    """
+    A detail view for podcast episodes
+    """
     queryset = PodcastEpisode.objects.all()
     lookup_field = 'id'
     serializer_class = PodcastEpisodeSerializer
 
 
 class PodcastShowEpisodeListView(generics.ListAPIView):
+    """
+    A list view for podcasts filtered by the show id provided
+    in the API url path
+    """
     lookup_field = 'id'
     filter_class = PodcastEpisodeListFilter
 
@@ -65,3 +85,19 @@ class PodcastShowEpisodeListView(generics.ListAPIView):
             return PodcastEpisodeIdSerializer
 
         return PodcastEpisodeSerializer
+
+class PodcastCategoryListView(generics.ListAPIView):
+    """
+    A list view for all podcast categories
+    """
+    queryset = PodcastCategory.objects.all()
+    serializer_class = PodcastCategorySerializer
+
+
+class PodcastCategoryDetailView(generics.RetrieveAPIView):
+    """
+    A detail view for podcast categories
+    """
+    queryset = PodcastCategory.objects.all()
+    lookup_field = 'slug'
+    serializer_class = PodcastCategorySerializer
