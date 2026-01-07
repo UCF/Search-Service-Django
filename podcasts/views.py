@@ -50,7 +50,6 @@ class PodcastEpisodeSummaryView(generics.RetrieveAPIView):
 
 class PodcastShowEpisodeListView(generics.ListAPIView):
     lookup_field = 'id'
-    serializer_class = PodcastEpisodeSimpleSerializer
     filter_class = PodcastEpisodeListFilter
 
     def get_queryset(self):
@@ -60,3 +59,9 @@ class PodcastShowEpisodeListView(generics.ListAPIView):
 
         show = get_object_or_404(PodcastShow, pk=show_id)
         return PodcastEpisode.objects.filter(show=show)
+
+    def get_serializer_class(self):
+        if self.request.query_params.get('fields', None) == 'id':
+            return PodcastEpisodeIdSerializer
+
+        return PodcastEpisodeSerializer

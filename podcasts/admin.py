@@ -3,6 +3,7 @@ from django.contrib import admin
 from podcasts.models import (
     PodcastShow,
     PodcastEpisode,
+    PodcastCategory,
     PodcastEpisodeHighlight
 )
 
@@ -19,3 +20,7 @@ class PodcastShowAdmin(admin.ModelAdmin):
 @admin.register(PodcastEpisode)
 class PodcastEpisodeAdmin(admin.ModelAdmin):
     inlines = [PodcastEpisodeHighlightInline]
+
+@admin.register(PodcastCategory)
+class PodcastCategoryAdmin(admin.ModelAdmin):
+    pass
