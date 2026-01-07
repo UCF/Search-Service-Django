@@ -26,13 +26,14 @@ class PodcastShowListFilter(filters.FilterSet):
 class PodcastEpisodeListFilter(filters.FilterSet):
     search = filters.CharFilter(method='custom_episode_search', label='Search')
     tags = filters.CharFilter(method='custom_tag_search', label='Tags')
+    format = filters.CharFilter(method='custom_format', label='Format')
 
     class Meta:
         model = PodcastEpisode
         fields = (
             'search',
             'category',
-            'tags',
+            'tags'
         )
 
     def custom_episode_search(self, queryset, name, value):

@@ -10,7 +10,8 @@ from podcasts.models import (
 from podcasts.serializers import (
     PodcastShowSerializer,
     PodcastEpisodeSerializer,
-    PodcastEpisodeSimpleSerializer
+    PodcastEpisodeSimpleSerializer,
+    PodcastEpisodeIdSerializer
 )
 
 from podcasts.filters import (
@@ -33,8 +34,13 @@ class PodcastShowDetailView(generics.RetrieveAPIView):
 class PodcastEpisodeListView(generics.ListAPIView):
     queryset = PodcastEpisode.objects.all()
     lookup_field = 'id'
-    serializer_class = PodcastEpisodeSerializer
     filter_class = PodcastEpisodeListFilter
+
+    def get_serializer_class(self):
+        if self.request.query_params.get('fields', None) == 'id':
+            return PodcastEpisodeIdSerializer
+
+        return PodcastEpisodeSerializer
 
 class PodcastEpisodeSummaryView(generics.RetrieveAPIView):
     queryset = PodcastEpisode.objects.all()
