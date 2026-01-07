@@ -26,7 +26,7 @@ class PodcastShowListFilter(filters.FilterSet):
 class PodcastEpisodeListFilter(filters.FilterSet):
     search = filters.CharFilter(method='custom_episode_search', label='Search')
     tags = filters.CharFilter(method='custom_tag_search', label='Tags')
-    category = filters.CharFilter(method='custom_category_search', labels='Category')
+    category = filters.CharFilter(method='custom_category_search', label='Category')
     show = filters.NumberFilter(method='custom_show_search', label='Show ID')
     format = filters.CharFilter(method='custom_format', label='Format')
 
