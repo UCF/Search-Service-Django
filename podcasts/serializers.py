@@ -63,6 +63,13 @@ class PodcastEpisodeSimpleSerializer(serializers.ModelSerializer):
         )
         model = PodcastEpisode
 
+class PodcastEpisodeIdSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = (
+            'id',
+        )
+        model = PodcastEpisode
+
 
 class PodcastEpisodeSerializer(TaggitSerializer, serializers.ModelSerializer):
     tags = TagListSerializerField(read_only=True)

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from taggit.managers import TaggableManager
 
@@ -39,10 +40,16 @@ class PodcastShowManager(models.Manager):
 
 class PodcastCategory(models.Model):
     title = models.CharField(max_length=100, null=False, blank=False, db_index=True, unique=True)
+    slug = models.SlugField(max_length=100, null=False, blank=True, db_index=True, unique=True)
     description = models.TextField(null=False, blank=False)
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save()
 
 
 class PodcastShow(models.Model):
