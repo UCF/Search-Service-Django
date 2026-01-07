@@ -26,13 +26,17 @@ class PodcastShowListFilter(filters.FilterSet):
 class PodcastEpisodeListFilter(filters.FilterSet):
     search = filters.CharFilter(method='custom_episode_search', label='Search')
     tags = filters.CharFilter(method='custom_tag_search', label='Tags')
+    category = filters.CharFilter(method='custom_category_search', label='Category')
+    show = filters.NumberFilter(method='custom_show_search', label='Show ID')
+    format = filters.CharFilter(method='custom_format', label='Format')
 
     class Meta:
         model = PodcastEpisode
         fields = (
             'search',
+            'show',
             'category',
-            'tags',
+            'tags'
         )
 
     def custom_episode_search(self, queryset, name, value):
@@ -46,6 +50,17 @@ class PodcastEpisodeListFilter(filters.FilterSet):
             Q(category__name__icontains=value) |
             Q(tags__name__icontains=value)
         )
+
+    def custom_category_search(self, queryset, name, value):
+        return queryset.filter(
+            category__title=value
+        )
+
+    def custom_show_search(self, queryset, name, value):
+        return queryset.filter(
+            show__id=value
+        )
+
 
     def custom_tag_search(self, queryset, name, value):
         return queryset.filter(
