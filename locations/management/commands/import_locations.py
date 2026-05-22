@@ -11,6 +11,7 @@ Usage:
     python manage.py import_locations /path/to/Locations_Bulk_Upload.xlsx
 """
 import hashlib
+from decimal import Decimal, InvalidOperation
 
 import openpyxl
 
@@ -80,8 +81,8 @@ def _parse_coords(value):
     try:
         parts = str(value).split(',')
         if len(parts) == 2:
-            return float(parts[0].strip()), float(parts[1].strip())
-    except (ValueError, AttributeError):
+            return Decimal(parts[0].strip()), Decimal(parts[1].strip())
+    except (InvalidOperation, AttributeError):
         pass
     return None, None
 
