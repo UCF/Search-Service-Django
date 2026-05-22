@@ -11,6 +11,7 @@ Usage:
     python manage.py import_locations /path/to/Locations_Bulk_Upload.xlsx
 """
 import hashlib
+from decimal import Decimal, InvalidOperation
 
 import openpyxl
 
@@ -27,15 +28,12 @@ COLUMN_MAP = {
     'Category': 'object_type',
     'Reference': 'abbreviation',
     'Labels': 'labels',
-    'Image': 'image',
     'Video': 'video',
     'Feed URL': 'feed_url',
     'Rate': 'rate',
     'Level': 'level',
     'Data Source': 'data_source',
 }
-
-BOOLEAN_COLUMNS = {'Visible', 'Private', 'Is Verified'}
 
 
 def _parse_bool(value):
@@ -50,11 +48,23 @@ def _parse_bool(value):
 
 def _compute_import_key(name, category, location):
     """
-    Return an MD5 hex digest of the location (lat,lng) string.
-    Keying on location alone allows the Excel importer to match and
-    update records that were previously imported from the map API.
+    Return an MD5 hex digest for the imported row.
+
+    For valid coordinates, key on a normalized "lat,lng" string so the
+    Excel importer can continue to match records previously imported
+    from the map API. For missing or malformed coordinates, fall back
+    to additional stable fields so blank locations do not all collapse
+    to the same import key.
     """
-    raw = str(location or '').strip()
+    lat, lng = _parse_coords(location)
+    if lat is not None and lng is not None:
+        raw = 'coords:{0:.15g},{1:.15g}'.format(lat, lng)
+    else:
+        raw = 'fallback:{0}|{1}|{2}'.format(
+            str(name or '').strip(),
+            str(category or '').strip(),
+            str(location or '').strip(),
+        )
     return hashlib.md5(raw.encode('utf-8')).hexdigest()
 
 
@@ -68,8 +78,8 @@ def _parse_coords(value):
     try:
         parts = str(value).split(',')
         if len(parts) == 2:
-            return float(parts[0].strip()), float(parts[1].strip())
-    except (ValueError, AttributeError):
+            return Decimal(parts[0].strip()), Decimal(parts[1].strip())
+    except (InvalidOperation, AttributeError):
         pass
     return None, None
 
