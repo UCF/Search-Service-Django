@@ -50,11 +50,23 @@ def _parse_bool(value):
 
 def _compute_import_key(name, category, location):
     """
-    Return an MD5 hex digest of the location (lat,lng) string.
-    Keying on location alone allows the Excel importer to match and
-    update records that were previously imported from the map API.
+    Return an MD5 hex digest for the imported row.
+
+    For valid coordinates, key on a normalized "lat,lng" string so the
+    Excel importer can continue to match records previously imported
+    from the map API. For missing or malformed coordinates, fall back
+    to additional stable fields so blank locations do not all collapse
+    to the same import key.
     """
-    raw = str(location or '').strip()
+    lat, lng = _parse_coords(location)
+    if lat is not None and lng is not None:
+        raw = 'coords:{0:.15g},{1:.15g}'.format(lat, lng)
+    else:
+        raw = 'fallback:{0}|{1}|{2}'.format(
+            str(name or '').strip(),
+            str(category or '').strip(),
+            str(location or '').strip(),
+        )
     return hashlib.md5(raw.encode('utf-8')).hexdigest()
 
 
