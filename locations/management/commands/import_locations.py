@@ -28,7 +28,6 @@ COLUMN_MAP = {
     'Category': 'object_type',
     'Reference': 'abbreviation',
     'Labels': 'labels',
-    'Image': 'image',
     'Video': 'video',
     'Feed URL': 'feed_url',
     'Rate': 'rate',
