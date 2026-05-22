@@ -36,8 +36,6 @@ COLUMN_MAP = {
     'Data Source': 'data_source',
 }
 
-BOOLEAN_COLUMNS = {'Visible', 'Private', 'Is Verified'}
-
 
 def _parse_bool(value):
     if isinstance(value, bool):
