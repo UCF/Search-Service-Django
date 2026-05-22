@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'units',
     'marketing',
     "podcasts",
-    'core'
+    'core',
+    'locations',
 ]
 
 MIDDLEWARE = [
