@@ -50,16 +50,11 @@ def _parse_bool(value):
 
 def _compute_import_key(name, category, location):
     """
-    Return an MD5 hex digest of the pipe-joined combination of name,
-    category, and raw location string. Used as a stable unique key
-    so that records with the same name but different positions or
-    categories are treated as distinct rows.
+    Return an MD5 hex digest of the location (lat,lng) string.
+    Keying on location alone allows the Excel importer to match and
+    update records that were previously imported from the map API.
     """
-    raw = '|'.join([
-        str(name or '').strip(),
-        str(category or '').strip(),
-        str(location or '').strip(),
-    ])
+    raw = str(location or '').strip()
     return hashlib.md5(raw.encode('utf-8')).hexdigest()
 
 
