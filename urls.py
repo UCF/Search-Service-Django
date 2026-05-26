@@ -22,6 +22,9 @@ from django.views.generic import RedirectView
 import django_saml2_auth.views
 
 urlpatterns = [
+    url(r'^api/v1/locations/',
+        include('locations.urls')
+        ),
     url(r'^api/v1/teledata/',
         include('teledata.urls')
         ),
