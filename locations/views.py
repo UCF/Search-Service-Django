@@ -11,7 +11,7 @@ class LocationListView(generics.ListCreateAPIView):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ['object_type', 'visible', 'private', 'is_verified']
+    filterset_fields = ['object_type', 'data_source', 'visible', 'private', 'is_verified']
     search_fields = ['name']
 
 
