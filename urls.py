@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import RedirectView
-import django_saml2_auth.views
+import core.saml_views
 
 urlpatterns = [
     url(r'^api/v1/locations/',
@@ -68,22 +68,31 @@ urlpatterns = [
 ]
 
 if settings.USE_SAML:
+    # Override the ACS endpoint before the package's include so RelayState is
+    # honored; must be matched ahead of django_saml2_auth's own ^sso/acs/.
     urlpatterns.insert(
         0,
+        url(r'^sso/acs/$',
+            core.saml_views.acs,
+            name='acs'
+        )
+    )
+    urlpatterns.insert(
+        1,
         url(r'^sso/',
             include('django_saml2_auth.urls')
         )
     )
     urlpatterns.insert(
-        1,
+        2,
         url(r'^manager/login/$',
-            django_saml2_auth.views.signin
+            core.saml_views.signin
         )
     )
     urlpatterns.insert(
-        2,
+        3,
         url(r'^admin/login/$',
-            django_saml2_auth.views.signin
+            core.saml_views.signin
         )
     )
 
