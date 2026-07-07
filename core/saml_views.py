@@ -12,12 +12,8 @@ the IdP echoes back verbatim, independent of any cookie. The session key is
 still populated as a same-site fallback and so the upstream ``acs`` view can
 be reused unchanged.
 """
-try:
-    import urlparse as _urlparse
-    from urllib import unquote
-except ImportError:
-    import urllib.parse as _urlparse
-    from urllib.parse import unquote
+import urllib.parse as _urlparse
+from urllib.parse import unquote
 
 from django.http import (
     HttpResponse,
@@ -58,7 +54,7 @@ def _resolve_next_url(request):
             next_url = _urlparse.parse_qs(
                 _urlparse.urlparse(unquote(next_url)).query
             )["next"][0]
-    except Exception:
+    except (KeyError, IndexError, TypeError, ValueError):
         next_url = request.GET.get("next", get_default_next_url())
 
     if not is_safe_url(next_url, None):
@@ -90,11 +86,15 @@ def signin(request):
     )
 
     if binding == BINDING_HTTP_REDIRECT:
-        redirect_url = dict(info["headers"]).get("Location")
+        redirect_url = dict(info.get("headers", [])).get("Location")
+        if not redirect_url:
+            return HttpResponseServerError(
+                "Missing redirect Location header from SAML client"
+            )
         return HttpResponseRedirect(redirect_url)
     elif binding == BINDING_HTTP_POST:
         return HttpResponse(info["data"])
-    return HttpResponseServerError("Sso binding not supported")
+    return HttpResponseServerError(f"SSO binding not supported: {binding}")
 
 
 @csrf_exempt
