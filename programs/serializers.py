@@ -89,6 +89,7 @@ class CollegeLinkSerializer(serializers.ModelSerializer):
             'name',
             'full_name',
             'short_name',
+            'slug',
             'college_url',
             'profile_url',
             'update_url'
@@ -112,6 +113,7 @@ class DepartmentLinkSerializer(serializers.ModelSerializer):
         fields = (
             'name',
             'full_name',
+            'slug',
             'department_url',
             'school',
             'update_url'

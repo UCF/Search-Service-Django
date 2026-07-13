@@ -17,6 +17,8 @@ from units.models import Department as UnitDepartment
 
 from marketing.models import Quote
 
+from core.utils.slugs import unique_slug
+
 from auditlog.registry import auditlog
 from auditlog.models import AuditlogHistoryField
 
@@ -80,6 +82,7 @@ class College(models.Model):
 
     full_name = models.CharField(max_length=255, null=False, blank=False)
     short_name = models.CharField(max_length=255, null=True, blank=False)
+    slug = models.SlugField(max_length=255, null=True, blank=True, unique=True)
     college_url = models.URLField(null=True, blank=True)
     profile_url = models.URLField(null=True, blank=True)
     unit = models.OneToOneField(Unit, related_name='college', blank=True, null=True, on_delete=models.SET_NULL)
@@ -97,12 +100,21 @@ class College(models.Model):
             return self.unit_college.name
         return self.full_name
 
+    def save(self, *args, **kwargs):
+        # Autogenerate a WordPress-style slug from the college name the
+        # first time the slug is empty. Existing slugs are left untouched
+        # so URLs stay stable and manual overrides are preserved.
+        if not self.slug:
+            self.slug = unique_slug(type(self), self.name, pk=self.pk)
+        super().save(*args, **kwargs)
+
 
 class Department(models.Model):
     """
     A department, including name and url
     """
     full_name = models.CharField(max_length=255, null=False, blank=False)
+    slug = models.SlugField(max_length=255, null=True, blank=True, unique=True)
     department_url = models.CharField(max_length=255, null=True, blank=True)
     school = models.BooleanField(default=False, null=False, blank=False)
     unit = models.ForeignKey(Unit, related_name='program_departments', blank=True, null=True, on_delete=models.SET_NULL)
@@ -119,6 +131,14 @@ class Department(models.Model):
         if self.unit_department:
             return self.unit_department.name
         return self.full_name
+
+    def save(self, *args, **kwargs):
+        # Autogenerate a WordPress-style slug from the department name the
+        # first time the slug is empty. Existing slugs are left untouched
+        # so URLs stay stable and manual overrides are preserved.
+        if not self.slug:
+            self.slug = unique_slug(type(self), self.name, pk=self.pk)
+        super().save(*args, **kwargs)
 
 
 class CIPVersionManager(models.Manager):
