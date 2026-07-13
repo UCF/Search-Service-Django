@@ -9,6 +9,16 @@ class ProgramFilter(django_filters.FilterSet):
     subplan_code__isnull = filters.BooleanFilter(field_name='subplan_code', lookup_expr='isnull')
     level = filters.ModelMultipleChoiceFilter(queryset=Level.objects.all())
     career = filters.ModelMultipleChoiceFilter(queryset=Career.objects.all())
+    college_slug = filters.ModelMultipleChoiceFilter(
+        field_name='colleges__slug',
+        to_field_name='slug',
+        queryset=College.objects.all()
+    )
+    department_slug = filters.ModelMultipleChoiceFilter(
+        field_name='departments__slug',
+        to_field_name='slug',
+        queryset=Department.objects.all()
+    )
 
     class Meta:
         model = Program
@@ -21,7 +31,9 @@ class ProgramFilter(django_filters.FilterSet):
             'subplan_code__isnull',
             'online',
             'colleges',
+            'college_slug',
             'departments',
+            'department_slug',
             'level',
             'career',
             'degree',
@@ -36,7 +48,8 @@ class CollegeFilter(django_filters.FilterSet):
         model = College
         fields = (
             'search',
-            'short_name'
+            'short_name',
+            'slug'
         )
 
 
@@ -47,7 +60,8 @@ class DepartmentFilter(django_filters.FilterSet):
         model = Department
         fields = (
             'search',
-            'school'
+            'school',
+            'slug'
         )
 
 class TuitionOverrideFilter(django_filters.FilterSet):
