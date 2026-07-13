@@ -38,18 +38,27 @@ def _department_name(department):
     return department.full_name
 
 
-def _next_unique_slug(base, used):
+def _next_unique_slug(base, used, max_length=255):
     """
     Returns ``base`` (or ``base-2``, ``base-3``, ...) so it doesn't collide
     with any slug already in ``used``, matching wp_unique_post_slug().
+
+    ``max_length`` matches the slug field's max_length to avoid DB errors.
     """
     if not base:
         return base
 
+    if max_length:
+        base = base[:max_length].strip('-')
+
     slug = base
     suffix = 2
     while slug in used:
-        slug = '{0}-{1}'.format(base, suffix)
+        suffix_str = '-{0}'.format(suffix)
+        head = base
+        if max_length and len(head) + len(suffix_str) > max_length:
+            head = head[:max_length - len(suffix_str)].rstrip('-')
+        slug = '{0}{1}'.format(head, suffix_str)
         suffix += 1
 
     used.add(slug)

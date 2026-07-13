@@ -105,7 +105,9 @@ class College(models.Model):
         # first time the slug is empty. Existing slugs are left untouched
         # so URLs stay stable and manual overrides are preserved.
         if not self.slug:
-            self.slug = unique_slug(type(self), self.name, pk=self.pk)
+            generated = unique_slug(type(self), self.name, pk=self.pk)
+            if generated:
+                self.slug = generated
         super().save(*args, **kwargs)
 
 
@@ -137,7 +139,9 @@ class Department(models.Model):
         # first time the slug is empty. Existing slugs are left untouched
         # so URLs stay stable and manual overrides are preserved.
         if not self.slug:
-            self.slug = unique_slug(type(self), self.name, pk=self.pk)
+            generated = unique_slug(type(self), self.name, pk=self.pk)
+            if generated:
+                self.slug = generated
         super().save(*args, **kwargs)
 
 
