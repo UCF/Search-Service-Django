@@ -32,7 +32,7 @@ class DegreeAdmin(admin.ModelAdmin):
 @admin.register(College)
 class CollegeAdmin(admin.ModelAdmin):
     exclude = ('unit',)
-    readonly_fields = ('unit_link', 'slug')
+    readonly_fields = ('unit_link',)
 
     def unit_link(self, obj):
         return mark_safe(
@@ -52,7 +52,7 @@ class CollegeAdmin(admin.ModelAdmin):
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
     exclude = ('unit',)
-    readonly_fields = ('unit_link', 'slug')
+    readonly_fields = ('unit_link',)
 
     def unit_link(self, obj):
         return mark_safe(
