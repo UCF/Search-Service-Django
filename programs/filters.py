@@ -7,6 +7,8 @@ from programs.models import *
 class ProgramFilter(django_filters.FilterSet):
     search = filters.CharFilter(field_name='name', lookup_expr='icontains')
     subplan_code__isnull = filters.BooleanFilter(field_name='subplan_code', lookup_expr='isnull')
+    level = filters.ModelMultipleChoiceFilter(queryset=Level.objects.all())
+    career = filters.ModelMultipleChoiceFilter(queryset=Career.objects.all())
 
     class Meta:
         model = Program
