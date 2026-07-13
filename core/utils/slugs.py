@@ -59,6 +59,10 @@ def unique_slug(model_cls, value, slug_field='slug', pk=None):
     if not base:
         return base
 
+    max_length = getattr(model_cls._meta.get_field(slug_field), 'max_length', None)
+    if max_length:
+        base = base[:max_length].strip('-')
+
     queryset = model_cls._default_manager.all()
     if pk is not None:
         queryset = queryset.exclude(pk=pk)
@@ -66,7 +70,12 @@ def unique_slug(model_cls, value, slug_field='slug', pk=None):
     slug = base
     suffix = 2
     while queryset.filter(**{slug_field: slug}).exists():
-        slug = '{0}-{1}'.format(base, suffix)
+        suffix_str = f"-{suffix}"
+        if max_length:
+            trimmed = base[: max_length - len(suffix_str)].rstrip('-')
+            slug = f"{trimmed}{suffix_str}"
+        else:
+            slug = f"{base}{suffix_str}"
         suffix += 1
 
     return slug
