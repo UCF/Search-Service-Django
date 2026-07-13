@@ -102,10 +102,13 @@ class College(models.Model):
 
     def save(self, *args, **kwargs):
         # Autogenerate a WordPress-style slug from the college name the
-        # first time the slug is empty. Existing slugs are left untouched
-        # so URLs stay stable and manual overrides are preserved.
+        # first time the slug is empty. The "College of" phrase is dropped
+        # so slugs match production (e.g. "College of Sciences" -> "sciences").
+        # Existing slugs are left untouched so URLs stay stable and manual
+        # overrides are preserved.
         if not self.slug:
-            generated = unique_slug(type(self), self.name, pk=self.pk)
+            name = re.sub(r'\bcollege of\b', ' ', self.name, flags=re.IGNORECASE)
+            generated = unique_slug(type(self), name, pk=self.pk)
             if generated:
                 self.slug = generated
         super().save(*args, **kwargs)
