@@ -4,6 +4,8 @@ Data migration that backfills WordPress-style slugs for all existing
 College and Department records that don't have one yet.
 """
 
+import re
+
 from django.db import migrations, models
 
 from core.utils.slugs import wordpress_slugify
@@ -12,16 +14,21 @@ from core.utils.slugs import wordpress_slugify
 def _college_name(college):
     """
     Replicates programs.College.name for the historical model
-    (historical models don't carry model properties).
+    (historical models don't carry model properties), with the
+    "College of" phrase dropped so slugs match production
+    (e.g. "College of Sciences" -> "sciences").
     """
     unit_college = college.unit_college
     if unit_college:
-        return (
+        name = (
             unit_college.display_name
             or unit_college.sanitized_name
             or unit_college.ext_college_name
         )
-    return college.full_name
+    else:
+        name = college.full_name
+
+    return re.sub(r'\bcollege of\b', ' ', name, flags=re.IGNORECASE)
 
 
 def _department_name(department):
