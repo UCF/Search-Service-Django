@@ -16,7 +16,7 @@ class Command(BaseCommand):
     career_mappings = {
         "UGRD": "Undergraduate",
         "GRAD": "Graduate",
-        "PROF": "Professional"
+        "MED": "Professional"
     }
     mappings = {}
     use_internal_mapping = False
@@ -303,8 +303,12 @@ class Command(BaseCommand):
 
         # Handle Career
         career = self.career_mappings[data['Career']]
+        # Force the new MED mapping to stay as PROF until we understand
+        # what other downstream effects this will have.
+        abbr = data['Career'] if not career == 'Professional' else 'PROF'
+
         career, created = Career.objects.get_or_create(
-            name=career, abbr=data['Career']
+            name=career, abbr=abbr
         )
 
         program.career = career
