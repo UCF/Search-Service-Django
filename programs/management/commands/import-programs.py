@@ -16,7 +16,7 @@ class Command(BaseCommand):
     career_mappings = {
         "UGRD": "Undergraduate",
         "GRAD": "Graduate",
-        "PROF": "Professional"
+        "MED": "Medicine"
     }
     mappings = {}
     use_internal_mapping = False
