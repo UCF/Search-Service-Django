@@ -582,7 +582,7 @@ class Command(BaseCommand):
         Performs a general set of string replacements
         against a given input string.
         """
-        input = input.replace('College of Business Administration', 'College of Business')
+        input = input.replace('College of Business Administration', 'Miller College of Business')
         input = input.replace('&', 'and')
         return input
 
