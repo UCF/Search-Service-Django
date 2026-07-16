@@ -1602,7 +1602,7 @@ wheels = [
 
 [[package]]
 name = "ucf-search-service-django"
-version = "3.9.2"
+version = "3.9.3"
 source = { virtual = "." }
 dependencies = [
     { name = "beautifulsoup4" },
