@@ -2,6 +2,8 @@
 # Appended to a copy of settings_local.tmpl.py by the test workflow
 # (.github/workflows/tests.yml) to point Django at the job's database.
 
+import os
+
 DATABASES['default'] = {
     'ENGINE': os.environ['DB_ENGINE'],
     'NAME': 'search',

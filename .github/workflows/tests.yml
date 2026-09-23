@@ -61,6 +61,8 @@ jobs:
       - name: Install system packages
         run: sudo apt-get update && sudo apt-get install -y libmysqlclient-dev pkg-config
 
+      # uv takes the Python version from .python-version (3.8, matching
+      # production), so that file is the one place to change it.
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
