@@ -58,14 +58,19 @@ sudo apt-get install -y libxml2-dev libxslt1-dev
 sudo yum install libxml2 libxml2-devel libxml2-python libxslt libxslt-devel
 ```
 
-## Managing Pip Packages
+## Managing Packages
 
-The `requirements.txt` and `dev-requirements.txt` files in this project are generated using the `pip-tools` package. All package information is tracked within the `pyproject.toml` file and then dependencies are resolved using the following commands:
+Dependencies are managed with [uv](https://docs.astral.sh/uv/). All package information is tracked within the `pyproject.toml` file, and the resolved versions are locked in `uv.lock`. The `.python-version` file pins the Python version to match production.
+
+To set up a local environment from the lock file:
+`uv sync` (add `--extra dev` for the dev packages)
+
+To add or upgrade a package, edit `pyproject.toml` or use `uv add`/`uv lock --upgrade-package <name>`, then regenerate the requirements files the servers install from:
 
 **Production requirements.txt**
-`pip-compile -o requirements.txt pyproject.toml`
+`uv export --frozen --no-hashes --no-emit-project -o requirements.txt`
 
 **Dev requirements.txt**
-`pip-compile --extra=dev --output-file=dev-requirements.txt pyproject.toml`
+`uv export --frozen --no-hashes --no-emit-project --extra dev -o dev-requirements.txt`
 
-If you do not already have pip-tools installed, you can install them with the following command: `pip install pip-tools`.
+Commit `pyproject.toml`, `uv.lock`, and both requirements files together.
