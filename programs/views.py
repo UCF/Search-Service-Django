@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from django.db.models import Avg, Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework.reverse import reverse
