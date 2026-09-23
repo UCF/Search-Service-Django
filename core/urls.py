@@ -34,18 +34,8 @@ urlpatterns = [
         ProgramEditView.as_view(),
         name='dashboard.programs.edit'
     ),
-    url(
-        r'^manager/search/$',
-        SearchView.as_view(template_name='search.html'),
-        name='search'
-    ),
     url(r'^api/v1/positions/$',
         OpenJobListView.as_view(),
         name='api.positions.list'
-    ),
-    url(
-        r'^settings/$',
-        SettingsAPIView.as_view(),
-        name='settings'
     )
 ]

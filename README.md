@@ -7,7 +7,6 @@ A Django based application that provides a REST API, as well as manual and autom
 - pip
 - node@14
 - gulp-cli
-- angular-cli
 - Fontawesome 6+ pro
 
 ## Installation and Setup
@@ -30,14 +29,6 @@ A Django based application that provides a REST API, as well as manual and autom
 13. Optionally, load fixtures: `python manage.py loaddata fixture-name`. Fixtures, if available, are included per-app in a `fixtures` directory.
     - Note: if loading in fixtures for Programs, make sure the `colleges` fixture is loaded _before_ loading the `collegeoverrides` fixture.
 14. Run the local server to debug and test: `python manage.py runserver`
-
-## Archimedes Setup
-
-NOTE: to build/test Archimedes, you must set `LOCAL = True` in your settings_local.py.
-
-1. Run `npm install` within the `archimedes` directory.
-2. Run `ng build --watch` to view app during development.
-3. Run `ng build -c production` to compile angular js for production environment.
 
 ## DEV Package Installation
 
