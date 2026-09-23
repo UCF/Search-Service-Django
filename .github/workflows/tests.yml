@@ -1,0 +1,77 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python 3.8 / ${{ matrix.database.name }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        database:
+          # Production today
+          - name: MySQL 5.7
+            image: mysql:5.7
+            engine: django.db.backends.mysql
+            user: root
+            port: 3306
+            health: mysqladmin ping -h 127.0.0.1 -pci
+          # Production after the move to Azure
+          - name: PostgreSQL 17
+            image: postgres:17
+            engine: django.db.backends.postgresql
+            user: postgres
+            port: 5432
+            health: pg_isready -U postgres
+
+    services:
+      db:
+        image: ${{ matrix.database.image }}
+        env:
+          MYSQL_ROOT_PASSWORD: ci
+          MYSQL_DATABASE: search
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: search
+        ports:
+          - ${{ matrix.database.port }}:${{ matrix.database.port }}
+        options: >-
+          --health-cmd "${{ matrix.database.health }}"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DB_ENGINE: ${{ matrix.database.engine }}
+      DB_USER: ${{ matrix.database.user }}
+      DB_PORT: ${{ matrix.database.port }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # mysqlclient compiles against the MySQL client libraries
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install -y libmysqlclient-dev pkg-config
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --no-install-project --extra postgres
+
+      - name: Configure settings
+        run: |
+          cp settings_local.tmpl.py settings_local.py
+          cat .github/ci-settings.py >> settings_local.py
+
+      - name: Run tests
+        run: uv run --no-sync python manage.py test
