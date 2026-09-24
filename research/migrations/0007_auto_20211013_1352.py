@@ -15,7 +15,14 @@ class Migration(migrations.Migration):
             name='publish_date',
             field=models.DateField(blank=True, null=True),
         ),
-        migrations.AlterField(
+        # Dropped and re-added rather than altered in place: PostgreSQL
+        # can't cast a date column to an integer. Production MySQL
+        # applied the original AlterField, and the end state is the same.
+        migrations.RemoveField(
+            model_name='bookchapter',
+            name='publish_year',
+        ),
+        migrations.AddField(
             model_name='bookchapter',
             name='publish_year',
             field=models.IntegerField(blank=True, null=True),

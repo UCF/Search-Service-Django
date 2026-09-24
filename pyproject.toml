@@ -2,7 +2,7 @@
 [project]
 name = "UCF_Search_Service_Django"
 version = "3.10.1"
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 dependencies = [
     "beautifulsoup4",
     "boto3",
@@ -42,4 +42,7 @@ dev = [
     "python-Levenshtein==0.12.2",
     "spacy",
     "Werkzeug"
+]
+postgres = [
+    "psycopg2-binary>=2.9.10",
 ]
