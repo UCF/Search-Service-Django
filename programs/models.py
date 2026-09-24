@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 from django.db import models
-from django_mysql.models import ListTextField
 import calendar
 import re
 
@@ -539,12 +538,7 @@ class Program(models.Model):
         blank=True
     )
     application_deadlines = models.ManyToManyField(ApplicationDeadline, blank=True, related_name='programs')
-    application_requirements = ListTextField(
-        base_field=models.CharField(max_length=255),
-        size=20,  # max number of list items to store
-        null=True,
-        blank=True
-    )
+    application_requirements = models.JSONField(null=True, blank=True)
     active = models.BooleanField(default=True)
     active_comments = models.CharField(max_length=500, null=True, blank=True)
     active_comments_author = models.ForeignKey(

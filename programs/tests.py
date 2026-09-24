@@ -1,4 +1,8 @@
 from django.conf import settings
+from django.core.management import call_command
+from django.db import connection
+from django.db.migrations.executor import MigrationExecutor
+from django.test import TransactionTestCase
 from django.urls import reverse
 
 from core.testing import SmokeTestCase
@@ -36,6 +40,7 @@ class ProgramsSmokeTests(SmokeTestCase):
             level=Level.objects.create(name='Bachelors'),
             career=Career.objects.create(name='Undergraduate'),
             degree=Degree.objects.create(name='BS'),
+            application_requirements=['Transcripts', 'Letters of recommendation'],
         )
         cls.program.colleges.add(college)
         cls.program.departments.add(department)
@@ -106,5 +111,64 @@ class ProgramsSmokeTests(SmokeTestCase):
         self.assertEqual(found['count'], 1)
         self.assertEqual(missing['count'], 0)
 
+    def test_application_requirements_are_a_list(self):
+        url = reverse('api.programs.deadlines', kwargs={'id': self.program.pk})
+
+        response = self.client.get(url).json()
+
+        self.assertEqual(
+            response['application_requirements'],
+            ['Transcripts', 'Letters of recommendation'],
+        )
+
     def test_admin_pages(self):
         self.assertAdminPagesOK('programs')
+
+
+class ApplicationRequirementsMigrationTests(TransactionTestCase):
+    """
+    Migration 0068 moves application_requirements from django-mysql's
+    comma-separated text to JSON. Production has real values, so this
+    saves some through the old field and checks they come through.
+    """
+    before = [('programs', '0067_generate_college_department_slugs')]
+    after = [('programs', '0068_application_requirements_json')]
+
+    def migrate(self, targets):
+        executor = MigrationExecutor(connection)
+        executor.migrate(targets)
+        executor.loader.build_graph()
+        return executor.loader.project_state(targets).apps
+
+    def tearDown(self):
+        call_command('migrate', verbosity=0)
+
+    def test_requirements_survive_the_move_to_json(self):
+        old_apps = self.migrate(self.before)
+        Program = old_apps.get_model('programs', 'Program')
+        program_fields = {
+            'level': old_apps.get_model('programs', 'Level').objects.create(name='Bachelors'),
+            'career': old_apps.get_model('programs', 'Career').objects.create(name='Undergraduate'),
+            'degree': old_apps.get_model('programs', 'Degree').objects.create(name='BS'),
+        }
+        with_list = Program.objects.create(
+            name='Biology', plan_code='BIOL-BS',
+            application_requirements=['Transcripts', 'Letters of recommendation'],
+            **program_fields
+        )
+        with_empty_list = Program.objects.create(
+            name='Chemistry', plan_code='CHEM-BS', application_requirements=[], **program_fields
+        )
+        with_none = Program.objects.create(
+            name='Physics', plan_code='PHYS-BS', application_requirements=None, **program_fields
+        )
+
+        new_apps = self.migrate(self.after)
+        Program = new_apps.get_model('programs', 'Program')
+
+        self.assertEqual(
+            Program.objects.get(pk=with_list.pk).application_requirements,
+            ['Transcripts', 'Letters of recommendation'],
+        )
+        self.assertEqual(Program.objects.get(pk=with_empty_list.pk).application_requirements, [])
+        self.assertIsNone(Program.objects.get(pk=with_none.pk).application_requirements)
