@@ -65,3 +65,7 @@ To add or upgrade a package, edit `pyproject.toml` or use `uv add`/`uv lock --up
 `uv export --frozen --no-hashes --no-emit-project --extra dev -o dev-requirements.txt`
 
 Commit `pyproject.toml`, `uv.lock`, and both requirements files together.
+
+## Running Tests
+
+Run the test suite with `python manage.py test`.

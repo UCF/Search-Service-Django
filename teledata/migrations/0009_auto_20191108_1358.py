@@ -4,10 +4,12 @@
 
 from django.db import migrations, models
 
-import teledata
 
 def forward_migration(apps, schema_editor):
-    teledata.models.CombinedTeledata.objects.update_data()
+    # This used to rebuild CombinedTeledata from the live teledata models.
+    # Those models have been removed and 0017 drops these tables, so there
+    # is nothing to rebuild; existing databases applied this long ago.
+    pass
 
 def reverse_migration(apps, schema_editor):
     pass
