@@ -85,7 +85,7 @@ Imports URLs for ProgramProfiles from a WordPress blog
         self.remove_stale = options['remove_stale']
 
         try:
-            self.profile_type = ProgramProfileType.objects.get(name=profile_type)
+            self.profile_type = ProgramProfileType.objects.get(name__iexact=profile_type)
         except:
             raise CommandError("\"{0}\" is not a valid ProgramProfileType.".format(profile_type))
 
@@ -136,7 +136,7 @@ Imports URLs for ProgramProfiles from a WordPress blog
 
             try:
                 if plan_code:
-                    prg_obj = Program.objects.get(plan_code=plan_code, subplan_code=subplan_code)
+                    prg_obj = Program.objects.get(plan_code__iexact=plan_code, subplan_code__iexact=subplan_code)
                     self.degrees_matched += 1
                 else:
                     self.degrees_skipped += 1

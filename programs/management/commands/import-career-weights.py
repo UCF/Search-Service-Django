@@ -105,13 +105,13 @@ class Command(BaseCommand):
             if not self.using_codefields:
                 program = Program.objects.get(id=program_id)
             else:
-                program = Program.objects.get(plan_code=plan_code, subplan_code=subplan_code)
+                program = Program.objects.get(plan_code__iexact=plan_code, subplan_code__iexact=subplan_code)
                 
         except Program.DoesNotExist:
             self.stderr.write(self.style.ERROR(f"Program with id {program_id} does not exist."))
 
         try:
-            job = JobPosition.objects.get(name=career_name)
+            job = JobPosition.objects.get(name__iexact=career_name)
         except JobPosition.DoesNotExist:
             if self.using_codefields:
                 job = JobPosition(name=career_name)

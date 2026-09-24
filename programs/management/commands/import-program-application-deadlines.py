@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from programs.models import *
+from core.utils.filter_utils import any_iexact
 
 from dateutil.parser import *
 import decimal
@@ -58,7 +59,7 @@ class Command(BaseCommand):
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
         # Fetch all programs, by career:
-        self.programs = Program.objects.filter(career__name=self.career)
+        self.programs = Program.objects.filter(career__name__iexact=self.career)
         self.programs_count = len(self.programs)
 
         # Fetch all application deadline data:
@@ -144,7 +145,7 @@ class Command(BaseCommand):
             ))
 
             # Delete all ApplicationDeadlines by self.career
-            ApplicationDeadline.objects.filter(career__name=self.career).delete()
+            ApplicationDeadline.objects.filter(career__name__iexact=self.career).delete()
 
             # Clear application_requirements on all programs in self.programs:
             if self.programs_count:
@@ -177,13 +178,13 @@ class Command(BaseCommand):
             try:
                 # Fetch career, levels:
                 career = Career.objects.get(
-                    name=deadline_data['career']
+                    name__iexact=deadline_data['career']
                 )
 
                 levels = []
                 if deadline_data['level']:
                     levels = Level.objects.filter(
-                        name__in=deadline_data['level']
+                        any_iexact('name', deadline_data['level'])
                     )
             except Career.DoesNotExist:
                 logging.warning(
@@ -212,10 +213,12 @@ class Command(BaseCommand):
             else:
                 # Fetch term and deadline type:
                 term, term_created = AdmissionTerm.objects.get_or_create(
-                    name=deadline_data['admission_term']
+                    name__iexact=deadline_data['admission_term'],
+                    defaults={'name': deadline_data['admission_term']}
                 )
                 deadline_type, deadline_type_created = AdmissionDeadlineType.objects.get_or_create(
-                    name=deadline_data['deadline_type']
+                    name__iexact=deadline_data['deadline_type'],
+                    defaults={'name': deadline_data['deadline_type']}
                 )
 
                 try:
@@ -261,21 +264,26 @@ class Command(BaseCommand):
         objects/field values from `self.deadline_data` for
         Graduate Programs.
         """
-        career = Career.objects.get(name=self.career)
+        career = Career.objects.get(name__iexact=self.career)
         term_spring, term_spring_created = AdmissionTerm.objects.get_or_create(
-            name='Spring'
+            name__iexact='Spring',
+            defaults={'name': 'Spring'}
         )
         term_summer, term_summer_created = AdmissionTerm.objects.get_or_create(
-            name='Summer'
+            name__iexact='Summer',
+            defaults={'name': 'Summer'}
         )
         term_fall, term_fall_created = AdmissionTerm.objects.get_or_create(
-            name='Fall'
+            name__iexact='Fall',
+            defaults={'name': 'Fall'}
         )
         type_domestic, type_domestic_created = AdmissionDeadlineType.objects.get_or_create(
-            name='Domestic'
+            name__iexact='Domestic',
+            defaults={'name': 'Domestic'}
         )
         type_international, type_international_created = AdmissionDeadlineType.objects.get_or_create(
-            name='International'
+            name__iexact='International',
+            defaults={'name': 'International'}
         )
 
         for row in self.deadline_data:
@@ -289,8 +297,8 @@ class Command(BaseCommand):
             # is valid before proceeding any further:
             try:
                 program = Program.objects.get(
-                    plan_code=plan_code,
-                    subplan_code=subplan_code
+                    plan_code__iexact=plan_code,
+                    subplan_code__iexact=subplan_code
                 )
             except Program.DoesNotExist:
                 logging.warning(
@@ -393,7 +401,7 @@ class Command(BaseCommand):
         Deletes any deadlines (by career) not assigned to at least one program.
         """
         deadlines = ApplicationDeadline.objects.filter(
-            career__name=self.career,
+            career__name__iexact=self.career,
             programs=None
         )
         self.deadlines_deleted_count = deadlines.count()

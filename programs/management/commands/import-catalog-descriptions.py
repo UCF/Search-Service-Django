@@ -628,7 +628,8 @@ Finished in {datetime.now() - self.start_time}
         Ensures our description types are created
         """
         self.description_type_desc, created_desc = ProgramDescriptionType.objects.get_or_create(
-            name='Catalog Description'
+            name__iexact='Catalog Description',
+            defaults={'name': 'Catalog Description'}
         )
 
         if created_desc:
@@ -639,7 +640,8 @@ Finished in {datetime.now() - self.start_time}
             )
 
         self.description_type_desc_full, created_desc_full = ProgramDescriptionType.objects.get_or_create(
-            name='Full Catalog Description'
+            name__iexact='Full Catalog Description',
+            defaults={'name': 'Full Catalog Description'}
         )
 
         if created_desc_full:
@@ -650,7 +652,8 @@ Finished in {datetime.now() - self.start_time}
             )
 
         self.description_type_source_desc, created_source_desc = ProgramDescriptionType.objects.get_or_create(
-            name='Source Catalog Description'
+            name__iexact='Source Catalog Description',
+            defaults={'name': 'Source Catalog Description'}
         )
 
         if created_source_desc:
@@ -661,7 +664,8 @@ Finished in {datetime.now() - self.start_time}
             )
 
         self.description_type_source_curriculum, created_source_curriculum = ProgramDescriptionType.objects.get_or_create(
-            name='Source Catalog Curriculum'
+            name__iexact='Source Catalog Curriculum',
+            defaults={'name': 'Source Catalog Curriculum'}
         )
 
         if created_source_curriculum:

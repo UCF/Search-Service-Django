@@ -95,7 +95,7 @@ class Command(BaseCommand):
 
         # Find a mapping if there is one
         try:
-            mapping = self.mappings.get(tuition_code=fee['Program'])
+            mapping = self.mappings.get(tuition_code__iexact=fee['Program'])
         except:
             mapping = None
 
@@ -115,7 +115,7 @@ class Command(BaseCommand):
         for program in programs:
             # Check for skip override
             try:
-                mapping = self.mappings.get(plan_code=program.plan_code, subplan_code=program.subplan_code)
+                mapping = self.mappings.get(plan_code__iexact=program.plan_code, subplan_code__iexact=program.subplan_code)
             except:
                 mapping = None
 

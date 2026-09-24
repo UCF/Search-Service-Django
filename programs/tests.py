@@ -1,8 +1,11 @@
+from io import StringIO
+from unittest import mock
+
 from django.conf import settings
 from django.core.management import call_command
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
-from django.test import TransactionTestCase
+from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 
 from core.testing import SmokeTestCase
@@ -172,3 +175,45 @@ class ApplicationRequirementsMigrationTests(TransactionTestCase):
         )
         self.assertEqual(Program.objects.get(pk=with_empty_list.pk).application_requirements, [])
         self.assertIsNone(Program.objects.get(pk=with_none.pk).application_requirements)
+
+
+class CaseInsensitiveLookupTests(TestCase):
+    """
+    MySQL compares text without regard to case and PostgreSQL doesn't.
+    The imports and models match codes and names case-insensitively so
+    they find the same rows on both.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.program = Program.objects.create(
+            name='Biology',
+            plan_code='BIOL-BS',
+            level=Level.objects.create(name='Bachelors'),
+            career=Career.objects.create(name='Undergraduate'),
+            degree=Degree.objects.create(name='BS'),
+        )
+        cls.profile_type = ProgramProfileType.objects.create(name='Main Site', root_url='https://www.ucf.edu/')
+
+    def test_profile_import_matches_regardless_of_case(self):
+        response = mock.Mock(
+            headers={'x-wp-totalpages': '1', 'x-wp-total': '1'},
+            json=mock.Mock(return_value=[
+                {'degree_meta': {'degree_code': 'biol-bs'}, 'link': 'https://www.ucf.edu/degree/biology-bs/'},
+            ]),
+        )
+        with mock.patch('requests.get', return_value=response):
+            call_command(
+                'import-profiles',
+                'https://www.ucf.edu/wp-json/wp/v2/degree',
+                'main site',
+                stdout=StringIO(),
+                stderr=StringIO(),
+            )
+
+        profile = ProgramProfile.objects.get(program=self.program)
+        self.assertEqual(profile.profile_type, self.profile_type)
+
+    def test_tuition_override_finds_program_regardless_of_case(self):
+        override = TuitionOverride.objects.create(tuition_code='UGRD', plan_code='biol-bs')
+
+        self.assertEqual(override.program, self.program)
