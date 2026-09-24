@@ -14,8 +14,6 @@ from research.models import Researcher
 from research.models import ResearchWork
 from research.models import ResearchTerm
 
-from teledata.models import Staff
-
 import settings
 import requests
 from dateutil import parser
@@ -160,11 +158,6 @@ class Command(BaseCommand):
                 self.skipped_no_match += 1
                 continue
 
-            try:
-                staff_record = Staff.objects.get(employee_id=employee_id)
-            except:
-                staff_record = None
-
             orcid = person['ORCID'] if person['ORCID'] != '' else None
             aa_person_id = person['PersonId']
 
@@ -174,7 +167,6 @@ class Command(BaseCommand):
                 researcher = Researcher.objects.get(aa_person_id=aa_person_id)
                 researcher.orcid_id = orcid
                 researcher.employee_record = employee_record
-                researcher.teledata_record = staff_record
                 researcher.save()
 
                 self.updated += 1
@@ -182,8 +174,7 @@ class Command(BaseCommand):
                 researcher = Researcher(
                     aa_person_id=aa_person_id,
                     orcid_id=orcid,
-                    employee_record=employee_record,
-                    teledata_record=staff_record
+                    employee_record=employee_record
                 )
                 researcher.save()
                 self.created += 1
@@ -196,8 +187,7 @@ class Command(BaseCommand):
                 researcher = Researcher(
                     aa_person_id=aa_person_id,
                     orcid_id=orcid,
-                    employee_record=employee_record,
-                    teledata_record=staff_record
+                    employee_record=employee_record
                 )
                 researcher.save()
                 self.created += 1

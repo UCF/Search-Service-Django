@@ -1,17 +1,10 @@
-from urllib.parse import urlparse
-
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Count
-from django.db.models import Q
-from django.db.models import Value as V
-from django.db.models.functions import StrIndex
 from progress.bar import ChargingBar
 
 from units.models import *
-from teledata.models import Organization as TeledataOrg
 from programs.models import College
-from teledata.models import Department as TeledataDept
 from programs.models import Department as ProgramDept
 
 from units.utils import Utilities
@@ -24,9 +17,7 @@ class Command(BaseCommand):
     basic_replacements = {}
     lowercase_replacements = []
     uppercase_replacements = []
-    teledata_orgs_processed = None
     colleges_processed = None
-    teledata_depts_processed = None
     program_depts_processed = None
     data_skipped_count = 0
     consolidatable_unit_names = []
@@ -48,32 +39,23 @@ class Command(BaseCommand):
 
         # Perform mapping.
         # NOTE: order is important here! Particularly,
-        # in order for teledata and Program Departments to
-        # map properly, Colleges must be mapped first.
+        # in order for Program Departments to map properly,
+        # Colleges must be mapped first.
         self.full_name_replacements = settings.UNIT_NAME_FULL_REPLACEMENTS
         self.basic_replacements = settings.UNIT_NAME_PARTIAL_REPLACEMENTS
         self.lowercase_replacements = settings.UNIT_NAME_LOWERCASE_REPLACEMENTS
         self.uppercase_replacements = settings.UNIT_NAME_UPPERCASE_REPLACEMENTS
 
         self.colleges_processed = College.objects.all()
-        # Teledata Organizations that look like they could align to a College
-        # should be prioritized for processing, hence the ordering here:
-        self.teledata_orgs_processed = TeledataOrg.objects.annotate(
-            college_index=StrIndex('name', V('college'))).order_by('-college_index')
         self.program_depts_processed = ProgramDept.objects.all()
-        self.teledata_depts_processed = TeledataDept.objects.all()
 
         self.mapping_progress_bar = ChargingBar(
             'Mapping data...',
             max=self.colleges_processed.count() +
-            self.teledata_orgs_processed.count() +
-            self.program_depts_processed.count() +
-            self.teledata_depts_processed.count()
+            self.program_depts_processed.count()
         )
         self.map_orgs_colleges()
-        self.map_orgs_teledata()
         self.map_depts_programs()
-        self.map_depts_teledata()
 
         # Consolidate duplicate Units as best as we can.
         self.consolidatable_unit_names = Unit.objects.values('name').annotate(name_count=Count('pk')).filter(name_count=2)
@@ -218,26 +200,6 @@ class Command(BaseCommand):
             college.unit = unit
             college.save()
 
-    def map_orgs_teledata(self):
-        """
-        Gets or creates a Unit from corresponding
-        teledata, and maps the teledata to the Unit.
-        """
-        for teledata_org in self.teledata_orgs_processed:
-            self.mapping_progress_bar.next()
-
-            # Try to extract a parent College's Unit from teledata meta;
-            # use it as the parent Unit if available
-            org_college_unit = self.get_college_unit_by_teledata_org(teledata_org)
-
-            unit, parent_unit = self.get_unit_by_name(teledata_org.name, org_college_unit)
-            teledata_org.unit = unit
-            teledata_org.save()
-
-            if unit is not None:
-                unit.parent_unit = parent_unit
-                unit.save()
-
     def map_depts_programs(self):
         """
         Gets or creates a Unit from corresponding
@@ -261,72 +223,6 @@ class Command(BaseCommand):
             if unit is not None:
                 unit.parent_unit = parent_unit
                 unit.save()
-
-    def map_depts_teledata(self):
-        """
-        Gets or creates a Unit from corresponding Department teledata,
-        and maps the Department teledata to the Unit.
-        """
-        for teledata_dept in self.teledata_depts_processed:
-            self.mapping_progress_bar.next()
-
-            teledata_org_unit = teledata_dept.org.unit
-            if teledata_dept.name == 'Main' or teledata_dept.name == 'Main Office':
-                # A lot of redundant teledata gets saved in Departments
-                # named "Main" or "Main Office". Consolidate them into their
-                # parent early:
-                unit = teledata_org_unit
-                parent_unit = teledata_org_unit.parent_unit
-            else:
-                unit, parent_unit = self.get_unit_by_name(teledata_dept.name, teledata_org_unit)
-            teledata_dept.unit = unit
-            teledata_dept.save()
-
-            if unit is not None:
-                unit.parent_unit = parent_unit
-                unit.save()
-
-    def get_college_unit_by_teledata_org(self, teledata_org):
-        """
-        Sniffs through a Teledata Organization's metadata to determine
-        what College Unit it should belong to.
-        """
-        college_unit = None
-
-        secondary_comment = teledata_org.secondary_comment
-        url = teledata_org.url
-        college_units = Unit.objects.filter(college__isnull=False)
-
-        if secondary_comment:
-            # If there's something present in `secondary_comment`,
-            # try to extract out a college name from the first line
-            # in the comment to match against:
-            secondary_comment_fl = secondary_comment.split("\n", 1)[0]
-            secondary_comment_fl = secondary_comment_fl.replace('(', '').replace(')', '')
-            secondary_comment_fl = Utilities.sanitize_unit_name(secondary_comment_fl)
-            college_unit = next((c for c in college_units if c.name == secondary_comment_fl), None)
-        elif url:
-            # As a fallback, try to see if `url` looks like a subdomain
-            # of an existing College's teledata URL
-            for c in college_units:
-                try:
-                    for org in c.teledata_organizations.all():
-                        if org.url:
-                            org_url = urlparse(org.url)
-                            # The domain of the URL will be stored in
-                            # `org_url.netloc` if urllib thinks it's
-                            # not a relative URL; otherwise, the whole
-                            # URL will get tossed into `org_url.path`:
-                            org_url_domain = org_url.netloc.replace('www.', '') if org_url.netloc else org_url.path.split('/', 1)[0]
-                            if org_url_domain and org_url_domain in url:
-                                college_unit = c
-                                break
-                    if college_unit:
-                        break
-                except AttributeError:
-                    continue
-
-        return college_unit
 
     def consolidate_duplicate_units(self):
         """
@@ -354,14 +250,6 @@ class Command(BaseCommand):
                 for child in dupe_without_parent.child_units.all():
                     child.parent_unit = dupe_with_parent
                     child.save()
-            if dupe_without_parent.teledata_organizations:
-                for org in dupe_without_parent.teledata_organizations.all():
-                    org.unit = dupe_with_parent
-                    org.save()
-            if dupe_without_parent.teledata_departments:
-                for teledata_dept in dupe_without_parent.teledata_departments.all():
-                    teledata_dept.unit = dupe_with_parent
-                    teledata_dept.save()
             if dupe_without_parent.program_departments:
                 for program_dept in dupe_without_parent.program_departments.all():
                     program_dept.unit = dupe_with_parent
@@ -375,36 +263,24 @@ class Command(BaseCommand):
 
     def print_stats(self):
         mapped_colleges = College.objects.filter(unit__isnull=False).distinct()
-        mapped_teledata_orgs = TeledataOrg.objects.filter(unit__isnull=False)
         mapped_program_depts = ProgramDept.objects.filter(unit__isnull=False)
-        mapped_teledata_depts = TeledataDept.objects.filter(unit__isnull=False)
 
-        prog_depts_with_mapped_teledata = ProgramDept.objects.filter(
-            Q(unit__teledata_departments__isnull=False) | Q(unit__teledata_organizations__isnull=False)
-        ).distinct()
         prog_depts_with_mapped_college = [d for d in mapped_program_depts if d.unit.get_related_college() is not None]
 
         stats = """
 Colleges from Programs processed      : {}
-Organizations from Teledata processed : {}
 Departments from Programs processed   : {}
-Departments from Teledata processed   : {}
 Department data skipped               : {}
 
 Units created                         : {}
 
-Colleges mapped to a Unit with teledata: {}/{} ({}%)
-Organizations in Teledata with mapped Units: {}/{} ({}%)
+Colleges mapped to a Unit: {}/{} ({}%)
 Program Departments with mapped Units: {}/{} ({}%)
-Departments in Teledata with mapped Units: {}/{} ({}%)
-Program Departments mapped to a Unit with mapped Teledata: {}/{} ({}%)
 Program Departments mapped to a Unit with a mapped College: {}/{} ({}%)
 
         """.format(
             len(self.colleges_processed),
-            len(self.teledata_orgs_processed),
             len(self.program_depts_processed),
-            len(self.teledata_depts_processed),
             self.data_skipped_count,
 
             len(self.units_created),
@@ -413,21 +289,9 @@ Program Departments mapped to a Unit with a mapped College: {}/{} ({}%)
             len(self.colleges_processed),
             round((len(mapped_colleges) / len(self.colleges_processed)) * 100),
 
-            len(mapped_teledata_orgs),
-            len(self.teledata_orgs_processed),
-            round((len(mapped_teledata_orgs) / len(self.teledata_orgs_processed)) * 100),
-
             len(mapped_program_depts),
             len(self.program_depts_processed),
             round((len(mapped_program_depts) / len(self.program_depts_processed)) * 100),
-
-            len(mapped_teledata_depts),
-            len(self.teledata_depts_processed),
-            round((len(mapped_teledata_depts) / len(self.teledata_depts_processed)) * 100),
-
-            len(prog_depts_with_mapped_teledata),
-            len(self.program_depts_processed),
-            round((len(prog_depts_with_mapped_teledata) / len(self.program_depts_processed)) * 100),
 
             len(prog_depts_with_mapped_college),
             len(self.program_depts_processed),
