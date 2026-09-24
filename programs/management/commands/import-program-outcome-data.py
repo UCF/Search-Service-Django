@@ -165,15 +165,15 @@ class Command(BaseCommand):
         temp_level = original_level.replace('\'', '')
 
         try:
-            temp_level = Level.objects.get(name=temp_level)
+            temp_level = Level.objects.get(name__iexact=temp_level)
             return temp_level
         except Level.DoesNotExist:
             temp_level = None
 
         if original_level == 'Doctorate':
-            return Level.objects.get(name='Doctoral')
+            return Level.objects.get(name__iexact='Doctoral')
         elif original_level == 'Medicine':
-            return Level.objects.get(name='Professional')
+            return Level.objects.get(name__iexact='Professional')
 
         return None
 

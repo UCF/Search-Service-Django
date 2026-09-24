@@ -1,6 +1,7 @@
 from django_filters import rest_framework as filters
 from django.db.models import Q
 
+from core.utils.filter_utils import any_iexact, split_list_param
 from podcasts.models import (
     PodcastShow,
     PodcastEpisode
@@ -20,8 +21,8 @@ class PodcastShowListFilter(filters.FilterSet):
 
     def custom_tag_search(self, queryset, name, value):
         return queryset.filter(
-            tags__name__in=value
-        )
+            any_iexact('tags__name', split_list_param(value))
+        ).distinct()
 
 class PodcastEpisodeListFilter(filters.FilterSet):
     search = filters.CharFilter(method='custom_episode_search', label='Search')
@@ -47,13 +48,13 @@ class PodcastEpisodeListFilter(filters.FilterSet):
         return queryset.filter(
             Q(title__icontains=value) |
             Q(description__icontains=value) |
-            Q(category__name__icontains=value) |
+            Q(category__title__icontains=value) |
             Q(tags__name__icontains=value)
-        )
+        ).distinct()
 
     def custom_category_search(self, queryset, name, value):
         return queryset.filter(
-            category__title=value
+            category__title__iexact=value
         )
 
     def custom_show_search(self, queryset, name, value):
@@ -64,6 +65,6 @@ class PodcastEpisodeListFilter(filters.FilterSet):
 
     def custom_tag_search(self, queryset, name, value):
         return queryset.filter(
-            tags__name__in=value
-        )
+            any_iexact('tags__name', split_list_param(value))
+        ).distinct()
 

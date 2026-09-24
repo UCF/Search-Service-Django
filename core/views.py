@@ -225,7 +225,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
 
         try:
             return ProgramDescription.objects.get(
-                description_type__name=description_type_name,
+                description_type__name__iexact=description_type_name,
                 program=program
             )
         except ProgramDescription.DoesNotExist:
@@ -348,7 +348,7 @@ class ProgramEditView(LoginRequiredMixin, TitleContextMixin, FormView):
         # Add new jobs
         for job in jobs:
             try:
-                job_position = JobPosition.objects.get(name=job.strip())
+                job_position = JobPosition.objects.get(name__iexact=job.strip())
             except JobPosition.DoesNotExist:
                 job_position = JobPosition(name=job.strip())
                 job_position.save()

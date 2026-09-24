@@ -140,7 +140,7 @@ class Command(BaseCommand):
                         continue
 
                     try:
-                        position = JobPosition.objects.get(name=job)
+                        position = JobPosition.objects.get(name__iexact=job)
                     except JobPosition.DoesNotExist:
                         position = JobPosition(
                             name=job

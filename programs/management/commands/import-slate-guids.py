@@ -53,7 +53,7 @@ class Command(BaseCommand):
         logging.basicConfig(stream=sys.stdout, level=self.loglevel)
 
         # Fetch all programs, by career:
-        self.programs = Program.objects.filter(career__name=self.career)
+        self.programs = Program.objects.filter(career__name__iexact=self.career)
         self.programs_count = len(self.programs)
 
         # Fetch GUID data:
@@ -163,7 +163,7 @@ class Command(BaseCommand):
         Handles assignment of GUIDs from `self.guid_data` for
         Graduate Programs.
         """
-        career = Career.objects.get(name=self.career)
+        career = Career.objects.get(name__iexact=self.career)
 
         for row in self.guid_data:
             # If any of these keys are missing, skip!
@@ -180,8 +180,8 @@ class Command(BaseCommand):
             # is valid before proceeding any further:
             try:
                 program = Program.objects.get(
-                    plan_code=plan_code,
-                    subplan_code=subplan_code,
+                    plan_code__iexact=plan_code,
+                    subplan_code__iexact=subplan_code,
                     career=career
                 )
             except Program.DoesNotExist:

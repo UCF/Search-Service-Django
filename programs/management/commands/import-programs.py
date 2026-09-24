@@ -277,7 +277,7 @@ class Command(BaseCommand):
         data['College_Full'] = self.common_replace(data['College_Full'])
 
         try:
-            program = Program.objects.get(plan_code=data['Plan'], subplan_code__isnull=True)
+            program = Program.objects.get(plan_code__iexact=data['Plan'], subplan_code__isnull=True)
             program.name = unidecode(data['PlanName'])
             self.programs_updated += 1
             program_exists = True
@@ -316,14 +316,16 @@ class Command(BaseCommand):
         abbr = data['Career'] if not career == 'Professional' else 'PROF'
 
         career, created = Career.objects.get_or_create(
-            name=career, abbr=abbr
+            name__iexact=career, abbr__iexact=abbr,
+            defaults={'name': career, 'abbr': abbr}
         )
 
         program.career = career
 
         # Handle degree
         degree, created = Degree.objects.get_or_create(
-            name=data['Meta Data'][0]['Degree']
+            name__iexact=data['Meta Data'][0]['Degree'],
+            defaults={'name': data['Meta Data'][0]['Degree']}
         )
 
         program.degree = degree
@@ -338,7 +340,7 @@ class Command(BaseCommand):
         else:
             temp_level = data['Level']
 
-        level, created = Level.objects.get_or_create(name=temp_level)
+        level, created = Level.objects.get_or_create(name__iexact=temp_level, defaults={'name': temp_level})
 
         program.level = level
 
@@ -356,7 +358,7 @@ class Command(BaseCommand):
         if self.mappings:
             if self.use_internal_mapping:
                 try:
-                    mapping = self.mappings.filter(plan_code=data['Plan'], subplan_code=None)
+                    mapping = self.mappings.filter(plan_code__iexact=data['Plan'], subplan_code=None)
                 except:
                     mapping = None
             else:
@@ -375,8 +377,9 @@ class Command(BaseCommand):
 
         # Handle Colleges
         college, create = College.objects.get_or_create(
-            full_name=data['College_Full'],
-            short_name=data['CollegeShort']
+            full_name__iexact=data['College_Full'],
+            short_name__iexact=data['CollegeShort'],
+            defaults={'full_name': data['College_Full'], 'short_name': data['CollegeShort']}
         )
 
         program.colleges.add(college)
@@ -396,7 +399,8 @@ class Command(BaseCommand):
 
         # Handle Departments
         department, create = Department.objects.get_or_create(
-            full_name=data['Dept_Full']
+            full_name__iexact=data['Dept_Full'],
+            defaults={'full_name': data['Dept_Full']}
         )
 
         if "school" in department.full_name.lower():
@@ -436,7 +440,7 @@ class Command(BaseCommand):
             academic_term = None
 
             try:
-                academic_term = AcademicTerm.objects.get(full_name=term_start_full)
+                academic_term = AcademicTerm.objects.get(full_name__iexact=term_start_full)
             except AcademicTerm.DoesNotExist:
                 academic_term = AcademicTerm(full_name=term_start_full)
                 academic_term.save()
@@ -461,8 +465,8 @@ class Command(BaseCommand):
 
         try:
             program = Program.objects.get(
-                plan_code=parent.plan_code,
-                subplan_code=data['Subplan']
+                plan_code__iexact=parent.plan_code,
+                subplan_code__iexact=data['Subplan']
             )
 
             program.name = unidecode(data['Subplan_Name'])
@@ -503,7 +507,8 @@ class Command(BaseCommand):
 
         # Handle degree
         degree, created = Degree.objects.get_or_create(
-            name=data['Meta Data'][0]['Degree']
+            name__iexact=data['Meta Data'][0]['Degree'],
+            defaults={'name': data['Meta Data'][0]['Degree']}
         )
 
         program.degree = degree
@@ -552,7 +557,7 @@ class Command(BaseCommand):
             academic_term = None
 
             try:
-                academic_term = AcademicTerm.objects.get(full_name=term_start_full)
+                academic_term = AcademicTerm.objects.get(full_name__iexact=term_start_full)
             except AcademicTerm.DoesNotExist:
                 academic_term = AcademicTerm(full_name=term_start_full)
                 academic_term.save()

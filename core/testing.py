@@ -25,6 +25,15 @@ class SmokeTestCase(TestCase):
         self.assertEqual(response.status_code, 200, url)
         return response
 
+    def assertResultCount(self, name, params, count):
+        """
+        GETs a paginated list endpoint with the query parameters and
+        checks how many results come back.
+        """
+        response = self.client.get(reverse(name), params)
+        self.assertEqual(response.status_code, 200, params)
+        self.assertEqual(response.json()['count'], count, params)
+
     def assertEndpointsOK(self, endpoints):
         """
         GETs each endpoint and checks for a 200. Each item is a URL

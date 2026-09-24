@@ -3,6 +3,7 @@ from rest_framework import generics
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
+from locations.filters import LocationFilter
 from locations.models import Location
 from locations.serializers import LocationSerializer
 
@@ -11,7 +12,7 @@ class LocationListView(generics.ListCreateAPIView):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ['object_type', 'data_source', 'visible', 'private', 'is_verified']
+    filterset_class = LocationFilter
     search_fields = ['name']
 
 

@@ -147,21 +147,21 @@ class CatalogEntry(object):
             (object): Level object
         """
         try:
-            temp_level = Level.objects.get(name=self.type)
+            temp_level = Level.objects.get(name__iexact=self.type)
             return temp_level
         except Level.DoesNotExist:
             pass
 
         if self.type in ['Major', 'Accelerated UndergraduateGraduate Program', 'Accelerated Undergraduate-Graduate Program', 'Articulated A.S. Programs']:
-            return Level.objects.get(name='Bachelors')
+            return Level.objects.get(name__iexact='Bachelors')
         elif self.type == 'Certificate':
-            return Level.objects.get(name='Certificate')
+            return Level.objects.get(name__iexact='Certificate')
         elif self.type == 'Minor':
-            return Level.objects.get(name='Minor')
+            return Level.objects.get(name__iexact='Minor')
         elif self.type in ['Master', 'Master of Fine Arts']:
-            return Level.objects.get(name='Masters')
+            return Level.objects.get(name__iexact='Masters')
 
-        return Level.objects.get(name='Bachelors')
+        return Level.objects.get(name__iexact='Bachelors')
 
     @property
     def career(self):
@@ -179,7 +179,7 @@ class CatalogEntry(object):
                 name__iexact=self.data['academicLevel']
             )
         except Career.DoesNotExist:
-            career = Career.objects.get(name='Undergraduate')
+            career = Career.objects.get(name__iexact='Undergraduate')
 
         return career
 
