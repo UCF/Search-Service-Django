@@ -32,6 +32,8 @@ class PodcastsSmokeTests(SmokeTestCase):
             show=cls.show,
             category=cls.category,
         )
+        cls.show.tags.add('Research', 'Alumni')
+        cls.episode.tags.add('Research', 'Alumni')
 
     def test_list_endpoints(self):
         self.assertEndpointsOK([
@@ -47,6 +49,20 @@ class PodcastsSmokeTests(SmokeTestCase):
             ('api.podcasts.episode.summary', {'id': self.episode.pk}),
             ('api.podcasts.categories.detail', {'slug': self.category.slug}),
         ])
+
+    def test_show_filters(self):
+        self.assertResultCount('api.podcasts.list', {'tags': 'research'}, 1)
+        self.assertResultCount('api.podcasts.list', {'tags': 'RESEARCH,alumni'}, 1)
+        self.assertResultCount('api.podcasts.list', {'tags': 'athletics'}, 0)
+
+    def test_episode_filters(self):
+        self.assertResultCount('api.podcasts.episodelist', {'tags': 'research'}, 1)
+        self.assertResultCount('api.podcasts.episodelist', {'tags': 'RESEARCH,alumni'}, 1)
+        self.assertResultCount('api.podcasts.episodelist', {'tags': 'athletics'}, 0)
+        self.assertResultCount('api.podcasts.episodelist', {'category': 'research'}, 1)
+        self.assertResultCount('api.podcasts.episodelist', {'category': 'athletics'}, 0)
+        self.assertResultCount('api.podcasts.episodelist', {'search': 'research'}, 1)
+        self.assertResultCount('api.podcasts.episodelist', {'search': 'athletics'}, 0)
 
     def test_admin_pages(self):
         self.assertAdminPagesOK('podcasts')

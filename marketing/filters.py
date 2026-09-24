@@ -3,6 +3,7 @@ from django.db.models import Q
 import django_filters
 from django_filters import rest_framework as filters
 
+from core.utils.filter_utils import any_iexact, split_list_param
 from marketing.models import Quote
 
 class QuoteFilter(django_filters.FilterSet):
@@ -24,8 +25,6 @@ class QuoteFilter(django_filters.FilterSet):
         )
 
     def custom_tag_search(self, queryset, name, value):
-        tag_values = value.split(',')
-
         return queryset.filter(
-            tags__name__in=tag_values
-        )
+            any_iexact('tags__name', split_list_param(value))
+        ).distinct()
