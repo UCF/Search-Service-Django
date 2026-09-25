@@ -2,8 +2,6 @@ from django.core.management.base import BaseCommand, CommandError
 from core.management.purge import PurgeAfterImportMixin
 from research.models import ResearchWork, Researcher, ResearcherEducation
 
-from django.core.management.base import BaseCommand, CommandError
-
 import settings
 import requests
 import threading, queue

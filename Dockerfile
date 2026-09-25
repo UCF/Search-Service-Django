@@ -56,6 +56,11 @@ RUN cp settings_local.tmpl.py settings_local.py \
     && SECRET_KEY=collectstatic DB_ENGINE=django.db.backends.sqlite3 DB_NAME=:memory: \
         python manage.py collectstatic --noinput
 
+# The code stays owned by root, so the app can't modify it. Only the
+# media folder, where uploads go when USE_S3 is off, is writable. Its
+# files don't outlive the container.
+RUN mkdir -p media && chown app:app media
+
 USER app
 
 EXPOSE 8000

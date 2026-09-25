@@ -2,9 +2,12 @@
 # Appended to a copy of settings_local.tmpl.py to configure it from
 # environment variables. The container image (Dockerfile) and the test
 # workflow (.github/workflows/tests.yml) both build settings_local.py
-# this way. Only SECRET_KEY, DB_ENGINE and DB_NAME are required; anything
-# else left unset keeps the template's value. Sentry needs no setting
-# here: raven reads SENTRY_DSN from the environment itself.
+# this way. Only SECRET_KEY, DB_ENGINE and DB_NAME are required. DEBUG,
+# USE_S3 and USE_SAML default to off and ALLOWED_HOSTS to empty, rather
+# than to the template's values, so a missing variable never turns debug
+# mode on. Anything else left unset keeps the template's value. Sentry
+# needs no setting here: raven reads SENTRY_DSN from the environment
+# itself.
 
 import json
 import os
