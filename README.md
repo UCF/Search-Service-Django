@@ -38,7 +38,22 @@ The `Dockerfile` builds the image we deploy, and `compose.yaml` runs it locally 
 2. In another terminal, run the migrations: `docker compose run --rm web python manage.py migrate`
 3. Create a superuser: `docker compose run --rm web python manage.py createsuperuser`
 
-The API is then at http://localhost:8000/api/v1/. Settings come from `settings_local.tmpl.py` plus the environment variables read by `docker/env-settings.py`; `compose.yaml` sets local values for them. The front-end assets in `static/` are compiled with gulp and committed, so the image doesn't build them. Gunicorn doesn't serve static files yet, so pages load without styles in the container for now.
+The API is then at http://localhost:8000/api/v1/. Settings come from `settings_local.tmpl.py` plus the environment variables read by `docker/env-settings.py`; `compose.yaml` sets local values for them.
+
+| Variable | Purpose |
+| --- | --- |
+| `SECRET_KEY`, `DB_ENGINE`, `DB_NAME` | Required. |
+| `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | Database connection. |
+| `DEBUG`, `ALLOWED_HOSTS` | `DEBUG=true` for local development; `ALLOWED_HOSTS` is comma-separated. |
+| `USE_S3`, `S3_ENV`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME` | Media uploads to S3. |
+| `SLATE_DEADLINES_ENDPOINT`, `SLATE_DEADLINES_USERNAME`, `SLATE_DEADLINES_PASSWORD`, and the same three for `SLATE_GUIDS_` | Graduate Studies' Slate. |
+| `KUALI_BASE_URL`, `KUALI_API_TOKEN`, `ACADEMIC_ANALYTICS_API_KEY`, `INSTITUTION_GRID_ID` | Import credentials. |
+| `USE_SAML`, `SAML_CLIENT_SETTINGS`, `SAML_ASSERTION_URL` | Single sign-on. `SAML_CLIENT_SETTINGS` is the pysaml2 client configuration as JSON. |
+| `SENTRY_DSN` | Error reporting, read by raven directly. |
+
+The container trusts the `X-Forwarded-Proto` and `X-Forwarded-Host` headers set by App Service and Front Door, and marks cookies secure unless `DEBUG` is on.
+
+The front-end assets in `static/` are compiled with gulp and committed, so the image doesn't build them. Gunicorn doesn't serve static files yet, so pages load without styles in the container for now.
 
 ## DEV Package Installation
 
