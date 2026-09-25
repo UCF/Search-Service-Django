@@ -48,6 +48,7 @@ The API is then at http://localhost:8000/api/v1/. Settings come from `settings_l
 | `USE_S3`, `S3_ENV`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME` | Media uploads to S3. |
 | `SLATE_DEADLINES_ENDPOINT`, `SLATE_DEADLINES_USERNAME`, `SLATE_DEADLINES_PASSWORD`, and the same three for `SLATE_GUIDS_` | Graduate Studies' Slate. |
 | `KUALI_BASE_URL`, `KUALI_API_TOKEN`, `ACADEMIC_ANALYTICS_API_KEY`, `INSTITUTION_GRID_ID` | Import credentials. |
+| `AWS_ACCESS_KEY`, `AWS_SECRET_KEY`, `AWS_REGION` | Amazon Comprehend, used by `import-catalog-descriptions` unless it runs with `--fast`. |
 | `USE_SAML`, `SAML_CLIENT_SETTINGS`, `SAML_ASSERTION_URL` | Single sign-on. `SAML_CLIENT_SETTINGS` is the pysaml2 client configuration as JSON. |
 | `SENTRY_DSN` | Error reporting, read by raven directly. |
 | `FRONT_DOOR_SUBSCRIPTION_ID`, `FRONT_DOOR_RESOURCE_GROUP`, `FRONT_DOOR_PROFILE`, `FRONT_DOOR_ENDPOINT`, `FRONT_DOOR_DOMAINS`, `AZURE_CLIENT_ID` | The Front Door endpoint to purge after imports, and the user-assigned managed identity to purge as. Unset, purging does nothing. |

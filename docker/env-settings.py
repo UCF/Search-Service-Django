@@ -98,6 +98,13 @@ KUALI_API_TOKEN = os.environ.get('KUALI_API_TOKEN', KUALI_API_TOKEN)
 ACADEMIC_ANALYTICS_API_KEY = os.environ.get('ACADEMIC_ANALYTICS_API_KEY', ACADEMIC_ANALYTICS_API_KEY)
 INSTITUTION_GRID_ID = os.environ.get('INSTITUTION_GRID_ID', INSTITUTION_GRID_ID)
 
+# Amazon Comprehend, which the catalog import uses to strip contact
+# details from descriptions (programs/utilities/oscar.py). Separate from
+# the S3 keys above.
+AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', AWS_ACCESS_KEY)
+AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', AWS_SECRET_KEY)
+AWS_REGION = os.environ.get('AWS_REGION', AWS_REGION)
+
 # SAML_CLIENT_SETTINGS is the pysaml2 client configuration as JSON, the
 # same dictionary the VMs' settings_local.py defines in Python.
 USE_SAML = env_bool('USE_SAML')
