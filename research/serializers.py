@@ -2,7 +2,6 @@ from django.db.models.functions import Length
 
 from rest_framework import serializers
 from research.models import *
-from teledata.serializers import StaffContactSerializer
 from units.serializers import EmployeeSerializer
 
 class ResearcherEducationSerializer(serializers.ModelSerializer):
@@ -161,7 +160,6 @@ class ResearchTermSerializer(serializers.ModelSerializer):
         return obj.researchers.count()
 
 class ResearcherSerializer(serializers.ModelSerializer):
-    teledata_record = StaffContactSerializer(many=False, read_only=True)
     employee_record = EmployeeSerializer(many=False, read_only=True)
     education = ResearcherEducationSerializer(many=True, read_only=True)
     books = serializers.HyperlinkedIdentityField(
@@ -209,7 +207,6 @@ class ResearcherSerializer(serializers.ModelSerializer):
             'name_formatted_title',
             'name_formatted_no_title',
             'biography',
-            'teledata_record',
             'employee_record',
             'education',
             'books',
