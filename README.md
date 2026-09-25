@@ -53,7 +53,7 @@ The API is then at http://localhost:8000/api/v1/. Settings come from `settings_l
 
 The container trusts the `X-Forwarded-Proto` and `X-Forwarded-Host` headers set by App Service and Front Door, and marks cookies secure unless `DEBUG` is on.
 
-The front-end assets in `static/` are compiled with gulp and committed, so the image doesn't build them. Gunicorn doesn't serve static files yet, so pages load without styles in the container for now.
+The front-end assets in `static/` are compiled with gulp and committed, so the image doesn't build them. `collectstatic` runs when the image is built, and WhiteNoise serves everything in `static/` from the container.
 
 ## DEV Package Installation
 

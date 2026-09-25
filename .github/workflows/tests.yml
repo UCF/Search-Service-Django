@@ -129,3 +129,10 @@ jobs:
           done
           docker logs web
           exit 1
+
+      # WhiteNoise serves both the committed gulp output and what
+      # collectstatic added when the image was built.
+      - name: Static files
+        run: |
+          curl -fsS -o /dev/null http://127.0.0.1:8000/static/css/style.min.css
+          curl -fsS -o /dev/null http://127.0.0.1:8000/static/admin/css/base.css
