@@ -56,6 +56,16 @@ class CoreSmokeTests(SmokeTestCase):
             {'title': 'Web Developer', 'externalPath': '/12345'},
         ])
 
+    def test_open_positions_cache_error(self):
+        with mock.patch('core.views.requests.get') as get, \
+                mock.patch('core.utils.jobs_utils.cache.set', side_effect=RuntimeError('cache down')):
+            get.return_value.content = JOBS_PAGE
+            with self.assertLogs(level='ERROR'):
+                response = self.client.get(reverse('api.positions.list'))
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.json()['details'], 'cache down')
+
     def test_admin_pages(self):
         for app_label in ['auth', 'authtoken', 'taggit', 'auditlog']:
             with self.subTest(app=app_label):

@@ -621,7 +621,7 @@ class OpenJobListView(APIView):
         # Cache the response data and handle any errors
         try:
             jobs = set_cached_jobs(jobs)
-        except e:
+        except Exception as e:
             return Response({"error": "An error occurred fetching the jobs", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
