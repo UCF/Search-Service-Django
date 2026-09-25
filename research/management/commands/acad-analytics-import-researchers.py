@@ -1,5 +1,6 @@
 import logging
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from django.db.models import Q
 
 from research.models import Article
@@ -25,7 +26,9 @@ from units.models import Employee
 
 logger = logging.getLogger()
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/research/*']
+
     help = 'Imports researchers from Academic Analytics'
 
     def add_arguments(self, parser):

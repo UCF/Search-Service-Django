@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from research.models import ResearchWork, Researcher, ResearcherEducation
 
 from django.core.management.base import BaseCommand, CommandError
@@ -11,7 +12,9 @@ from datetime import datetime
 
 from progress.bar import ChargingBar
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/research/*']
+
     help = 'Imports researcher meta values from ORCID'
 
     def add_arguments(self, parser):

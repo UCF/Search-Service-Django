@@ -131,6 +131,10 @@ CACHE_CONTROL_TTLS = {
     '/api/v1/research/': 60 * 60 * 24,
 }
 
+# The Front Door endpoint that `manage.py purge-cache` purges, set by
+# docker/env-settings.py in Azure. None makes purging do nothing.
+FRONT_DOOR = None
+
 try:
     from settings_local import *
 except ImportError:

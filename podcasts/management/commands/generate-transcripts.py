@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 
 from podcasts.models import (
     PodcastShow,
@@ -15,7 +16,9 @@ import re
 from html import unescape
 from typing import Optional
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/podcasts/*']
+
     help = 'Attempts to generate a transcript for all podcast episodes'
 
     WORD_NAMESPACE = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'

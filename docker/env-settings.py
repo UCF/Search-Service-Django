@@ -33,6 +33,21 @@ CSRF_COOKIE_SECURE = not DEBUG
 # settings.py.
 CACHE_CONTROL_ENABLED = True
 
+# The Front Door endpoint that `manage.py purge-cache` purges. Left unset
+# locally, so purging does nothing. AZURE_CLIENT_ID names a user-assigned
+# managed identity; without it, the system-assigned one is used.
+if os.environ.get('FRONT_DOOR_ENDPOINT'):
+    FRONT_DOOR = {
+        'subscription_id': os.environ['FRONT_DOOR_SUBSCRIPTION_ID'],
+        'resource_group': os.environ['FRONT_DOOR_RESOURCE_GROUP'],
+        'profile': os.environ['FRONT_DOOR_PROFILE'],
+        'endpoint': os.environ['FRONT_DOOR_ENDPOINT'],
+        'domains': [
+            domain.strip() for domain in os.environ.get('FRONT_DOOR_DOMAINS', '').split(',') if domain.strip()
+        ],
+        'identity_client_id': os.environ.get('AZURE_CLIENT_ID', ''),
+    }
+
 DATABASES['default'] = {
     'ENGINE': os.environ['DB_ENGINE'],
     'NAME': os.environ['DB_NAME'],

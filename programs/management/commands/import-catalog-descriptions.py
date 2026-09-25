@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 from django.conf import settings
 from programs.utilities.oscar import Oscar
 from programs.utilities.catalog_match import CatalogEntry, MatchableProgram
@@ -25,7 +26,9 @@ from threading import Thread, Lock
 from queue import Queue
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports catalog urls from the Kuali catalog system'
 
     def add_arguments(self, parser):

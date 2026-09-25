@@ -100,6 +100,8 @@ drf-dynamic-fields==0.4.0
     # via ucf-search-service-django
 elementpath==4.7.0
     # via xmlschema
+et-xmlfile==2.0.0
+    # via openpyxl
 feedparser==6.0.12
     # via ucf-search-service-django
 fuzzywuzzy==0.18.0
@@ -153,6 +155,8 @@ numpy==2.0.2 ; python_full_version >= '3.9'
     #   blis
     #   spacy
     #   thinc
+openpyxl==3.1.5
+    # via ucf-search-service-django
 packaging==24.2
     # via
     #   gunicorn

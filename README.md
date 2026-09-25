@@ -50,6 +50,9 @@ The API is then at http://localhost:8000/api/v1/. Settings come from `settings_l
 | `KUALI_BASE_URL`, `KUALI_API_TOKEN`, `ACADEMIC_ANALYTICS_API_KEY`, `INSTITUTION_GRID_ID` | Import credentials. |
 | `USE_SAML`, `SAML_CLIENT_SETTINGS`, `SAML_ASSERTION_URL` | Single sign-on. `SAML_CLIENT_SETTINGS` is the pysaml2 client configuration as JSON. |
 | `SENTRY_DSN` | Error reporting, read by raven directly. |
+| `FRONT_DOOR_SUBSCRIPTION_ID`, `FRONT_DOOR_RESOURCE_GROUP`, `FRONT_DOOR_PROFILE`, `FRONT_DOOR_ENDPOINT`, `FRONT_DOOR_DOMAINS`, `AZURE_CLIENT_ID` | The Front Door endpoint to purge after imports, and the user-assigned managed identity to purge as. Unset, purging does nothing. |
+
+Each import purges the API paths it changes from Front Door when it finishes. Add `--no-purge` to skip that, for example when running several imports in a row and purging once at the end with `python manage.py purge-cache '/api/v1/*'`.
 
 The container trusts the `X-Forwarded-Proto` and `X-Forwarded-Host` headers set by App Service and Front Door, and marks cookies secure unless `DEBUG` is on.
 

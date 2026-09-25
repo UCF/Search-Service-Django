@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from django.utils import timezone
 from django.conf import settings
 from programs.models import *
@@ -11,7 +12,9 @@ from tabulate import tabulate
 from unidecode import unidecode
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports programs from the Academic Programs Inventory Master.'
     career_mappings = {
         "UGRD": "Undergraduate",

@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from programs.models import *
 
 from argparse import FileType
@@ -10,7 +11,9 @@ import sys
 import csv
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports program outcome statistics from a CSV'
 
     programs = []
