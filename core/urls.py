@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import login_required
 
 from core.views import *
 
-from teledata.views import *
 from programs.views import *
 
 urlpatterns = [

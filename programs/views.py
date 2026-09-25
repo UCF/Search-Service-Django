@@ -56,8 +56,6 @@ class CoreAPI(APIView):
             'profileTypes': reverse('api.profiles.types.list', request=request),
             'college-mappings': reverse('api.collegeoverride.list', request=request),
             'tuition-mappings': reverse('api.tuitionoverride.list', request=request),
-            'images': reverse('api.images.list', request=request),
-            'images-search': reverse('api.images.search', request=request),
         })
 
 

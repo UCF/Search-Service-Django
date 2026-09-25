@@ -2,7 +2,6 @@ from email.utils import parseaddr
 from enum import Enum
 
 from programs.models import College
-from teledata.models import Building, Department
 
 from bs4 import BeautifulSoup
 import re
@@ -26,7 +25,6 @@ class ContentCategory(Enum):
 #endregion
 
 college_names = [x.lower() for x in College.objects.values_list('full_name', flat=True)]
-dept_names = [x.lower() for x in Department.objects.values_list('name', flat=True)]
 
 class ContentNode(object):
     """
@@ -367,7 +365,6 @@ class ContentNode(object):
             or email_result
             or common_contact_subhead_result
             or (college_names and line.lower() in college_names)
-            or (dept_names and line.lower() in dept_names)
             or college_dept_result
         ):
             retval = True
