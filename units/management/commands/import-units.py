@@ -135,9 +135,11 @@ class Command(BaseCommand):
 
                 # Get or create the job title
                 if job_code:
-                    try:
-                        job_title = JobTitle.objects.get(ext_job_id__iexact=job_code)
-                    except:
+                    # ext_job_id isn't unique, so production may already
+                    # have duplicates. Reuse the first match rather than
+                    # failing or adding another row.
+                    job_title = JobTitle.objects.filter(ext_job_id__iexact=job_code).first()
+                    if job_title is None:
                         job_title = JobTitle(
                             ext_job_id=job_code,
                             ext_job_name=job_name

@@ -595,12 +595,12 @@ class Command(BaseCommand):
                         try:
                             existing_term = ResearchTerm.objects.get(term_name__iexact=term['TermName'].strip())
                             researcher.research_terms.add(existing_term)
-                            self.terms_created += 1
-                            self.terms_assigned +=1
+                            self.terms_assigned += 1
                         except ResearchTerm.DoesNotExist:
                             new_term = ResearchTerm(term_name=term['TermName'].strip())
                             new_term.save()
                             researcher.research_terms.add(new_term)
+                            self.terms_created += 1
                             self.terms_assigned += 1
 
             finally:

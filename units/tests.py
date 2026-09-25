@@ -1,3 +1,6 @@
+import csv
+import os
+import tempfile
 from importlib import import_module
 from io import StringIO
 from unittest import mock
@@ -7,7 +10,7 @@ from django.test import TestCase
 
 from core.testing import SmokeTestCase
 from programs.models import College, Department
-from units.models import Unit
+from units.models import Employee, JobTitle, Unit
 
 
 class UnitsSmokeTests(SmokeTestCase):
@@ -45,4 +48,31 @@ class MapUnitsTests(TestCase):
         self.assertEqual(
             Unit.objects.get(name='Biology Lab').parent_unit.name,
             'Department of Biology',
+        )
+
+
+class ImportUnitsTests(TestCase):
+    def import_csv(self, rows):
+        with tempfile.NamedTemporaryFile('w', suffix='.csv', delete=False, newline='') as f:
+            csv.writer(f).writerows(rows)
+        self.addCleanup(os.remove, f.name)
+        call_command('import-units', f.name, stdout=StringIO())
+
+    def test_reuses_existing_job_title_even_when_duplicated(self):
+        # ext_job_id isn't unique, so a match can return several rows.
+        # The import should reuse one, not add another.
+        first = JobTitle.objects.create(ext_job_id='J100', ext_job_name='Web Developer')
+        JobTitle.objects.create(ext_job_id='J100', ext_job_name='Web Developer')
+
+        self.import_csv([[
+            '0000001', 'Ada Lovelace', 'Ada', 'Lovelace', '',
+            'D100', 'Biology', 'O100', 'Academic Affairs',
+            'Academic Affairs', 'College of Sciences',
+            'j100', 'Web Developer',
+        ]])
+
+        self.assertEqual(JobTitle.objects.count(), 2)
+        self.assertEqual(
+            list(Employee.objects.get(ext_employee_id='0000001').job_titles.all()),
+            [first],
         )
