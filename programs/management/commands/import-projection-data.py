@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from programs.models import *
 
 import argparse
@@ -9,7 +10,9 @@ import csv
 import mimetypes
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports Bureau of Labor Statistics Employment projections'
 
     projection_data = []

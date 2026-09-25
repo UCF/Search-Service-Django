@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from programs.models import *
 
 import decimal
@@ -10,7 +11,9 @@ import requests
 import sys
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = (
         'Imports unique identifiers for programs from Undergraduate '
         'or Graduate Studies\' Slate instances.'

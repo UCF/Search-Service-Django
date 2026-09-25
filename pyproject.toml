@@ -34,6 +34,8 @@ dependencies = [
     "django-storages>=1.14.6",
     "pyopenssl>=25.0.0",
     "feedparser>=6.0.12",
+    "whitenoise>=6.7.0",
+    "openpyxl>=3.1.5",
 ]
 
 [project.optional-dependencies]

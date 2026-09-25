@@ -1,11 +1,14 @@
 from django.core.management.base import BaseCommand, CommandParser, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from programs.models import Program, JobPosition, WeightedJobPosition
 
 import argparse
 import csv
 import mimetypes
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports the generated weighed jobs'
 
     program_fieldnames = [

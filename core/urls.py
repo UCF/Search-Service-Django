@@ -33,6 +33,11 @@ urlpatterns = [
         ProgramEditView.as_view(),
         name='dashboard.programs.edit'
     ),
+    url(
+        r'^healthz$',
+        health_check,
+        name='healthz'
+    ),
     url(r'^api/v1/positions/$',
         OpenJobListView.as_view(),
         name='api.positions.list'

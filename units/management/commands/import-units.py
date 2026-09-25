@@ -1,6 +1,7 @@
 import csv
 
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 from argparse import FileType
 
 from units.models import College
@@ -11,7 +12,9 @@ from units.models import JobTitle
 from units.models import Organization
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports a CSV of employees and their associated units.'
 
     fieldnames = [

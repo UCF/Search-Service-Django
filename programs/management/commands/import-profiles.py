@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from programs.models import *
 
 import requests
@@ -7,7 +8,9 @@ import json
 from progress.bar import ChargingBar
 from tabulate import tabulate
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = """
 Imports URLs for ProgramProfiles from a WordPress blog
     """

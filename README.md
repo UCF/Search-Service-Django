@@ -30,6 +30,35 @@ A Django based application that provides a REST API, as well as manual and autom
     - Note: if loading in fixtures for Programs, make sure the `colleges` fixture is loaded _before_ loading the `collegeoverrides` fixture.
 14. Run the local server to debug and test: `python manage.py runserver`
 
+## Running in a Container
+
+The `Dockerfile` builds the image we deploy, and `compose.yaml` runs it locally against PostgreSQL. You need Docker (or Podman) with Compose.
+
+1. Build and start the app and database: `docker compose up --build`
+2. In another terminal, run the migrations: `docker compose run --rm web python manage.py migrate`
+3. Create a superuser: `docker compose run --rm web python manage.py createsuperuser`
+
+The API is then at http://localhost:8000/api/v1/. Settings come from `settings_local.tmpl.py` plus the environment variables read by `docker/env-settings.py`; `compose.yaml` sets local values for them.
+
+| Variable | Purpose |
+| --- | --- |
+| `SECRET_KEY`, `DB_ENGINE`, `DB_NAME` | Required. |
+| `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | Database connection. |
+| `DEBUG`, `ALLOWED_HOSTS` | `DEBUG=true` for local development; `ALLOWED_HOSTS` is comma-separated. |
+| `USE_S3`, `S3_ENV`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME` | Media uploads to S3. |
+| `SLATE_DEADLINES_ENDPOINT`, `SLATE_DEADLINES_USERNAME`, `SLATE_DEADLINES_PASSWORD`, and the same three for `SLATE_GUIDS_` | Graduate Studies' Slate. |
+| `KUALI_BASE_URL`, `KUALI_API_TOKEN`, `ACADEMIC_ANALYTICS_API_KEY`, `INSTITUTION_GRID_ID` | Import credentials. |
+| `AWS_ACCESS_KEY`, `AWS_SECRET_KEY`, `AWS_REGION` | Amazon Comprehend, used by `import-catalog-descriptions` unless it runs with `--fast`. |
+| `USE_SAML`, `SAML_CLIENT_SETTINGS`, `SAML_ASSERTION_URL` | Single sign-on. `SAML_CLIENT_SETTINGS` is the pysaml2 client configuration as JSON. |
+| `SENTRY_DSN` | Error reporting, read by raven directly. |
+| `FRONT_DOOR_SUBSCRIPTION_ID`, `FRONT_DOOR_RESOURCE_GROUP`, `FRONT_DOOR_PROFILE`, `FRONT_DOOR_ENDPOINT`, `FRONT_DOOR_DOMAINS`, `AZURE_CLIENT_ID` | The Front Door endpoint to purge after imports, and the user-assigned managed identity to purge as. Unset, purging does nothing. |
+
+Each import purges the API paths it changes from Front Door when it finishes. Add `--no-purge` to skip that, for example when running several imports in a row and purging once at the end with `python manage.py purge-cache '/api/v1/*'`.
+
+The container trusts the `X-Forwarded-Proto` and `X-Forwarded-Host` headers set by App Service and Front Door, and marks cookies secure unless `DEBUG` is on.
+
+The front-end assets in `static/` are compiled with gulp and committed, so the image doesn't build them. `collectstatic` runs when the image is built, and WhiteNoise serves everything in `static/` from the container.
+
 ## DEV Package Installation
 
 There are some additional libraries necessary to run some of the management command scripts not meant to be run on a server. For example, the `manage.py generate-career-weights` command uses the `spacy` package and its associated library of words, which can take up around .5GB of space, so we want to avoid installing that on servers.
