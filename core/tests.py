@@ -4,8 +4,10 @@ from unittest import mock
 from django.core.cache import cache
 from django.core.management import call_command
 from django.db import DatabaseError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
+
+from rest_framework.authtoken.models import Token
 
 from core.testing import SmokeTestCase
 from programs.models import Career, Degree, Level, Program
@@ -84,6 +86,47 @@ class HealthCheckTests(TestCase):
             with self.assertLogs(level='ERROR'):
                 response = self.client.get(reverse('healthz'))
         self.assertEqual(response.status_code, 503)
+
+
+@override_settings(
+    CACHE_CONTROL_ENABLED=True,
+    CACHE_CONTROL_TTLS={
+        '/': 0,
+        '/api/v1/': 3600,
+        '/api/v1/research/': 86400,
+    }
+)
+class CacheControlTests(SmokeTestCase):
+    def assertCacheControl(self, url, expected, **extra):
+        response = self.client.get(url, **extra)
+        self.assertEqual(response['Cache-Control'], expected, url)
+
+    def test_anonymous_api(self):
+        self.assertCacheControl('/api/v1/programs/', 'public, max-age=3600')
+
+    def test_longest_prefix_wins(self):
+        self.assertCacheControl('/api/v1/research/researchers/', 'public, max-age=86400')
+
+    def test_zero_ttl(self):
+        self.assertCacheControl('/', 'private, no-store')
+
+    def test_signed_in(self):
+        self.client.force_login(self.superuser)
+        self.assertCacheControl('/api/v1/programs/', 'private, no-store')
+
+    def test_api_key(self):
+        key = Token.objects.get(user=self.superuser).key
+        self.assertCacheControl(f'/api/v1/programs/?key={key}', 'private, no-store')
+
+    def test_not_found(self):
+        self.assertCacheControl('/api/v1/programs/0/', 'private, no-store')
+
+    def test_existing_header_kept(self):
+        self.assertIn('no-cache', self.client.get('/healthz')['Cache-Control'])
+
+    @override_settings(CACHE_CONTROL_ENABLED=False)
+    def test_disabled(self):
+        self.assertFalse(self.client.get('/api/v1/programs/').has_header('Cache-Control'))
 
 
 class MigrationTests(TestCase):

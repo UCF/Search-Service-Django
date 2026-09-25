@@ -29,6 +29,10 @@ USE_X_FORWARDED_HOST = True
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
+# Cache-Control headers for Front Door, from CACHE_CONTROL_TTLS in
+# settings.py.
+CACHE_CONTROL_ENABLED = True
+
 DATABASES['default'] = {
     'ENGINE': os.environ['DB_ENGINE'],
     'NAME': os.environ['DB_NAME'],
