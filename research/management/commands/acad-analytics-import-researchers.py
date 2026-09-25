@@ -153,7 +153,7 @@ class Command(BaseCommand):
             employee_id = person['ClientFacultyId'].zfill(7)
 
             try:
-                employee_record = Employee.objects.get(ext_employee_id=employee_id)
+                employee_record = Employee.objects.get(ext_employee_id__iexact=employee_id)
             except Employee.DoesNotExist:
                 self.skipped_no_match += 1
                 continue
@@ -497,7 +497,7 @@ class Command(BaseCommand):
                 for patent in patents:
                     try:
                         with self.patent_lock:
-                            existing_patent = Patent.objects.get(patent_id=patent['PatentId'])
+                            existing_patent = Patent.objects.get(patent_id__iexact=patent['PatentId'])
                             existing_patent.researchers.add(researcher)
                             existing_patent.patent_title = patent['PatentTitle']
                             existing_patent.patent_type = patent['PatentType']
@@ -543,7 +543,7 @@ class Command(BaseCommand):
                 for trial in trials:
                     try:
                         with self.trial_lock:
-                            existing_trial = ClinicalTrial.objects.get(nct_id=trial['NCTId'])
+                            existing_trial = ClinicalTrial.objects.get(nct_id__iexact=trial['NCTId'])
                             existing_trial.researchers.add(researcher)
                             existing_trial.title = trial['Title']
                             existing_trial.start_date = parser.parse(trial['StartDate'])
@@ -593,7 +593,7 @@ class Command(BaseCommand):
                 for term in terms:
                     with self.term_lock:
                         try:
-                            existing_term = ResearchTerm.objects.get(term_name=term['TermName'].strip())
+                            existing_term = ResearchTerm.objects.get(term_name__iexact=term['TermName'].strip())
                             researcher.research_terms.add(existing_term)
                             self.terms_created += 1
                             self.terms_assigned +=1
