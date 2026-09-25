@@ -1,0 +1,37 @@
+# Runs the container image against PostgreSQL for local development.
+# See "Running in a container" in the README.
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: search
+      POSTGRES_USER: search
+      POSTGRES_PASSWORD: search
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "search"]
+      interval: 5s
+      retries: 20
+
+  web:
+    build: .
+    environment:
+      SECRET_KEY: local-development-only
+      DEBUG: "true"
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: search
+      DB_USER: search
+      DB_PASSWORD: search
+      DB_HOST: db
+      DB_PORT: "5432"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:

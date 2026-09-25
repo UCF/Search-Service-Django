@@ -30,6 +30,16 @@ A Django based application that provides a REST API, as well as manual and autom
     - Note: if loading in fixtures for Programs, make sure the `colleges` fixture is loaded _before_ loading the `collegeoverrides` fixture.
 14. Run the local server to debug and test: `python manage.py runserver`
 
+## Running in a Container
+
+The `Dockerfile` builds the image we deploy, and `compose.yaml` runs it locally against PostgreSQL. You need Docker (or Podman) with Compose.
+
+1. Build and start the app and database: `docker compose up --build`
+2. In another terminal, run the migrations: `docker compose run --rm web python manage.py migrate`
+3. Create a superuser: `docker compose run --rm web python manage.py createsuperuser`
+
+The API is then at http://localhost:8000/api/v1/. Settings come from `settings_local.tmpl.py` plus the environment variables read by `docker/env-settings.py`; `compose.yaml` sets local values for them. The front-end assets in `static/` are compiled with gulp and committed, so the image doesn't build them. Gunicorn doesn't serve static files yet, so pages load without styles in the container for now.
+
 ## DEV Package Installation
 
 There are some additional libraries necessary to run some of the management command scripts not meant to be run on a server. For example, the `manage.py generate-career-weights` command uses the `spacy` package and its associated library of words, which can take up around .5GB of space, so we want to avoid installing that on servers.
