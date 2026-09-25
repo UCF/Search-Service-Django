@@ -71,7 +71,7 @@ Episodes Error     : {self.episodes_errors}
         episode = None
         try:
             episode = PodcastEpisode.objects.get(
-                guid=episode_data['id'],
+                guid__iexact=episode_data['id'],
                 show=show
             )
             # Show already exists. Skip!
