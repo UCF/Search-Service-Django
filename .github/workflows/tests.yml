@@ -116,15 +116,19 @@ jobs:
       - name: Build image
         run: docker build -t search-service:ci .
 
-      # Runs the image the way App Service will: migrate, then serve with
-      # gunicorn, and check that the API answers.
+      # Runs the image the way App Service will: migrate, serve with
+      # gunicorn, wait for the health check, then check that the API
+      # answers.
       - name: Migrate and serve
         run: |
           ENV_ARGS="-e SECRET_KEY -e ALLOWED_HOSTS -e DB_ENGINE -e DB_NAME -e DB_USER -e DB_PASSWORD -e DB_HOST -e DB_PORT"
           docker run --rm --network host $ENV_ARGS search-service:ci python manage.py migrate --noinput
           docker run -d --name web --network host $ENV_ARGS search-service:ci
           for attempt in $(seq 1 30); do
-            curl -fsS -o /dev/null http://127.0.0.1:8000/api/v1/programs/ && exit 0
+            if curl -fsS -o /dev/null http://127.0.0.1:8000/healthz; then
+              curl -fsS -o /dev/null http://127.0.0.1:8000/api/v1/programs/ && exit 0
+              break
+            fi
             sleep 1
           done
           docker logs web

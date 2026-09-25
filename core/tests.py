@@ -3,6 +3,7 @@ from unittest import mock
 
 from django.core.cache import cache
 from django.core.management import call_command
+from django.db import DatabaseError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -59,6 +60,20 @@ class CoreSmokeTests(SmokeTestCase):
         for app_label in ['auth', 'authtoken', 'taggit', 'auditlog']:
             with self.subTest(app=app_label):
                 self.assertAdminPagesOK(app_label)
+
+
+class HealthCheckTests(TestCase):
+    def test_healthy(self):
+        response = self.client.get(reverse('healthz'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'ok')
+        self.assertIn('no-cache', response['Cache-Control'])
+
+    def test_database_unavailable(self):
+        with mock.patch('core.views.connection.cursor', side_effect=DatabaseError):
+            with self.assertLogs(level='ERROR'):
+                response = self.client.get(reverse('healthz'))
+        self.assertEqual(response.status_code, 503)
 
 
 class MigrationTests(TestCase):

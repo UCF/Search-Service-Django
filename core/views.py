@@ -9,7 +9,9 @@ from django.utils import timezone
 
 from django.shortcuts import render, resolve_url
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404, HttpRequest
+from django.db import DatabaseError, connection
+from django.http import Http404, HttpRequest, HttpResponse
+from django.views.decorators.cache import never_cache
 from django.views.generic.base import TemplateView
 from django.views.generic import ListView, FormView
 from django.db.models import Q, Count, Max
@@ -625,3 +627,19 @@ class OpenJobListView(APIView):
 
         filtered_jobs = jobs[offset:offset+limit]
         return Response(filtered_jobs, status=status.HTTP_200_OK)
+
+
+@never_cache
+def health_check(request):
+    """
+    For App Service health probes and slot swaps. Returns 200 when the
+    app can query the database, and 503 when it can't.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+    except DatabaseError:
+        logging.exception('Health check could not reach the database.')
+        return HttpResponse('database unavailable', status=503, content_type='text/plain')
+
+    return HttpResponse('ok', content_type='text/plain')
