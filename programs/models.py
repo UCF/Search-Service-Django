@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 from django.db import models
-from django_mysql.models import ListTextField
 import calendar
 import re
 
@@ -71,7 +70,7 @@ class Degree(models.Model):
 
 class CollegeManager(models.Manager):
     def get_by_natural_key(self, short_name):
-        return self.get(short_name=short_name)
+        return self.get(short_name__iexact=short_name)
 
 
 class College(models.Model):
@@ -289,8 +288,8 @@ class ProgramDescriptionTypeManager(models.Manager):
     @property
     def excerpt_description_type(self):
         try:
-            return self.get(name=settings.EXCERPT_DESCRIPTION_TYPE_SOURCE)
-        except ProgramDescription.DoesNotExist:
+            return self.get(name__iexact=settings.EXCERPT_DESCRIPTION_TYPE_SOURCE)
+        except self.model.DoesNotExist:
             return None
 
 
@@ -539,12 +538,7 @@ class Program(models.Model):
         blank=True
     )
     application_deadlines = models.ManyToManyField(ApplicationDeadline, blank=True, related_name='programs')
-    application_requirements = ListTextField(
-        base_field=models.CharField(max_length=255),
-        size=20,  # max number of list items to store
-        null=True,
-        blank=True
-    )
+    application_requirements = models.JSONField(null=True, blank=True)
     active = models.BooleanField(default=True)
     active_comments = models.CharField(max_length=500, null=True, blank=True)
     active_comments_author = models.ForeignKey(
@@ -665,7 +659,7 @@ class Program(models.Model):
 
             if conditions_met == True:
                 try:
-                    profile_type = ProgramProfileType.objects.get(name=rule['value'])
+                    profile_type = ProgramProfileType.objects.get(name__iexact=rule['value'])
                     return profile_type
                 except:
                     continue
@@ -787,7 +781,7 @@ class TuitionOverride(models.Model):
 
     @property
     def program(self):
-        program = Program.objects.filter(plan_code=self.plan_code, subplan_code=self.subplan_code)
+        program = Program.objects.filter(plan_code__iexact=self.plan_code, subplan_code__iexact=self.subplan_code)
 
         if len(program):
             return program[0]
@@ -795,7 +789,7 @@ class TuitionOverride(models.Model):
         return None
 
     def __str__(self):
-        program = Program.objects.filter(plan_code=self.plan_code, subplan_code=self.subplan_code)
+        program = Program.objects.filter(plan_code__iexact=self.plan_code, subplan_code__iexact=self.subplan_code)
 
         if len(program):
             return '{0} Tuition Override'.format(program[0].name)
@@ -824,7 +818,7 @@ class CollegeOverride(models.Model):
 
     @property
     def program(self):
-        program = Program.objects.filter(plan_code=self.plan_code, subplan_code=self.subplan_code)
+        program = Program.objects.filter(plan_code__iexact=self.plan_code, subplan_code__iexact=self.subplan_code)
 
         if len(program):
             return program[0]

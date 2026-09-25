@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework.authtoken',
     'drf_dynamic_fields',
-    'django_mysql',
     'corsheaders',
     'widget_tweaks',
     'django_saml2_auth',
@@ -103,10 +102,6 @@ REST_FRAMEWORK = {
 }
 
 WSGI_APPLICATION = 'wsgi.application'
-
-SILENCED_SYSTEM_CHECKS = [
-    'django_mysql.W002',
-]
 
 LOGIN_REDIRECT_URL = 'home'
 
