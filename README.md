@@ -57,7 +57,7 @@ Each import purges the API paths it changes from Front Door when it finishes. Ad
 
 The container trusts the `X-Forwarded-Proto` and `X-Forwarded-Host` headers set by App Service and Front Door, and marks cookies secure unless `DEBUG` is on.
 
-The front-end assets in `static/` are compiled with gulp and committed, so the image doesn't build them. `collectstatic` runs when the image is built, and WhiteNoise serves everything in `static/` from the container.
+The front-end assets in `static/` are compiled with gulp and committed, so the image doesn't build them. `collectstatic` runs when the image is built, and WhiteNoise serves everything in `static/` from the container. WhiteNoise is on only when `SERVE_STATIC_FILES` is set, which `docker/env-settings.py` does; on the VMs, Apache serves `/static/`.
 
 ## DEV Package Installation
 

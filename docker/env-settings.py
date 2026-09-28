@@ -32,6 +32,10 @@ USE_X_FORWARDED_HOST = True
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
+# Nothing sits in front of the container to serve /static/, so Django
+# serves it through WhiteNoise.
+SERVE_STATIC_FILES = True
+
 # Cache-Control headers for Front Door, from CACHE_CONTROL_TTLS in
 # settings.py.
 CACHE_CONTROL_ENABLED = True

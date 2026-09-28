@@ -1,7 +1,10 @@
+import os
+import tempfile
 from io import StringIO
 from unittest import mock
 
 from django.core.cache import cache
+from django.core.exceptions import MiddlewareNotUsed
 from django.core.management import CommandError, call_command
 from django.core.management.base import BaseCommand
 from django.db import DatabaseError
@@ -11,6 +14,7 @@ from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
 from core.management.purge import PurgeAfterImportMixin
+from core.middleware import StaticFilesMiddleware
 from core.testing import SmokeTestCase
 from core.utils import front_door
 from programs.models import Career, Degree, Level, Program
@@ -130,6 +134,32 @@ class CacheControlTests(SmokeTestCase):
     @override_settings(CACHE_CONTROL_ENABLED=False)
     def test_disabled(self):
         self.assertFalse(self.client.get('/api/v1/programs/').has_header('Cache-Control'))
+
+
+class StaticFilesTests(TestCase):
+    @override_settings(SERVE_STATIC_FILES=False)
+    def test_disabled(self):
+        with self.assertRaises(MiddlewareNotUsed):
+            StaticFilesMiddleware(lambda request: None)
+
+    @override_settings(SERVE_STATIC_FILES=False)
+    def test_disabled_ignores_broken_symlink(self):
+        with tempfile.TemporaryDirectory() as root:
+            os.symlink(os.path.join(root, 'missing.js'), os.path.join(root, 'actions.min.js'))
+
+            with override_settings(STATIC_ROOT=root), self.assertRaises(MiddlewareNotUsed):
+                StaticFilesMiddleware(lambda request: None)
+
+    @override_settings(SERVE_STATIC_FILES=True)
+    def test_enabled(self):
+        with tempfile.TemporaryDirectory() as root:
+            with open(os.path.join(root, 'site.css'), 'w') as f:
+                f.write('body {}')
+
+            with override_settings(STATIC_ROOT=root, STATIC_URL='/static/'):
+                middleware = StaticFilesMiddleware(lambda request: None)
+
+            self.assertIn('/static/site.css', middleware.files)
 
 
 FRONT_DOOR = {

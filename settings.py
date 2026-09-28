@@ -54,9 +54,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Serves STATIC_ROOT in the container. On the VMs, Apache serves
-    # /static/ before requests reach Django.
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # WhiteNoise, which serves STATIC_ROOT in the container. Only on
+    # when SERVE_STATIC_FILES is set.
+    'core.middleware.StaticFilesMiddleware',
     # Above the session and CSRF middleware, so it sees their cookies.
     'core.middleware.CacheControlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -119,6 +119,11 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
     }
 }
+
+# Whether Django serves STATIC_ROOT itself, through WhiteNoise. Only the
+# container turns this on (docker/env-settings.py); on the VMs, Apache
+# serves /static/. See core/middleware.py.
+SERVE_STATIC_FILES = False
 
 # How long Front Door may cache each path, in seconds; the longest
 # matching prefix wins, and 0 means never. Only the container turns this
