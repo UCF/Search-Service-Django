@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from programs.models import *
 
 import logging
@@ -9,7 +10,9 @@ import mimetypes
 from argparse import FileType
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports Occupational codes (SOC) and associates them with Instructional Program codes (CIP)'
 
     socs_data = []

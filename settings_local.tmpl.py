@@ -192,13 +192,14 @@ TANDEMVAULT_ADMIN_API_KEY = ''
 # An API key to use with UCF's Tandem Vault that has UCF Communicator-level user access.
 TANDEMVAULT_COMMUNICATOR_API_KEY = ''
 
-# An AWS Access Key ID with sufficient permissions to access Rekognition.
+# An AWS Access Key ID with sufficient permissions to access Rekognition
+# (image import) and Comprehend (catalog description import).
 AWS_ACCESS_KEY = ''
 
-# An AWS Secret Key for accessing Rekognition.
+# An AWS Secret Key for accessing Rekognition and Comprehend.
 AWS_SECRET_KEY = ''
 
-# The region name to use when accessing Rekognition.
+# The region name to use when accessing Rekognition and Comprehend.
 AWS_REGION = 'us-east-1'
 
 # Conditional outcomes for setting the default program profile

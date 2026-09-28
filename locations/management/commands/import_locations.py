@@ -16,6 +16,7 @@ from decimal import Decimal, InvalidOperation
 import openpyxl
 
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 
 from locations.models import Location
 
@@ -84,7 +85,9 @@ def _parse_coords(value):
     return None, None
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/locations/*']
+
     help = 'Import locations from a bulk-upload Excel (.xlsx) file.'
 
     def add_arguments(self, parser):

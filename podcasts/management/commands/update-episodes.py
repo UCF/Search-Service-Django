@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 from datetime import datetime, timedelta, time
 from typing import Optional
 
@@ -9,7 +10,9 @@ from podcasts.models import (
 
 import feedparser
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/podcasts/*']
+
     help = 'Imports episodes for all registered podcasts'
 
     def handle(self, *args, **options) -> None:

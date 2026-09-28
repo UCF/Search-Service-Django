@@ -54,6 +54,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serves STATIC_ROOT in the container. On the VMs, Apache serves
+    # /static/ before requests reach Django.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # Above the session and CSRF middleware, so it sees their cookies.
+    'core.middleware.CacheControlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -114,6 +119,21 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
     }
 }
+
+# How long Front Door may cache each path, in seconds; the longest
+# matching prefix wins, and 0 means never. Only the container turns this
+# on (docker/env-settings.py). See core/middleware.py.
+CACHE_CONTROL_ENABLED = False
+
+CACHE_CONTROL_TTLS = {
+    '/': 0,
+    '/api/v1/': 60 * 60,
+    '/api/v1/research/': 60 * 60 * 24,
+}
+
+# The Front Door endpoint that `manage.py purge-cache` purges, set by
+# docker/env-settings.py in Azure. None makes purging do nothing.
+FRONT_DOOR = None
 
 try:
     from settings_local import *

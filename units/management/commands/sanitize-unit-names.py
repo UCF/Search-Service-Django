@@ -2,6 +2,7 @@ import csv
 import os
 
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 from django.conf import settings
 
 from units.models import College
@@ -13,7 +14,9 @@ from programs.models import College as ProgramCollege
 from programs.models import Department as ProgramDepartment
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Sanitizes external organization, division, college and department names'
 
     fieldnames = [

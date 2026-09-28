@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from django.db.models import Count
 from django.db.models.functions import Lower
 from progress.bar import ChargingBar
@@ -11,7 +12,9 @@ from programs.models import Department as ProgramDept
 from units.utils import Utilities
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Assigns relationships across various apps for organizations and departments'
 
     full_name_replacements = {}

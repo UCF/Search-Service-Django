@@ -1,8 +1,11 @@
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 
 from podcasts.models import PodcastShow
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/podcasts/*']
+
     help = 'Adds a show from the podcast RSS feed'
 
     def add_arguments(self, parser):
