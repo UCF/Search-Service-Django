@@ -2,6 +2,25 @@ from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
 from django.utils.cache import patch_cache_control
 
+from whitenoise.middleware import WhiteNoiseMiddleware
+
+
+class StaticFilesMiddleware(WhiteNoiseMiddleware):
+    """
+    WhiteNoise, which serves STATIC_ROOT in the container.
+
+    Removed from the middleware chain unless SERVE_STATIC_FILES is set.
+    On the VMs, Apache serves /static/ before requests reach Django, and
+    STATIC_ROOT holds symlinks from `collectstatic -l`. WhiteNoise reads
+    every file there when a worker starts, so one broken link, like those
+    left behind when Django drops an admin file, stops the workers.
+    """
+    def __init__(self, get_response=None):
+        if not settings.SERVE_STATIC_FILES:
+            raise MiddlewareNotUsed
+
+        super().__init__(get_response)
+
 
 class CacheControlMiddleware:
     """
