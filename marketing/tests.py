@@ -24,6 +24,8 @@ class MarketingSmokeTests(SmokeTestCase):
         self.assertResultCount('api.marketing.quotes.list', {'tags': 'research'}, 1)
         self.assertResultCount('api.marketing.quotes.list', {'tags': 'RESEARCH, alumni'}, 1)
         self.assertResultCount('api.marketing.quotes.list', {'tags': 'athletics'}, 0)
+        # A value with no actual tags in it matches nothing, not everything.
+        self.assertResultCount('api.marketing.quotes.list', {'tags': ', ,'}, 0)
 
     def test_admin_pages(self):
         self.assertAdminPagesOK('marketing')

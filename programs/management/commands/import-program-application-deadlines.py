@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from programs.models import *
 from core.utils.filter_utils import any_iexact
 
@@ -13,7 +14,9 @@ import sys
 import re
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = (
         'Imports program application deadlines and admission '
         'information from a Slate instance.'

@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from programs.models import *
 
 from urllib.parse import urlencode
@@ -6,7 +7,9 @@ import requests
 import json
 import re
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports tuition data from Student Accounts'
     mappings = []
     fee_schedules = {}

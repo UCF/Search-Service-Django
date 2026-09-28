@@ -2,6 +2,7 @@ import csv
 import os
 
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 from django.conf import settings
 
 from units.models import College
@@ -13,7 +14,9 @@ from programs.models import College as ProgramCollege
 from programs.models import Department as ProgramDepartment
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Sanitizes external organization, division, college and department names'
 
     fieldnames = [
@@ -122,7 +125,7 @@ class Command(BaseCommand):
             if self.associate_units:
                 for program_mapping in college_data['programs_mapping']:
                     try:
-                        match = ProgramCollege.objects.get(full_name=program_mapping)
+                        match = ProgramCollege.objects.get(full_name__iexact=program_mapping)
                         match.unit_college = college
                         match.save()
 
@@ -169,7 +172,7 @@ class Command(BaseCommand):
             if self.associate_units:
                 for program_mapping in dept_data['programs_mapping']:
                     try:
-                        match = ProgramDepartment.objects.get(full_name=program_mapping)
+                        match = ProgramDepartment.objects.get(full_name__iexact=program_mapping)
                         match.unit_department = dept
                         match.save()
 

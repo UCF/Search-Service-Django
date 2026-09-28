@@ -1,6 +1,7 @@
 import csv
 
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 from argparse import FileType
 
 from units.models import College
@@ -11,7 +12,9 @@ from units.models import JobTitle
 from units.models import Organization
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports a CSV of employees and their associated units.'
 
     fieldnames = [
@@ -90,7 +93,7 @@ class Command(BaseCommand):
 
                 # Get or create the department
                 try:
-                    department = Department.objects.get(ext_department_id=dept_id)
+                    department = Department.objects.get(ext_department_id__iexact=dept_id)
                 except Department.DoesNotExist:
                     department = Department(
                         ext_department_id=dept_id,
@@ -102,7 +105,7 @@ class Command(BaseCommand):
 
                 # Get or create the organization
                 try:
-                    organization = Organization.objects.get(ext_org_id=org_id)
+                    organization = Organization.objects.get(ext_org_id__iexact=org_id)
                 except Organization.DoesNotExist:
                     organization = Organization(
                         ext_org_id=org_id,
@@ -114,7 +117,7 @@ class Command(BaseCommand):
                 # Get or create the division
                 if division_name:
                     try:
-                        division = Division.objects.get(ext_division_name=division_name)
+                        division = Division.objects.get(ext_division_name__iexact=division_name)
                     except Division.DoesNotExist:
                         division = Division(
                             ext_division_name=division_name
@@ -125,7 +128,7 @@ class Command(BaseCommand):
                 # Get or create the college
                 if college_name:
                     try:
-                        college = College.objects.get(ext_college_name=college_name)
+                        college = College.objects.get(ext_college_name__iexact=college_name)
                     except College.DoesNotExist:
                         college = College(
                             ext_college_name=college_name
@@ -135,9 +138,11 @@ class Command(BaseCommand):
 
                 # Get or create the job title
                 if job_code:
-                    try:
-                        job_title = JobTitle.objects.get(ext_job_id=job_code)
-                    except:
+                    # ext_job_id isn't unique, so production may already
+                    # have duplicates. Reuse the first match rather than
+                    # failing or adding another row.
+                    job_title = JobTitle.objects.filter(ext_job_id__iexact=job_code).first()
+                    if job_title is None:
                         job_title = JobTitle(
                             ext_job_id=job_code,
                             ext_job_name=job_name
@@ -148,7 +153,7 @@ class Command(BaseCommand):
                 empl_id = row['Employee ID']
 
                 try:
-                    emp = Employee.objects.get(ext_employee_id=empl_id)
+                    emp = Employee.objects.get(ext_employee_id__iexact=empl_id)
                     emp.full_name = row['Full Name'].strip()
                     emp.first_name = row['First Name'].strip()
                     emp.last_name = row['Last Name'].strip()

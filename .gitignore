@@ -12,6 +12,9 @@ Thumbs.db
 *.log
 .npmrc
 
+# Local docs
+claude_docs/
+
 # IDEs
 .idea
 .project

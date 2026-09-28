@@ -103,6 +103,17 @@ class ProgramsSmokeTests(SmokeTestCase):
             ('api.cip.detail.default_year', {'code': self.cip.code}),
         ])
 
+    def test_missing_excerpt_type_leaves_excerpt_empty(self):
+        # Without the excerpt source type, programs still serialize,
+        # just with an empty excerpt.
+        ProgramDescriptionType.objects.filter(
+            name=settings.EXCERPT_DESCRIPTION_TYPE_SOURCE
+        ).update(name='Renamed')
+
+        response = self.assertGetOK(reverse('api.programs.list'))
+
+        self.assertEqual(response.json()['results'][0]['excerpt'], '')
+
     def test_search_filters_results(self):
         # Guards against filters silently switching off, which a
         # django-filter upgrade can do to views that set `filter_class`.

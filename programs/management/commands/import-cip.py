@@ -1,11 +1,14 @@
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 from programs.models import CIP
 
 import argparse
 import csv
 import settings
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Imports CIPs from the default file provided by NCES'
 
     processed = 0

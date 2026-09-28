@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+.idea
+.vscode
+__pycache__
+*.pyc
+*.sqlite3
+settings_local.py
+node_modules
+media
+dist
+src
+claude_docs
+static/admin
+static/rest_framework

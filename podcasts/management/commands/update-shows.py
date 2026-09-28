@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from core.management.purge import PurgeAfterImportMixin
 from django.core.files import File
 
 from podcasts.models import PodcastShow
@@ -9,7 +10,9 @@ import feedparser
 import requests
 import tempfile
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/podcasts/*']
+
     help = 'Updated show descriptions and images'
 
     HEADERS = {

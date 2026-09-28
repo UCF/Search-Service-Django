@@ -50,8 +50,12 @@ jobs:
           --health-retries 20
 
     env:
+      SECRET_KEY: ci
       DB_ENGINE: ${{ matrix.database.engine }}
+      DB_NAME: search
       DB_USER: ${{ matrix.database.user }}
+      DB_PASSWORD: ci
+      DB_HOST: 127.0.0.1
       DB_PORT: ${{ matrix.database.port }}
 
     steps:
@@ -73,7 +77,66 @@ jobs:
       - name: Configure settings
         run: |
           cp settings_local.tmpl.py settings_local.py
-          cat .github/ci-settings.py >> settings_local.py
+          cat docker/env-settings.py >> settings_local.py
 
       - name: Run tests
         run: uv run --no-sync python manage.py test
+
+  image:
+    name: Container image
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: search
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      SECRET_KEY: ci
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: search
+      DB_USER: postgres
+      DB_PASSWORD: ci
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t search-service:ci .
+
+      # Runs the image the way App Service will: migrate, serve with
+      # gunicorn, wait for the health check, then check that the API
+      # answers.
+      - name: Migrate and serve
+        run: |
+          ENV_ARGS="-e SECRET_KEY -e ALLOWED_HOSTS -e DB_ENGINE -e DB_NAME -e DB_USER -e DB_PASSWORD -e DB_HOST -e DB_PORT"
+          docker run --rm --network host $ENV_ARGS search-service:ci python manage.py migrate --noinput
+          docker run -d --name web --network host $ENV_ARGS search-service:ci
+          for attempt in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://127.0.0.1:8000/healthz; then
+              curl -fsS -o /dev/null http://127.0.0.1:8000/api/v1/programs/ && exit 0
+              break
+            fi
+            sleep 1
+          done
+          docker logs web
+          exit 1
+
+      # WhiteNoise serves both the committed gulp output and what
+      # collectstatic added when the image was built.
+      - name: Static files
+        run: |
+          curl -fsS -o /dev/null http://127.0.0.1:8000/static/css/style.min.css
+          curl -fsS -o /dev/null http://127.0.0.1:8000/static/admin/css/base.css

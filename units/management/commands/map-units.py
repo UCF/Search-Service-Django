@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 from django.db.models import Count
+from django.db.models.functions import Lower
 from progress.bar import ChargingBar
 
 from units.models import *
@@ -10,7 +12,9 @@ from programs.models import Department as ProgramDept
 from units.utils import Utilities
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/*']
+
     help = 'Assigns relationships across various apps for organizations and departments'
 
     full_name_replacements = {}
@@ -57,8 +61,9 @@ class Command(BaseCommand):
         self.map_orgs_colleges()
         self.map_depts_programs()
 
-        # Consolidate duplicate Units as best as we can.
-        self.consolidatable_unit_names = Unit.objects.values('name').annotate(name_count=Count('pk')).filter(name_count=2)
+        # Consolidate duplicate Units as best as we can. Names are
+        # grouped ignoring case, as MySQL's collation always did.
+        self.consolidatable_unit_names = Unit.objects.values(name_lower=Lower('name')).annotate(name_count=Count('pk')).filter(name_count=2)
         self.cleanup_progress_bar = ChargingBar(
             'Cleaning up...',
             max=self.consolidatable_unit_names.count()
@@ -238,8 +243,8 @@ class Command(BaseCommand):
                 # The dupe without a parent must *not* have a College
                 # assigned to it. Higher-level organizations can contain
                 # a College.
-                dupe_with_parent = Unit.objects.get(name=dupe_name['name'], parent_unit__isnull=False)
-                dupe_without_parent = Unit.objects.get(name=dupe_name['name'], parent_unit__isnull=True, college__isnull=True)
+                dupe_with_parent = Unit.objects.get(name__iexact=dupe_name['name_lower'], parent_unit__isnull=False)
+                dupe_without_parent = Unit.objects.get(name__iexact=dupe_name['name_lower'], parent_unit__isnull=True, college__isnull=True)
             except (Unit.DoesNotExist, Unit.MultipleObjectsReturned):
                 continue
 

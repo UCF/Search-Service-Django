@@ -19,6 +19,7 @@ import requests
 
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
+from core.management.purge import PurgeAfterImportMixin
 
 from locations.models import Location
 
@@ -27,7 +28,9 @@ DEFAULT_ENDPOINT = 'https://map.ucf.edu/locations.json'
 IMAGE_BASE_URL = 'https://map.ucf.edu/media/'
 
 
-class Command(BaseCommand):
+class Command(PurgeAfterImportMixin, BaseCommand):
+    purge_paths = ['/api/v1/locations/*']
+
     help = 'Backfill images from the UCF map API by matching on abbreviation.'
 
     def add_arguments(self, parser):

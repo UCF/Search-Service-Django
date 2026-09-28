@@ -289,7 +289,7 @@ class ProgramDescriptionTypeManager(models.Manager):
     def excerpt_description_type(self):
         try:
             return self.get(name__iexact=settings.EXCERPT_DESCRIPTION_TYPE_SOURCE)
-        except ProgramDescription.DoesNotExist:
+        except self.model.DoesNotExist:
             return None
 
 
