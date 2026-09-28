@@ -54,7 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # WhiteNoise, which serves STATIC_ROOT in the container. Only on
+    # WhiteNoise, which serves STATIC_ROOT in the container. Enabled only
     # when SERVE_STATIC_FILES is set.
     'core.middleware.StaticFilesMiddleware',
     # Above the session and CSRF middleware, so it sees their cookies.
