@@ -55,6 +55,8 @@ The API is then at http://localhost:8000/api/v1/. Settings come from `settings_l
 
 Each import purges the API paths it changes from Front Door when it finishes. Add `--no-purge` to skip that, for example when running several imports in a row and purging once at the end with `python manage.py purge-cache '/api/v1/*'`.
 
+To deploy the image to Azure, follow [docs/azure-deployment.md](docs/azure-deployment.md).
+
 The container trusts the `X-Forwarded-Proto` and `X-Forwarded-Host` headers set by App Service and Front Door, and marks cookies secure unless `DEBUG` is on.
 
 The front-end assets in `static/` are compiled with gulp and committed, so the image doesn't build them. `collectstatic` runs when the image is built, and WhiteNoise serves everything in `static/` from the container. WhiteNoise is on only when `SERVE_STATIC_FILES` is set, which `docker/env-settings.py` does; on the VMs, Apache serves `/static/`.
