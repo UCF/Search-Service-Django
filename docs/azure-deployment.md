@@ -8,7 +8,7 @@ The hard part of this deployment is not the container. The image already builds 
 
 This document walks through that from an empty resource group to a working dev site. It assumes you're comfortable with Azure, the `az` CLI and Docker, and that you don't know Python or Django. **You never need to edit a Python file to deploy this app.** Every setting comes from an environment variable, and every Django task runs as a command inside the container. The next section explains the handful of Django ideas you'll run into.
 
-A first build should take most of a day, though that's an estimate. Most of it is waiting on the PostgreSQL server and on IT for networking.
+A first build should take most of a day, though that's an estimate. Most of it is waiting on the PostgreSQL server and on the data load.
 
 ## The Django you need to know
 
@@ -32,7 +32,7 @@ Dev needs six resources in one resource group:
 - **App Service** on a Linux Basic plan runs the image and serves web traffic.
 - **A Container Apps environment** runs the jobs: `migrate`, and the imports.
 
-Front Door, which replaces Varnish as the cache and enforces campus-only access, comes later. The app works without it.
+Front Door, which replaces Varnish as the cache, comes later. The app works without it.
 
 ## Before you start
 
@@ -40,7 +40,7 @@ You need the following in hand before step 1. If any are missing, stop and get t
 
 - **Access.** Contributor on the subscription or resource group, plus the right to assign roles (User Access Administrator or Owner on the resource group). Without role assignments, the identity can't pull the image or read secrets.
 - **Tools.** The `az` CLI (logged in with `az login`, with `az extension add --name containerapp`), Docker or Podman, and a clone of this repository on the branch being deployed. Until `rc-v4.0.0` merges to `master`, that's `rc-v4.0.0`.
-- **Networking from IT.** A virtual network with three subnets: one delegated to `Microsoft.DBforPostgreSQL/flexibleServers` for the database, one delegated to `Microsoft.Web/serverFarms` for App Service, and one delegated to `Microsoft.App/environments` (a /27 or larger) for the jobs. The jobs' subnet must reach the campus services the imports call. That should be the same UCF network the QA and production VMs use today. You also need a way to reach the database from your workstation for step 5, either over VPN or from a jump host in the VNet.
+- **No virtual network.** As far as we know, every service the imports call is on the public internet, so nothing here needs to reach campus. The database sits behind its own firewall instead (step 3), and you don't need anything from IT's networking team.
 - **Values from the VMs.** The credentials in `settings_local.py` on the matching VM (`eduappdev1` for dev, `eduappqaweb1` for QA): the S3 keys and `S3_ENV`, Slate, Kuali, Academic Analytics, the Amazon Comprehend keys, and the MySQL credentials. The appendix lists which variable each value goes into.
 - **A copy of the MySQL database.** See step 5.
 
@@ -62,12 +62,6 @@ APP=app-search-dev
 ACA_ENV=cae-search-dev
 TAG=CHANGE_ME               # set in step 2, e.g. 64e87d3
 IMAGE=$ACR.azurecr.io/search-service:$TAG
-
-# --- Subnet resource IDs from IT
-PG_SUBNET_ID=CHANGE_ME
-PG_DNS_ZONE_ID=CHANGE_ME    # private DNS zone for PostgreSQL, if IT provides one
-WEB_SUBNET_ID=CHANGE_ME
-JOBS_SUBNET_ID=CHANGE_ME
 
 # --- App settings that are not secret, shared by the web app and the jobs
 SETTINGS=(
@@ -153,7 +147,7 @@ The build takes a few minutes and ends with `Run ID: ... was successful`. If it 
 
 ## Step 3: PostgreSQL
 
-**Decide the network mode with IT before you create the server.** Private access (VNet integration) can't be switched to public access, or back, after creation. We recommend private access, which these commands use. Public access with firewall rules is simpler for dev, but it doesn't match where production will land.
+The server uses public access with firewall rules rather than a private virtual network. Nothing in this app needs to reach campus, so a VNet would only add subnets to request and wire up. The firewall admits two kinds of traffic: Azure services, which covers our web app and jobs, and your own IP address, for the data load in step 5. **Every connection still needs the password and TLS.** The trade-off is that "Azure services" means any Azure resource, not just ours, can attempt a connection. That's acceptable for dev and QA. Production should revisit it when its server is created, because a server's network mode can't be changed afterwards.
 
 ```sh
 read -s PG_ADMIN_PASSWORD   # type a strong password; it isn't echoed
@@ -161,10 +155,15 @@ az postgres flexible-server create -g $RG -n $PG -l $LOCATION \
   --version 17 --tier Burstable --sku-name Standard_B1ms \
   --storage-size 32 --storage-auto-grow Enabled --backup-retention 7 \
   --admin-user searchadmin --admin-password "$PG_ADMIN_PASSWORD" \
-  --subnet $PG_SUBNET_ID --private-dns-zone $PG_DNS_ZONE_ID
+  --public-access 0.0.0.0     # 0.0.0.0 means "allow Azure services"
+
+# Let your own machine in, for steps 3 and 5
+MY_IP=$(curl -s https://api.ipify.org)
+az postgres flexible-server firewall-rule create -g $RG --name $PG \
+  --rule-name deployer --start-ip-address $MY_IP --end-ip-address $MY_IP
 ```
 
-The server takes 5 to 15 minutes to create. Keep the admin password. It goes into Key Vault in step 4.
+The server takes 5 to 15 minutes to create. Keep the admin password. It goes into Key Vault in step 4. Once dev is working, delete the `deployer` rule with `az postgres flexible-server firewall-rule delete -g $RG --name $PG --rule-name deployer`.
 
 Leave the server parameters at their defaults. Specifically:
 
@@ -173,7 +172,7 @@ Leave the server parameters at their defaults. Specifically:
 - **Leave the time zone at UTC.** Django stores every time in UTC and converts for display itself.
 - **Connections are not a concern on B1ms.** The web app opens about three connections per instance and the jobs a handful each, which fits well within what Burstable allows. Move up a size only if the server's CPU stays high during imports.
 
-The app connects as its own role, `search_app`, not as the admin. It owns its database, so it can create and change tables during migrations, and nothing more. From a machine that can reach the server, using PostgreSQL's own image so you don't need `psql` installed:
+The app connects as its own role, `search_app`, not as the admin. It owns its database, so it can create and change tables during migrations, and nothing more. From your machine, using PostgreSQL's own image so you don't need `psql` installed:
 
 ```sh
 docker run --rm -it -e PGPASSWORD="$PG_ADMIN_PASSWORD" postgres:17 \
@@ -390,15 +389,14 @@ Create the environment, then the `migrate` job, and run it:
 
 ```sh
 source ~/search-dev.sh
-az containerapp env create -g $RG -n $ACA_ENV -l $LOCATION \
-  --infrastructure-subnet-resource-id $JOBS_SUBNET_ID
+az containerapp env create -g $RG -n $ACA_ENV -l $LOCATION
 
 create_job job-migrate "" migrate
 az containerapp job start -g $RG -n job-migrate
 az containerapp job execution list -g $RG -n job-migrate -o table   # repeat until Succeeded
 ```
 
-The job's output is in the environment's Log Analytics workspace. In the portal, open the job, then **Execution history**, then the execution's logs. After step 5, the output should end with `No migrations to apply.` That is the check that the data we loaded and the image agree. Lines starting `Applying` mean the image is newer than the database, which is fine as long as each line ends in `OK`. An error that mentions connecting to the server means the jobs' subnet can't reach PostgreSQL. Take that to IT.
+The job's output is in the environment's Log Analytics workspace. In the portal, open the job, then **Execution history**, then the execution's logs. After step 5, the output should end with `No migrations to apply.` That is the check that the data we loaded and the image agree. Lines starting `Applying` mean the image is newer than the database, which is fine as long as each line ends in `OK`. An error about connecting to the server usually means the server's firewall is missing its "allow Azure services" rule. Check the server's **Networking** page in the portal.
 
 `--replica-timeout 7200` gives every job two hours. We don't yet know how long our longest import runs in Azure, so that's a deliberate overestimate.
 
@@ -426,20 +424,14 @@ az rest --method PATCH --uri "$(az webapp show -g $RG -n $APP --query id -o tsv)
 az webapp config appsettings set -g $RG -n $APP \
   --settings "${SETTINGS[@]}" "${WEB_SECRETS[@]}" WEBSITES_PORT=8000
 
-# Reach PostgreSQL through the VNet, keep the app warm, and probe /healthz
-az webapp vnet-integration add -g $RG -n $APP --vnet ${WEB_SUBNET_ID%/subnets/*} --subnet $WEB_SUBNET_ID
+# Keep the app warm, and probe /healthz
 az webapp config set -g $RG -n $APP --always-on true \
   --generic-configurations '{"healthCheckPath": "/healthz"}'
 az webapp log config -g $RG -n $APP --docker-container-logging filesystem
 az webapp restart -g $RG -n $APP
 ```
 
-**The `*.azurewebsites.net` address is on the public internet** until Front Door and its campus-only rules exist, and dev now holds a copy of production data and an admin login page. Until Front Door is in place, limit the app to campus addresses. Adding one allow rule denies everything else:
-
-```sh
-az webapp config access-restriction add -g $RG -n $APP --rule-name campus \
-  --action Allow --ip-address CHANGE_ME --priority 100   # UCF's ranges, from IT; repeat per range
-```
+The `*.azurewebsites.net` address is on the public internet, and that's fine. Dev and QA are campus-only today because external DNS was never set up after an earlier migration, not because of any policy. The admin is protected by its login, the same as production's.
 
 In the portal, open the app, then **Settings**, then **Environment variables**. Every Key Vault reference should show a green check. A red one means that secret is missing, or the identity can't read it.
 
@@ -455,14 +447,14 @@ create_job job-map-units "" map-units
 The full list of commands is in the `management/commands/` folders of each app in the repository. Three kinds need different things:
 
 - **Database only:** `process-profiles`, `map-units` and `sanitize-unit-names`. These should work as soon as the job exists.
-- **Campus and vendor services:** `import-programs`, `import-tuition`, `import-profiles`, `import-catalog-descriptions`, `import-program-application-deadlines`, `import-slate-guids`, `acad-analytics-import-researchers`, `orcid-meta-import`, `import_location_images`, and the podcast commands. These need the credentials from step 4 and a network path from the jobs' subnet to each service. A connection timeout in their logs is a networking question for IT, not an app bug.
+- **Outside services:** `import-programs`, `import-tuition`, `import-profiles`, `import-catalog-descriptions`, `import-program-application-deadlines`, `import-slate-guids`, `acad-analytics-import-researchers`, `orcid-meta-import`, `import_location_images`, and the podcast commands. These need the credentials from step 4 and outbound internet access, which jobs have by default. A connection timeout in their logs means the service isn't reachable from Azure. Either it blocks Azure's IP addresses, or it's campus-only after all, which we don't expect. Note which service it is before changing anything.
 - **Files we supply:** `import-cip`, `import-soc`, `import-projection-data`, `import-program-outcome-data`, `import-career-weights`, `import-units` and `import_locations` each read a spreadsheet or data file. We haven't decided how jobs get those files in Azure, so leave these out for now.
 
 Schedules wait until we have an inventory of what runs today and when, which is an open question in the hosting plan. When they come, they're cron expressions in UTC passed as `create_job`'s second argument.
 
 ## Step 9: Check that it works
 
-From a campus address:
+From any machine:
 
 ```sh
 curl -s https://$APP.azurewebsites.net/healthz                         # ok
@@ -505,7 +497,7 @@ The web app's logs are at `az webapp log tail -g $RG -n $APP`. The jobs' logs ar
 - **The container never starts, and the log says it didn't respond on port 80 or 8000.** `WEBSITES_PORT=8000` is missing.
 - **`KeyError: 'SECRET_KEY'`, or another variable name, at startup.** A required setting is missing, or its Key Vault reference didn't resolve. Check the green checks under **Environment variables**.
 - **Image pull fails, or shows `unauthorized`.** The identity is missing `AcrPull`, or `acrUseManagedIdentityCreds` wasn't set. Role assignments can take several minutes to apply.
-- **`/healthz` returns 503.** The app is running but can't reach PostgreSQL. Check the VNet integration, `DB_HOST`, and the `db-password` secret, in that order.
+- **`/healthz` returns 503.** The app is running but can't reach PostgreSQL. Check the server's "allow Azure services" firewall rule, `DB_HOST`, and the `db-password` secret, in that order.
 - **A job stops at exactly two hours.** It hit `--replica-timeout`. Raise it on that job, and note the time it needed. That's data we want.
 - **An import ends with "the Front Door purge failed".** The import itself finished. The `FRONT_DOOR_*` settings are set but the purge didn't work. In dev, without Front Door, leave them unset and purging does nothing.
 
@@ -514,7 +506,8 @@ If none of these fit, stop and record the full log output.
 ## Not in this document
 
 - **Production cutover.** It is blocked. Two open fixes, unordered pagination and case-sensitive `plan_code` filters, would return wrong API results on PostgreSQL, and the `teledata` app has to be removed first. Cutover also needs Front Door, single sign-on on the real hostname, and a maintenance window with imports frozen. It should be run as its own planned event, not as an extension of this one.
-- **Front Door and campus-only access.** These come after dev is running. When they exist, set the `FRONT_DOOR_*` variables so imports purge the cache, and give the identity a role that can purge the endpoint, such as CDN Endpoint Contributor.
+- **Production networking.** Dev and QA trust any Azure service through the database firewall. Whether production should use a private network instead is a decision for when its server is created, since it can't be changed later.
+- **Front Door.** It comes after dev is running. When it exists, set the `FRONT_DOOR_*` variables so imports purge the cache, and give the identity a role that can purge the endpoint, such as CDN Endpoint Contributor.
 - **Single sign-on.** It needs `searchdev.cm.ucf.edu` pointed at Azure, because the identity provider only knows our existing hostnames. Then set `USE_SAML=true`, `SAML_CLIENT_SETTINGS` (production's configuration as JSON, held in Key Vault) and `SAML_ASSERTION_URL`.
 
 ## Appendix: settings reference
