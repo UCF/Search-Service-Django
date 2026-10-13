@@ -35,6 +35,8 @@ from django_saml2_auth.views import (
     is_safe_url,
 )
 
+from core.admin import has_admin_access
+
 
 def _denied_response():
     return HttpResponseRedirect(
@@ -65,10 +67,10 @@ def _resolve_next_url(request):
 
 def signin(request):
     """Initiate SAML auth, carrying the return URL in ``RelayState``."""
-    # The admin sends signed-in users without staff status to its login
-    # page. Starting SAML again would sign them straight back in and
-    # return them to the admin, in a loop, so send them to the dashboard.
-    if request.user.is_authenticated and not request.user.is_staff:
+    # The admin sends signed-in users without access to its login page.
+    # Starting SAML again would sign them straight back in and return
+    # them to the admin, in a loop, so send them to the dashboard.
+    if request.user.is_authenticated and not has_admin_access(request.user):
         return HttpResponseRedirect(reverse("dashboard"))
 
     next_url = _resolve_next_url(request)

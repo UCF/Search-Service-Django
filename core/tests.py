@@ -343,6 +343,14 @@ class SamlSigninTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], reverse('dashboard'))
 
+    def test_superuser_reaches_admin(self):
+        user = User.objects.create_superuser('admin', 'admin@ucf.edu', 'password')
+        user.is_staff = False
+        user.save()
+        self.client.force_login(user)
+        response = self.client.get(reverse('admin:index'))
+        self.assertEqual(response.status_code, 200)
+
     def test_anonymous_user_goes_to_identity_provider(self):
         saml_client = mock.Mock()
         saml_client.prepare_for_authenticate.return_value = (
