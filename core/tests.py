@@ -3,18 +3,21 @@ import tempfile
 from io import StringIO
 from unittest import mock
 
+from django.contrib.auth.models import AnonymousUser, User
 from django.core.cache import cache
 from django.core.exceptions import MiddlewareNotUsed
 from django.core.management import CommandError, call_command
 from django.core.management.base import BaseCommand
 from django.db import DatabaseError
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from rest_framework.authtoken.models import Token
 
 from core.management.purge import PurgeAfterImportMixin
 from core.middleware import StaticFilesMiddleware
+from core.saml_hooks import on_saml_before_login, on_saml_user_create
+from core.saml_views import signin
 from core.testing import SmokeTestCase
 from core.utils import front_door
 from programs.models import Career, Degree, Level, Program
@@ -278,6 +281,88 @@ class PurgeAfterImportTests(TestCase):
         ]:
             with self.subTest(command=name):
                 self.assertIsInstance(load_command_class(app, name), PurgeAfterImportMixin)
+
+
+CLAIMS = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/'
+
+
+@override_settings(SAML2_AUTH={
+    'ATTRIBUTES_MAP': {
+        'email': f'{CLAIMS}emailaddress',
+        'first_name': f'{CLAIMS}givenname',
+        'last_name': f'{CLAIMS}surname',
+    },
+})
+class SamlHookTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('pk123')
+
+    def assertUserDetails(self, first_name, last_name, email):
+        self.user.refresh_from_db()
+        self.assertEqual(
+            (self.user.first_name, self.user.last_name, self.user.email),
+            (first_name, last_name, email)
+        )
+
+    def test_short_names(self):
+        on_saml_user_create(self.user, {
+            'givenName': ['Pat'],
+            'surname': ['Knight'],
+            'emailAddress': ['pat@ucf.edu'],
+        })
+        self.assertUserDetails('Pat', 'Knight', 'pat@ucf.edu')
+
+    def test_claim_uris(self):
+        on_saml_user_create(self.user, {
+            f'{CLAIMS}givenname': ['Pat'],
+            f'{CLAIMS}surname': ['Knight'],
+            f'{CLAIMS}emailaddress': ['pat@ucf.edu'],
+        })
+        self.assertUserDetails('Pat', 'Knight', 'pat@ucf.edu')
+
+    def test_missing_claims_keep_existing_values(self):
+        self.user.first_name = 'Pat'
+        self.user.save()
+        on_saml_before_login(self.user, {'surname': [''], 'emailAddress': ['pat@ucf.edu']})
+        self.assertUserDetails('Pat', '', 'pat@ucf.edu')
+
+
+class SamlSigninTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def signin(self, user):
+        request = self.factory.get('/admin/login/', {'next': '/admin/'})
+        request.user = user
+        request.session = {}
+        return signin(request)
+
+    def test_non_staff_user_goes_to_dashboard(self):
+        user = User.objects.create_user('pk123')
+        response = self.signin(user)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], reverse('dashboard'))
+
+    def test_superuser_reaches_admin(self):
+        user = User.objects.create_superuser('admin', 'admin@ucf.edu', 'password')
+        user.is_staff = False
+        user.save()
+        self.client.force_login(user)
+        response = self.client.get(reverse('admin:index'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_anonymous_user_goes_to_identity_provider(self):
+        saml_client = mock.Mock()
+        saml_client.prepare_for_authenticate.return_value = (
+            None, {'headers': [('Location', 'https://idp.example.com/sso')]}
+        )
+        with mock.patch('core.saml_views._get_saml_client', return_value=saml_client):
+            response = self.signin(AnonymousUser())
+        self.assertEqual(response['Location'], 'https://idp.example.com/sso')
+        self.assertEqual(
+            saml_client.prepare_for_authenticate.call_args.kwargs['relay_state'],
+            '/admin/'
+        )
 
 
 class MigrationTests(TestCase):

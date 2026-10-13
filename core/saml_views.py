@@ -20,6 +20,7 @@ from django.http import (
     HttpResponseRedirect,
     HttpResponseServerError,
 )
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from django_saml2_auth import views as saml
@@ -33,6 +34,8 @@ from django_saml2_auth.views import (
     get_reverse,
     is_safe_url,
 )
+
+from core.admin import has_admin_access
 
 
 def _denied_response():
@@ -64,6 +67,12 @@ def _resolve_next_url(request):
 
 def signin(request):
     """Initiate SAML auth, carrying the return URL in ``RelayState``."""
+    # The admin sends signed-in users without access to its login page.
+    # Starting SAML again would sign them straight back in and return
+    # them to the admin, in a loop, so send them to the dashboard.
+    if request.user.is_authenticated and not has_admin_access(request.user):
+        return HttpResponseRedirect(reverse("dashboard"))
+
     next_url = _resolve_next_url(request)
     if next_url is None:
         return _denied_response()
