@@ -4,7 +4,7 @@
 
 ## What this document is for
 
-The hard part of this deployment is not the container. The image already builds and runs: CI builds it on every pull request, runs it against PostgreSQL, and checks that the API answers. What takes care is everything around it, which is six Azure resources, the settings that tell the app where they are, and moving our data from MySQL into PostgreSQL in the right order.
+The hard part of this deployment is not the container. The image already builds and runs: CI builds it on every pull request, runs it against PostgreSQL, and checks that the API answers. What takes care is everything around it, which is five Azure resources, the settings that tell the app where they are, and moving our data from MySQL into PostgreSQL in the right order.
 
 This document walks through that from an empty resource group to a working dev site. It assumes you're comfortable with Azure, the `az` CLI and Docker, and that you don't know Python or Django. **You never need to edit a Python file to deploy this app.** Every setting comes from an environment variable, and every Django task runs as a command inside the container. The next section explains the handful of Django ideas you'll run into.
 
@@ -23,14 +23,13 @@ A first build should take most of a day, though that's an estimate. Most of it i
 
 ## What we're building
 
-Dev needs six resources in one resource group:
+Dev needs five resources in one resource group:
 
 - **Azure Container Registry** holds the image.
 - **A user-assigned managed identity** pulls the image, reads Key Vault, and later purges Front Door. One identity for everything keeps the role assignments in one place.
 - **Azure Database for PostgreSQL Flexible Server**, version 17, Burstable tier. It replaces the MySQL database on the VMs.
 - **Key Vault** holds the database password, the Django secret key, and the API credentials.
-- **App Service** on a Linux Basic plan runs the image and serves web traffic.
-- **A Container Apps environment** runs the jobs: `migrate`, and the imports.
+- **A Container Apps environment** runs everything from the same image. A container app serves web traffic, and Container Apps Jobs run `migrate` and the imports. The web app and the jobs share one set of settings and secrets, so the configuration is written once.
 
 Front Door, which replaces Varnish as the cache, comes later. The app works without it.
 
@@ -49,19 +48,25 @@ You need the following in hand before step 1. If any are missing, stop and get t
 Every command below uses these variables. Save them in a file **outside the repository**, such as `~/search-dev.sh`, fill in each `CHANGE_ME`, and run `source ~/search-dev.sh` in each new terminal. The file holds names, not secrets. Secrets go straight into Key Vault in step 4.
 
 ```sh
-# --- Names. Registry, Key Vault, PostgreSQL and App Service names must be
-# globally unique; adjust if Azure says a name is taken. Use -qa for QA.
+# --- Names. Registry, Key Vault and PostgreSQL names must be globally
+# unique; adjust if Azure says a name is taken. Use -qa for QA.
 RG=rg-search-dev
 LOCATION=CHANGE_ME          # the region IT uses for the QA and production VMs
 ACR=ucfsearchacr            # lowercase letters and numbers only
 IDENTITY=id-search-dev
 KV=kv-search-dev
 PG=psql-search-dev
-PLAN=asp-search-dev
-APP=app-search-dev
 ACA_ENV=cae-search-dev
+APP=search-dev              # the web app
 TAG=CHANGE_ME               # set in step 2, e.g. 64e87d3
 IMAGE=$ACR.azurecr.io/search-service:$TAG
+
+# --- Looked up from Azure once each resource exists (steps 2 and 6)
+IDENTITY_ID=$(az identity show -g $RG -n $IDENTITY --query id -o tsv 2>/dev/null)
+IDENTITY_CLIENT_ID=$(az identity show -g $RG -n $IDENTITY --query clientId -o tsv 2>/dev/null)
+IDENTITY_PRINCIPAL_ID=$(az identity show -g $RG -n $IDENTITY --query principalId -o tsv 2>/dev/null)
+ENV_DOMAIN=$(az containerapp env show -g $RG -n $ACA_ENV --query properties.defaultDomain -o tsv 2>/dev/null)
+APP_HOST=$APP.$ENV_DOMAIN   # the web app's address
 
 # --- App settings that are not secret, shared by the web app and the jobs
 SETTINGS=(
@@ -70,7 +75,7 @@ SETTINGS=(
   DB_USER=search_app
   DB_HOST=$PG.postgres.database.azure.com
   DB_PORT=5432
-  ALLOWED_HOSTS=$APP.azurewebsites.net,searchdev.cm.ucf.edu
+  ALLOWED_HOSTS=$APP_HOST,searchdev.cm.ucf.edu
   USE_S3=true
   S3_ENV=CHANGE_ME
   AWS_STORAGE_BUCKET_NAME=ucf-search-service
@@ -100,18 +105,14 @@ SECRETS=(
   SENTRY_DSN:sentry-dsn
 )
 
-# --- Looked up from Azure once the identity exists (step 2)
-IDENTITY_ID=$(az identity show -g $RG -n $IDENTITY --query id -o tsv 2>/dev/null)
-IDENTITY_CLIENT_ID=$(az identity show -g $RG -n $IDENTITY --query clientId -o tsv 2>/dev/null)
-IDENTITY_PRINCIPAL_ID=$(az identity show -g $RG -n $IDENTITY --query principalId -o tsv 2>/dev/null)
-
-# --- The secrets in the two forms App Service and Container Apps expect
-WEB_SECRETS=(); JOB_SECRETS=(); JOB_SECRET_ENV=()
+# --- The secrets as Container Apps expects them: each secret is a
+# reference to Key Vault, read with the identity, and each environment
+# variable points at one secret.
+APP_SECRETS=(); SECRET_ENV=()
 for pair in "${SECRETS[@]}"; do
   var=${pair%%:*}; name=${pair#*:}
-  WEB_SECRETS+=("$var=@Microsoft.KeyVault(VaultName=$KV;SecretName=$name)")
-  JOB_SECRETS+=("$name=keyvaultref:https://$KV.vault.azure.net/secrets/$name,identityref:$IDENTITY_ID")
-  JOB_SECRET_ENV+=("$var=secretref:$name")
+  APP_SECRETS+=("$name=keyvaultref:https://$KV.vault.azure.net/secrets/$name,identityref:$IDENTITY_ID")
+  SECRET_ENV+=("$var=secretref:$name")
 done
 
 grep -q CHANGE_ME ~/search-dev.sh && echo "Some CHANGE_ME values are still unset."
@@ -170,7 +171,7 @@ Leave the server parameters at their defaults. Specifically:
 - **No extensions are needed.** The app uses only standard PostgreSQL, so there's nothing to add to `azure.extensions`.
 - **Leave `require_secure_transport` on.** The app's database driver uses TLS automatically when the server offers it, so no setting is needed on our side. We believe this. It hasn't been tested against Azure yet, and step 9 is where it would show up.
 - **Leave the time zone at UTC.** Django stores every time in UTC and converts for display itself.
-- **Connections are not a concern on B1ms.** The web app opens about three connections per instance and the jobs a handful each, which fits well within what Burstable allows. Move up a size only if the server's CPU stays high during imports.
+- **Connections are not a concern on B1ms.** The web app opens about three connections per replica and the jobs a handful each, which fits well within what Burstable allows. Move up a size only if the server's CPU stays high during imports.
 
 The app connects as its own role, `search_app`, not as the admin. It owns its database, so it can create and change tables during migrations, and nothing more. From your machine, using PostgreSQL's own image so you don't need `psql` installed:
 
@@ -360,7 +361,7 @@ docker run --rm -e PGPASSWORD="$DB_PASSWORD" -v "$PWD":/work postgres:17 \
 
 `--single-transaction` makes the restore all or nothing. It prints nothing when it succeeds, and if it fails, the Azure database is left empty and you can retry. Run the row count loop above against Azure if you want a second check. Step 6 checks the result in a different way.
 
-To start dev with an empty database instead of production data, skip all of this. Step 6's `migrate` job builds the empty schema. You'd still need an admin account, which is easiest to create locally against an empty PostgreSQL and restore the same way.
+To start dev with an empty database instead of production data, skip all of this. Step 6's `migrate` job builds the empty schema, and once the web app is running you can create an admin account in it with `az containerapp exec` (see "One-off commands" below).
 
 Delete `~/search-data` when dev is working. It holds a copy of production, including users' email addresses and API keys.
 
@@ -379,8 +380,8 @@ create_job() {
     --parallelism 1 --replica-completion-count 1 --cpu 1 --memory 2Gi \
     --image $IMAGE --registry-server $ACR.azurecr.io --registry-identity $IDENTITY_ID \
     --mi-user-assigned $IDENTITY_ID \
-    --secrets "${JOB_SECRETS[@]}" \
-    --env-vars "${SETTINGS[@]}" "${JOB_SECRET_ENV[@]}" AZURE_CLIENT_ID=$IDENTITY_CLIENT_ID \
+    --secrets "${APP_SECRETS[@]}" \
+    --env-vars "${SETTINGS[@]}" "${SECRET_ENV[@]}" AZURE_CLIENT_ID=$IDENTITY_CLIENT_ID \
     --command python --args manage.py "$@"
 }
 ```
@@ -388,8 +389,9 @@ create_job() {
 Create the environment, then the `migrate` job, and run it:
 
 ```sh
-source ~/search-dev.sh
 az containerapp env create -g $RG -n $ACA_ENV -l $LOCATION
+source ~/search-dev.sh      # picks up the environment's address for ALLOWED_HOSTS
+echo $APP_HOST              # should end in .azurecontainerapps.io
 
 create_job job-migrate "" migrate
 az containerapp job start -g $RG -n job-migrate
@@ -406,34 +408,25 @@ With migrations done, the database is ready for the web app.
 
 ## Step 7: The web app
 
+The web app is a container app in the same environment, with the same image, settings and secrets as the jobs. The differences are that it keeps running, and that it accepts traffic from the internet on gunicorn's port:
+
 ```sh
-az appservice plan create -g $RG -n $PLAN -l $LOCATION --is-linux --sku B1
-
-az webapp create -g $RG -p $PLAN -n $APP \
-  --container-image-name $IMAGE --assign-identity $IDENTITY_ID
-
-# Pull the image with the identity, not a password
-az webapp config set -g $RG -n $APP --generic-configurations \
-  "{\"acrUseManagedIdentityCreds\": true, \"acrUserManagedIdentityID\": \"$IDENTITY_CLIENT_ID\"}"
-
-# Read Key Vault with the same identity
-az rest --method PATCH --uri "$(az webapp show -g $RG -n $APP --query id -o tsv)?api-version=2022-03-01" \
-  --body "{\"properties\": {\"keyVaultReferenceIdentity\": \"$IDENTITY_ID\"}}"
-
-# Settings, secrets, and the port gunicorn listens on
-az webapp config appsettings set -g $RG -n $APP \
-  --settings "${SETTINGS[@]}" "${WEB_SECRETS[@]}" WEBSITES_PORT=8000
-
-# Keep the app warm, and probe /healthz
-az webapp config set -g $RG -n $APP --always-on true \
-  --generic-configurations '{"healthCheckPath": "/healthz"}'
-az webapp log config -g $RG -n $APP --docker-container-logging filesystem
-az webapp restart -g $RG -n $APP
+az containerapp create -g $RG -n $APP --environment $ACA_ENV \
+  --image $IMAGE --registry-server $ACR.azurecr.io --registry-identity $IDENTITY_ID \
+  --user-assigned $IDENTITY_ID \
+  --ingress external --target-port 8000 \
+  --cpu 0.5 --memory 1Gi --min-replicas 0 --max-replicas 2 \
+  --secrets "${APP_SECRETS[@]}" \
+  --env-vars "${SETTINGS[@]}" "${SECRET_ENV[@]}"
 ```
 
-The `*.azurewebsites.net` address is on the public internet, and that's fine. Dev and QA are campus-only today because external DNS was never set up after an earlier migration, not because of any policy. The admin is protected by its login, the same as production's.
+If a Key Vault secret is missing, or the identity can't read it, the command fails or the app never starts, and the error names the secret. Fix it and run the same command again.
 
-In the portal, open the app, then **Settings**, then **Environment variables**. Every Key Vault reference should show a green check. A red one means that secret is missing, or the identity can't read it.
+**Dev scales to zero.** With `--min-replicas 0`, nothing runs while nobody is using the site, and we pay almost nothing. The cost is that the first request after a quiet stretch waits while a container starts. We haven't measured how long that takes; we expect seconds, not minutes. QA should use `--min-replicas 1` so content editors don't hit that wait, and production should run at least two.
+
+The address is `https://$APP_HOST`, on the public internet, and that's fine. Dev and QA are campus-only today because external DNS was never set up after an earlier migration, not because of any policy. The admin is protected by its login, the same as production's. Container Apps provides the HTTPS certificate for that address and redirects plain HTTP to it.
+
+Container Apps checks that the container is alive by connecting to port 8000, which is enough for dev. Our `/healthz` endpoint goes further and checks the database too. Switching the probe to `/healthz` needs a `Host` header that's in `ALLOWED_HOSTS`, since Django rejects any other hostname. That's a change to make before production, in the portal under the app's **Containers**, then **Health probes**.
 
 ## Step 8: Import jobs
 
@@ -457,12 +450,12 @@ Schedules wait until we have an inventory of what runs today and when, which is 
 From any machine:
 
 ```sh
-curl -s https://$APP.azurewebsites.net/healthz                         # ok
-curl -s "https://$APP.azurewebsites.net/api/v1/programs/?limit=1" | head -c 300
-curl -sI https://$APP.azurewebsites.net/static/css/style.min.css | head -1   # 200
+curl -s https://$APP_HOST/healthz                         # ok
+curl -s "https://$APP_HOST/api/v1/programs/?limit=1" | head -c 300
+curl -sI https://$APP_HOST/static/css/style.min.css | head -1   # 200
 ```
 
-`/healthz` returns `ok` when the app can query the database, and `503` with `database unavailable` when it can't. Then sign in at `https://$APP.azurewebsites.net/manager/login/` with the superuser from step 5, and open a program in the admin. Finally, run `job-map-units` and check that its execution succeeds. That proves the jobs can write to the database.
+The first request may take a few seconds while dev scales up from zero. `/healthz` returns `ok` when the app can query the database, and `503` with `database unavailable` when it can't. Then sign in at `https://$APP_HOST/manager/login/` with the superuser from step 5, and open a program in the admin. Finally, run `job-map-units` and check that its execution succeeds. That proves the jobs can write to the database.
 
 When all four checks pass, dev is up. Tell the team the address.
 
@@ -479,7 +472,7 @@ az containerapp job update -g $RG -n job-migrate --image $IMAGE
 az containerapp job start -g $RG -n job-migrate
 
 # 3. Point the web app at it
-az webapp config container set -g $RG -n $APP --container-image-name $IMAGE
+az containerapp update -g $RG -n $APP --image $IMAGE
 
 # 4. Point each import job at it
 az containerapp job update -g $RG -n job-import-programs --image $IMAGE
@@ -487,16 +480,29 @@ az containerapp job update -g $RG -n job-import-programs --image $IMAGE
 
 Don't update the jobs while an import is running. Wait for it to finish.
 
-Between steps 2 and 3, the old code runs against the new schema for a minute or two. That's fine, because we write migrations that work with the previous release's code. If a release's notes say a migration can't do that, take the site offline for the release rather than deploying it this way. Dev has no deployment slots, so it always updates in place. The GitHub Actions workflow that will do all of this automatically (task 19 in the upgrade plan) hasn't been built yet.
+Updating the web app starts a new revision, which is Container Apps' word for a running version. The old revision keeps serving until the new one is up, then traffic moves over. There are no slots to swap. To roll back, run step 3 with the previous tag. That doesn't undo the migration from step 2, which is why we write migrations that work with the previous release's code. If a release's notes say a migration can't do that, take the site offline for the release rather than deploying it this way. The GitHub Actions workflow that will do all of this automatically (task 19 in the upgrade plan) hasn't been built yet.
+
+To change a setting without a new image, use `az containerapp update -g $RG -n $APP --set-env-vars NAME=value`, and the same with `az containerapp job update` for each job. The settings in `~/search-dev.sh` only apply when something is created, so update the file too.
+
+### One-off commands
+
+For a quick command that isn't worth a job, such as creating an admin account, open a shell in the running web app:
+
+```sh
+curl -s https://$APP_HOST/healthz    # wakes dev up if it has scaled to zero
+az containerapp exec -g $RG -n $APP --command "python manage.py createsuperuser"
+```
+
+Anything that runs longer than a minute or two belongs in a job instead. The web app's containers can be replaced at any time.
 
 ## When something goes wrong
 
-The web app's logs are at `az webapp log tail -g $RG -n $APP`. The jobs' logs are under each job's execution history in the portal.
+The web app's logs are at `az containerapp logs show -g $RG -n $APP --follow`. Add `--type system` to see Azure's side, such as image pulls and containers failing to start. The jobs' logs are under each job's execution history in the portal.
 
-- **Every page returns 400 Bad Request.** The hostname isn't in `ALLOWED_HOSTS`. The log shows `DisallowedHost` with the hostname to add. Add it to `ALLOWED_HOSTS` in step 1, then rerun the `appsettings set` command. If the health check is what's failing this way, add the hostname it uses. We haven't yet confirmed what `Host` header App Service's probe sends.
-- **The container never starts, and the log says it didn't respond on port 80 or 8000.** `WEBSITES_PORT=8000` is missing.
-- **`KeyError: 'SECRET_KEY'`, or another variable name, at startup.** A required setting is missing, or its Key Vault reference didn't resolve. Check the green checks under **Environment variables**.
-- **Image pull fails, or shows `unauthorized`.** The identity is missing `AcrPull`, or `acrUseManagedIdentityCreds` wasn't set. Role assignments can take several minutes to apply.
+- **Every page returns 400 Bad Request.** The hostname isn't in `ALLOWED_HOSTS`. The log shows `DisallowedHost` with the hostname to add. Add it to `ALLOWED_HOSTS` with `--set-env-vars` (see "Deploying a new version") and in `~/search-dev.sh`. An empty `APP_HOST` at the start of the list means `~/search-dev.sh` was sourced before the environment existed.
+- **The app never becomes ready, and the system log shows the port check failing.** The target port isn't 8000. Fix it with `az containerapp ingress update -g $RG -n $APP --target-port 8000`.
+- **`KeyError: 'SECRET_KEY'`, or another variable name, at startup.** A required setting is missing. Compare the app's **Environment variables** in the portal with `SETTINGS` and `SECRETS`.
+- **Image pull fails, or shows `unauthorized`.** The identity is missing `AcrPull`, or the app wasn't created with `--registry-identity`. Role assignments can take several minutes to apply.
 - **`/healthz` returns 503.** The app is running but can't reach PostgreSQL. Check the server's "allow Azure services" firewall rule, `DB_HOST`, and the `db-password` secret, in that order.
 - **A job stops at exactly two hours.** It hit `--replica-timeout`. Raise it on that job, and note the time it needed. That's data we want.
 - **An import ends with "the Front Door purge failed".** The import itself finished. The `FRONT_DOOR_*` settings are set but the purge didn't work. In dev, without Front Door, leave them unset and purging does nothing.
@@ -532,4 +538,3 @@ If none of these fit, stop and record the full log output.
 | `USE_SAML`, `SAML_CLIENT_SETTINGS`, `SAML_ASSERTION_URL` | settings yes | Single sign-on. Off until the hostname moves. |
 | `FRONT_DOOR_SUBSCRIPTION_ID`, `_RESOURCE_GROUP`, `_PROFILE`, `_ENDPOINT`, `_DOMAINS` | | The endpoint imports purge. Unset means no purge. |
 | `AZURE_CLIENT_ID` | | The identity's client ID, so the jobs purge as it. `create_job` sets it. |
-| `WEBSITES_PORT` | | App Service only. Always `8000`. |
