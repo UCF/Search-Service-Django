@@ -3,7 +3,7 @@ Purges paths from the Azure Front Door cache, so an import's changes
 appear without waiting out the TTLs in CACHE_CONTROL_TTLS.
 
 Authenticates as the container's managed identity, through the token
-endpoint Container Apps provides in IDENTITY_ENDPOINT
+endpoint that Container Apps provides in IDENTITY_ENDPOINT
 and IDENTITY_HEADER. The identity needs permission to purge the Front
 Door endpoint, such as the CDN Endpoint Contributor role.
 """

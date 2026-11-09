@@ -27,7 +27,7 @@ Dev needs five resources in one resource group:
 
 - **Azure Container Registry** holds the image.
 - **A user-assigned managed identity** pulls the image, reads Key Vault, and later purges Front Door. One identity for everything keeps the role assignments in one place.
-- **Azure Database for PostgreSQL Flexible Server**, version 17, Burstable tier. It replaces the MySQL database on the VMs.
+- **Azure Database for PostgreSQL Flexible Server**, version 18, Burstable tier. It replaces the MySQL database on the VMs.
 - **Key Vault** holds the database password, the Django secret key, and the API credentials.
 - **A Container Apps environment** runs everything from the same image. A container app serves web traffic, and Container Apps Jobs run `migrate` and the imports. The web app and the jobs share one set of settings and secrets, so the configuration is written once.
 
