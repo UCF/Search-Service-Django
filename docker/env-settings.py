@@ -25,7 +25,7 @@ ALLOWED_HOSTS = [
     host.strip() for host in os.environ.get('ALLOWED_HOSTS', '').split(',') if host.strip()
 ]
 
-# In Azure, App Service and Front Door terminate HTTPS and forward the
+# In Azure, Container Apps and Front Door terminate HTTPS and forward the
 # request. These make Django use the scheme and host the visitor used.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True

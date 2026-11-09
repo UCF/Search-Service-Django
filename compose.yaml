@@ -3,13 +3,16 @@
 
 services:
   db:
-    image: postgres:17
+    image: postgres:18
     environment:
       POSTGRES_DB: search
       POSTGRES_USER: search
       POSTGRES_PASSWORD: search
+    # The 18 image keeps its data in a versioned folder under
+    # /var/lib/postgresql and refuses a volume at .../data. The volume
+    # name changed with it, so an old PostgreSQL 17 volume isn't reused.
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data-18:/var/lib/postgresql
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "search"]
       interval: 5s
@@ -34,4 +37,4 @@ services:
         condition: service_healthy
 
 volumes:
-  db-data:
+  db-data-18:
