@@ -26,8 +26,8 @@ jobs:
             port: 3306
             health: mysqladmin ping -h 127.0.0.1 -pci
           # Production after the move to Azure
-          - name: PostgreSQL 17
-            image: postgres:17
+          - name: PostgreSQL 18
+            image: postgres:18
             engine: django.db.backends.postgresql
             user: postgres
             port: 5432
@@ -88,7 +88,7 @@ jobs:
 
     services:
       db:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: ci
           POSTGRES_DB: search

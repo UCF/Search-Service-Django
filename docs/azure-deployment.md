@@ -152,7 +152,7 @@ The server uses public access with firewall rules rather than a private virtual 
 ```sh
 read -s PG_ADMIN_PASSWORD   # type a strong password; it isn't echoed
 az postgres flexible-server create -g $RG -n $PG -l $LOCATION \
-  --version 17 --tier Burstable --sku-name Standard_B1ms \
+  --version 18 --tier Burstable --sku-name Standard_B1ms \
   --storage-size 32 --storage-auto-grow Enabled --backup-retention 7 \
   --admin-user searchadmin --admin-password "$PG_ADMIN_PASSWORD" \
   --public-access 0.0.0.0     # 0.0.0.0 means "allow Azure services"
@@ -175,7 +175,7 @@ Leave the server parameters at their defaults. Specifically:
 The app connects as its own role, `search_app`, not as the admin. It owns its database, so it can create and change tables during migrations, and nothing more. From your machine, using PostgreSQL's own image so you don't need `psql` installed:
 
 ```sh
-docker run --rm -it -e PGPASSWORD="$PG_ADMIN_PASSWORD" postgres:17 \
+docker run --rm -it -e PGPASSWORD="$PG_ADMIN_PASSWORD" postgres:18 \
   psql "host=$PG.postgres.database.azure.com dbname=postgres user=searchadmin sslmode=require"
 ```
 
@@ -226,15 +226,15 @@ A name that's in `SECRETS` but not in that list will break step 6 or step 7. Eit
 
 The challenge here is not copying rows. It is that the two databases describe the same tables differently, and that production is behind the code we're deploying. Production's MySQL is four migrations behind the image. One of those migrations converts a column to JSON, so the data has to be brought current before it moves.
 
-We tested this procedure on September 25 against a copy of production. Every table arrived with matching row counts, and it took a few minutes of machine time. It runs entirely on your workstation in local containers, and then copies the finished PostgreSQL database into Azure:
+We tested this procedure on September 25 against a copy of production on PostgreSQL 17, and again on November 9 on PostgreSQL 18.6, the version Azure runs. Both times every table arrived with matching row counts, and it took a few minutes of machine time. It runs entirely on your workstation in local containers, and then copies the finished PostgreSQL database into Azure:
 
 1. Restore the MySQL copy into a local MySQL 5.7 container, and run the image's migrations against it to bring it current.
-2. Create the schema in a local PostgreSQL 17 container by running the image's migrations there.
+2. Create the schema in a local PostgreSQL 18 container by running the image's migrations there.
 3. Copy the data from MySQL to PostgreSQL with pgloader.
 4. Check the result.
 5. Dump the local PostgreSQL database and restore it into Azure.
 
-Steps 1 to 4 are exactly what we rehearsed. **Step 5, the copy into Azure, has not been tested yet.** If it fails, the database in Azure is still empty and can simply be retried.
+All five steps have been rehearsed. Step 5 was tested against a local database set up the way Azure's is, with an admin that isn't a superuser, but not yet against Azure itself. If it fails there, the database in Azure is still empty and can simply be retried.
 
 Work in a folder outside the repository, such as `~/search-data`.
 
@@ -256,7 +256,7 @@ docker network create pl
 docker run -d --name pl-mysql --network pl --platform linux/amd64 \
   -e MYSQL_ROOT_PASSWORD=local -e MYSQL_DATABASE=searchservice mysql:5.7
 docker run -d --name pl-pg --network pl \
-  -e POSTGRES_PASSWORD=local -e POSTGRES_DB=searchservice postgres:17
+  -e POSTGRES_PASSWORD=local -e POSTGRES_DB=searchservice postgres:18
 
 # Wait about 30 seconds for MySQL to start, then load the copy (a few minutes).
 docker exec -i pl-mysql mysql -uroot -plocal --default-character-set=utf8mb4 \
@@ -352,7 +352,7 @@ Don't do this for a production load.
 docker exec pl-pg pg_dump -U postgres -Fc --no-owner --no-acl searchservice > searchservice.dump
 
 read -s DB_PASSWORD         # the search_app password
-docker run --rm -e PGPASSWORD="$DB_PASSWORD" -v "$PWD":/work postgres:17 \
+docker run --rm -e PGPASSWORD="$DB_PASSWORD" -v "$PWD":/work postgres:18 \
   pg_restore --no-owner --no-acl --single-transaction \
   -d "host=$PG.postgres.database.azure.com dbname=searchservice user=search_app sslmode=require" \
   /work/searchservice.dump
@@ -446,7 +446,7 @@ create_job job-map-units "" map-units
 
 The full list of commands is in the `management/commands/` folders of each app in the repository. Three kinds need different things:
 
-- **Database only:** `process-profiles`, `map-units` and `sanitize-unit-names`. These should work as soon as the job exists.
+- **Database only:** `process-profiles`, `map-units` and `sanitize-unit-names`. These should work as soon as the job exists, with one known exception. `map-units` can fail on PostgreSQL with `MultipleObjectsReturned`, or give different results from run to run, until the fix for unordered queries (task 15 in the upgrade plan) merges. A failure there is that bug, not a deployment problem.
 - **Outside services:** `import-programs`, `import-tuition`, `import-profiles`, `import-catalog-descriptions`, `import-program-application-deadlines`, `import-slate-guids`, `acad-analytics-import-researchers`, `orcid-meta-import`, `import_location_images`, and the podcast commands. These need the credentials from step 4 and outbound internet access, which jobs have by default. A connection timeout in their logs means the service isn't reachable from Azure. Either it blocks Azure's IP addresses, or it's campus-only after all, which we don't expect. Note which service it is before changing anything.
 - **Files we supply:** `import-cip`, `import-soc`, `import-projection-data`, `import-program-outcome-data`, `import-career-weights`, `import-units` and `import_locations` each read a spreadsheet or data file. We haven't decided how jobs get those files in Azure, so leave these out for now.
 
@@ -462,7 +462,7 @@ curl -s "https://$APP.azurewebsites.net/api/v1/programs/?limit=1" | head -c 300
 curl -sI https://$APP.azurewebsites.net/static/css/style.min.css | head -1   # 200
 ```
 
-`/healthz` returns `ok` when the app can query the database, and `503` with `database unavailable` when it can't. Then sign in at `https://$APP.azurewebsites.net/manager/login/` with the superuser from step 5, and open a program in the admin. Finally, run `job-map-units` and check that its execution succeeds. That proves the jobs can write to the database.
+The first request may take a few seconds while dev scales up from zero. `/healthz` returns `ok` when the app can query the database, and `503` with `database unavailable` when it can't. Then sign in at `https://$APP_HOST/manager/login/` with the superuser from step 5, and open a program in the admin. Finally, create a `job-process-profiles` job (`create_job job-process-profiles "" process-profiles`), run it, and check that its execution succeeds. That proves the jobs can write to the database.
 
 When all four checks pass, dev is up. Tell the team the address.
 
