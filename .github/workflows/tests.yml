@@ -116,7 +116,7 @@ jobs:
       - name: Build image
         run: docker build -t search-service:ci .
 
-      # Runs the image the way App Service will: migrate, serve with
+      # Runs the image the way Container Apps will: migrate, serve with
       # gunicorn, wait for the health check, then check that the API
       # answers.
       - name: Migrate and serve

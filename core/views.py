@@ -632,7 +632,7 @@ class OpenJobListView(APIView):
 @never_cache
 def health_check(request):
     """
-    For App Service health probes and slot swaps. Returns 200 when the
+    For Container Apps health probes and release checks. Returns 200 when the
     app can query the database, and 503 when it can't.
     """
     try:
