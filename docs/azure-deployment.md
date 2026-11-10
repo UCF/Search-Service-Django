@@ -28,7 +28,7 @@ The resources live in two resource groups. IT built the shared infrastructure, a
 **Infrastructure, `UCFG-USE2-NET-UBMMOONSHOTINFRA-001-RGP`.** IT provisioned and owns these, and other apps may share them:
 
 - **The container registry**, `ucfguse2ubmmoonshotinfracr01`, Premium tier, which holds the image.
-- **The Container Apps environment**, `ucfg-use2-net-ubmmoonshotinfra-cae-001`, on a subnet of IT's virtual network. Our web app and jobs run inside it.
+- **The Container Apps environment**, `ucfg-use2-net-ubmmoonshotinfra-cae-001`, on a subnet of IT's virtual network. The web app and jobs we create in steps 6–8 run inside it, though they belong to our resource group.
 - **A Front Door profile**, `UCFG-USE2-NET-UBMMOONSHOTINFRA-FDP-001`, staged with no endpoints yet.
 - **A Log Analytics workspace**, `UCFG-USE2-NET-UBMMOONSHOTINFRA-LAW-001`, where the environment's logs should go.
 - **An App Service plan**, which we don't use. It's for other teams' apps.
