@@ -3,6 +3,7 @@ from unittest import mock
 
 from django.conf import settings
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.test import TestCase, TransactionTestCase
@@ -228,3 +229,102 @@ class CaseInsensitiveLookupTests(TestCase):
         override = TuitionOverride.objects.create(tuition_code='UGRD', plan_code='biol-bs')
 
         self.assertEqual(override.program, self.program)
+
+
+class ProgramImportWhitespaceTests(TestCase):
+    """
+    Plan and subplan codes that differ only by surrounding whitespace
+    are the same program. On MySQL the importer's lookup missed a
+    stored 'AIHCERT ', created a duplicate parent, then failed on the
+    unique index inserting the subplan.
+    """
+    def setUp(self):
+        level = Level.objects.create(name='Certificate')
+        career = Career.objects.create(name='Graduate', abbr='GRAD')
+        degree = Degree.objects.create(name='CRT')
+
+        self.parent = Program.objects.create(
+            name='AI in Health Graduate Certificate',
+            plan_code='AIHCERT ',
+            level=level,
+            career=career,
+            degree=degree,
+        )
+        self.subplan = Program.objects.create(
+            name='AI in Health Certificate - Online',
+            plan_code='AIHCERT ',
+            subplan_code='ZAIHCERT',
+            parent_program=self.parent,
+            level=level,
+            career=career,
+            degree=degree,
+        )
+
+    def feed_record(self, plan_code='AIHCERT', subplan_code='ZAIHCERT'):
+        meta = {
+            'TermStart': '', 'Degree': 'CRT', 'Status': 'A', 'UCFOnline': 0,
+        }
+        return {
+            'Plan': plan_code,
+            'PlanName': 'Artificial Intelligence (AI) in Health Graduate Certificate',
+            'CollegeShort': 'CON',
+            'College_Full': 'College of Nursing',
+            'Dept_Full': 'Nursing Systems',
+            'Career': 'GRAD',
+            'Level': 'Certificate',
+            'CIP': '51.3808',
+            'Meta Data': [meta],
+            'Active Locations': [],
+            'SubPlans': [{
+                'Subplan': subplan_code,
+                'Subplan_Name': 'Artificial Intelligence (AI) in Health Certificate - Online',
+                'Meta Data': [dict(meta, UCFOnline=1)],
+                'Active Locations': ['ONLINE'],
+            }],
+        }
+
+    def run_import(self, record):
+        response = mock.Mock(status_code=200, json=mock.Mock(return_value=[record]))
+        with mock.patch('requests.get', return_value=response):
+            call_command(
+                'import-programs',
+                'https://apim.example.edu/v1/main',
+                stdout=StringIO(),
+                stderr=StringIO(),
+            )
+
+    def assert_matched_existing(self):
+        parents = Program.objects.filter(plan_code__icontains='AIHCERT', subplan_code__isnull=True)
+        subplans = Program.objects.filter(plan_code__icontains='AIHCERT', subplan_code__isnull=False)
+
+        self.assertEqual(list(parents.values_list('pk', flat=True)), [self.parent.pk])
+        self.assertEqual(list(subplans.values_list('pk', flat=True)), [self.subplan.pk])
+
+        # The stored codes are cleaned up on the way through
+        self.assertEqual(parents.get().plan_code, 'AIHCERT')
+        self.assertEqual(subplans.get().plan_code, 'AIHCERT')
+        self.assertEqual(subplans.get().subplan_code, 'ZAIHCERT')
+
+    def test_import_matches_stored_code_with_trailing_space(self):
+        self.run_import(self.feed_record())
+
+        self.assert_matched_existing()
+
+    def test_import_matches_feed_code_with_trailing_space(self):
+        Program.objects.filter(plan_code='AIHCERT ').update(plan_code='AIHCERT')
+
+        self.run_import(self.feed_record(plan_code='AIHCERT  ', subplan_code=' ZAIHCERT'))
+
+        self.assert_matched_existing()
+
+    def test_import_stops_on_existing_duplicate_parents(self):
+        Program.objects.create(
+            name='Duplicate',
+            plan_code='AIHCERT',
+            level=self.parent.level,
+            career=self.parent.career,
+            degree=self.parent.degree,
+        )
+
+        with self.assertRaisesMessage(CommandError, 'Found more than one program for AIHCERT'):
+            self.run_import(self.feed_record())

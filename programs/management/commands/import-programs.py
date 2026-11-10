@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from core.management.purge import PurgeAfterImportMixin
 from django.utils import timezone
 from django.conf import settings
+from django.db.models.functions import Lower, Trim
 from programs.models import *
 
 import requests
@@ -112,11 +113,15 @@ class Command(PurgeAfterImportMixin, BaseCommand):
 
             # Create/update programs from feed data
             for d in data:
+                d['Plan'] = self.clean_code(d['Plan'])
+
                 if self.program_is_valid(d):
                     program = self.add_program(d)
 
                     if len(d['SubPlans']) > 0:
                         for sp in d['SubPlans']:
+                            sp['Subplan'] = self.clean_code(sp['Subplan'])
+
                             if self.subplan_is_valid(sp):
                                 self.add_subplan(sp, program)
                             else:
@@ -163,6 +168,45 @@ class Command(PurgeAfterImportMixin, BaseCommand):
                 f"There was an error writing the Import Record: {e}"
             ))
 
+
+    def clean_code(self, code):
+        """
+        Strips surrounding whitespace from a plan or subplan code.
+        """
+        return code.strip() if isinstance(code, str) else code
+
+    def find_program(self, plan_code, subplan_code=None):
+        """
+        Returns the program with these codes, or None. Stored codes
+        are compared without regard to case or surrounding whitespace.
+
+        A plain iexact lookup isn't enough: on MySQL it becomes LIKE,
+        which counts trailing spaces, while the unique index on
+        (plan_code, subplan_code) ignores them. A stored 'AIHCERT '
+        was missed by the lookup, so the import created a duplicate
+        parent and then failed inserting its subplan.
+        """
+        programs = Program.objects.annotate(
+            normalized_plan=Lower(Trim('plan_code')),
+            normalized_subplan=Lower(Trim('subplan_code')),
+        ).filter(normalized_plan=plan_code.lower())
+
+        if subplan_code is None:
+            programs = programs.filter(subplan_code__isnull=True)
+        else:
+            programs = programs.filter(normalized_subplan=subplan_code.lower())
+
+        matches = list(programs)
+
+        if len(matches) > 1:
+            codes = ' / '.join(c for c in (plan_code, subplan_code) if c)
+            ids = ', '.join(str(p.pk) for p in matches)
+            raise CommandError(
+                f'Found more than one program for {codes} (ids {ids}).'
+                ' Remove the duplicates before importing.'
+            )
+
+        return matches[0] if matches else None
 
     def program_is_valid(self, data):
         """
@@ -271,12 +315,15 @@ class Command(PurgeAfterImportMixin, BaseCommand):
         # Correct college name issue
         data['College_Full'] = self.common_replace(data['College_Full'])
 
-        try:
-            program = Program.objects.get(plan_code__iexact=data['Plan'], subplan_code__isnull=True)
+        program = self.find_program(data['Plan'])
+
+        if program:
             program.name = unidecode(data['PlanName'])
+            # Replaces any stored code that differs only by whitespace or case
+            program.plan_code = data['Plan']
             self.programs_updated += 1
             program_exists = True
-        except Program.DoesNotExist:
+        else:
             program = Program(
                 name=unidecode(data['PlanName']),
                 plan_code=data['Plan']
@@ -455,16 +502,16 @@ class Command(PurgeAfterImportMixin, BaseCommand):
         self.programs_processed += 1
         program_exists = False
 
-        try:
-            program = Program.objects.get(
-                plan_code__iexact=parent.plan_code,
-                subplan_code__iexact=data['Subplan']
-            )
+        program = self.find_program(parent.plan_code, data['Subplan'])
 
+        if program:
             program.name = unidecode(data['Subplan_Name'])
+            # Replaces any stored codes that differ only by whitespace or case
+            program.plan_code = parent.plan_code
+            program.subplan_code = data['Subplan']
             self.programs_updated += 1
             program_exists = True
-        except Program.DoesNotExist:
+        else:
             program = Program(
                 name=unidecode(data['Subplan_Name']),
                 plan_code=parent.plan_code,
