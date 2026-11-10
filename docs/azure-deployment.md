@@ -1,6 +1,6 @@
 # Deploying the Search Service to Azure
 
-*Runbook for standing up the dev environment, November 2026. QA follows the same steps with `STAGE=qa` and shares dev's PostgreSQL server. Production cutover is not covered here — see the last section.*
+*Runbook for standing up the dev environment, November 2026. QA follows the same steps with `STAGE=qa` and shares dev's PostgreSQL server. The same deployment done in the Azure portal is in [azure-deployment-portal.md](azure-deployment-portal.md). Production cutover is not covered here — see the last section.*
 
 ## What this document is for
 
